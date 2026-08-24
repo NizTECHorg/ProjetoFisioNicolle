@@ -38,10 +38,62 @@ export interface PatientSession {
   notes: string | null
 }
 
+export interface SessionEvolution {
+  id: string
+  patientState: string
+  changesSinceLast: string | null
+  conducts: string
+  treatmentResponse: string | null
+  incidents: string | null
+  nextPlan: string | null
+  createdAt: string
+  createdByName: string | null
+}
+
+/** Sessão na aba Evoluções (com profissional e evolução quando houver). */
+export interface PatientSessionRecord {
+  id: string
+  patientId: string
+  scheduledAt: string
+  dateLabel: string
+  timeLabel: string
+  type: string
+  place: string
+  status: SessionStatus
+  therapistId: string | null
+  therapistName: string | null
+  evolution: SessionEvolution | null
+}
+
+export interface TherapistOption {
+  id: string
+  fullName: string
+}
+
+export type SessionFormMode = 'agendar' | 'realizada'
+
+export interface UpsertPatientSessionInput {
+  mode: SessionFormMode
+  scheduledAt: string
+  sessionType?: string
+  place?: string
+  therapistId: string
+  therapistName: string
+  patientState?: string
+  changesSinceLast?: string
+  conducts?: string
+  treatmentResponse?: string
+  incidents?: string
+  nextPlan?: string
+}
+
 export interface PatientAlert {
   id: string
   message: string
   tone: AlertTone
+  createdAt: string
+  createdById: string | null
+  createdByName: string | null
 }
 
 /** Lista enxuta — sem histórico clínico completo (LGPD + performance). */
@@ -69,6 +121,7 @@ export interface Patient {
   age: number | null
   birthDate: string
   birthDateRaw: string | null
+  startDateRaw: string | null
   phone: string
   email: string
   profession: string
@@ -99,6 +152,27 @@ export interface Patient {
   nextSession: PatientSession | null
 }
 
+/** Resumo enxuto para a abertura do paciente (REQ-02). */
+export interface PatientDashboard {
+  id: string
+  name: string
+  initials: string
+  photoTone: string
+  status: PatientStatus
+  code: string
+  phone: string
+  complaint: string
+  diagnosis: string
+  startDate: string
+  lastSessionLabel: string
+  sessionsDone: number
+  sessionsTotal: number
+  activeGoals: PatientGoal[]
+  alerts: PatientAlert[]
+  nextSession: PatientSession | null
+  lastSession: PatientSession | null
+}
+
 export interface CreatePatientInput {
   fullName: string
   phone?: string
@@ -113,7 +187,34 @@ export interface CreatePatientInput {
   therapistName?: string
 }
 
-export interface UpdatePatientInput extends CreatePatientInput {
+export interface UpdatePatientInput {
+  fullName?: string
+  phone?: string
+  email?: string
+  birthDate?: string
+  profession?: string
+  emergencyName?: string
+  emergencyPhone?: string
+  emergencyRelation?: string
+  adminNotes?: string
+  referralSource?: string
+  therapistName?: string
   status?: PatientStatus
   code?: string
+  treatmentStartedOn?: string
+  sessionsDone?: number
+  sessionsTotal?: number
+  frequency?: string
+  complaint?: string
+  diagnosis?: string
+}
+
+export interface CreatePatientAlertInput {
+  message: string
+  tone: AlertTone
+}
+
+export interface UpdatePatientAlertInput {
+  message: string
+  tone: AlertTone
 }

@@ -61,6 +61,8 @@ export async function createSession(input: {
   scheduledAt: string
   type: string
   place: string
+  therapistId?: string
+  therapistName?: string
 }) {
   const { error } = await supabase.from('patient_sessions').insert({
     patient_id: input.patientId,
@@ -68,6 +70,8 @@ export async function createSession(input: {
     session_type: input.type,
     place: input.place,
     status: 'agendada',
+    therapist_id: input.therapistId ?? null,
+    therapist_name: input.therapistName ?? null,
   })
   throwIfError(error)
 }
