@@ -22,6 +22,7 @@ import {
 import { PatientAlertsPanel } from '@/components/patients/PatientAlertsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
+import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhysicalEvaluationPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -34,7 +35,7 @@ import {
 import type { Patient, PatientDashboard, PatientPainLog } from '@/types/patient'
 
 const shortcuts = [
-  { label: 'Avaliação', detail: 'Em breve', icon: ClipboardList, path: 'avaliacoes' },
+  { label: 'Avaliação Física', detail: 'Abrir aba com IA', icon: ClipboardList, tab: 'avaliacao' as const },
   { label: 'Evoluções', detail: 'Abrir aba', icon: Stethoscope, tab: 'evolucoes' as const },
   { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
   { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
@@ -441,7 +442,13 @@ export function PatientPage() {
 
   const aba = searchParams.get('aba')
   const tab: PatientTab =
-    aba === 'cadastro' ? 'cadastro' : aba === 'evolucoes' ? 'evolucoes' : 'resumo'
+    aba === 'cadastro'
+      ? 'cadastro'
+      : aba === 'evolucoes'
+        ? 'evolucoes'
+        : aba === 'avaliacao'
+          ? 'avaliacao'
+          : 'resumo'
 
   const {
     data: dashboard,
@@ -466,6 +473,10 @@ export function PatientPage() {
     }
     if (next === 'evolucoes') {
       setSearchParams({ aba: 'evolucoes' }, { replace: true })
+      return
+    }
+    if (next === 'avaliacao') {
+      setSearchParams({ aba: 'avaliacao' }, { replace: true })
       return
     }
     setSearchParams({}, { replace: true })
@@ -528,6 +539,8 @@ export function PatientPage() {
           <ResumoPanel patient={dashboard} detail={detail} />
         ) : tab === 'evolucoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} />
+        ) : tab === 'avaliacao' ? (
+          <PatientPhysicalEvaluationPanel patientId={dashboard.id} patientName={dashboard.name} />
         ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />

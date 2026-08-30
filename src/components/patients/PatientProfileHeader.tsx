@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { statusLabels, type PatientStatus } from '@/types/patient'
 
-export type PatientTab = 'resumo' | 'cadastro' | 'evolucoes'
+export type PatientTab = 'resumo' | 'cadastro' | 'evolucoes' | 'avaliacao'
 
 type PatientProfileHeaderProps = {
   name: string
@@ -118,6 +118,20 @@ export function PatientProfileHeader({
               onClick={() => onTabChange('evolucoes')}
             >
               Evoluções
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'avaliacao'}
+              className={[
+                '-mb-px shrink-0 border-b-2 py-2.5 text-sm font-medium transition-colors',
+                activeTab === 'avaliacao'
+                  ? 'border-forest text-forest'
+                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+              ].join(' ')}
+              onClick={() => onTabChange('avaliacao')}
+            >
+              Avaliação Física
             </button>
           </nav>
         </div>
