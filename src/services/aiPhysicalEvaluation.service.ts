@@ -47,62 +47,89 @@ export async function analyzePhysicalEvaluationPdf(
   `
 
   if (apiKey) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: systemPrompt },
-                  {
-                    inline_data: {
-                      mime_type: file.type || 'application/pdf',
-                      data: base64Data,
-                    },
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              response_mime_type: 'application/json',
-            },
-          }),
-        },
-      )
+    const modelsToTry = [
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+      'gemini-2.5-flash',
+      'gemini-flash-latest',
+    ]
 
-      if (response.ok) {
-        const data = await response.json()
-        const rawJsonText = data.candidates?.[0]?.content?.parts?.[0]?.text
-        if (rawJsonText) {
-          const parsed = JSON.parse(rawJsonText)
-          return {
-            id: `eval_${Date.now()}`,
-            patientId,
-            fileName: file.name,
-            fileSize: formatBytes(file.size),
-            uploadedAt: new Date().toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
+    let lastErrorMsg = ''
+
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: systemPrompt },
+                    {
+                      inline_data: {
+                        mime_type: file.type || 'application/pdf',
+                        data: base64Data,
+                      },
+                    },
+                  ],
+                },
+              ],
+              generationConfig: {
+                response_mime_type: 'application/json',
+              },
             }),
-            summary: parsed.summary ?? 'Avaliação física processada.',
-            mainComplaint: parsed.mainComplaint ?? 'Não especificada no PDF.',
-            postureAndMovement: parsed.postureAndMovement ?? 'Sem observações.',
-            muscleForceAndTests: parsed.muscleForceAndTests ?? 'Testes padrão realizados.',
-            cinesiologicDiagnosis: parsed.cinesiologicDiagnosis ?? 'Avaliação fisioterapêutica completa.',
-            suggestedTreatmentPlan: parsed.suggestedTreatmentPlan ?? 'Seguir plano recomendado.',
-            suggestedGoals: Array.isArray(parsed.suggestedGoals) ? parsed.suggestedGoals : [],
+          },
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          const rawJsonText = data.candidates?.[0]?.content?.parts?.[0]?.text
+          if (rawJsonText) {
+            const parsed = JSON.parse(rawJsonText)
+            return {
+              id: `eval_${Date.now()}`,
+              patientId,
+              fileName: file.name,
+              fileSize: formatBytes(file.size),
+              uploadedAt: new Date().toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              summary: parsed.summary ?? 'Avaliação física processada.',
+              mainComplaint: parsed.mainComplaint ?? 'Não especificada no PDF.',
+              postureAndMovement: parsed.postureAndMovement ?? 'Sem observações.',
+              muscleForceAndTests: parsed.muscleForceAndTests ?? 'Testes padrão realizados.',
+              cinesiologicDiagnosis: parsed.cinesiologicDiagnosis ?? 'Avaliação fisioterapêutica completa.',
+              suggestedTreatmentPlan: parsed.suggestedTreatmentPlan ?? 'Seguir plano recomendado.',
+              suggestedGoals: Array.isArray(parsed.suggestedGoals) ? parsed.suggestedGoals : [],
+            }
           }
+        } else {
+          const errorJson = await response.json().catch(() => null)
+          lastErrorMsg = errorJson?.error?.message ?? `Erro HTTP ${response.status} no modelo ${modelName}`
+          if (response.status === 404) {
+            continue
+          }
+          throw new Error(`Falha no Google Gemini: ${lastErrorMsg}`)
         }
+      } catch (err: any) {
+        if (err?.message?.includes('Google Gemini')) {
+          throw err
+        }
+        lastErrorMsg = err?.message ?? 'Erro na conexão com a IA'
       }
-    } catch (err) {
-      console.warn('Falha na chamada da API do Gemini, usando gerador local com base no arquivo:', err)
+    }
+
+    if (lastErrorMsg) {
+      throw new Error(`Falha na IA do Google Gemini: ${lastErrorMsg}`)
     }
   }
 
