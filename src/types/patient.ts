@@ -1,6 +1,7 @@
 export type PatientStatus = 'em_tratamento' | 'avaliacao' | 'alta' | 'inativo'
 export type SessionStatus = 'agendada' | 'confirmada' | 'realizada' | 'cancelada' | 'faltou'
 export type AlertTone = 'info' | 'warning' | 'success'
+export type GoalStatus = 'em_andamento' | 'concluido'
 
 export const statusLabels: Record<PatientStatus, string> = {
   em_tratamento: 'Em tratamento',
@@ -9,9 +10,17 @@ export const statusLabels: Record<PatientStatus, string> = {
   inativo: 'Inativo',
 }
 
+export const goalStatusLabels: Record<GoalStatus, string> = {
+  em_andamento: 'Em andamento',
+  concluido: 'Concluído',
+}
+
 export interface PatientGoal {
   id: string
   title: string
+  status: GoalStatus
+  createdOn: string
+  achievedOn: string | null
   isDone: boolean
 }
 
@@ -217,4 +226,11 @@ export interface CreatePatientAlertInput {
 export interface UpdatePatientAlertInput {
   message: string
   tone: AlertTone
+}
+
+export interface UpsertPatientGoalInput {
+  title: string
+  status: GoalStatus
+  createdOn: string
+  achievedOn: string
 }

@@ -1,223 +1,317 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-08-23
+**Analysis Date:** 2026-09-04
 
 ## Directory Layout
 
 ```
-fisioterapia/
-├── index.html              # SPA HTML entry
-├── package.json            # Scripts and dependencies
-├── vite.config.ts          # Vite + Tailwind + `@` alias
-├── tsconfig.json           # Strict TS; paths `@/*` → `src/*`
-├── eslint.config.js        # ESLint flat config
-├── vercel.json             # SPA rewrite to index.html
-├── public/                 # Static assets (favicon, logo, `_redirects`)
-├── supabase/               # Manual SQL DDL for Supabase
-│   ├── schema.sql          # profiles / auth bootstrap
-│   ├── patients.sql        # patients clinical base
-│   ├── patients-req01.sql  # additive patient req
-│   ├── patients-req04-alerts.sql
-│   ├── board.sql
-│   └── board-due.sql
-├── .planning/              # GSD planning docs (incl. codebase maps)
-└── src/
-    ├── main.tsx            # React + QueryClient bootstrap
-    ├── App.tsx             # Env gate, router, auth, toasts
-    ├── index.css           # Design tokens / Tailwind entry
-    ├── vite-env.d.ts
-    ├── config/             # Env + navigation
-    ├── routes/             # Route table
-    ├── providers/          # React context providers
-    ├── pages/              # Route-level screens
-    │   └── auth/           # Login / register
-    ├── components/         # UI by concern
-    │   ├── auth/
-    │   ├── brand/
-    │   ├── layout/
-    │   ├── patients/
-    │   ├── dashboard/      # Legacy sales chart (bakery)
-    │   └── ui/
-    ├── hooks/              # React Query + auth hooks
-    ├── services/           # Supabase domain I/O
-    ├── schemas/            # Zod validators
-    ├── types/              # TS domain + DB types
-    ├── stores/             # Zustand (toast only)
-    ├── lib/                # Client, security, helpers
-    │   ├── supabase/
-    │   └── security/
-    └── data/               # Empty placeholder (no fixtures yet)
+ProjetoFisioNicolle/
+├── index.html              # SPA shell, CSP, fonts, title FLUXO
+├── vite.config.ts          # React + Tailwind plugins, `@` → `src/`
+├── tsconfig.json           # Strict TS, `paths`: `@/*` → `src/*`
+├── tsconfig.node.json      # Vite config TS
+├── eslint.config.js        # Flat ESLint
+├── package.json            # App name `fluxo`; npm scripts
+├── netlify.toml            # Build + SPA rewrite + security headers
+├── vercel.json             # SPA rewrite
+├── public/                 # Favicons + `_redirects`
+├── src/                    # Application code (only tree compiled by `tsc`)
+│   ├── main.tsx            # React root + QueryClient
+│   ├── App.tsx             # Env gate + providers
+│   ├── index.css           # Tailwind v4 theme tokens
+│   ├── vite-env.d.ts
+│   ├── assets/brand/       # Canonical logo files used by BrandWordmark
+│   ├── Logos/              # Duplicate raster logos — do not import
+│   ├── config/             # env + navigation
+│   ├── routes/             # Route tree only
+│   ├── providers/          # AuthProvider
+│   ├── pages/              # Route screens (+ leftover bakery screens)
+│   ├── pages/auth/         # Login + register
+│   ├── components/
+│   │   ├── auth/           # Gates + AuthLayout
+│   │   ├── brand/          # BrandWordmark
+│   │   ├── dashboard/      # Leftover SalesChart (unreferenced)
+│   │   ├── layout/         # AppShell (+ unused GlobalSearch/Notifications)
+│   │   ├── patients/       # Ficha panels
+│   │   └── ui/             # Shared primitives
+│   ├── hooks/              # TanStack Query + useAuth
+│   ├── services/           # Supabase access
+│   ├── schemas/            # Zod
+│   ├── stores/             # Zustand (toast only)
+│   ├── types/              # UI + leftover Database types
+│   └── lib/
+│       ├── supabase/       # Client singleton
+│       ├── security/       # Sanitize, rate limit, error maps
+│       ├── permissions.ts  # Leftover bakery role checks
+│       ├── labels.tsx      # Leftover bakery badges
+│       └── avatar.ts       # Initials + tone → color
+├── supabase/               # Gitignored at `/supabase/`; local SQL only
+│   └── patients-req05-evaluations.sql
+├── .planning/              # GSD roadmap, requirements, codebase maps
+├── .cursor/                # GSD skills/workflows
+└── dist/                   # Vite output (gitignored)
 ```
 
 ## Directory Purposes
 
 **`src/pages/`:**
-- Purpose: One screen per route (or thin redirect/stub wrappers)
-- Contains: `*Page.tsx` files; clinic pages are active; bakery pages exist but are unrouted
-- Key files: `PatientsPage.tsx`, `PatientPage.tsx`, `CalendarPage.tsx`, `KanbanPage.tsx`, `DashboardPage.tsx`, `SetupPage.tsx`, `auth/LoginPage.tsx`, `auth/RegisterPage.tsx`
+- Purpose: One file per routed screen (plus leftover unrouted bakery screens).
+- Contains: `*Page.tsx` components that own page-level layout, forms, and hook wiring.
+- Key files: `src/pages/DashboardPage.tsx`, `src/pages/PatientsPage.tsx`, `src/pages/PatientPage.tsx`, `src/pages/CalendarPage.tsx`, `src/pages/KanbanPage.tsx`, `src/pages/SetupPage.tsx`, `src/pages/auth/LoginPage.tsx`, `src/pages/auth/RegisterPage.tsx`
 
-**`src/components/`:**
-- Purpose: Reusable UI and feature panels (not route owners)
-- Contains: `ui/` primitives, `patients/` feature panels, `layout/` shell, `auth/` guards/layout, `brand/`
-- Key files: `layout/AppShell.tsx`, `auth/ProtectedRoute.tsx`, `patients/PatientCadastroPanel.tsx`, `patients/PatientAlertsPanel.tsx`, `patients/PatientProfileHeader.tsx`
+**`src/pages/auth/`:**
+- Purpose: Unauthenticated screens using `AuthLayout`.
+- Contains: login and register only.
+- Key files: `src/pages/auth/LoginPage.tsx`, `src/pages/auth/RegisterPage.tsx`
+
+**`src/components/patients/`:**
+- Purpose: Ficha feature panels composed by `PatientPage`.
+- Contains: header + tab panels. Import hooks from `src/hooks/usePatients.ts`, not services (except AI PDF).
+- Key files: `src/components/patients/PatientProfileHeader.tsx`, `src/components/patients/PatientCadastroPanel.tsx`, `src/components/patients/PatientAlertsPanel.tsx`, `src/components/patients/PatientEvolutionsPanel.tsx`, `src/components/patients/PatientEvaluationPanel.tsx`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`
+
+**`src/components/ui/`:**
+- Purpose: Reusable primitives. No domain fetches.
+- Contains: `Button`, `Input`, `Select`, `Textarea`, `Modal`, `ConfirmDialog`, `PageHeader`, `Badge`, `DataTable`, `PatientAvatar`, `ToastViewport`.
+- Key files: `src/components/ui/Button.tsx`, `src/components/ui/PageHeader.tsx`, `src/components/ui/Modal.tsx`
+
+**`src/components/layout/`:**
+- Purpose: App chrome.
+- Contains: `AppShell` (in use). `GlobalSearch.tsx` and `NotificationsMenu.tsx` are leftover bakery chrome — not mounted in `AppShell`.
+- Key files: `src/components/layout/AppShell.tsx`
+
+**`src/components/auth/`:**
+- Purpose: Route gates and login card layout.
+- Contains: `ProtectedRoute` / `GuestRoute`, `AuthLayout`.
+- Key files: `src/components/auth/ProtectedRoute.tsx`, `src/components/auth/AuthLayout.tsx`
 
 **`src/hooks/`:**
-- Purpose: Data-fetching and auth consumption APIs for UI
-- Contains: Domain hooks + legacy mega-hook file
-- Key files: `usePatients.ts`, `useClinic.ts`, `useAuth.ts`, `queries.ts` (legacy bakery)
+- Purpose: React Query wrappers and `useAuth`.
+- Contains: clinic hooks in `usePatients.ts` and `useClinic.ts`. `queries.ts` is leftover bakery — do not add clinic keys there.
+- Key files: `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`, `src/hooks/useAuth.ts`
 
 **`src/services/`:**
-- Purpose: All Supabase reads/writes and row mapping
-- Contains: `*.service.ts` modules
-- Key files: `patients.service.ts`, `calendar.service.ts`, `board.service.ts`, `auth.service.ts`, `modules.service.ts` (legacy)
+- Purpose: All Supabase/Auth/Gemini I/O and row mapping.
+- Contains: `*.service.ts`. One clinic domain per file.
+- Key files: `src/services/auth.service.ts`, `src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/evaluations.service.ts`, `src/services/calendar.service.ts`, `src/services/board.service.ts`, `src/services/aiPhysicalEvaluation.service.ts`
 
 **`src/schemas/`:**
-- Purpose: Zod schemas for forms and boundary validation
-- Contains: `auth.schema.ts`, `patient.schema.ts`, `modules.schema.ts` (legacy)
+- Purpose: Zod contracts for forms (and auth re-parse in the service).
+- Contains: `*.schema.ts` exporting schemas + `z.infer` types.
+- Key files: `src/schemas/auth.schema.ts`, `src/schemas/patient.schema.ts`, `src/schemas/evaluation.schema.ts`, `src/schemas/modules.schema.ts` (leftover)
 
 **`src/types/`:**
-- Purpose: Shared TypeScript models
-- Contains: `patient.ts` (clinic domain), `database.types.ts` (profiles + bakery schema typings)
-
-**`src/config/`:**
-- Purpose: App configuration constants
-- Contains: `env.ts` (Supabase URL/key presence), `navigation.ts` (sidebar/mobile items)
+- Purpose: UI-facing clinic models and leftover generated-style `Database` types.
+- Contains: `patient.ts`, `evaluation.ts`, `database.types.ts`.
+- Key files: `src/types/patient.ts`, `src/types/evaluation.ts`
 
 **`src/lib/`:**
-- Purpose: Cross-cutting utilities without React Query
-- Contains: Supabase client, security helpers, permissions, avatar, labels
-- Key files: `supabase/client.ts`, `security/index.ts`, `permissions.ts`
+- Purpose: Non-React shared utilities and the Supabase client.
+- Contains: `supabase/client.ts`, `security/index.ts`, `avatar.ts`, leftover `permissions.ts` / `labels.tsx`.
+- Key files: `src/lib/supabase/client.ts`, `src/lib/security/index.ts`
+
+**`src/config/`:**
+- Purpose: Boot-time configuration.
+- Contains: env validation and nav items.
+- Key files: `src/config/env.ts`, `src/config/navigation.ts`
 
 **`src/providers/`:**
-- Purpose: Top-level React context providers
-- Contains: `AuthProvider.tsx`
+- Purpose: Tree-wide React providers besides QueryClient (which is in `main.tsx`).
+- Contains: `AuthProvider` only.
+- Key files: `src/providers/AuthProvider.tsx`
 
 **`src/stores/`:**
-- Purpose: Client UI state stores
-- Contains: `toast.store.ts` only
+- Purpose: Client UI state that is not server cache.
+- Contains: toast store only. Do not put patient data here.
+- Key files: `src/stores/toast.store.ts`
 
 **`src/routes/`:**
-- Purpose: Central route definitions
-- Contains: `index.tsx` exporting `AppRoutes`
+- Purpose: The only place that binds paths to pages.
+- Contains: `index.tsx` exporting `AppRoutes`.
+- Key files: `src/routes/index.tsx`
+
+**`src/assets/brand/`:**
+- Purpose: Canonical brand images imported by `src/components/brand/BrandWordmark.tsx`.
+- Contains: `logomark.png`, `logotype.png`, `logo.png`, on-dark variants.
+- Key files: `src/assets/brand/logotype.png`
 
 **`supabase/`:**
-- Purpose: Source-of-truth SQL to apply manually in Supabase
-- Contains: Bootstrap + patient + board scripts (not auto-migrated by the app)
+- Purpose: Ad-hoc SQL (directory is listed in `.gitignore` as `/supabase/`).
+- Contains: `patients-req05-evaluations.sql`. There is no `supabase/migrations/` tree in the workspace despite `SetupPage` mentioning it.
+- Key files: `supabase/patients-req05-evaluations.sql`
 
-**`public/`:**
-- Purpose: Static files copied as-is by Vite
-- Contains: Favicons, logo, Netlify-style `_redirects`
+**`.planning/`:**
+- Purpose: GSD project memory (requirements, roadmap, phase plans, codebase maps).
+- Contains: `PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`, `STATE.md`, `codebase/`, `phases/`.
+- Key files: `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/STRUCTURE.md`
 
 ## Key File Locations
 
 **Entry Points:**
-- `index.html`: HTML shell
-- `src/main.tsx`: React mount + QueryClient
-- `src/App.tsx`: Configured app vs setup screen
-- `src/routes/index.tsx`: Route tree
+- `index.html`: document, CSP (`connect-src` includes `*.supabase.co` and `generativelanguage.googleapis.com`)
+- `src/main.tsx`: `createRoot`, `QueryClientProvider`
+- `src/App.tsx`: env gate + router + auth
+- `src/routes/index.tsx`: route table
 
 **Configuration:**
-- `vite.config.ts`: Aliases, security headers (dev), chunk split
-- `tsconfig.json`: Strict TS + `@/*` paths
-- `src/config/env.ts`: `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
-- `src/config/navigation.ts`: Nav items for `AppShell`
-- `vercel.json`: Client-side routing rewrite
+- `src/config/env.ts`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `isConfigured`
+- `src/config/navigation.ts`: `/painel`, `/pacientes`, `/agenda`, `/quadro`
+- `vite.config.ts`: `@` alias, vendor/supabase manual chunks, dev security headers
+- `tsconfig.json`: `@/*` paths, `include: ["src"]`
+- `netlify.toml` / `vercel.json` / `public/_redirects`: SPA fallback
+- `.env` present locally (gitignored) — environment configuration; never commit or quote values
 
 **Core Logic:**
-- `src/services/patients.service.ts`: Patient list/detail/dashboard/alerts CRUD
-- `src/services/calendar.service.ts`: Session scheduling queries
-- `src/services/board.service.ts`: Kanban columns/cards
-- `src/services/auth.service.ts`: Sign-in/up/out + profile fetch
-- `src/hooks/usePatients.ts` / `useClinic.ts`: Query keys for clinic features
+- `src/lib/supabase/client.ts`: `getSupabase()` / `supabase` Proxy
+- `src/services/patients.service.ts`: patient CRUD + dashboard + alerts
+- `src/services/sessions.service.ts`: sessions + evolutions
+- `src/services/evaluations.service.ts`: structured evaluations
+- `src/services/calendar.service.ts`: agenda range
+- `src/services/board.service.ts`: quadro
+- `src/hooks/usePatients.ts` / `src/hooks/useClinic.ts`: cache + invalidate
+
+**Active clinic routes (only these are mounted):**
+- `/` → `src/pages/auth/LoginPage.tsx`
+- `/cadastro` → `src/pages/auth/RegisterPage.tsx`
+- `/painel` → `src/pages/DashboardPage.tsx`
+- `/pacientes` → `src/pages/PatientsPage.tsx`
+- `/pacientes/:id` → `src/pages/PatientPage.tsx` (`?aba=cadastro|evolucoes|avaliacao`)
+- `/pacientes/:id/cadastro` → `src/pages/PatientCadastroPage.tsx` (redirect)
+- `/pacientes/:id/:module` → `src/pages/PatientModuleStubPage.tsx`
+- `/agenda` → `src/pages/CalendarPage.tsx`
+- `/quadro` → `src/pages/KanbanPage.tsx`
+
+**Leftover unrouted bakery screens (do not wire unless reviving that product):**
+- `src/pages/BlankPage.tsx`, `src/pages/ClientsPage.tsx`, `src/pages/CouponsPage.tsx`, `src/pages/DeliveriesPage.tsx`, `src/pages/EmployeesPage.tsx`, `src/pages/FinancePage.tsx`, `src/pages/OrdersPage.tsx`, `src/pages/ProductionPage.tsx`, `src/pages/ProductsPage.tsx`, `src/pages/RecipesPage.tsx`, `src/pages/ReportsPage.tsx`, `src/pages/SettingsPage.tsx`, `src/pages/ShoppingPage.tsx`, `src/pages/StockPage.tsx`, `src/pages/TasksPage.tsx`
 
 **Testing:**
-- Not detected — no `*.test.*` / `*.spec.*` or test runner config in package scripts
+- No `*.test.*` / `*.spec.*` files and no Vitest/Jest config. New tests should go in `src/**/__tests__/` or beside the file as `*.test.ts` once a runner is added (see `TESTING.md`).
 
 ## Naming Conventions
 
 **Files:**
-- Pages: `PascalCase` + `Page` suffix — `PatientsPage.tsx`, `LoginPage.tsx`
-- Components: `PascalCase` — `AppShell.tsx`, `Button.tsx`
-- Hooks: `use` + camelCase — `usePatients.ts`, `useClinic.ts`
-- Services: kebab/camel domain + `.service.ts` — `patients.service.ts`
-- Schemas: domain + `.schema.ts` — `patient.schema.ts`
-- Stores: domain + `.store.ts` — `toast.store.ts`
-- Types: domain noun — `patient.ts`, `database.types.ts`
-- SQL: descriptive kebab — `patients-req04-alerts.sql`
+- React component / page: `PascalCase.tsx` — `PatientsPage.tsx`, `PatientAlertsPanel.tsx`, `Button.tsx`
+- Service: `camelCase.service.ts` — `patients.service.ts`
+- Schema: `camelCase.schema.ts` — `patient.schema.ts`
+- Store: `camelCase.store.ts` — `toast.store.ts`
+- Hook module: `usePascalCase.ts` or a focused name (`usePatients.ts`, `useClinic.ts`, `useAuth.ts`)
+- Types: singular domain noun — `patient.ts`, `evaluation.ts`
+- Do not add barrel `index.ts` files. Import the concrete path: `@/services/patients.service`.
 
 **Directories:**
-- Lowercase plural or concern name: `pages`, `components`, `hooks`, `services`
-- Feature subfolders under components: `patients`, `auth`, `layout`, `ui`
+- lowercase plural for collections: `pages/`, `components/`, `hooks/`, `services/`, `schemas/`, `types/`, `stores/`
+- Feature grouping under `components/<area>/`: `patients`, `auth`, `layout`, `ui`, `brand`
+- Auth pages live in `pages/auth/`, not `components/auth/`
 
 **Symbols:**
-- Components/pages: `PascalCase` exports matching filename
-- Functions: `camelCase` (`listPatients`, `signInWithEmail`)
-- Types/interfaces: `PascalCase` (`Patient`, `PatientListItem`)
-- Constants: `camelCase` or `SCREAMING` for closed sets as needed (`LIST_COLUMNS` in services)
-- Query keys: string arrays like `['patients']`, `['board']`, `['calendar-sessions', from, to]`
+- Components: `PascalCase` — `export function PatientsPage`
+- Functions: `camelCase` — `listPatients`, `createPatientAlert`
+- Query keys: lowercase path segments — `['patients', id, 'evaluations']`
+- UI types: `PascalCase` — `Patient`, `PatientListItem`
+- Zod inferred types: `*FormData` — `CreatePatientFormData`
+- DB row helpers inside services: `*Row` — `PatientRow` (keep private to the service)
+
+**URLs:**
+- Portuguese path segments: `/painel`, `/pacientes`, `/agenda`, `/quadro`, `/cadastro`
+- Patient submodules: `/pacientes/:id/<modulo>` stubs (`reavaliacoes`, `exercicios`, `documentos`, `financeiro`)
+- Tab state: `?aba=` not nested routes for built modules
+
+**Imports:**
+- Always `@/` alias (`tsconfig.json`, `vite.config.ts`). Do not use `../` hops across `src/` roots.
+- Order used in clinic files: external packages → `@/components` → `@/hooks` → `@/services` / `@/schemas` / `@/types` → `@/lib` / `@/stores`.
 
 ## Where to Add New Code
 
-**New clinic feature (preferred path):**
-1. Types in `src/types/` (new file or extend `patient.ts` if patient-scoped)
-2. Zod schemas in `src/schemas/` if forms are involved
-3. Service functions in `src/services/<domain>.service.ts`
-4. Hooks in `src/hooks/use<Domain>.ts` (or extend `useClinic` / `usePatients` if tightly related)
-5. UI: feature components under `src/components/<domain>/`, page under `src/pages/`
-6. Register route in `src/routes/index.tsx` and nav item in `src/config/navigation.ts`
-7. SQL DDL additive script under `supabase/` if schema changes
+**New top-level clinic screen (e.g. Relatórios clínicos):**
+- Types: `src/types/<domain>.ts`
+- Schema (if forms): `src/schemas/<domain>.schema.ts`
+- Service: `src/services/<domain>.service.ts` (map rows; throw `Error`)
+- Hooks: new `src/hooks/use<Domain>.ts` **or** extend `src/hooks/useClinic.ts` if it is agenda/board-adjacent
+- Page: `src/pages/<Name>Page.tsx`
+- Route: register inside the `ProtectedRoute` + `AppShell` tree in `src/routes/index.tsx`
+- Nav: add to both arrays in `src/config/navigation.ts`
+- Tests: not established — add beside the service/hook when a runner exists
 
-**New shared UI primitive:**
+**New patient module that is ready to ship:**
+- Panel: `src/components/patients/Patient<Module>Panel.tsx`
+- Tab: extend `PatientTab` in `src/components/patients/PatientProfileHeader.tsx` and the `?aba=` switch in `src/pages/PatientPage.tsx`
+- Data: functions in the matching service + hooks in `src/hooks/usePatients.ts` with keys `['patients', id, '<module>']`
+- Invalidate: add the new key to `invalidatePatient` in `src/hooks/usePatients.ts` if writes should refresh the ficha/agenda
+
+**New patient module that is not ready:**
+- Add the slug to `MODULE_TITLES` in `src/pages/PatientModuleStubPage.tsx`
+- Link from resumo shortcuts in `src/pages/PatientPage.tsx` using `path: '<slug>'` (not `tab`)
+- Do not add an empty table wrapper page
+
+**New UI primitive:**
 - Implementation: `src/components/ui/<Name>.tsx`
-- Match existing Button/Input/Modal patterns (forwardRef where needed)
+- Use existing tokens from `src/index.css` (`bg-surface`, `border-line`, `text-ink`, `text-forest`)
 
-**New auth-related helper:**
-- Prefer `src/lib/security/index.ts` for sanitization/redirect/error mapping
-- Auth API calls stay in `src/services/auth.service.ts`
+**New Zod schema:**
+- Implementation: `src/schemas/<domain>.schema.ts`
+- Export both the schema and `type XFormData = z.infer<typeof xSchema>`
 
 **Utilities:**
-- Shared helpers: `src/lib/`
-- Do not put Supabase queries in `lib/` — those belong in `services/`
+- Pure / security / format: `src/lib/security/index.ts` or a new `src/lib/<name>.ts`
+- Avatar helpers: `src/lib/avatar.ts`
+- Do not put fetch logic in `src/lib/`
 
-**Legacy bakery modules:**
-- Existing code lives in `src/pages/*Page.tsx` (products, orders, etc.), `src/services/modules.service.ts`, `src/hooks/queries.ts`, `src/schemas/modules.schema.ts`
-- Do not extend these for physiotherapy features; treat as inactive unless a deliberate product decision re-activates them
+**SQL:**
+- Keep scripts under `supabase/` if working locally, and remember `/supabase/` is gitignored. Document the SQL Editor steps in the phase plan so the remote schema is reproducible.
+- Table names: `patient_*` / `board_*` already in use. Follow that prefix.
 
-**Tests (when introduced):**
-- Prefer co-located `*.test.ts(x)` next to the unit under test, or `src/**/__tests__/` — no established convention yet
+**Do not:**
+- Add clinic CRUD to `src/services/modules.service.ts` or `src/hooks/queries.ts`
+- Import `@/lib/supabase/client` from `src/pages/` or `src/components/`
+- Create `src/services/index.ts` barrels
+- Put new logos in `src/Logos/` — use `src/assets/brand/`
+- Add a second toast/auth store
+- Register leftover bakery pages in `src/routes/index.tsx`
 
 ## Special Directories
 
-**`supabase/`:**
-- Purpose: Manual SQL for operators to paste into Supabase SQL Editor
+**`src/Logos/`:**
+- Purpose: Duplicate PNG wordmarks.
 - Generated: No
 - Committed: Yes
+- Use `src/assets/brand/` instead (`BrandWordmark` already does).
+
+**`src/pages/` leftover bakery files:**
+- Purpose: Previous product screens still compiling.
+- Generated: No
+- Committed: Yes
+- Treat as frozen. Delete only in an explicit cleanup phase.
+
+**`supabase/`:**
+- Purpose: Local SQL snippets.
+- Generated: No
+- Committed: No (root `.gitignore` entry `/supabase/`). `src/lib/supabase/` is the client and is committed.
 
 **`dist/`:**
-- Purpose: Vite production build output
-- Generated: Yes
-- Committed: No (build artifact)
+- Purpose: Vite production build.
+- Generated: Yes (`npm run build`)
+- Committed: No
 
 **`node_modules/`:**
-- Purpose: npm packages
+- Purpose: npm install
 - Generated: Yes
 - Committed: No
 
-**`src/data/`:**
-- Purpose: Intended for static fixtures/seed data
-- Generated: No
-- Committed: Yes (currently empty)
-
 **`.planning/`:**
-- Purpose: GSD planning and codebase analysis documents
-- Generated: By GSD workflows
-- Committed: Typically yes for team shared planning
+- Purpose: GSD planning artifacts consumed by later commands.
+- Generated: No (authored)
+- Committed: Yes
 
-**`.env` / `.env.*`:**
-- Purpose: Local Vite secrets (`VITE_SUPABASE_*`)
-- Generated: No (developer-created)
-- Committed: No — never commit secrets; note existence only
+**`.cursor/`:**
+- Purpose: GSD skills, agents, workflows.
+- Generated: No
+- Committed: Yes
+
+**`.env` / `.env.local`:**
+- Purpose: Vite env (Supabase URL/anon key; optional `VITE_GEMINI_API_KEY`).
+- Generated: No
+- Committed: No (`.gitignore`)
+- `SetupPage` tells developers to copy `.env.example` — that example file is not in the tree.
 
 ---
 
-*Structure analysis: 2026-08-23*
+*Structure analysis: 2026-09-04*

@@ -8,7 +8,24 @@
 ### Prontuário clínico
 
 - [x] **REQ-08**: Evolução individual de cada sessão (entregue; SQL no Supabase)
-- [ ] **REQ-05**: Registro da avaliação inicial estruturada, vinculada à data em que foi realizada
+- [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
+- [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-14 — Metas do tratamento
+
+**Indispensável · Artur**
+
+Permitir criar objetivos específicos para cada paciente e acompanhar seu status: não iniciado, em andamento e atingido. Deve ser possível registrar quando um objetivo foi criado e quando foi atingido.
+
+O prontuário acompanha não apenas o que foi feito, mas para onde o tratamento está caminhando.
+
+### Acceptance
+
+1. Na ficha do paciente, o profissional cria e edita metas específicas.
+2. Cada meta tem um status: não iniciado, em andamento ou atingido.
+3. A data de criação da meta é registrada e visível.
+4. Quando o status passa a atingido, fica registrada a data em que foi atingida.
+5. Metas persistem no Supabase, sem dados mockados.
 
 ## REQ-05 — Registro da avaliação inicial
 
@@ -51,5 +68,6 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REQ-05 | Phase 1 | In progress |
+| REQ-14 | Phase 2 | Pending |
+| REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |
 | REQ-08 | Prior | Delivered |

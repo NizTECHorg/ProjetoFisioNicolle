@@ -100,6 +100,7 @@ export function CalendarPage() {
   const daySessions = sessions.filter((session) => sameDay(new Date(session.scheduledAt), selected))
   const dayDues = dueCards.filter((card) => card.dueOn === selectedKey)
   const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(cursor)
+  const isCurrentMonth = cursor.getFullYear() === today.getFullYear() && cursor.getMonth() === today.getMonth()
   const upcomingDues = [...dueCards].sort((a, b) => a.dueOn.localeCompare(b.dueOn))
 
   function goToDue(dueOn: string) {
@@ -161,16 +162,18 @@ export function CalendarPage() {
             </button>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold capitalize text-ink">{monthLabel}</h2>
-              <button
-                type="button"
-                className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-forest"
-                onClick={() => {
-                  setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
-                  setSelected(today)
-                }}
-              >
-                Hoje
-              </button>
+              {isCurrentMonth ? (
+                <button
+                  type="button"
+                  className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-forest"
+                  onClick={() => {
+                    setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
+                    setSelected(today)
+                  }}
+                >
+                  Hoje
+                </button>
+              ) : null}
             </div>
             <button
               type="button"

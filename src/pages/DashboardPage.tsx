@@ -166,12 +166,15 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
   if (!first || !last) return null
   const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
   const area = `${line} L ${last.x} ${pad.t + innerH} L ${first.x} ${pad.t + innerH} Z`
-  const hovered = hover === null ? undefined : points[hover]
-  const active = hovered ?? points.reduce((best, point) => (point.value > best.value ? point : best), first)
+  const active = hover === null ? undefined : points[hover]
   const ticks = [0, Math.round(max / 3), Math.round((max * 2) / 3), max]
+  const tooltipW = 104
+  const tooltipH = 28
+  const tooltipX = active ? Math.max(6, Math.min(active.x - tooltipW / 2, width - tooltipW - 6)) : 0
+  const tooltipY = active ? Math.max(4, active.y - tooltipH - 10) : 0
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" className="dash-chart block h-56 w-full lg:h-full lg:min-h-[10rem]">
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" overflow="visible" className="dash-chart block h-56 w-full overflow-visible lg:h-full lg:min-h-[10rem]">
       {ticks.map((tick) => {
         const y = pad.t + innerH - (tick / max) * innerH
         return (
@@ -208,17 +211,19 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
           </text>
         </g>
       ))}
-      <g>
-        <rect x={Math.min(active.x - 52, width - 120)} y={active.y - 40} width="104" height="28" rx="10" fill="#0b1d36" />
-        <text
-          x={Math.min(active.x, width - 68)}
-          y={active.y - 22}
-          textAnchor="middle"
-          className="fill-white text-[10px] font-medium"
-        >
-          {active.value} {active.value === 1 ? 'sessão' : 'sessões'}
-        </text>
-      </g>
+      {active ? (
+        <g>
+          <rect x={tooltipX} y={tooltipY} width={tooltipW} height={tooltipH} rx="10" fill="#0b1d36" />
+          <text
+            x={tooltipX + tooltipW / 2}
+            y={tooltipY + 18}
+            textAnchor="middle"
+            className="fill-white text-[10px] font-medium"
+          >
+            {active.value} {active.value === 1 ? 'sessão' : 'sessões'}
+          </text>
+        </g>
+      ) : null}
     </svg>
   )
 }

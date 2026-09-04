@@ -2,12 +2,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createPatient,
   createPatientAlert,
+  createPatientGoal,
   deletePatientAlert,
+  deletePatientGoal,
   getPatientById,
   getPatientDashboard,
   listPatients,
   updatePatient,
   updatePatientAlert,
+  updatePatientGoal,
 } from '@/services/patients.service'
 import {
   createPatientSession,
@@ -27,6 +30,7 @@ import type {
   CreatePatientInput,
   UpdatePatientAlertInput,
   UpdatePatientInput,
+  UpsertPatientGoalInput,
   UpsertPatientSessionInput,
 } from '@/types/patient'
 import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
@@ -127,6 +131,43 @@ export function useDeletePatientAlert(patientId: string) {
     onSuccess: () => {
       invalidatePatient(qc, patientId)
       toast('Alerta removido', 'success')
+    },
+    onError,
+  })
+}
+
+export function useCreatePatientGoal(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpsertPatientGoalInput) => createPatientGoal(patientId, input),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast('Meta criada', 'success')
+    },
+    onError,
+  })
+}
+
+export function useUpdatePatientGoal(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ goalId, input }: { goalId: string; input: UpsertPatientGoalInput }) =>
+      updatePatientGoal(goalId, input),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast('Meta atualizada', 'success')
+    },
+    onError,
+  })
+}
+
+export function useDeletePatientGoal(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (goalId: string) => deletePatientGoal(goalId),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast('Meta removida', 'success')
     },
     onError,
   })

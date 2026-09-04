@@ -8,7 +8,6 @@ import {
   CreditCard,
   Dumbbell,
   FileText,
-  Flag,
   Pencil,
   RefreshCw,
   Sparkles,
@@ -20,6 +19,7 @@ import {
   type PatientTab,
 } from '@/components/patients/PatientProfileHeader'
 import { PatientAlertsPanel } from '@/components/patients/PatientAlertsPanel'
+import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
@@ -32,7 +32,7 @@ import {
   caseUnderstandingSchema,
   type CaseUnderstandingFormData,
 } from '@/schemas/patient.schema'
-import type { Patient, PatientDashboard, PatientPainLog } from '@/types/patient'
+import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPainLog } from '@/types/patient'
 
 const shortcuts = [
   { label: 'Avaliação', detail: 'Registro inicial', icon: ClipboardList, tab: 'avaliacao' as const },
@@ -192,8 +192,11 @@ function EntendaOCaso({
               <li className="text-muted">Nenhum objetivo ativo.</li>
             ) : (
               patient.activeGoals.map((goal) => (
-                <li key={goal.id} className="line-clamp-2">
-                  {goal.title}
+                <li key={goal.id} className="flex items-start justify-between gap-2">
+                  <span className="line-clamp-2">{goal.title}</span>
+                  <span className="shrink-0 text-[10px] font-medium text-muted">
+                    {goalStatusLabels[goal.status]}
+                  </span>
                 </li>
               ))
             )}
@@ -273,7 +276,13 @@ function EntendaOCaso({
   )
 }
 
-function ResumoDoPaciente({ detail }: { detail: Patient | null | undefined }) {
+function ResumoDoPaciente({
+  patientId,
+  detail,
+}: {
+  patientId: string
+  detail: Patient | null | undefined
+}) {
   if (!detail) {
     return (
       <article className="rounded-2xl border border-line bg-surface p-6">
@@ -355,28 +364,7 @@ function ResumoDoPaciente({ detail }: { detail: Patient | null | undefined }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-line p-4">
-            <div className="flex items-center gap-2">
-              <Flag size={14} className="text-accent" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
-                Todos os objetivos
-              </p>
-            </div>
-            <ul className="mt-3 space-y-2 text-sm">
-              {detail.goals.length === 0 ? (
-                <li className="text-muted">Sem objetivos cadastrados.</li>
-              ) : (
-                detail.goals.map((goal) => (
-                  <li
-                    key={goal.id}
-                    className={goal.isDone ? 'text-muted line-through' : 'text-ink'}
-                  >
-                    {goal.title}
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
+          <PatientGoalsPanel patientId={patientId} goals={detail.goals} />
         </div>
       </div>
     </article>
@@ -400,7 +388,7 @@ function ResumoPanel({
         </div>
       </div>
 
-      <ResumoDoPaciente detail={detail} />
+      <ResumoDoPaciente patientId={patient.id} detail={detail} />
 
       <div>
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Atalhos</p>

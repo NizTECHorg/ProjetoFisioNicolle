@@ -3,14 +3,17 @@ import type {
   AlertTone,
   CreatePatientAlertInput,
   CreatePatientInput,
+  GoalStatus,
   Patient,
   PatientAlert,
   PatientDashboard,
+  PatientGoal,
   PatientListItem,
   PatientStatus,
   SessionStatus,
   UpdatePatientAlertInput,
   UpdatePatientInput,
+  UpsertPatientGoalInput,
 } from '@/types/patient'
 interface PatientRow {
   id: string
@@ -56,10 +59,15 @@ interface ListPatientRow {
   sessions_planned: number
 }
 
+const GOAL_COLUMNS = 'id, title, status, is_done, created_on, achieved_on, sort_order'
+
 interface GoalRow {
   id: string
   title: string
+  status: GoalStatus | null
   is_done: boolean
+  created_on: string | null
+  achieved_on: string | null
   sort_order: number
 }
 
@@ -181,6 +189,32 @@ function mapAlert(alert: AlertRow): PatientAlert {
   }
 }
 
+function mapGoal(goal: GoalRow): PatientGoal {
+  const status: GoalStatus =
+    goal.status === 'concluido' || goal.status === 'atingido' || goal.is_done
+      ? 'concluido'
+      : 'em_andamento'
+  return {
+    id: goal.id,
+    title: goal.title,
+    status,
+    createdOn: goal.created_on ?? '',
+    achievedOn: goal.achieved_on,
+    isDone: status === 'concluido',
+  }
+}
+
+function goalPayload(input: UpsertPatientGoalInput) {
+  const status = input.status
+  return {
+    title: input.title.trim(),
+    status,
+    is_done: status === 'concluido',
+    created_on: input.createdOn,
+    achieved_on: emptyToNull(input.achievedOn),
+  }
+}
+
 function pickUpcoming(sessions: SessionRow[]) {
   return sessions
     .filter((session) => session.status === 'agendada' || session.status === 'confirmada')
@@ -258,7 +292,7 @@ function mapPatient(
     nextSessionPlan: row.next_session_plan ?? '',
     goals: (extras.goals ?? [])
       .sort((a, b) => a.sort_order - b.sort_order)
-      .map((goal) => ({ id: goal.id, title: goal.title, isDone: goal.is_done })),
+      .map(mapGoal),
     focusAreas: (extras.focus ?? [])
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((area) => ({ id: area.id, label: area.label, isActive: area.is_active })),
@@ -318,7 +352,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   const row = data as PatientRow
 
   const [goals, focus, pain, sessions, alerts] = await Promise.all([
-    supabase.from('patient_goals').select('id, title, is_done, sort_order').eq('patient_id', id),
+    supabase.from('patient_goals').select(GOAL_COLUMNS).eq('patient_id', id),
     supabase.from('patient_focus_areas').select('id, label, is_active, sort_order').eq('patient_id', id),
     supabase.from('patient_pain_logs').select('recorded_on, eva').eq('patient_id', id),
     supabase
@@ -376,7 +410,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
   const [goals, alerts, sessions] = await Promise.all([
     supabase
       .from('patient_goals')
-      .select('id, title, is_done, sort_order')
+      .select(GOAL_COLUMNS)
       .eq('patient_id', id)
       .eq('is_done', false)
       .order('sort_order', { ascending: true })
@@ -416,11 +450,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     lastSessionLabel: last ? formatDateTime(last.scheduled_at).dateLabel : formatDate(row.last_visit_on),
     sessionsDone: row.sessions_done,
     sessionsTotal: row.sessions_planned,
-    activeGoals: ((goals.data ?? []) as GoalRow[]).map((goal) => ({
-      id: goal.id,
-      title: goal.title,
-      isDone: goal.is_done,
-    })),
+    activeGoals: ((goals.data ?? []) as GoalRow[]).map(mapGoal),
     alerts: ((alerts.data ?? []) as AlertRow[]).map(mapAlert),
     nextSession: next ? mapSession(next) : null,
     lastSession: last ? mapSession(last) : null,
@@ -536,5 +566,44 @@ export async function updatePatientAlert(
 
 export async function deletePatientAlert(alertId: string): Promise<void> {
   const { error } = await supabase.from('patient_alerts').delete().eq('id', alertId)
+  throwIfError(error)
+}
+
+export async function createPatientGoal(
+  patientId: string,
+  input: UpsertPatientGoalInput,
+): Promise<PatientGoal> {
+  const { data: existing, error: countError } = await supabase
+    .from('patient_goals')
+    .select('sort_order')
+    .eq('patient_id', patientId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  throwIfError(countError)
+  const nextOrder = ((existing as { sort_order?: number } | null)?.sort_order ?? -1) + 1
+
+  const { data, error } = await supabase
+    .from('patient_goals')
+    .insert({
+      patient_id: patientId,
+      sort_order: nextOrder,
+      ...goalPayload(input),
+    })
+    .select(GOAL_COLUMNS)
+    .single()
+
+  throwIfError(error)
+  if (!data) throw new Error('Meta criada sem identificador')
+  return mapGoal(data as GoalRow)
+}
+
+export async function updatePatientGoal(goalId: string, input: UpsertPatientGoalInput): Promise<void> {
+  const { error } = await supabase.from('patient_goals').update(goalPayload(input)).eq('id', goalId)
+  throwIfError(error)
+}
+
+export async function deletePatientGoal(goalId: string): Promise<void> {
+  const { error } = await supabase.from('patient_goals').delete().eq('id', goalId)
   throwIfError(error)
 }

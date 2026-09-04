@@ -143,6 +143,21 @@ export const alertToneOptions: Array<{ value: AlertTone; label: string }> = [
   { value: 'success', label: 'Positivo' },
 ]
 
+export const patientGoalSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(2, 'Descreva o objetivo com pelo menos 2 caracteres')
+    .max(240, 'Máximo de 240 caracteres'),
+  createdOn: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe a data de criação'),
+  achievedOn: optionalDate,
+})
+
+export type PatientGoalFormData = z.infer<typeof patientGoalSchema>
+
 export const sessionFormSchema = z
   .object({
     mode: z.enum(['agendar', 'realizada']),

@@ -22,13 +22,18 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 
 ### Active
 
-- [ ] **REQ-05 — Registro da avaliação inicial**
+- [ ] **REQ-14 — Metas do tratamento**
+  - Objetivos específicos por paciente
+  - Status: não iniciado, em andamento, atingido
+  - Data de criação e data em que foi atingido
+  - Persistidas no Supabase
+
+### Deferred
+
+- [ ] **REQ-05 — Registro da avaliação inicial** *(código entregue; SQL + UAT depois)*
   - Aba **Avaliação** com ficha estruturada
-  - Campos: anamnese, queixa principal, história do quadro, dor, limitações, objetivos, exame físico, testes, medidas, diagnóstico fisioterapêutico e planejamento
-  - Vinculada à **data em que foi realizada**
-  - Persistida em Supabase (`patient_evaluations`)
-  - Primeira (data mais antiga) marcada como Inicial
-  - PDF + IA permanece como importador de rascunho
+  - Campos: anamnese, queixa principal, história, dor, limitações, objetivos, exame, testes, medidas, diagnóstico e planejamento
+  - Persistida em `patient_evaluations`
 
 ### Out of Scope (neste marco)
 
@@ -58,4 +63,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-08-31 after REQ-05 implementation*
+*Last updated: 2026-09-04 — Phase 2 REQ-14 added; REQ-05 deferred*

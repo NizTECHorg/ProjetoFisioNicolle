@@ -1,126 +1,108 @@
 # External Integrations
 
-**Analysis Date:** 2026-08-23
+**Analysis Date:** 2026-09-04
 
 ## APIs & External Services
 
 **Backend (BaaS):**
-- Supabase — Primary application backend (Auth, Postgres REST, Realtime capability via client SDK)
-  - SDK/Client: `@supabase/supabase-js` via `src/lib/supabase/client.ts` (`getSupabase()`, lazy singleton + Proxy)
-  - Auth: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (`src/config/env.ts`)
-  - Client options: PKCE flow, `persistSession`, `autoRefreshToken`, `detectSessionInUrl`, header `X-Client-Info: fisio-web`
-  - Service modules calling Supabase:
-    - `src/services/auth.service.ts` — sign-in/up/out, `profiles`
-    - `src/services/patients.service.ts` — patients, goals, focus areas, pain logs, sessions, alerts
-    - `src/services/calendar.service.ts` — `patient_sessions`
-    - `src/services/board.service.ts` — `board_columns`, `board_cards`
-    - `src/services/modules.service.ts` — products, categories, recipes, stock, orders-related tables (legacy bakery domain still present)
+- Supabase — Clinic data, auth, and Postgres RPCs for leftover bakery/ops modules.
+  - SDK/Client: `@supabase/supabase-js` via `src/lib/supabase/client.ts` (`getSupabase()` singleton, `flowType: 'pkce'`, `persistSession: true`, `detectSessionInUrl: true`, header `X-Client-Info: fisio-web`).
+  - Auth: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (`src/config/env.ts`). Do not use the service-role key in the frontend.
+  - Call pattern: pages/hooks → `src/services/*.ts` → `supabase.from(...)` / `supabase.rpc(...)` / `supabase.auth.*`. Never call Supabase from components except through services.
+
+**AI (optional):**
+- Google Gemini generateContent API — PDF physical-evaluation draft in `src/services/aiPhysicalEvaluation.service.ts`.
+  - SDK/Client: raw `fetch` to `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key=...`. Package `@google/genai` is unused; do not introduce a second client.
+  - Auth: `VITE_GEMINI_API_KEY` (query-string API key). When unset, the service returns a simulated result after a delay — do not treat that as production clinical data.
+  - Models tried in order: `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-2.5-flash`, `gemini-flash-latest`. Persist the official structured evaluation via `src/services/evaluations.service.ts` (`patient_evaluations`), not the PDF draft. PDF drafts stay in `localStorage` (`fisio.evaluations.${patientId}` in `src/components/patients/PatientPhysicalEvaluationPanel.tsx`).
+  - CSP: `connect-src` includes `https://generativelanguage.googleapis.com` in `index.html` and `netlify.toml`.
 
 **Fonts / CDN:**
-- Google Fonts — Cormorant Garamond + Plus Jakarta Sans
-  - Loaded from `https://fonts.googleapis.com` / `https://fonts.gstatic.com` in `index.html`
-  - Allowed in CSP (`index.html`, `netlify.toml`)
+- Google Fonts — `Plus Jakarta Sans` and `Cormorant Garamond` loaded in `index.html` (`fonts.googleapis.com` / `fonts.gstatic.com`). Mapped in `src/index.css` as `--font-sans` and `--font-display`. Keep CSP `style-src` / `font-src` in sync if fonts change.
 
-**Payments / third-party SaaS APIs:**
-- Not detected — No Stripe/PayPal/etc. usage in source
+**Payments / messaging / maps:**
+- Not detected — No Stripe, Twilio, SendGrid, or Maps SDK in `package.json` or `src/`.
 
 ## Data Storage
 
 **Databases:**
-- Supabase Postgres (managed)
-  - Connection: browser → Supabase HTTPS/WSS using anon key (`VITE_SUPABASE_*`)
-  - Client: PostgREST via `@supabase/supabase-js` (no ORM)
-  - Schema authority: SQL scripts in `supabase/`
-    - `supabase/schema.sql` — `profiles`, auth trigger `handle_new_user`, RLS baseline
-    - `supabase/patients.sql` / `patients-req01.sql` / `patients-req04-alerts.sql` — clinical patient domain
-    - `supabase/board.sql` / `board-due.sql` — Kanban board
-  - Domain types: `src/types/database.types.ts`, `src/types/patient.ts`
-  - Security model: Postgres RLS + RPCs; client assumes RLS is source of truth (`src/lib/supabase/client.ts` comments)
+- Supabase Postgres (hosted)
+  - Connection: browser HTTPS/WSS to `VITE_SUPABASE_URL` with the anon key. RLS is the server-side authority (`src/lib/supabase/client.ts` comments; `src/providers/AuthProvider.tsx`).
+  - Client: `@supabase/supabase-js` (no Prisma/Drizzle). Generated-style types for the **legacy bakery schema** live in `src/types/database.types.ts`. Clinic patient tables are **not** in that file — type them in `src/types/patient.ts` and `src/types/evaluation.ts`.
+  - Clinic tables used by services:
+    - `patients`, `patient_goals`, `patient_focus_areas`, `patient_pain_logs`, `patient_alerts` — `src/services/patients.service.ts`
+    - `patient_sessions`, `patient_session_evolutions` — `src/services/sessions.service.ts`, `src/services/calendar.service.ts`
+    - `patient_evaluations` — `src/services/evaluations.service.ts` (DDL: `supabase/patients-req05-evaluations.sql`)
+    - `board_columns`, `board_cards` — `src/services/board.service.ts`
+    - `profiles` — `src/services/auth.service.ts`, therapist lookups in `src/services/sessions.service.ts`
+  - Legacy bakery/ops tables still queried from `src/services/modules.service.ts` (not routed in `src/routes/index.tsx`): `categories`, `products`, `ingredients`, `stock_movements`, `recipes`, `recipe_items`, `clients`, `orders`, `order_items`, `coupons`, `company_settings`, `production`, `deliveries`, `delivery_items`, `expenses`, `tasks`, `notifications`, `notification_dismissals`, views `shopping_list_view` / `low_stock_view`.
+  - RPCs invoked from `src/services/modules.service.ts`: `confirm_order`, `cancel_order`, `update_order_status`, `complete_production`, `admin_update_profile`, `dashboard_metrics`, `dismiss_notification`. Typed in `src/types/database.types.ts` except `dismiss_notification` (present in code, absent from the Functions map). `current_user_role` is typed but unused in `src/`.
+  - Schema application: paste SQL in the Supabase SQL Editor (`.planning/PROJECT.md`). `supabase/` is gitignored; there is no committed `supabase/migrations/` despite `src/pages/SetupPage.tsx` mentioning it.
 
 **File Storage:**
-- Local/static assets only (`public/`, inlined images under `src/`)
-- Supabase Storage API — Not used in application services
+- No Supabase Storage buckets in `src/` (no `supabase.storage.from(...)`). Avatars are CSS initials (`src/lib/avatar.ts`, `src/components/ui/PatientAvatar.tsx`); `profiles.avatar_url` is selected but not uploaded here.
+- Browser `localStorage` — AI PDF evaluation drafts (`src/components/patients/PatientPhysicalEvaluationPanel.tsx`).
+- Browser `sessionStorage` — client-side auth rate-limit counters (`src/lib/security/index.ts`, key `fisio.auth.rate`).
+- Static brand assets — `src/assets/brand/` consumed by `src/components/brand/BrandWordmark.tsx`; favicons in `public/`.
 
 **Caching:**
-- TanStack Query in-memory cache — Default `staleTime: 60_000` in `src/main.tsx`
-- Browser `sessionStorage` — Client-side auth rate-limit store (`fisio.auth.rate` in `src/lib/security/index.ts`)
-- No Redis / external cache service
+- None (no Redis/CDN cache layer). Client cache is TanStack Query only (`src/main.tsx`, `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`). Invalidate clinic keys `['patients']`, `['patients', id, ...]`, `['calendar-sessions']` after mutations.
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Supabase Auth (email/password)
-  - Implementation:
-    - `signInWithPassword` / `signUp` / `signOut` in `src/services/auth.service.ts`
-    - Session + profile gate in `src/providers/AuthProvider.tsx` (`onAuthStateChange`, load `profiles` by user id)
-    - Route protection: `src/components/auth/ProtectedRoute.tsx` (`GuestRoute` / `ProtectedRoute`)
-  - Profile row: `public.profiles` linked to `auth.users` (`supabase/schema.sql`)
-  - Email confirmation redirect: `emailRedirectTo: ${window.location.origin}/`
-  - Client rate limiting + error mapping: `src/lib/security/index.ts`
-  - Zod schemas: `src/schemas/auth.schema.ts`
-- OAuth / social providers — Not configured in app code
-- Service role key — Must never be used in frontend (`SetupPage` warning)
+- Supabase Auth (email + password). Implementation: `src/services/auth.service.ts`.
+  - Sign-in: `supabase.auth.signInWithPassword` (`signInWithEmail`).
+  - Sign-up: `supabase.auth.signUp` with `options.data.full_name` and `emailRedirectTo: ${window.location.origin}/`. Confirmation email is handled by the Supabase project (no custom mail provider in this repo).
+  - Sign-out: `supabase.auth.signOut`.
+  - Session: `supabase.auth.getSession` + `onAuthStateChange` in `src/providers/AuthProvider.tsx`. Keep the auth callback **synchronous** (do not await DB work inside it).
+  - Profile gate: `fetchProfile` reads `public.profiles` where `is_active = true`. `isAuthenticated` requires session **and** active profile (`src/providers/AuthProvider.tsx`). Missing profile UI: `src/components/auth/ProtectedRoute.tsx`.
+  - PKCE + persisted session (`src/lib/supabase/client.ts`).
+  - No OAuth (`signInWithOAuth`) in `src/`.
+  - Client rate limiting before login/register: `checkRateLimit` in `src/lib/security/index.ts` (5 attempts / 15 min per key; 20 global). Errors mapped via `mapAuthError` (do not leak raw Supabase messages).
+  - Route guards: `ProtectedRoute` / `GuestRoute` in `src/components/auth/ProtectedRoute.tsx`. Safe post-login redirect: `safeRedirectPath` in `src/lib/security/index.ts`.
+  - Role helpers for leftover bakery modules: `src/lib/permissions.ts` (`administrador`, `gerente`, `atendente`, `confeiteiro`). Clinic navigation in `src/config/navigation.ts` does not use these.
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- None — No Sentry/Datadog/LogRocket integrations detected
+- None — No Sentry/LogRocket/PostHog. Surface failures with `toast(..., 'error')` from `src/stores/toast.store.ts` (wired in hooks `onError` handlers).
 
 **Logs:**
-- Browser console only (no structured logging SDK)
-- User-facing errors mapped via `mapAuthError` / `mapDbError` in `src/lib/security/index.ts` and toast store
+- Browser console only. Production Vite build has `sourcemap: false` (`vite.config.ts`). Do not add a logging SaaS without a CSP `connect-src` update in `index.html` and `netlify.toml`.
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Vercel — SPA rewrite in `vercel.json`; setup instructions in `src/pages/SetupPage.tsx` (env + redeploy)
-- Netlify — Alternate config in `netlify.toml` + `public/_redirects`
-- Build artifact: static `dist/` from Vite
+- Static SPA. Production setup copy in `src/pages/SetupPage.tsx` assumes **Vercel** (`Settings → Environment Variables`, then Redeploy). SPA rewrite: `vercel.json`.
+- Netlify also configured: `netlify.toml` (build `npm run build`, publish `dist`, SPA redirect, CSP) and `public/_redirects`.
 
 **CI Pipeline:**
-- None — No `.github/workflows` or other CI config detected
+- None — No `.github/workflows`. Quality gates are local: `npm run lint` and `npm run typecheck` / `npm run build`.
 
 ## Environment Configuration
 
 **Required env vars:**
-- `VITE_SUPABASE_URL` — HTTPS Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` — Public anon key
-- Validated by `isEnvConfigured()` in `src/config/env.ts` (rejects empty, placeholder, or non-HTTPS URL)
-- Missing/invalid config → `src/pages/SetupPage.tsx` instead of app shell (`src/App.tsx`)
+- `VITE_SUPABASE_URL` — HTTPS Supabase project URL (`src/config/env.ts`, `src/vite-env.d.ts`)
+- `VITE_SUPABASE_ANON_KEY` — Public anon key (`src/config/env.ts`, `src/vite-env.d.ts`)
+
+**Optional env vars:**
+- `VITE_GEMINI_API_KEY` — Google AI Studio key for PDF analysis (`src/services/aiPhysicalEvaluation.service.ts`). Not declared in `src/vite-env.d.ts`.
 
 **Secrets location:**
-- Local: `.env` (gitignored via `.gitignore`)
-- Production: Hosting platform env (Vercel Settings → Environment Variables; same names for Netlify)
-- Note: Vite inlines `VITE_*` at **build** time — changing env requires rebuild/redeploy
+- Local: `.env` present (gitignored in `.gitignore`). `.env.local` and `.env.example` not in the tree; README still documents `.env.local`.
+- Production: host dashboard (Vercel env vars per `src/pages/SetupPage.tsx`; same names on Netlify if that host is used).
+- Vite inlines `VITE_*` at **build** time — changing env without rebuild leaves the previous values in the JS bundle.
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- None in this SPA — No serverless functions or webhook endpoints in-repo
-- Auth redirect/callback handled client-side by Supabase JS (`detectSessionInUrl`, PKCE)
+- None — No Edge Functions, no `/api` routes, no webhook handlers in this repo. The SPA is static files only.
 
 **Outgoing:**
-- None — App does not call external webhook URLs; only Supabase API + Google Fonts
-
-## Integration Patterns (prescriptive)
-
-**Add a new Supabase-backed feature:**
-1. Add/adjust SQL in `supabase/*.sql` (RLS policies required)
-2. Add types under `src/types/`
-3. Implement data access in `src/services/*.service.ts` using `supabase` from `@/lib/supabase/client`
-4. Expose React Query hooks in `src/hooks/`
-5. Wire UI in `src/pages/` / `src/components/`
-
-**Do not:**
-- Put `service_role` keys in the client
-- Bypass RLS with elevated keys from the browser
-- Call Supabase from components directly — prefer `services/` + hooks
-
-**CSP allowlist (must update if adding APIs):**
-- `connect-src`: `'self' https://*.supabase.co wss://*.supabase.co`
-- `font-src` / `style-src`: Google Fonts hosts
-- Defined in `index.html` and `netlify.toml`
+- Supabase Auth confirmation / magic-link style redirects: `emailRedirectTo` set to `window.location.origin + '/'` in `src/services/auth.service.ts`. Configure the matching Site URL / redirect allow-list in the Supabase Auth dashboard.
+- Gemini `generateContent` POST from the browser (`src/services/aiPhysicalEvaluation.service.ts`).
 
 ---
 
-*Integration audit: 2026-08-23*
+*Integration audit: 2026-09-04*

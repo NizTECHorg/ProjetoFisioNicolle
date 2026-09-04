@@ -142,7 +142,7 @@ export function PatientAlertsPanel({ patientId, alerts, compact = false }: Patie
               {alerts.map((alert) => (
                 <li
                   key={alert.id}
-                  className={`rounded-xl border px-2.5 py-2 ${alertToneClass(alert.tone)}`}
+                  className={`rounded-[7px] border px-2.5 py-2 ${alertToneClass(alert.tone)}`}
                 >
                   <div className="flex items-start gap-2">
                     <Bell size={12} className={`mt-0.5 shrink-0 ${alertIconClass(alert.tone)}`} />
