@@ -131,7 +131,7 @@ export function PatientProfileHeader({
               ].join(' ')}
               onClick={() => onTabChange('avaliacao')}
             >
-              Avaliação Física
+              Avaliação
             </button>
           </nav>
         </div>

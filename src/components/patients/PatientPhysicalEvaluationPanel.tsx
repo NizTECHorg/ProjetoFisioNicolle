@@ -22,11 +22,13 @@ import type { PhysicalEvaluationResult } from '@/types/evaluation'
 interface PatientPhysicalEvaluationPanelProps {
   patientId: string
   patientName?: string
+  onUseAsEvaluation?: (result: PhysicalEvaluationResult) => void
 }
 
 export function PatientPhysicalEvaluationPanel({
   patientId,
   patientName,
+  onUseAsEvaluation,
 }: PatientPhysicalEvaluationPanelProps) {
   const updatePatient = useUpdatePatient()
   const storageKey = `fisio.evaluations.${patientId}`
@@ -257,16 +259,29 @@ export function PatientPhysicalEvaluationPanel({
                     <p className="mt-0.5 text-xs text-muted">Processado em {selectedEvaluation.uploadedAt}</p>
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="primary"
-                    isLoading={updatePatient.isPending}
-                    onClick={() => handleApplyToProfile(selectedEvaluation)}
-                    className="!px-4 !py-2 text-xs flex items-center gap-1.5"
-                  >
-                    <ArrowUpRight size={15} />
-                    Aplicar Diagnóstico ao Prontuário
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {onUseAsEvaluation ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => onUseAsEvaluation(selectedEvaluation)}
+                        className="!px-4 !py-2 text-xs flex items-center gap-1.5"
+                      >
+                        <ClipboardCheck size={15} />
+                        Usar na avaliação estruturada
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="primary"
+                      isLoading={updatePatient.isPending}
+                      onClick={() => handleApplyToProfile(selectedEvaluation)}
+                      className="!px-4 !py-2 text-xs flex items-center gap-1.5"
+                    >
+                      <ArrowUpRight size={15} />
+                      Aplicar Diagnóstico ao Prontuário
+                    </Button>
+                  </div>
                 </div>
 
                 {appliedSuccess ? (

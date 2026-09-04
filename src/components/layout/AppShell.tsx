@@ -46,6 +46,7 @@ export function AppShell() {
           <BrandWordmark
             size="sm"
             variant="onDark"
+            showTagline={false}
             asLink
             to="/painel"
             onClick={() => setIsMenuOpen(false)}
@@ -107,8 +108,8 @@ export function AppShell() {
       </aside>
 
       <div className="lg:ml-72 lg:flex lg:h-dvh lg:flex-col lg:p-2.5">
-        <div className="min-h-dvh bg-canvas lg:min-h-0 lg:flex-1 lg:overflow-hidden lg:rounded-[1.15rem] lg:bg-surface">
-          <div className="panel-scroll min-h-dvh lg:h-full lg:overflow-y-auto">
+        <div className="min-h-dvh bg-canvas lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden lg:rounded-[1.15rem] lg:bg-surface">
+          <div className="panel-scroll min-h-dvh lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto">
             <header className="sticky top-0 z-20 flex items-center gap-3 bg-canvas/90 px-4 py-3 backdrop-blur-md lg:hidden">
               <button
                 type="button"
@@ -121,7 +122,7 @@ export function AppShell() {
               <BrandWordmark size="sm" variant="onLight" showTagline={false} asLink to="/painel" />
             </header>
 
-            <main className="px-4 py-6 pb-24 lg:px-8 lg:py-8 lg:pb-8">
+            <main className="px-4 py-6 pb-24 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-6 lg:pb-4 lg:pt-6">
               <Outlet />
             </main>
           </div>
@@ -132,7 +133,7 @@ export function AppShell() {
         className="fixed inset-x-0 bottom-0 z-30 px-5 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden"
         aria-label="Navegação móvel"
       >
-        <div className="relative mx-auto flex max-w-md items-center justify-around rounded-full bg-forest px-1.5 py-1 shadow-[0_10px_24px_rgba(14,39,28,0.28)]">
+        <div className="relative mx-auto flex max-w-md items-center justify-around rounded-full bg-forest px-1.5 py-1 shadow-[0_10px_24px_rgba(11,29,54,0.28)]">
           {mobileNavItems.map(({ label, path, icon: Icon }) => (
             <NavLink
               key={path}

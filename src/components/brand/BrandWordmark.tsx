@@ -1,20 +1,25 @@
 import { Link } from 'react-router-dom'
+import logomark from '@/assets/brand/logomark.png'
+import logotype from '@/assets/brand/logotype.png'
+import logotypeOnDark from '@/assets/brand/logotype-on-dark.png'
+import logoFull from '@/assets/brand/logo.png'
+import logoFullOnDark from '@/assets/brand/logo-on-dark.png'
 
 const sizeMap = {
   sm: {
-    mark: 'h-10 w-10 text-lg',
-    title: 'text-lg leading-none',
-    tagline: 'text-[9px] tracking-[0.16em]',
+    mark: 'h-9 w-auto',
+    type: 'h-6 w-auto',
+    lockup: 'h-10 w-auto max-w-[13rem]',
   },
   md: {
-    mark: 'h-12 w-12 text-xl',
-    title: 'text-2xl leading-none',
-    tagline: 'text-[10px] tracking-[0.18em]',
+    mark: 'h-11 w-auto',
+    type: 'h-8 w-auto',
+    lockup: 'h-14 w-auto max-w-[18rem]',
   },
   lg: {
-    mark: 'h-16 w-16 text-3xl',
-    title: 'text-4xl leading-none sm:text-5xl',
-    tagline: 'text-xs tracking-[0.22em]',
+    mark: 'h-16 w-auto',
+    type: 'h-11 w-auto',
+    lockup: 'h-[4.5rem] w-auto max-w-[22rem]',
   },
 } as const
 
@@ -40,40 +45,20 @@ export function BrandWordmark({
   const scale = sizeMap[size]
   const onDark = variant === 'onDark'
 
-  const content = (
-    <span className={['inline-flex items-center gap-3', className].filter(Boolean).join(' ')}>
-      <span
-        className={[
-          'inline-flex shrink-0 items-center justify-center rounded-2xl font-display font-semibold',
-          scale.mark,
-          onDark ? 'bg-white/10 text-white' : 'bg-forest text-white',
-        ].join(' ')}
-        aria-hidden
-      >
-        F
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span
-          className={[
-            'font-display font-semibold tracking-tight',
-            scale.title,
-            onDark ? 'text-white' : 'text-forest',
-          ].join(' ')}
-        >
-          Fisio
-        </span>
-        {showTagline ? (
-          <span
-            className={[
-              'mt-1 font-sans font-medium uppercase',
-              scale.tagline,
-              onDark ? 'text-white/55' : 'text-muted',
-            ].join(' ')}
-          >
-            Fisioterapia
-          </span>
-        ) : null}
-      </span>
+  const content = showTagline ? (
+    <img
+      src={onDark ? logoFullOnDark : logoFull}
+      alt="FLUXO"
+      className={['object-contain object-left', scale.lockup, className].filter(Boolean).join(' ')}
+    />
+  ) : (
+    <span className={['inline-flex items-center gap-2.5', className].filter(Boolean).join(' ')}>
+      <img src={logomark} alt="" className={`shrink-0 object-contain ${scale.mark}`} />
+      <img
+        src={onDark ? logotypeOnDark : logotype}
+        alt="FLUXO"
+        className={`object-contain object-left ${scale.type} max-w-[9.5rem]`}
+      />
     </span>
   )
 
@@ -83,7 +68,7 @@ export function BrandWordmark({
         to={to}
         onClick={onClick}
         className="inline-flex transition-opacity hover:opacity-90"
-        aria-label="Fisio"
+        aria-label="FLUXO"
       >
         {content}
       </Link>

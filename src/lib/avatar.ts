@@ -1,11 +1,11 @@
 export function avatarColor(tone: string | null | undefined) {
-  if (!tone) return '#0e271c'
+  if (!tone) return '#0b1d36'
   const hex = tone.match(/#([0-9a-fA-F]{3,8})/)?.[0]
   if (hex) return hex
-  if (tone.includes('forest-mid')) return '#1a3d2c'
-  if (tone.includes('forest')) return '#0e271c'
-  if (tone.includes('accent')) return '#3db86a'
-  return '#0e271c'
+  if (tone.includes('forest-mid')) return '#163056'
+  if (tone.includes('forest')) return '#0b1d36'
+  if (tone.includes('accent')) return '#2f7dff'
+  return '#0b1d36'
 }
 
 export function initialsFromName(name: string) {

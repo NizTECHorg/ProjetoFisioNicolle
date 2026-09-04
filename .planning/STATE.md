@@ -2,33 +2,33 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-23)
+See: .planning/PROJECT.md (updated 2026-08-31)
 
-**Core value:** Documentar cada atendimento (sessão + evolução) e manter futuros na Agenda.
+**Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** REQ-08 — Evoluções por sessão (implementação)
+**Current focus:** REQ-05 — Registro da avaliação inicial (implementação)
 
 ## Current Position
 
-- Phase: REQ-08 (brownfield feature)
+- Phase: 1 — Avaliação inicial
 - Status: código entregue; aguardando SQL no Supabase + UAT
-- Progress: UI + service + seeds SQL prontos
+- Progress: UI + service + SQL prontos
 
 ## Accumulated Context
 
 ### Decisions
 
-- Sessão + evolução 1:1
-- Toggle Agendar / Realizada
-- Estado + condutas obrigatórios
-- Profissional selecionável (profiles)
-- Futuras em `patient_sessions` (Agenda)
-- Seeds só no SQL; lista UI vazia sem fake cards
+- Avaliação estruturada em `patient_evaluations` (Supabase)
+- Data da realização obrigatória (`performed_on`)
+- Queixa principal obrigatória; demais campos clínicos opcionais
+- Mais antiga do paciente = avaliação inicial
+- PDF + IA só preenche rascunho; o registro oficial é a ficha
+- Aba do paciente: "Avaliação"
 
 ### Pending user action
 
-- Executar `supabase/patients-req08-evolutions.sql` no SQL Editor
+- Executar `supabase/patients-req05-evaluations.sql` no SQL Editor
 
 ## Session Continuity
 
-Last session: 2026-08-23 — sintetizou PROJECT.md e implementou aba Evoluções + CRUD + SQL seeds.
+Last session: 2026-08-31 — `/gsd-progress --next` avançou para REQ-05 e implementou a avaliação estruturada.

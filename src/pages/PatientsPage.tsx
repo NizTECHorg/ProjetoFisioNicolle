@@ -58,7 +58,7 @@ export function PatientsPage() {
   }
 
   return (
-    <section className="mx-auto max-w-6xl">
+    <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
         title="Pacientes"

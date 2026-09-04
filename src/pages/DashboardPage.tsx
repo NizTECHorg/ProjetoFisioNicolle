@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { ArrowDownRight, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { useCalendarSessions } from '@/hooks/useClinic'
@@ -124,12 +125,12 @@ function StatCard({
   return (
     <Link
       to={to}
-      className="dash-card dash-in flex min-h-[148px] flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5"
+      className="dash-card dash-in flex min-h-[148px] flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5 lg:min-h-[128px] lg:p-4"
       style={{ animationDelay: delay }}
     >
       <p className="text-sm font-medium text-forest">{label}</p>
       <div className="flex items-end justify-between gap-3">
-        <p className="font-display text-5xl font-semibold leading-none text-ink">{value}</p>
+        <p className="font-sans text-5xl font-semibold leading-none tracking-tight text-ink lg:text-4xl">{value}</p>
         {delta ? (
           <span
             className={[
@@ -170,24 +171,24 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
   const ticks = [0, Math.round(max / 3), Math.round((max * 2) / 3), max]
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="dash-chart h-56 w-full">
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" className="dash-chart block h-56 w-full lg:h-full lg:min-h-[10rem]">
       {ticks.map((tick) => {
         const y = pad.t + innerH - (tick / max) * innerH
         return (
           <g key={tick}>
-            <line x1={pad.l} x2={width - pad.r} y1={y} y2={y} stroke="#e2ebe6" strokeWidth="1" />
+            <line x1={pad.l} x2={width - pad.r} y1={y} y2={y} stroke="#e1e8f0" strokeWidth="1" />
             <text x={4} y={y + 4} className="fill-muted text-[10px]">
               {tick}
             </text>
           </g>
         )
       })}
-      <path d={area} fill="#3db86a" fillOpacity="0.08" />
+      <path d={area} fill="#2f7dff" fillOpacity="0.08" />
       <path
         className="dash-line"
         d={line}
         fill="none"
-        stroke="#3db86a"
+        stroke="#2f7dff"
         strokeWidth="3"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -199,7 +200,7 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
             cx={point.x}
             cy={point.y}
             r={active === point ? 6 : 3.5}
-            fill={active === point ? '#0e271c' : '#3db86a'}
+            fill={active === point ? '#0b1d36' : '#2f7dff'}
             className="transition-all duration-200"
           />
           <text x={point.x} y={height - 10} textAnchor="middle" className="fill-muted text-[11px]">
@@ -208,7 +209,7 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
         </g>
       ))}
       <g>
-        <rect x={Math.min(active.x - 52, width - 120)} y={active.y - 40} width="104" height="28" rx="10" fill="#0e271c" />
+        <rect x={Math.min(active.x - 52, width - 120)} y={active.y - 40} width="104" height="28" rx="10" fill="#0b1d36" />
         <text
           x={Math.min(active.x, width - 68)}
           y={active.y - 22}
@@ -327,10 +328,8 @@ export function DashboardPage() {
   }, [isCurrentWeek, patients, ranges, sessions])
 
   return (
-    <section className="mx-auto max-w-7xl">
-      <div className="mb-8 dash-in">
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">Dashboard</h1>
-      </div>
+    <section className="mx-auto flex w-full max-w-7xl flex-col lg:min-h-0 lg:flex-1">
+      <PageHeader className="dash-in" title="Dashboard" />
 
       {isLoading ? (
         <div className="dash-in flex min-h-64 items-center justify-center rounded-[1.5rem] border border-line bg-surface">
@@ -345,8 +344,8 @@ export function DashboardPage() {
       ) : null}
 
       {!isLoading && !isError ? (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="grid shrink-0 gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:gap-3">
             <StatCard
               label="Pacientes ativos"
               target={view.activePatients}
@@ -368,7 +367,7 @@ export function DashboardPage() {
             />
 
             <article
-              className="dash-card dash-in flex min-h-[148px] flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5"
+              className="dash-card dash-in flex min-h-[148px] flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5 lg:min-h-[128px] lg:p-4"
               style={{ animationDelay: '240ms' }}
             >
               <div>
@@ -381,14 +380,14 @@ export function DashboardPage() {
               </div>
               <div className="flex items-end justify-between">
                 <svg viewBox="0 0 88 88" className="dash-ring h-16 w-16">
-                  <circle cx="44" cy="44" r="34" fill="none" stroke="#0e271c" strokeOpacity="0.12" strokeWidth="8" />
+                  <circle cx="44" cy="44" r="34" fill="none" stroke="#0b1d36" strokeOpacity="0.12" strokeWidth="8" />
                   <circle
                     className="dash-ring-arc"
                     cx="44"
                     cy="44"
                     r="34"
                     fill="none"
-                    stroke="#3db86a"
+                    stroke="#2f7dff"
                     strokeWidth="8"
                     strokeDasharray={ringDash(34, view.confirmRatio)}
                     strokeLinecap="round"
@@ -400,7 +399,7 @@ export function DashboardPage() {
                     cy="44"
                     r="22"
                     fill="none"
-                    stroke="#0e271c"
+                    stroke="#0b1d36"
                     strokeWidth="6"
                     strokeDasharray={ringDash(22, view.realizedRatio)}
                     strokeLinecap="round"
@@ -417,8 +416,8 @@ export function DashboardPage() {
             </article>
           </div>
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-[1.7fr_1fr]">
-            <article className="dash-in rounded-[1.5rem] border border-line bg-surface p-5" style={{ animationDelay: '280ms' }}>
+          <div className="mt-4 grid gap-4 lg:mt-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[1.7fr_1fr] lg:grid-rows-[minmax(0,1fr)] lg:gap-3">
+            <article className="dash-in flex h-full min-h-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5 lg:p-4" style={{ animationDelay: '280ms' }}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold text-ink">Atividade</h2>
@@ -451,15 +450,17 @@ export function DashboardPage() {
                   </button>
                 </div>
               </div>
-              <ActivityChart key={ranges.weekStart.toISOString()} days={view.activityDays} />
+              <div className="mt-3 flex min-h-0 flex-1 flex-col">
+                <ActivityChart key={ranges.weekStart.toISOString()} days={view.activityDays} />
+              </div>
             </article>
 
-            <article className="dash-in rounded-[1.5rem] border border-line bg-surface p-5" style={{ animationDelay: '360ms' }}>
+            <article className="dash-in flex h-full min-h-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5 lg:p-4" style={{ animationDelay: '360ms' }}>
               <h2 className="text-lg font-semibold text-ink">Próximas sessões</h2>
               {view.upcoming.length === 0 ? (
-                <p className="mt-5 text-sm text-muted">Nenhuma sessão agendada nos próximos dias.</p>
+                <p className="mt-5 flex-1 text-sm text-muted lg:mt-3">Nenhuma sessão agendada nos próximos dias.</p>
               ) : (
-                <ul className="mt-5 space-y-4">
+                <ul className="mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto lg:mt-3 lg:space-y-2.5">
                   {view.upcoming.map((item) => (
                     <li key={item.id}>
                       <Link
@@ -479,15 +480,15 @@ export function DashboardPage() {
                   ))}
                 </ul>
               )}
-              <Link to="/pacientes" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-forest">
+              <Link to="/pacientes" className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-medium text-forest">
                 Ver pacientes
                 <ArrowRight size={14} />
               </Link>
             </article>
           </div>
 
-          <article className="dash-in mt-4 rounded-[1.5rem] bg-accent-soft p-5 sm:p-6" style={{ animationDelay: '420ms' }}>
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
+          <article className="dash-in mt-4 shrink-0 rounded-[1.5rem] bg-accent-soft p-5 sm:p-6 lg:mt-3 lg:p-4" style={{ animationDelay: '420ms' }}>
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-4">
               <div className="lg:w-48 lg:shrink-0">
                 <h2 className="text-lg font-semibold text-forest">Carteira</h2>
                 <p className="mt-1 text-xs leading-5 text-forest/70">
@@ -496,18 +497,18 @@ export function DashboardPage() {
               </div>
               <div className="grid flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 {view.statusCards.map((area) => (
-                  <div key={area.name} className="dash-card rounded-2xl bg-surface px-4 py-4">
+                  <div key={area.name} className="dash-card h-full rounded-2xl bg-surface px-4 py-4 lg:py-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-forest">
                       {area.name.slice(0, 1)}
                     </span>
-                    <p className="mt-4 text-sm font-medium text-ink">{area.name}</p>
+                    <p className="mt-4 text-sm font-medium text-ink lg:mt-2.5">{area.name}</p>
                     <p className="text-xs text-muted">{area.detail}</p>
-                    <p className="mt-3 text-lg font-semibold text-forest">{area.change}</p>
+                    <p className="mt-3 text-lg font-semibold text-forest lg:mt-2">{area.change}</p>
                   </div>
                 ))}
                 <Link
                   to="/pacientes"
-                  className="dash-card flex min-h-36 flex-col justify-between rounded-2xl bg-forest px-4 py-4 text-white"
+                  className="dash-card flex min-h-36 h-full flex-col justify-between rounded-2xl bg-forest px-4 py-4 text-white lg:min-h-0"
                 >
                   <p className="text-sm font-medium">Ver fichas</p>
                   <span className="ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-white text-forest">
@@ -517,7 +518,7 @@ export function DashboardPage() {
               </div>
             </div>
           </article>
-        </>
+        </div>
       ) : null}
     </section>
   )

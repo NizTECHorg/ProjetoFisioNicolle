@@ -6,7 +6,7 @@ export function SetupPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4">
-      <div className="w-full max-w-lg rounded-3xl border border-line bg-surface p-8 text-center shadow-[0_18px_50px_rgba(14,39,28,0.06)]">
+      <div className="w-full max-w-lg rounded-3xl border border-line bg-surface p-8 text-center shadow-[0_18px_50px_rgba(11,29,54,0.06)]">
         <div className="mb-6 flex justify-center">
           <BrandWordmark size="sm" variant="onLight" />
         </div>

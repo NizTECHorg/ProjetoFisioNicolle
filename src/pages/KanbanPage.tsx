@@ -89,7 +89,7 @@ export function KanbanPage() {
   }
 
   return (
-    <section className="mx-auto max-w-[1400px]">
+    <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
         title="Quadro"

@@ -16,6 +16,12 @@ import {
   listPatientSessions,
   updatePatientSession,
 } from '@/services/sessions.service'
+import {
+  createPatientEvaluation,
+  deletePatientEvaluation,
+  listPatientEvaluations,
+  updatePatientEvaluation,
+} from '@/services/evaluations.service'
 import type {
   CreatePatientAlertInput,
   CreatePatientInput,
@@ -23,6 +29,7 @@ import type {
   UpdatePatientInput,
   UpsertPatientSessionInput,
 } from '@/types/patient'
+import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
 import { toast } from '@/stores/toast.store'
 
 function onError(error: unknown) {
@@ -34,6 +41,7 @@ function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patientId: str
   void qc.invalidateQueries({ queryKey: ['patients', patientId] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'dashboard'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'sessions'] })
+  void qc.invalidateQueries({ queryKey: ['patients', patientId, 'evaluations'] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
 }
 
@@ -180,6 +188,57 @@ export function useDeletePatientSession(patientId: string) {
     onSuccess: () => {
       invalidatePatient(qc, patientId)
       toast('Sessão removida', 'success')
+    },
+    onError,
+  })
+}
+
+export function usePatientEvaluations(patientId: string | undefined) {
+  return useQuery({
+    queryKey: ['patients', patientId, 'evaluations'],
+    queryFn: () => listPatientEvaluations(patientId!),
+    enabled: Boolean(patientId),
+    staleTime: 30_000,
+  })
+}
+
+export function useCreatePatientEvaluation(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpsertPatientEvaluationInput) => createPatientEvaluation(patientId, input),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast('Avaliação salva', 'success')
+    },
+    onError,
+  })
+}
+
+export function useUpdatePatientEvaluation(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      evaluationId,
+      input,
+    }: {
+      evaluationId: string
+      input: UpsertPatientEvaluationInput
+    }) => updatePatientEvaluation(evaluationId, input),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast('Avaliação atualizada', 'success')
+    },
+    onError,
+  })
+}
+
+export function useDeletePatientEvaluation(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (evaluationId: string) => deletePatientEvaluation(evaluationId),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast('Avaliação removida', 'success')
     },
     onError,
   })

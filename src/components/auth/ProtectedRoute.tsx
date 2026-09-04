@@ -17,7 +17,7 @@ function AccountWithoutProfile() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4">
-      <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 text-center shadow-[0_18px_50px_rgba(14,39,28,0.06)]">
+      <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 text-center shadow-[0_18px_50px_rgba(11,29,54,0.06)]">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-error/10 text-error">
           <ShieldAlert size={22} />
         </div>

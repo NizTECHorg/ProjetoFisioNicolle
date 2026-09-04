@@ -9,8 +9,8 @@ export function BlankPage() {
   return (
     <section className="mx-auto max-w-4xl">
       <PageHeader
-        title={item?.label ?? 'Fisio'}
-        description="Este módulo entra em seguida. A navegação e o visual da clínica já estão no padrão verde e branco."
+        title={item?.label ?? 'Fluxo'}
+        description="Este módulo entra em seguida. A navegação e o visual da clínica já estão no padrão azul e branco."
       />
       <article className="rounded-2xl border border-line bg-surface p-8 text-sm leading-6 text-muted">
         Nada por aqui ainda.

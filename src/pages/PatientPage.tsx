@@ -22,7 +22,7 @@ import {
 import { PatientAlertsPanel } from '@/components/patients/PatientAlertsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
-import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhysicalEvaluationPanel'
+import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -35,7 +35,7 @@ import {
 import type { Patient, PatientDashboard, PatientPainLog } from '@/types/patient'
 
 const shortcuts = [
-  { label: 'Avaliação Física', detail: 'Abrir aba com IA', icon: ClipboardList, tab: 'avaliacao' as const },
+  { label: 'Avaliação', detail: 'Registro inicial', icon: ClipboardList, tab: 'avaliacao' as const },
   { label: 'Evoluções', detail: 'Abrir aba', icon: Stethoscope, tab: 'evolucoes' as const },
   { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
   { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
@@ -80,10 +80,10 @@ function EvaChart({ series }: { series: PatientPainLog[] }) {
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="mt-2 h-32 w-full">
-      <path d={path} fill="none" stroke="#3db86a" strokeWidth="2.5" strokeLinejoin="round" />
+      <path d={path} fill="none" stroke="#2f7dff" strokeWidth="2.5" strokeLinejoin="round" />
       {points.map((point) => (
         <g key={`${point.date}-${point.value}`}>
-          <circle cx={point.x} cy={point.y} r="3.5" fill="#0e271c" />
+          <circle cx={point.x} cy={point.y} r="3.5" fill="#0b1d36" />
           <text x={point.x} y={height - 4} textAnchor="middle" className="fill-muted text-[9px]">
             {point.label}
           </text>
@@ -108,8 +108,8 @@ function BodyFocus() {
         <path d="M60 176 l-8 22" />
         <path d="M80 176 l8 22" />
       </g>
-      <circle cx="80" cy="132" r="9" fill="#3db86a" fillOpacity="0.35" stroke="#3db86a" strokeWidth="2" />
-      <circle cx="80" cy="108" r="7" fill="#3db86a" fillOpacity="0.25" stroke="#3db86a" />
+      <circle cx="80" cy="132" r="9" fill="#2f7dff" fillOpacity="0.35" stroke="#2f7dff" strokeWidth="2" />
+      <circle cx="80" cy="108" r="7" fill="#2f7dff" fillOpacity="0.25" stroke="#2f7dff" />
     </svg>
   )
 }
@@ -505,7 +505,7 @@ export function PatientPage() {
   const meta = `${dashboard.code} · ${dashboard.phone}`
 
   return (
-    <section className="mx-auto w-full max-w-6xl">
+    <section className="mx-auto w-full max-w-7xl">
       <PatientProfileHeader
         name={dashboard.name}
         initials={dashboard.initials}
@@ -540,7 +540,7 @@ export function PatientPage() {
         ) : tab === 'evolucoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} />
         ) : tab === 'avaliacao' ? (
-          <PatientPhysicalEvaluationPanel patientId={dashboard.id} patientName={dashboard.name} />
+          <PatientEvaluationPanel patientId={dashboard.id} patientName={dashboard.name} />
         ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />

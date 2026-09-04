@@ -9,8 +9,8 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProps) {
   return (
-    <div className="min-h-dvh bg-canvas lg:flex lg:h-dvh lg:overflow-hidden lg:bg-forest">
-      <aside className="auth-panel relative hidden w-1/2 flex-col justify-between overflow-hidden p-12 text-white xl:p-16 lg:flex">
+    <div className="auth-shell relative min-h-dvh overflow-hidden lg:flex lg:h-dvh">
+      <aside className="relative z-10 hidden w-1/2 flex-col justify-between p-12 text-white xl:p-16 lg:flex">
         <BrandWordmark size="md" variant="onDark" asLink to="/" />
 
         <div className="max-w-md">
@@ -37,11 +37,11 @@ export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProp
           </ul>
         </div>
 
-        <p className="text-xs text-white/40">Fisio · Fisioterapia integrativa</p>
+        <p className="text-xs text-white/40">FLUXO · Sua prática, mais inteligente.</p>
       </aside>
 
-      <div className="lg:flex lg:w-1/2 lg:flex-col lg:p-2.5">
-        <main className="flex min-h-dvh items-center justify-center px-4 py-12 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-[1.15rem] lg:bg-surface lg:px-8">
+      <div className="relative z-10 lg:flex lg:w-1/2 lg:flex-col lg:p-2.5">
+        <main className="auth-form-card flex min-h-dvh items-center justify-center px-4 py-12 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-[1.15rem] lg:px-8">
           <div className="w-full max-w-md landing-fade">
             <div className="mb-8 lg:hidden">
               <BrandWordmark size="sm" variant="onLight" asLink to="/" />
@@ -52,9 +52,7 @@ export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProp
               <p className="mt-2 text-sm text-muted">{subtitle}</p>
             </header>
 
-            <div className="rounded-3xl border border-line bg-surface p-8 shadow-[0_18px_50px_rgba(14,39,28,0.06)] lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
-              {children}
-            </div>
+            {children}
 
             {footer ? (
               <footer className="mt-6 text-center text-sm text-muted">{footer}</footer>
