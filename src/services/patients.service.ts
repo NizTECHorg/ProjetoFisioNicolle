@@ -64,7 +64,7 @@ const GOAL_COLUMNS = 'id, title, status, is_done, created_on, achieved_on, sort_
 interface GoalRow {
   id: string
   title: string
-  status: GoalStatus | null
+  status: string | null
   is_done: boolean
   created_on: string | null
   achieved_on: string | null
