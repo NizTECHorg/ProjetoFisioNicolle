@@ -38,14 +38,14 @@ created: 2026-09-08
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | 0 | REQ-15 | — | Inspect live `handle_new_user` before replacing | manual | SQL Editor | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-15.1 | T-03-05 | Cadastro exige tipo autônomo/empresa/fisioterapeuta | schema / UAT | `npm run typecheck` | ❌ | ⬜ pending |
-| TBD | TBD | TBD | REQ-15.1 | T-03-05 | Fisio sem código falha Zod | schema / UAT | `npm run typecheck` | ❌ | ⬜ pending |
-| TBD | TBD | TBD | REQ-15.2 | — | Empresa vê `/equipe` com código + pendentes | manual UAT | — | — | ⬜ pending |
-| TBD | TBD | TBD | REQ-15.3 | T-03-07 | Fisio pendente autentica mas não acessa clínica | manual + RLS | SQL Editor as pending JWT | ❌ | ⬜ pending |
-| TBD | TBD | TBD | REQ-15.4 | — | Autônomo não vê Equipe | manual UAT | — | — | ⬜ pending |
-| TBD | TBD | TBD | REQ-15.5 | — | Tipos e vínculos no Supabase | manual | Table Editor after signup | — | ⬜ pending |
-| TBD | TBD | TBD | D-05 / D-07 | T-03-01, T-03-06 | Fisio B cannot SELECT A's patient; empresa cannot UPDATE A's patient | RLS / manual | SQL Editor allow/deny | ❌ | ⬜ pending |
+| 03-02-T1 | 03-02 | 1 | REQ-15 | T-03-08 | Inspect live `handle_new_user` before replacing | manual | SQL Editor dump | ❌ W0 | ⬜ pending |
+| 03-03-T1 | 03-03 | 2 | REQ-15.1 | T-03-04 | Cadastro exige tipo autônomo/empresa/fisioterapeuta | schema / typecheck | `npm run typecheck` | ✅ auth.schema.ts | ⬜ pending |
+| 03-03-T1 | 03-03 | 2 | REQ-15.1 | T-03-04 | Fisio sem código falha Zod | schema / typecheck | `npm run typecheck` | ✅ auth.schema.ts | ⬜ pending |
+| 03-05-T2 | 03-05 | 4 | REQ-15.2 | T-03-12 | Empresa vê `/equipe` com código + pendentes | manual UAT | — | — | ⬜ pending |
+| 03-04-T3 | 03-04 | 3 | REQ-15.3 | T-03-06, T-03-10, T-03-11 | Fisio pendente autentica mas não acessa clínica | manual + RLS | SQL Editor as pending JWT | ❌ | ⬜ pending |
+| 03-05-T2 | 03-05 | 4 | REQ-15.4 | T-03-02 | Autônomo não vê Equipe | manual UAT | — | — | ⬜ pending |
+| 03-02-T3 | 03-02 | 1 | REQ-15.5 | T-03-03 | Tipos e vínculos no Supabase | manual | Table Editor after signup | — | ⬜ pending |
+| 03-02-T2 / 03-07-T2 | 03-02, 03-07 | 1 / 4 | D-05 / D-07 | T-03-01, T-03-05 | Fisio B cannot SELECT A's patient; empresa cannot UPDATE A's patient | RLS / manual | SQL Editor allow/deny | ❌ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
