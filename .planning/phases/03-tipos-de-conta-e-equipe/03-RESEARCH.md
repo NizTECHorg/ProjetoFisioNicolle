@@ -524,7 +524,7 @@ UI: `canWritePatient` hides edit/delete/create-session/evaluation/goal/alert on 
 
 `listActiveTherapists`: only self + active org teammates.
 
-Board/Kanban: **out of REQ-15 success criteria**. Leave board policies unchanged this phase unless a card stores another therapist’s PHI (not verified). Flag as residual leak in Open Questions.
+Board/Kanban: **out of REQ-15 success criteria**. Leave board policies unchanged this phase unless a card stores another therapist’s PHI (not verified). Residual risk accepted — see Open Questions (RESOLVED) item 3.
 
 ## SQL Delivery
 
@@ -551,27 +551,27 @@ Supabase CLI is **not** installed; `supabase test db` is unavailable. Verificati
 | A6 | Board/Kanban can stay globally visible this phase | Patient Access | Possible PHI leak via card titles. |
 | A7 | Confirm-email setting is unknown; both session-now and confirm-first must work | Auth State | Pending copy on RegisterPage vs LoginPage may be wrong for one mode. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Live `handle_new_user` body**
+1. **Live `handle_new_user` body** (RESOLVED)
    - What we know: App creates profiles on signup; types expect `full_name`, `email`, `role`, `is_active`.
    - What's unclear: Exact SQL, default `role`, whether it already reads metadata besides `full_name`.
-   - Recommendation: Wave 0 inspection in SQL Editor; plan task cannot skip this.
+   - Resolution (03-02 Task 1): inspect-then-replace. Dump `pg_get_functiondef('public.handle_new_user'::regproc)` in the SQL Editor, then `CREATE OR REPLACE` preserving every live insert column. Do not skip the dump; do not add a second `on_auth_user_created` trigger.
 
-2. **Legacy patients without owner**
+2. **Legacy patients without owner** (RESOLVED)
    - What we know: `createPatient` does not set `created_by`.
    - What's unclear: How many users exist in the hosted project.
-   - Recommendation: Conditional backfill (one profile → that id); else transitional NULL policy.
+   - Resolution (03-02 Task 2 item 8): conditional backfill. If exactly one `profiles` row, set all NULL `created_by` to that id; otherwise leave NULL with transitional SELECT (`created_by IS NULL` visible to authenticated) and document the debt in a SQL comment.
 
-3. **Board / quadro isolation**
+3. **Board / quadro isolation** (RESOLVED)
    - What we know: Not in REQ-15 acceptance.
    - What's unclear: Whether cards include patient names.
-   - Recommendation: Leave unchanged; note residual risk.
+   - Resolution (03-02): leave `board_columns` / `board_cards` unchanged this phase. Residual PHI risk via card titles is accepted and out of REQ-15.
 
-4. **Same-email after reject**
+4. **Same-email after reject** (RESOLVED)
    - What we know: Auth uniqueness + no service_role in client.
    - What's unclear: Whether the user will accept “outro e-mail”.
-   - Recommendation: Implement as specified in Pitfall 3; do not add Edge Functions this phase.
+   - Resolution (03-04): new email on reject. Rejected login copy is “Pedido recusado. Use outro e-mail para um novo cadastro.” Do not delete `auth.users` from the SPA; do not add Edge Functions this phase.
 
 ## Environment Availability
 
