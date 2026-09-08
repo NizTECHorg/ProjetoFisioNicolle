@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: tipos-de-conta-e-equipe
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-08
+reviewed_at: 2026-09-08T22:35:00Z
 ---
 
 # Phase 3 — UI Design Contract
