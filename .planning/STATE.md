@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-last_updated: "2026-09-08T23:10:00.000Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-09-08T23:21:00.548Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 15
-  completed_plans: 1
-  percent: 13
+  total_plans: 8
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State
@@ -20,9 +21,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** REQ-15 — Tipos de conta e equipe (Phase 3)
+**Current focus:** Phase 3 — Tipos de conta e equipe
 
 ## Current Position
+
+Phase: 3 (Tipos de conta e equipe) — EXECUTING
+Plan: 2 of 7
 
 - Phase: 3 — Tipos de conta e equipe
 - Status: Ready to execute
@@ -36,6 +40,9 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 - REQ-05 adiado: código existe; SQL/UAT ficam para depois
 - Metas no Resumo; clique no card = concluído / em andamento — Phase 2
 - Phase 3 não depende do SQL das fases anteriores
+- [Phase 03]: Account types are autonomo | empresa | fisioterapeuta in account.ts, not EmployeeRole — Keep bakery Profile.role untouched; clinic gating uses AccountType
+- [Phase 03]: canManageTeam / canWritePatient are UX-only; Plan 03-02 RLS is the authority — ASVS 4.1.1 — client predicates can be skipped; RLS must enforce D-05/D-07
+- [Phase 03]: Org + membership interfaces (not extra columns only on profiles) — Accept/reject safety and join code live on org/membership, not a person-row
 
 ### Pending user action
 
@@ -49,6 +56,6 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Session Continuity
 
-Last session: 2026-09-08T23:10:00.000Z
-Stopped at: Phase 3 planned — 7 plans verified
-Resume file: .planning/phases/03-tipos-de-conta-e-equipe/03-01-PLAN.md
+Last session: 2026-09-08T23:20:32.817Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

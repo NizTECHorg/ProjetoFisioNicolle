@@ -69,7 +69,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Contratos de tipos de conta e predicados de acesso
+- [x] 03-01-PLAN.md — Contratos de tipos de conta e predicados de acesso
 - [ ] 03-02-PLAN.md — SQL org/membership/RLS + apply no Editor
 
 **Wave 2** *(blocked on Wave 1 completion)*
