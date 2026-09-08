@@ -92,6 +92,51 @@ grant select on table public.organizations to authenticated;
 grant select on table public.organization_memberships to authenticated;
 
 -- ---------------------------------------------------------------------------
+-- 2b. patients.created_by BEFORE private helpers (42703 if created later)
+-- Divida residual: se houver mais de um profile, created_by nulo fica
+-- visivel a qualquer autenticado (SELECT transitorio na secao 9).
+-- ---------------------------------------------------------------------------
+alter table public.patients
+  add column if not exists created_by uuid references auth.users (id);
+
+create index if not exists patients_created_by_idx
+  on public.patients (created_by);
+
+create or replace function public.set_patient_created_by()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.created_by is null then
+    new.created_by := (select auth.uid());
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists patients_set_created_by on public.patients;
+create trigger patients_set_created_by
+  before insert on public.patients
+  for each row
+  execute function public.set_patient_created_by();
+
+do $$
+declare
+  v_profile_count integer;
+  v_sole_id uuid;
+begin
+  select count(*) into v_profile_count from public.profiles;
+  if v_profile_count = 1 then
+    select id into v_sole_id from public.profiles;
+    update public.patients
+    set created_by = v_sole_id
+    where created_by is null;
+  end if;
+end
+$$;
+
+-- ---------------------------------------------------------------------------
 -- 3. private helpers (SECURITY DEFINER, search_path vazio, auth.uid encapsulado)
 -- ---------------------------------------------------------------------------
 create schema if not exists private;
@@ -432,52 +477,8 @@ create policy profiles_select_can_view
 -- caminho para alterar is_active de outra pessoa.
 
 -- ---------------------------------------------------------------------------
--- 8. patients.created_by + trigger + backfill condicional
--- Divida residual: se houver mais de um profile, created_by nulo fica
--- visivel a qualquer autenticado (SELECT transitorio abaixo).
--- ---------------------------------------------------------------------------
-alter table public.patients
-  add column if not exists created_by uuid references auth.users (id);
-
-create index if not exists patients_created_by_idx
-  on public.patients (created_by);
-
-create or replace function public.set_patient_created_by()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-  if new.created_by is null then
-    new.created_by := (select auth.uid());
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists patients_set_created_by on public.patients;
-create trigger patients_set_created_by
-  before insert on public.patients
-  for each row
-  execute function public.set_patient_created_by();
-
-do $$
-declare
-  v_profile_count integer;
-  v_sole_id uuid;
-begin
-  select count(*) into v_profile_count from public.profiles;
-  if v_profile_count = 1 then
-    select id into v_sole_id from public.profiles;
-    update public.patients
-    set created_by = v_sole_id
-    where created_by is null;
-  end if;
-end
-$$;
-
--- ---------------------------------------------------------------------------
 -- 9. Politicas clinicas: drop using(true) / *_authenticated_all; creator-write
+-- patients.created_by ja foi adicionado na secao 2b (antes dos helpers).
 -- ---------------------------------------------------------------------------
 do $$
 declare
