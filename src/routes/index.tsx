@@ -6,6 +6,7 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { WaitingApprovalPage } from '@/pages/auth/WaitingApprovalPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PatientsPage } from '@/pages/PatientsPage'
+import { TeamPage } from '@/pages/TeamPage'
 import { PatientPage } from '@/pages/PatientPage'
 import { PatientCadastroPage } from '@/pages/PatientCadastroPage'
 import { PatientModuleStubPage } from '@/pages/PatientModuleStubPage'
@@ -27,6 +28,7 @@ export function AppRoutes() {
         <Route element={<AppShell />}>
           <Route path="/painel" element={<DashboardPage />} />
           <Route path="/pacientes" element={<PatientsPage />} />
+          <Route path="/equipe" element={<TeamPage />} />
           <Route path="/pacientes/:id" element={<PatientPage />} />
           <Route path="/pacientes/:id/cadastro" element={<PatientCadastroPage />} />
           <Route path="/pacientes/:id/:module" element={<PatientModuleStubPage />} />

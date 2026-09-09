@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { LogOut, Menu, X } from 'lucide-react'
-import { mobileNavItems, navigationItems } from '@/config/navigation'
+import { clinicNavigationItems, mobileNavItems } from '@/config/navigation'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { useAuth } from '@/hooks/useAuth'
 import { accountTypeLabel } from '@/lib/accountAccess'
@@ -17,6 +17,7 @@ export function AppShell() {
     .join('')
     .toUpperCase()
   const roleLabel = profile ? accountTypeLabel(profile.accountType) : (user?.email ?? '')
+  const drawerItems = clinicNavigationItems(profile?.accountType)
 
   return (
     <div className="min-h-dvh bg-canvas text-ink lg:h-dvh lg:overflow-hidden lg:bg-forest">
@@ -56,7 +57,7 @@ export function AppShell() {
 
         <nav className="nav-scroll flex-1 overflow-y-auto px-3 py-2" aria-label="Navegação principal">
           <div className="space-y-1">
-            {navigationItems.map(({ label, path, icon: Icon }) => (
+            {drawerItems.map(({ label, path, icon: Icon }) => (
               <NavLink
                 key={path}
                 to={path}
