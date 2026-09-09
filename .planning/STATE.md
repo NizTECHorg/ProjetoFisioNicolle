@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-09-09T20:18:51.948Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-09-09T20:26:48.458Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 8
-  completed_plans: 3
+  completed_plans: 4
   percent: 33
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 3 (Tipos de conta e equipe) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 
 - Phase: 3 — Tipos de conta e equipe
 - Status: Ready to execute
-- Progress: Phase 3 executing (2/7 plans, Wave 1 SQL applied); Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
+- Progress: Phase 3 executing (3/7 plans, Wave 1 SQL applied, cadastro tipo/código shipped); Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
 
 ## Accumulated Context
 
@@ -46,6 +46,9 @@ Plan: 3 of 7
 - [Phase 03]: Preserve bakery profiles.role='atendente' on handle_new_user; clinic type is account_type — Live dump inserts role; do not drop bakery column
 - [Phase 03]: ALTER patients.created_by before private helpers (Postgres 42703) — CREATE FUNCTION validates body immediately; first Editor apply failed
 - [Phase 03]: SQL Editor is the apply path; supabase/ copy is gitignored — Supabase CLI is not installed; hosted Editor is the only apply path
+- [Phase 03]: Zod enum message covers empty Select so required_error stays without preprocess — Zod 3 forbids required_error + errorMap; preprocess broke zodResolver types
+- [Phase 03]: Fisio stays on cadastro with pending copy; GuestRoute in 03-04 owns /aguardando — Plan 03-03 must not navigate; 03-04 owns pending session redirect
+- [Phase 03]: team.service is the only org/membership client; no profiles.update — D-04 reject is RPC-only; T-03-03 no client membership insert
 
 ### Pending user action
 
@@ -59,6 +62,6 @@ Plan: 3 of 7
 
 ## Session Continuity
 
-Last session: 2026-09-09T20:18:51.926Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-09-09T20:26:48.437Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
