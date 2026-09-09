@@ -8,8 +8,29 @@
 ### Prontuário clínico
 
 - [x] **REQ-08**: Evolução individual de cada sessão (entregue; SQL no Supabase)
+- [x] **REQ-15**: Tipos de conta (autônomo / empresa / fisioterapeuta) e equipe na empresa
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-15 — Tipos de conta e equipe
+
+**Indispensável · Artur**
+
+Na criação da conta, a pessoa escolhe o tipo:
+
+- **Autônomo** — profissional que opera sozinho
+- **Empresa** — clínica/organização que pode alocar mais funcionários (fisioterapeutas)
+- **Fisioterapeuta** — profissional que trabalha em uma empresa
+
+A empresa consegue adicionar mais fisioterapeutas à equipe.
+
+### Acceptance
+
+1. O formulário de cadastro exige escolher autônomo, empresa ou fisioterapeuta.
+2. Conta empresa tem um lugar para alocar/adicionar funcionários (fisioterapeutas).
+3. Fisioterapeuta vinculado a empresa não gerencia a equipe nesta fase.
+4. Autônomo não vê gestão de equipe.
+5. Tipos e vínculos persistem no Supabase.
 
 ## REQ-14 — Metas do tratamento
 
@@ -68,6 +89,7 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REQ-14 | Phase 2 | Pending |
+| REQ-15 | Phase 3 | Complete |
+| REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |
 | REQ-08 | Prior | Delivered |

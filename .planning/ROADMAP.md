@@ -83,5 +83,5 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-05-PLAN.md — /equipe para empresa (código + aceitar/recusar)
+- [x] 03-05-PLAN.md — /equipe para empresa (código + aceitar/recusar)
 - [ ] 03-07-PLAN.md — Consulta da empresa na lista e na ficha
