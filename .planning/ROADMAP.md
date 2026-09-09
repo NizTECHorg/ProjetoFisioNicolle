@@ -75,7 +75,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 03-03-PLAN.md — Cadastro: tipo, código e metadata
-- [ ] 03-06-PLAN.md — created_by no serviço de pacientes
+- [x] 03-06-PLAN.md — created_by no serviço de pacientes
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

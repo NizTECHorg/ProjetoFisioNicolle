@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-09-09T20:26:48.458Z"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-09-09T20:31:00.051Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 33
 ---
 
@@ -30,7 +30,7 @@ Plan: 4 of 7
 
 - Phase: 3 — Tipos de conta e equipe
 - Status: Ready to execute
-- Progress: Phase 3 executing (3/7 plans, Wave 1 SQL applied, cadastro tipo/código shipped); Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
+- Progress: Phase 3 executing (4/7 plans, Wave 2 complete: cadastro + patients.created_by client); next Wave 3 login gates; Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
 
 ## Accumulated Context
 
@@ -49,6 +49,8 @@ Plan: 4 of 7
 - [Phase 03]: Zod enum message covers empty Select so required_error stays without preprocess — Zod 3 forbids required_error + errorMap; preprocess broke zodResolver types
 - [Phase 03]: Fisio stays on cadastro with pending copy; GuestRoute in 03-04 owns /aguardando — Plan 03-03 must not navigate; 03-04 owns pending session redirect
 - [Phase 03]: team.service is the only org/membership client; no profiles.update — D-04 reject is RPC-only; T-03-03 no client membership insert
+- [Phase 03]: Batch-resolve createdByName via one profiles select; do not JS-filter patients — RLS is the authority; empresa needs the name for Ficha de {nome} in 03-07
+- [Phase 03]: Leave listActiveTherapists unchanged; RLS can_view_profile is the tenant scope — Plan 03-02 already scopes profiles SELECT to self or active org teammates
 
 ### Pending user action
 
@@ -62,6 +64,6 @@ Plan: 4 of 7
 
 ## Session Continuity
 
-Last session: 2026-09-09T20:26:48.437Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-09-09T20:30:59.626Z
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
