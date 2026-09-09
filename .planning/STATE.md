@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-09-08T23:21:00.548Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-09-09T20:18:51.948Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 8
-  completed_plans: 2
-  percent: 25
+  completed_plans: 3
+  percent: 33
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 3 (Tipos de conta e equipe) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 
 - Phase: 3 — Tipos de conta e equipe
 - Status: Ready to execute
-- Progress: Phase 3 planned (7 plans, 4 waves); Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
+- Progress: Phase 3 executing (2/7 plans, Wave 1 SQL applied); Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
 
 ## Accumulated Context
 
@@ -43,6 +43,9 @@ Plan: 2 of 7
 - [Phase 03]: Account types are autonomo | empresa | fisioterapeuta in account.ts, not EmployeeRole — Keep bakery Profile.role untouched; clinic gating uses AccountType
 - [Phase 03]: canManageTeam / canWritePatient are UX-only; Plan 03-02 RLS is the authority — ASVS 4.1.1 — client predicates can be skipped; RLS must enforce D-05/D-07
 - [Phase 03]: Org + membership interfaces (not extra columns only on profiles) — Accept/reject safety and join code live on org/membership, not a person-row
+- [Phase 03]: Preserve bakery profiles.role='atendente' on handle_new_user; clinic type is account_type — Live dump inserts role; do not drop bakery column
+- [Phase 03]: ALTER patients.created_by before private helpers (Postgres 42703) — CREATE FUNCTION validates body immediately; first Editor apply failed
+- [Phase 03]: SQL Editor is the apply path; supabase/ copy is gitignored — Supabase CLI is not installed; hosted Editor is the only apply path
 
 ### Pending user action
 
@@ -56,6 +59,6 @@ Plan: 2 of 7
 
 ## Session Continuity
 
-Last session: 2026-09-08T23:20:32.817Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-09-09T20:18:51.926Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
