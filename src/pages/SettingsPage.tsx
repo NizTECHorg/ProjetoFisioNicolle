@@ -19,7 +19,7 @@ export function SettingsPage() {
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex justify-between gap-4">
               <dt className="text-cream/40">Nome</dt>
-              <dd>{profile?.full_name ?? '—'}</dd>
+              <dd>{profile?.fullName ?? '—'}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-cream/40">E-mail</dt>

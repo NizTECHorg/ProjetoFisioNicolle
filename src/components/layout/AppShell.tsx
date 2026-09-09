@@ -4,26 +4,19 @@ import { LogOut, Menu, X } from 'lucide-react'
 import { mobileNavItems, navigationItems } from '@/config/navigation'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { useAuth } from '@/hooks/useAuth'
-
-const roleLabels: Record<string, string> = {
-  administrador: 'Administrador',
-  gerente: 'Gerente',
-  atendente: 'Fisioterapeuta',
-  confeiteiro: 'Fisioterapeuta',
-  entregador: 'Equipe',
-}
+import { accountTypeLabel } from '@/lib/accountAccess'
 
 export function AppShell() {
   const { profile, user, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const displayName = profile?.full_name ?? user?.user_metadata.full_name ?? 'Usuário'
+  const displayName = profile?.fullName ?? user?.user_metadata.full_name ?? 'Usuário'
   const initials = displayName
     .split(' ')
     .slice(0, 2)
     .map((part: string) => part[0])
     .join('')
     .toUpperCase()
-  const roleLabel = profile ? (roleLabels[profile.role] ?? profile.role) : (user?.email ?? '')
+  const roleLabel = profile ? accountTypeLabel(profile.accountType) : (user?.email ?? '')
 
   return (
     <div className="min-h-dvh bg-canvas text-ink lg:h-dvh lg:overflow-hidden lg:bg-forest">

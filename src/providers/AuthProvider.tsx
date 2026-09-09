@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 import { fetchProfile, signOut as authSignOut } from '@/services/auth.service'
+import { fetchMembership } from '@/services/team.service'
+import { isPendingTherapist } from '@/lib/accountAccess'
 import { AuthContext, type AuthContextValue } from '@/hooks/useAuth'
-import type { Profile } from '@/types/database.types'
+import type { ClinicProfile, Membership } from '@/types/account'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -12,7 +14,8 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<ClinicProfile | null>(null)
+  const [membership, setMembership] = useState<Membership | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
 
   useEffect(() => {
@@ -44,6 +47,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     if (!userId) {
       setProfile(null)
+      setMembership(null)
       setProfileLoading(false)
       return
     }
@@ -51,9 +55,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let cancelled = false
     setProfileLoading(true)
 
-    void fetchProfile(userId).then((userProfile) => {
+    void Promise.all([
+      fetchProfile(userId),
+      fetchMembership(userId).catch(() => null),
+    ]).then(([userProfile, userMembership]) => {
       if (cancelled) return
       setProfile(userProfile)
+      setMembership(userMembership)
       setProfileLoading(false)
     })
 
@@ -66,6 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await authSignOut()
     setSession(null)
     setProfile(null)
+    setMembership(null)
   }, [])
 
   const value = useMemo<AuthContextValue>(
@@ -73,13 +82,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       session,
       user: session?.user ?? null,
       profile,
+      membership,
       isLoading: !sessionLoaded || profileLoading,
-      // Falha de forma segura: sessão sem perfil ativo não acessa a aplicação.
-      // O Supabase RLS continua sendo a autoridade final no servidor.
-      isAuthenticated: !!session && !!profile,
+      // Fail-closed (D-03): pending or fisio-without-membership never enters the clinic.
+      isAuthenticated:
+        !!session &&
+        !!profile &&
+        profile.isActive === true &&
+        !isPendingTherapist(profile.accountType, membership?.status) &&
+        !(profile.accountType === 'fisioterapeuta' && membership === null),
       signOut,
     }),
-    [session, profile, sessionLoaded, profileLoading, signOut],
+    [session, profile, membership, sessionLoaded, profileLoading, signOut],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
