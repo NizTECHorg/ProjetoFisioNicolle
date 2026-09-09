@@ -6,6 +6,7 @@ import {
   sanitizeEmail,
   sanitizeText,
 } from '@/lib/security'
+import { normalizeJoinCode } from '@/lib/accountAccess'
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '@/schemas/auth.schema'
 import type { Profile } from '@/types/database.types'
 
@@ -53,6 +54,11 @@ export async function signUpWithEmail(
     options: {
       data: {
         full_name: fullName,
+        account_type: parsed.accountType,
+        join_code:
+          parsed.accountType === 'fisioterapeuta'
+            ? normalizeJoinCode(parsed.joinCode ?? '')
+            : null,
       },
       emailRedirectTo: `${window.location.origin}/`,
     },
