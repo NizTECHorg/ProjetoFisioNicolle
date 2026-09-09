@@ -6,9 +6,45 @@ import {
   sanitizeEmail,
   sanitizeText,
 } from '@/lib/security'
-import { normalizeJoinCode } from '@/lib/accountAccess'
+import { isRejectedAccount, normalizeJoinCode } from '@/lib/accountAccess'
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '@/schemas/auth.schema'
-import type { Profile } from '@/types/database.types'
+import { fetchMembership } from '@/services/team.service'
+import type { AccountType, ClinicProfile } from '@/types/account'
+
+const ACCOUNT_TYPES = new Set<AccountType>(['autonomo', 'empresa', 'fisioterapeuta'])
+
+interface ProfileRow {
+  id: string
+  full_name: string | null
+  email: string | null
+  role: string
+  avatar_url: string | null
+  is_active: boolean
+  account_type: string | null
+  created_at: string
+  updated_at: string
+}
+
+function mapAccountType(value: string | null): AccountType {
+  if (value && ACCOUNT_TYPES.has(value as AccountType)) {
+    return value as AccountType
+  }
+  return 'autonomo'
+}
+
+function mapClinicProfile(row: ProfileRow): ClinicProfile {
+  return {
+    id: row.id,
+    fullName: row.full_name ?? '',
+    email: row.email ?? '',
+    role: row.role,
+    avatarUrl: row.avatar_url,
+    isActive: row.is_active,
+    accountType: mapAccountType(row.account_type),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
 
 function assertRateLimit(keys: string[]) {
   for (const key of keys) {
@@ -27,7 +63,7 @@ export async function signInWithEmail(data: LoginFormData): Promise<void> {
 
   assertRateLimit([`auth:login:${email}`, 'auth:login:global'])
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password: parsed.password,
   })
@@ -37,6 +73,24 @@ export async function signInWithEmail(data: LoginFormData): Promise<void> {
   }
 
   resetRateLimit(`auth:login:${email}`)
+
+  const userId = authData.user?.id
+  if (!userId) return
+
+  const profile = await fetchProfile(userId)
+  if (!profile) return
+
+  let membership = null
+  try {
+    membership = await fetchMembership(userId)
+  } catch {
+    // Query error: keep session. AuthProvider fail-closes fisio to /aguardando (D-03).
+  }
+
+  if (isRejectedAccount(profile.isActive, membership?.status)) {
+    await signOut()
+    throw new Error('Pedido recusado. Use outro e-mail para um novo cadastro.')
+  }
 }
 
 export async function signUpWithEmail(
@@ -85,17 +139,16 @@ export async function signOut(): Promise<void> {
   }
 }
 
-export async function fetchProfile(userId: string): Promise<Profile | null> {
+export async function fetchProfile(userId: string): Promise<ClinicProfile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, email, role, avatar_url, is_active, created_at, updated_at')
+    .select('id, full_name, email, role, avatar_url, is_active, account_type, created_at, updated_at')
     .eq('id', userId)
-    .eq('is_active', true)
     .maybeSingle()
 
-  if (error) {
+  if (error || !data) {
     return null
   }
 
-  return data
+  return mapClinicProfile(data as ProfileRow)
 }
