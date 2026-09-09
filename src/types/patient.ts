@@ -118,6 +118,8 @@ export interface PatientListItem {
   sessionsDone: number
   sessionsTotal: number
   nextSession: PatientSession | null
+  createdBy: string | null
+  createdByName: string | null
 }
 
 export interface Patient {
@@ -159,6 +161,8 @@ export interface Patient {
   painSeries: PatientPainLog[]
   alerts: PatientAlert[]
   nextSession: PatientSession | null
+  createdBy: string | null
+  createdByName: string | null
 }
 
 /** Resumo enxuto para a abertura do paciente (REQ-02). */
@@ -180,6 +184,8 @@ export interface PatientDashboard {
   alerts: PatientAlert[]
   nextSession: PatientSession | null
   lastSession: PatientSession | null
+  createdBy: string | null
+  createdByName: string | null
 }
 
 export interface CreatePatientInput {
