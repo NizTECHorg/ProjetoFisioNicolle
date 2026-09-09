@@ -45,6 +45,7 @@ interface PatientRow {
   last_conducts: string | null
   next_session_plan: string | null
   photo_tone: string
+  created_by: string | null
 }
 
 interface ListPatientRow {
@@ -57,6 +58,7 @@ interface ListPatientRow {
   program_name: string | null
   sessions_done: number
   sessions_planned: number
+  created_by: string | null
 }
 
 const GOAL_COLUMNS = 'id, title, status, is_done, created_on, achieved_on, sort_order'
@@ -104,13 +106,13 @@ interface AlertRow {
 const ALERT_COLUMNS = 'id, message, tone, created_at, created_by, created_by_name'
 
 const DETAIL_COLUMNS =
-  'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan, photo_tone'
+  'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan, photo_tone, created_by'
 
 const LIST_COLUMNS =
-  'id, full_name, code, phone, status, photo_tone, program_name, sessions_done, sessions_planned'
+  'id, full_name, code, phone, status, photo_tone, program_name, sessions_done, sessions_planned, created_by'
 
 const DASHBOARD_COLUMNS =
-  'id, full_name, code, phone, status, photo_tone, complaint, diagnosis, treatment_started_on, sessions_done, sessions_planned, last_visit_on'
+  'id, full_name, code, phone, status, photo_tone, complaint, diagnosis, treatment_started_on, sessions_done, sessions_planned, last_visit_on, created_by'
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message)
@@ -162,6 +164,21 @@ function generatePatientCode() {
     suffix += alphabet[Math.floor(Math.random() * alphabet.length)]
   }
   return `PAC-${suffix}`
+}
+
+async function resolveCreatedByNames(ids: Array<string | null | undefined>): Promise<Map<string, string>> {
+  const unique = [...new Set(ids.filter((id): id is string => Boolean(id)))]
+  const names = new Map<string, string>()
+  if (unique.length === 0) return names
+
+  const { data, error } = await supabase.from('profiles').select('id, full_name').in('id', unique)
+  throwIfError(error)
+
+  for (const row of (data ?? []) as Array<{ id: string; full_name: string | null }>) {
+    const name = row.full_name?.trim()
+    if (name) names.set(row.id, name)
+  }
+  return names
 }
 
 function mapSession(row: SessionRow): Patient['nextSession'] {
@@ -227,7 +244,11 @@ function pickLastDone(sessions: SessionRow[]) {
     .sort((a, b) => (b.scheduled_at ?? '').localeCompare(a.scheduled_at ?? ''))[0]
 }
 
-function mapListItem(row: ListPatientRow, sessions: SessionRow[]): PatientListItem {
+function mapListItem(
+  row: ListPatientRow,
+  sessions: SessionRow[],
+  createdByName: string | null,
+): PatientListItem {
   const upcoming = pickUpcoming(sessions)
   return {
     id: row.id,
@@ -241,6 +262,8 @@ function mapListItem(row: ListPatientRow, sessions: SessionRow[]): PatientListIt
     sessionsDone: row.sessions_done,
     sessionsTotal: row.sessions_planned,
     nextSession: upcoming ? mapSession(upcoming) : null,
+    createdBy: row.created_by,
+    createdByName,
   }
 }
 
@@ -252,6 +275,7 @@ function mapPatient(
     pain?: PainRow[]
     sessions?: SessionRow[]
     alerts?: AlertRow[]
+    createdByName?: string | null
   } = {},
 ): Patient {
   const upcoming = pickUpcoming(extras.sessions ?? [])
@@ -307,6 +331,8 @@ function mapPatient(
       })),
     alerts: (extras.alerts ?? []).map(mapAlert),
     nextSession: upcoming ? mapSession(upcoming) : null,
+    createdBy: row.created_by,
+    createdByName: extras.createdByName ?? null,
   }
 }
 
@@ -336,7 +362,14 @@ export async function listPatients(): Promise<PatientListItem[]> {
     sessionsByPatient.set(session.patient_id, list)
   }
 
-  return rows.map((row) => mapListItem(row, sessionsByPatient.get(row.id) ?? []))
+  const nameById = await resolveCreatedByNames(rows.map((row) => row.created_by))
+  return rows.map((row) =>
+    mapListItem(
+      row,
+      sessionsByPatient.get(row.id) ?? [],
+      row.created_by ? (nameById.get(row.created_by) ?? null) : null,
+    ),
+  )
 }
 
 export async function getPatientById(id: string): Promise<Patient | null> {
@@ -351,7 +384,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
   const row = data as PatientRow
 
-  const [goals, focus, pain, sessions, alerts] = await Promise.all([
+  const [goals, focus, pain, sessions, alerts, nameById] = await Promise.all([
     supabase.from('patient_goals').select(GOAL_COLUMNS).eq('patient_id', id),
     supabase.from('patient_focus_areas').select('id, label, is_active, sort_order').eq('patient_id', id),
     supabase.from('patient_pain_logs').select('recorded_on, eva').eq('patient_id', id),
@@ -364,6 +397,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .select(ALERT_COLUMNS)
       .eq('patient_id', id)
       .order('created_at', { ascending: false }),
+    resolveCreatedByNames([row.created_by]),
   ])
 
   throwIfError(goals.error)
@@ -378,6 +412,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     pain: (pain.data ?? []) as PainRow[],
     sessions: (sessions.data ?? []) as SessionRow[],
     alerts: (alerts.data ?? []) as AlertRow[],
+    createdByName: row.created_by ? (nameById.get(row.created_by) ?? null) : null,
   })
 }
 
@@ -405,9 +440,10 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     | 'sessions_done'
     | 'sessions_planned'
     | 'last_visit_on'
+    | 'created_by'
   >
 
-  const [goals, alerts, sessions] = await Promise.all([
+  const [goals, alerts, sessions, nameById] = await Promise.all([
     supabase
       .from('patient_goals')
       .select(GOAL_COLUMNS)
@@ -426,6 +462,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
       .select('id, scheduled_at, session_type, place, status, notes')
       .eq('patient_id', id)
       .in('status', ['agendada', 'confirmada', 'realizada']),
+    resolveCreatedByNames([row.created_by]),
   ])
 
   throwIfError(goals.error)
@@ -454,10 +491,19 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     alerts: ((alerts.data ?? []) as AlertRow[]).map(mapAlert),
     nextSession: next ? mapSession(next) : null,
     lastSession: last ? mapSession(last) : null,
+    createdBy: row.created_by,
+    createdByName: row.created_by ? (nameById.get(row.created_by) ?? null) : null,
   }
 }
 
 export async function createPatient(input: CreatePatientInput): Promise<{ id: string }> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+  throwIfError(userError)
+  if (!user) throw new Error('Sessão expirada. Entre novamente.')
+
   const payload = {
     full_name: input.fullName.trim(),
     code: generatePatientCode(),
@@ -472,6 +518,7 @@ export async function createPatient(input: CreatePatientInput): Promise<{ id: st
     referral_source: emptyToNull(input.referralSource),
     therapist_name: emptyToNull(input.therapistName),
     status: 'avaliacao' as const,
+    created_by: user.id,
   }
 
   const { data, error } = await supabase.from('patients').insert(payload).select('id').single()
