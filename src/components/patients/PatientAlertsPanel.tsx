@@ -45,9 +45,15 @@ type PatientAlertsPanelProps = {
   alerts: PatientAlert[]
   /** Sidebar compacta (desktop 20%) com scroll */
   compact?: boolean
+  canWrite?: boolean
 }
 
-export function PatientAlertsPanel({ patientId, alerts, compact = false }: PatientAlertsPanelProps) {
+export function PatientAlertsPanel({
+  patientId,
+  alerts,
+  compact = false,
+  canWrite = true,
+}: PatientAlertsPanelProps) {
   const createAlert = useCreatePatientAlert(patientId)
   const updateAlert = useUpdatePatientAlert(patientId)
   const deleteAlert = useDeletePatientAlert(patientId)
@@ -118,15 +124,17 @@ export function PatientAlertsPanel({ patientId, alerts, compact = false }: Patie
               Alertas
             </p>
           </div>
-          <button
-            type="button"
-            aria-label="Adicionar alerta"
-            onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-forest transition hover:bg-accent-soft"
-          >
-            <Plus size={14} />
-            {!compact && <span>Adicionar</span>}
-          </button>
+          {canWrite ? (
+            <button
+              type="button"
+              aria-label="Adicionar alerta"
+              onClick={openCreate}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-forest transition hover:bg-accent-soft"
+            >
+              <Plus size={14} />
+              {!compact && <span>Adicionar</span>}
+            </button>
+          ) : null}
         </div>
 
         <div
@@ -154,24 +162,26 @@ export function PatientAlertsPanel({ patientId, alerts, compact = false }: Patie
                         {alert.createdByName || '—'} · {formatAlertDate(alert.createdAt)}
                       </p>
                     </div>
-                    <div className="flex shrink-0 flex-col gap-0.5">
-                      <button
-                        type="button"
-                        aria-label="Editar alerta"
-                        onClick={() => openEdit(alert)}
-                        className="rounded-md p-1 text-muted transition hover:bg-surface hover:text-forest"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Remover alerta"
-                        onClick={() => setPendingDelete(alert)}
-                        className="rounded-md p-1 text-muted transition hover:bg-surface hover:text-error"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
+                    {canWrite ? (
+                      <div className="flex shrink-0 flex-col gap-0.5">
+                        <button
+                          type="button"
+                          aria-label="Editar alerta"
+                          onClick={() => openEdit(alert)}
+                          className="rounded-md p-1 text-muted transition hover:bg-surface hover:text-forest"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Remover alerta"
+                          onClick={() => setPendingDelete(alert)}
+                          className="rounded-md p-1 text-muted transition hover:bg-surface hover:text-error"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </li>
               ))}
@@ -180,49 +190,53 @@ export function PatientAlertsPanel({ patientId, alerts, compact = false }: Patie
         </div>
       </article>
 
-      <Modal
-        open={editorOpen}
-        title={editing ? 'Editar alerta' : 'Novo alerta'}
-        description="Informação que deve permanecer visível ao abrir o prontuário."
-        onClose={closeEditor}
-      >
-        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-          <Textarea
-            label="Mensagem"
-            rows={4}
-            error={form.formState.errors.message?.message}
-            {...form.register('message')}
-          />
-          <Select
-            label="Tom"
-            options={alertToneOptions}
-            error={form.formState.errors.tone?.message}
-            {...form.register('tone')}
-          />
-          <div className="flex justify-end gap-3 pt-1">
-            <Button type="button" variant="secondary" onClick={closeEditor} disabled={saving}>
-              Cancelar
-            </Button>
-            <Button type="submit" isLoading={saving}>
-              Salvar
-            </Button>
-          </div>
-        </form>
-      </Modal>
+      {canWrite ? (
+        <Modal
+          open={editorOpen}
+          title={editing ? 'Editar alerta' : 'Novo alerta'}
+          description="Informação que deve permanecer visível ao abrir o prontuário."
+          onClose={closeEditor}
+        >
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+            <Textarea
+              label="Mensagem"
+              rows={4}
+              error={form.formState.errors.message?.message}
+              {...form.register('message')}
+            />
+            <Select
+              label="Tom"
+              options={alertToneOptions}
+              error={form.formState.errors.tone?.message}
+              {...form.register('tone')}
+            />
+            <div className="flex justify-end gap-3 pt-1">
+              <Button type="button" variant="secondary" onClick={closeEditor} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button type="submit" isLoading={saving}>
+                Salvar
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
 
-      <ConfirmDialog
-        open={Boolean(pendingDelete)}
-        title="Remover alerta"
-        description="Este alerta deixará de aparecer no resumo do paciente."
-        confirmLabel="Remover"
-        tone="danger"
-        isLoading={deleteAlert.isPending}
-        onClose={() => setPendingDelete(null)}
-        onConfirm={() => {
-          if (!pendingDelete) return
-          deleteAlert.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) })
-        }}
-      />
+      {canWrite ? (
+        <ConfirmDialog
+          open={Boolean(pendingDelete)}
+          title="Remover alerta"
+          description="Este alerta deixará de aparecer no resumo do paciente."
+          confirmLabel="Remover"
+          tone="danger"
+          isLoading={deleteAlert.isPending}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={() => {
+            if (!pendingDelete) return
+            deleteAlert.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) })
+          }}
+        />
+      ) : null}
     </>
   )
 }

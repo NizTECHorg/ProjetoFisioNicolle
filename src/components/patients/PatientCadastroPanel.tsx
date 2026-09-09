@@ -46,7 +46,7 @@ function EditableCard({
   style,
 }: {
   title: string
-  onEdit: () => void
+  onEdit?: () => void
   children: ReactNode
   className?: string
   style?: CSSProperties
@@ -58,14 +58,16 @@ function EditableCard({
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{title}</p>
-        <button
-          type="button"
-          aria-label={`Editar ${title}`}
-          onClick={onEdit}
-          className="rounded-lg p-1.5 text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
-        >
-          <Pencil size={14} />
-        </button>
+        {onEdit ? (
+          <button
+            type="button"
+            aria-label={`Editar ${title}`}
+            onClick={onEdit}
+            className="rounded-lg p-1.5 text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+          >
+            <Pencil size={14} />
+          </button>
+        ) : null}
       </div>
       <div className="mt-3 space-y-3">{children}</div>
     </article>
@@ -91,10 +93,15 @@ function FormActions({ onClose, isLoading }: { onClose: () => void; isLoading: b
 
 type PatientCadastroPanelProps = {
   patient: Patient
+  canWrite?: boolean
   onRequestIdentityEdit?: (open: () => void) => void
 }
 
-export function PatientCadastroPanel({ patient, onRequestIdentityEdit }: PatientCadastroPanelProps) {
+export function PatientCadastroPanel({
+  patient,
+  canWrite = true,
+  onRequestIdentityEdit,
+}: PatientCadastroPanelProps) {
   const update = useUpdatePatient()
   const [section, setSection] = useState<EditSection>(null)
 
@@ -115,8 +122,9 @@ export function PatientCadastroPanel({ patient, onRequestIdentityEdit }: Patient
   })
 
   useEffect(() => {
+    if (!canWrite) return
     onRequestIdentityEdit?.(() => setSection('identity'))
-  }, [onRequestIdentityEdit])
+  }, [onRequestIdentityEdit, canWrite])
 
   useEffect(() => {
     if (!section) return
@@ -167,32 +175,38 @@ export function PatientCadastroPanel({ patient, onRequestIdentityEdit }: Patient
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <EditableCard title="Pessoais" onEdit={() => setSection('personal')}>
+        <EditableCard title="Pessoais" onEdit={canWrite ? () => setSection('personal') : undefined}>
           <Field label="Profissão" value={patient.profession} />
           <Field label="E-mail" value={patient.email} />
         </EditableCard>
-        <EditableCard title="Emergência" onEdit={() => setSection('emergency')}>
+        <EditableCard title="Emergência" onEdit={canWrite ? () => setSection('emergency') : undefined}>
           <Field label="Nome" value={patient.emergencyName} />
           <Field label="Telefone" value={patient.emergencyPhone} />
           <Field label="Parentesco" value={patient.emergencyRelation} />
         </EditableCard>
-        <EditableCard title="Administrativo" onEdit={() => setSection('admin')}>
+        <EditableCard title="Administrativo" onEdit={canWrite ? () => setSection('admin') : undefined}>
           <Field label="Fisioterapeuta" value={patient.therapist} />
           <Field label="Origem" value={patient.referralSource} />
         </EditableCard>
-        <EditableCard title="Tratamento" onEdit={() => setSection('treatment')}>
+        <EditableCard title="Tratamento" onEdit={canWrite ? () => setSection('treatment') : undefined}>
           <Field label="Início" value={patient.startDate} />
           <Field label="Sessões" value={`${patient.sessionsDone} / ${patient.sessionsTotal}`} />
           <Field label="Frequência" value={patient.frequency} />
         </EditableCard>
       </div>
 
-      <EditableCard title="Observações administrativas" onEdit={() => setSection('admin')} className="mt-4">
+      <EditableCard
+        title="Observações administrativas"
+        onEdit={canWrite ? () => setSection('admin') : undefined}
+        className="mt-4"
+      >
         <p className="whitespace-pre-wrap text-sm leading-6 text-ink">
           {patient.adminNotes || 'Nenhuma observação ainda.'}
         </p>
       </EditableCard>
 
+      {canWrite ? (
+        <>
       <Modal
         open={section === 'identity'}
         title="Dados iniciais"
@@ -397,6 +411,8 @@ export function PatientCadastroPanel({ patient, onRequestIdentityEdit }: Patient
           <FormActions onClose={() => setSection(null)} isLoading={update.isPending} />
         </form>
       </Modal>
+        </>
+      ) : null}
     </>
   )
 }

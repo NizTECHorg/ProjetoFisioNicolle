@@ -210,12 +210,13 @@ function EntendaOCaso({
         </div>
       </article>
 
-      <Modal
-        open={open}
-        title="Entenda o caso"
-        description="Queixa, diagnóstico e acompanhamento."
-        onClose={() => setOpen(false)}
-      >
+      {canWrite ? (
+        <Modal
+          open={open}
+          title="Entenda o caso"
+          description="Queixa, diagnóstico e acompanhamento."
+          onClose={() => setOpen(false)}
+        >
         <form
           className="space-y-4"
           onSubmit={form.handleSubmit((values) => {
@@ -277,7 +278,8 @@ function EntendaOCaso({
             </Button>
           </div>
         </form>
-      </Modal>
+        </Modal>
+      ) : null}
     </>
   )
 }

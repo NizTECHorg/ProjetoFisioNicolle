@@ -22,12 +22,14 @@ import type { PhysicalEvaluationResult } from '@/types/evaluation'
 interface PatientPhysicalEvaluationPanelProps {
   patientId: string
   patientName?: string
+  canWrite?: boolean
   onUseAsEvaluation?: (result: PhysicalEvaluationResult) => void
 }
 
 export function PatientPhysicalEvaluationPanel({
   patientId,
   patientName,
+  canWrite = true,
   onUseAsEvaluation,
 }: PatientPhysicalEvaluationPanelProps) {
   const updatePatient = useUpdatePatient()
@@ -144,7 +146,7 @@ export function PatientPhysicalEvaluationPanel({
           </div>
         </div>
 
-        {/* Zona de Drop / Upload */}
+        {canWrite ? (
         <div
           onDragOver={(e) => {
             e.preventDefault()
@@ -190,6 +192,7 @@ export function PatientPhysicalEvaluationPanel({
             </div>
           )}
         </div>
+        ) : null}
 
         {errorMessage ? (
           <div className="mt-4 flex items-center gap-2 rounded-xl border border-error/20 bg-error/10 px-4 py-3 text-sm text-error">
@@ -227,17 +230,19 @@ export function PatientPhysicalEvaluationPanel({
                       </div>
                       <p className="mt-1 text-[11px] text-muted">{item.uploadedAt}</p>
                     </div>
-                    <button
-                      type="button"
-                      aria-label="Excluir avaliação"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteEvaluation(item.id)
-                      }}
-                      className="rounded p-1 text-muted opacity-0 hover:bg-error/10 hover:text-error group-hover:opacity-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {canWrite ? (
+                      <button
+                        type="button"
+                        aria-label="Excluir avaliação"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteEvaluation(item.id)
+                        }}
+                        className="rounded p-1 text-muted opacity-0 hover:bg-error/10 hover:text-error group-hover:opacity-100"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    ) : null}
                   </div>
                 )
               })}
@@ -260,7 +265,7 @@ export function PatientPhysicalEvaluationPanel({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {onUseAsEvaluation ? (
+                    {canWrite && onUseAsEvaluation ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -271,16 +276,18 @@ export function PatientPhysicalEvaluationPanel({
                         Usar na avaliação estruturada
                       </Button>
                     ) : null}
-                    <Button
-                      type="button"
-                      variant="primary"
-                      isLoading={updatePatient.isPending}
-                      onClick={() => handleApplyToProfile(selectedEvaluation)}
-                      className="!px-4 !py-2 text-xs flex items-center gap-1.5"
-                    >
-                      <ArrowUpRight size={15} />
-                      Aplicar Diagnóstico ao Prontuário
-                    </Button>
+                    {canWrite ? (
+                      <Button
+                        type="button"
+                        variant="primary"
+                        isLoading={updatePatient.isPending}
+                        onClick={() => handleApplyToProfile(selectedEvaluation)}
+                        className="!px-4 !py-2 text-xs flex items-center gap-1.5"
+                      >
+                        <ArrowUpRight size={15} />
+                        Aplicar Diagnóstico ao Prontuário
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -364,7 +371,9 @@ export function PatientPhysicalEvaluationPanel({
           <FileText size={32} className="mx-auto text-muted/60" />
           <p className="mt-3 text-sm font-semibold text-ink">Nenhuma avaliação física cadastrada ainda</p>
           <p className="mt-1 text-xs text-muted">
-            Faça o upload do arquivo PDF no campo acima para gerar a primeira análise com IA.
+            {canWrite
+              ? 'Faça o upload do arquivo PDF no campo acima para gerar a primeira análise com IA.'
+              : 'Nenhum laudo de avaliação física disponível para consulta.'}
           </p>
         </div>
       )}

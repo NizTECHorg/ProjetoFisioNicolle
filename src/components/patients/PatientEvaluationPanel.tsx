@@ -104,9 +104,14 @@ function valuesFromEvaluation(item: PatientEvaluation): EvaluationFormData {
 type PatientEvaluationPanelProps = {
   patientId: string
   patientName?: string
+  canWrite?: boolean
 }
 
-export function PatientEvaluationPanel({ patientId, patientName }: PatientEvaluationPanelProps) {
+export function PatientEvaluationPanel({
+  patientId,
+  patientName,
+  canWrite = true,
+}: PatientEvaluationPanelProps) {
   const { data: evaluations = [], isLoading, isError } = usePatientEvaluations(patientId)
   const { data: therapists = [] } = useActiveTherapists()
   const createEvaluation = useCreatePatientEvaluation(patientId)
@@ -192,7 +197,7 @@ export function PatientEvaluationPanel({ patientId, patientName }: PatientEvalua
             Registro clínico datado: anamnese, exame e planejamento da avaliação inicial.
           </p>
         </div>
-        {!editorOpen ? (
+        {canWrite && !editorOpen ? (
           <Button type="button" onClick={() => openCreate()}>
             <Plus size={16} />
             Nova avaliação
@@ -212,7 +217,7 @@ export function PatientEvaluationPanel({ patientId, patientName }: PatientEvalua
         </article>
       ) : null}
 
-      {!isLoading && !isError && editorOpen ? (
+      {!isLoading && !isError && canWrite && editorOpen ? (
         <form className="space-y-5 rounded-2xl border border-line bg-surface p-5" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -320,24 +325,26 @@ export function PatientEvaluationPanel({ patientId, patientName }: PatientEvalua
                     registro vinculado a esta data
                   </p>
                 </div>
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    aria-label="Editar avaliação"
-                    onClick={() => openEdit(selected)}
-                    className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Excluir avaliação"
-                    onClick={() => setPendingDelete(selected)}
-                    className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-error"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+                {canWrite ? (
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      aria-label="Editar avaliação"
+                      onClick={() => openEdit(selected)}
+                      className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Excluir avaliação"
+                      onClick={() => setPendingDelete(selected)}
+                      className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-error"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               <div className="mt-4 space-y-4">
@@ -357,7 +364,7 @@ export function PatientEvaluationPanel({ patientId, patientName }: PatientEvalua
         </div>
       ) : null}
 
-      {!editorOpen ? (
+      {canWrite && !editorOpen ? (
         <details className="rounded-2xl border border-line bg-surface p-5">
           <summary className="cursor-pointer text-sm font-medium text-forest">
             Importar avaliação de PDF (IA)
@@ -366,30 +373,33 @@ export function PatientEvaluationPanel({ patientId, patientName }: PatientEvalua
             <PatientPhysicalEvaluationPanel
               patientId={patientId}
               patientName={patientName}
+              canWrite={canWrite}
               onUseAsEvaluation={(result) => openCreate(draftFromPdf(result))}
             />
           </div>
         </details>
       ) : null}
 
-      <ConfirmDialog
-        open={Boolean(pendingDelete)}
-        title="Excluir avaliação"
-        description="O registro clínico desta data será removido. Essa ação não pode ser desfeita."
-        confirmLabel="Excluir"
-        tone="danger"
-        isLoading={deleteEvaluation.isPending}
-        onClose={() => setPendingDelete(null)}
-        onConfirm={() => {
-          if (!pendingDelete) return
-          deleteEvaluation.mutate(pendingDelete.id, {
-            onSuccess: () => {
-              if (selectedId === pendingDelete.id) setSelectedId(null)
-              setPendingDelete(null)
-            },
-          })
-        }}
-      />
+      {canWrite ? (
+        <ConfirmDialog
+          open={Boolean(pendingDelete)}
+          title="Excluir avaliação"
+          description="O registro clínico desta data será removido. Essa ação não pode ser desfeita."
+          confirmLabel="Excluir"
+          tone="danger"
+          isLoading={deleteEvaluation.isPending}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={() => {
+            if (!pendingDelete) return
+            deleteEvaluation.mutate(pendingDelete.id, {
+              onSuccess: () => {
+                if (selectedId === pendingDelete.id) setSelectedId(null)
+                setPendingDelete(null)
+              },
+            })
+          }}
+        />
+      ) : null}
     </div>
   )
 }

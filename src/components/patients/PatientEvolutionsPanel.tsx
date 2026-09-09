@@ -46,9 +46,10 @@ function defaultScheduledLocal() {
 
 type PatientEvolutionsPanelProps = {
   patientId: string
+  canWrite?: boolean
 }
 
-export function PatientEvolutionsPanel({ patientId }: PatientEvolutionsPanelProps) {
+export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEvolutionsPanelProps) {
   const { data: sessions = [], isLoading } = usePatientSessions(patientId)
   const { data: therapists = [] } = useActiveTherapists()
   const createSession = useCreatePatientSession(patientId)
@@ -171,10 +172,12 @@ export function PatientEvolutionsPanel({ patientId }: PatientEvolutionsPanelProp
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Evoluções</p>
             <p className="mt-1 text-sm text-muted">Sessões e registros clínicos deste paciente.</p>
           </div>
-          <Button type="button" onClick={() => { setEditing(null); setEditorOpen(true) }}>
-            <Plus size={16} />
-            Nova sessão
-          </Button>
+          {canWrite ? (
+            <Button type="button" onClick={() => { setEditing(null); setEditorOpen(true) }}>
+              <Plus size={16} />
+              Nova sessão
+            </Button>
+          ) : null}
         </div>
 
         {isLoading ? (
@@ -205,27 +208,29 @@ export function PatientEvolutionsPanel({ patientId }: PatientEvolutionsPanelProp
                       {session.therapistName ? ` · ${session.therapistName}` : ''}
                     </p>
                   </div>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      aria-label="Editar sessão"
-                      onClick={() => {
-                        setEditing(session)
-                        setEditorOpen(true)
-                      }}
-                      className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Excluir sessão"
-                      onClick={() => setPendingDelete(session)}
-                      className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-error"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  {canWrite ? (
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        aria-label="Editar sessão"
+                        onClick={() => {
+                          setEditing(session)
+                          setEditorOpen(true)
+                        }}
+                        className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Excluir sessão"
+                        onClick={() => setPendingDelete(session)}
+                        className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-error"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
 
                 {session.evolution ? (
@@ -252,13 +257,14 @@ export function PatientEvolutionsPanel({ patientId }: PatientEvolutionsPanelProp
         )}
       </div>
 
-      <Modal
-        open={editorOpen}
-        title={editing ? 'Editar sessão' : 'Nova sessão'}
-        description="Toggle Agendar / Realizada. Agendadas aparecem na Agenda."
-        onClose={closeEditor}
-        wide
-      >
+      {canWrite ? (
+        <Modal
+          open={editorOpen}
+          title={editing ? 'Editar sessão' : 'Nova sessão'}
+          description="Toggle Agendar / Realizada. Agendadas aparecem na Agenda."
+          onClose={closeEditor}
+          wide
+        >
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="inline-flex rounded-xl border border-line bg-canvas p-1">
             <button
@@ -362,21 +368,24 @@ export function PatientEvolutionsPanel({ patientId }: PatientEvolutionsPanelProp
             </Button>
           </div>
         </form>
-      </Modal>
+        </Modal>
+      ) : null}
 
-      <ConfirmDialog
-        open={Boolean(pendingDelete)}
-        title="Excluir sessão"
-        description="A sessão e a evolução vinculada serão removidas. Essa ação não pode ser desfeita."
-        confirmLabel="Excluir"
-        tone="danger"
-        isLoading={deleteSession.isPending}
-        onClose={() => setPendingDelete(null)}
-        onConfirm={() => {
-          if (!pendingDelete) return
-          deleteSession.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) })
-        }}
-      />
+      {canWrite ? (
+        <ConfirmDialog
+          open={Boolean(pendingDelete)}
+          title="Excluir sessão"
+          description="A sessão e a evolução vinculada serão removidas. Essa ação não pode ser desfeita."
+          confirmLabel="Excluir"
+          tone="danger"
+          isLoading={deleteSession.isPending}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={() => {
+            if (!pendingDelete) return
+            deleteSession.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) })
+          }}
+        />
+      ) : null}
     </>
   )
 }
