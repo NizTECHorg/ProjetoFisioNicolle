@@ -79,7 +79,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-04-PLAN.md — Login pendente/recusado e /aguardando
+- [x] 03-04-PLAN.md — Login pendente/recusado e /aguardando
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
