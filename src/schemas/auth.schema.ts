@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { normalizeJoinCode } from '@/lib/accountAccess'
 
 const passwordSchema = z
   .string()
@@ -31,6 +32,11 @@ export const registerSchema = z
       .max(100, 'Nome muito longo')
       .regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Nome contém caracteres inválidos'),
     email: emailSchema,
+    accountType: z.enum(['autonomo', 'empresa', 'fisioterapeuta'], {
+      required_error: 'Escolha o tipo de conta',
+      message: 'Escolha o tipo de conta',
+    }),
+    joinCode: z.string().optional(),
     password: passwordSchema,
     confirmPassword: z.string().min(1, 'Confirme sua senha'),
   })
@@ -48,6 +54,17 @@ export const registerSchema = z
       path: ['password'],
     },
   )
+  .superRefine((data, ctx) => {
+    if (data.accountType !== 'fisioterapeuta') return
+    const joinCode = normalizeJoinCode(data.joinCode ?? '')
+    if (joinCode.length !== 8) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Informe o código da empresa',
+        path: ['joinCode'],
+      })
+    }
+  })
 
 export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
