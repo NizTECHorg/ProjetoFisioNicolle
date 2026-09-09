@@ -8,7 +8,7 @@ Completar o prontuário e o modelo de contas: autônomo, empresa e fisioterapeut
 
 - [x] **Phase 1: Avaliação inicial** — Registro estruturado e datado da avaliação do paciente
 - [ ] **Phase 2: Metas do tratamento** — Objetivos específicos por paciente, com status e datas
-- [ ] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários
+- [x] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários (completed 2026-09-09)
 
 ## Phase Details
 
@@ -84,4 +84,4 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 03-05-PLAN.md — /equipe para empresa (código + aceitar/recusar)
-- [ ] 03-07-PLAN.md — Consulta da empresa na lista e na ficha
+- [x] 03-07-PLAN.md — Consulta da empresa na lista e na ficha
