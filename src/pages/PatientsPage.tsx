@@ -8,14 +8,23 @@ import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
+import { useAuth } from '@/hooks/useAuth'
 import { useCreatePatient, usePatients } from '@/hooks/usePatients'
 import { createPatientSchema, type CreatePatientFormData } from '@/schemas/patient.schema'
-import { statusLabels } from '@/types/patient'
+import { statusLabels, type PatientListItem } from '@/types/patient'
 
 export function PatientsPage() {
+  const { user, profile } = useAuth()
   const { data: patients = [], isLoading, isError } = usePatients()
   const create = useCreatePatient()
   const navigate = useNavigate()
+
+  function fichaDeLine(patient: PatientListItem) {
+    if (profile?.accountType !== 'empresa' || !patient.createdBy || patient.createdBy === user?.id) {
+      return null
+    }
+    return `Ficha de ${patient.createdByName || 'fisioterapeuta'}`
+  }
   const [open, setOpen] = useState(false)
 
   const form = useForm<CreatePatientFormData>({
@@ -107,7 +116,7 @@ export function PatientsPage() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-ink">{patient.name}</span>
                   <span className="block truncate text-xs text-muted">
-                    {statusLabels[patient.status]} · {patient.program}
+                    {fichaDeLine(patient) ?? `${statusLabels[patient.status]} · ${patient.program}`}
                   </span>
                 </span>
               </Link>
@@ -129,44 +138,50 @@ export function PatientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {patients.map((patient) => (
-                  <tr
-                    key={patient.id}
-                    tabIndex={0}
-                    className="cursor-pointer border-b border-line last:border-0 hover:bg-canvas/80"
-                    onClick={() => navigate(`/pacientes/${patient.id}`)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        navigate(`/pacientes/${patient.id}`)
-                      }
-                    }}
-                  >
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <PatientAvatar name={patient.name} tone={patient.photoTone} initials={patient.initials} />
-                        <span>
-                          <span className="block font-medium text-ink">{patient.name}</span>
-                          <span className="block text-xs text-muted">{patient.code}</span>
+                {patients.map((patient) => {
+                  const fichaDe = fichaDeLine(patient)
+                  return (
+                    <tr
+                      key={patient.id}
+                      tabIndex={0}
+                      className="cursor-pointer border-b border-line last:border-0 hover:bg-canvas/80"
+                      onClick={() => navigate(`/pacientes/${patient.id}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          navigate(`/pacientes/${patient.id}`)
+                        }
+                      }}
+                    >
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <PatientAvatar name={patient.name} tone={patient.photoTone} initials={patient.initials} />
+                          <span>
+                            <span className="block font-medium text-ink">{patient.name}</span>
+                            {fichaDe ? (
+                              <span className="block text-xs text-muted">{fichaDe}</span>
+                            ) : null}
+                            <span className="block text-xs text-muted">{patient.code}</span>
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
+                          {statusLabels[patient.status]}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
-                        {statusLabels[patient.status]}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-muted">{patient.program}</td>
-                    <td className="px-5 py-3.5 text-muted">
-                      {patient.sessionsDone}/{patient.sessionsTotal}
-                    </td>
-                    <td className="px-5 py-3.5 text-muted">
-                      {patient.nextSession
-                        ? `${patient.nextSession.dateLabel} · ${patient.nextSession.timeLabel}`
-                        : '—'}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-5 py-3.5 text-muted">{patient.program}</td>
+                      <td className="px-5 py-3.5 text-muted">
+                        {patient.sessionsDone}/{patient.sessionsTotal}
+                      </td>
+                      <td className="px-5 py-3.5 text-muted">
+                        {patient.nextSession
+                          ? `${patient.nextSession.dateLabel} · ${patient.nextSession.timeLabel}`
+                          : '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

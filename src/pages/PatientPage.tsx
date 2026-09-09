@@ -27,7 +27,9 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Textarea } from '@/components/ui/Textarea'
+import { useAuth } from '@/hooks/useAuth'
 import { usePatient, usePatientDashboard, useUpdatePatient } from '@/hooks/usePatients'
+import { canWritePatient } from '@/lib/accountAccess'
 import {
   caseUnderstandingSchema,
   type CaseUnderstandingFormData,
@@ -117,9 +119,11 @@ function BodyFocus() {
 function EntendaOCaso({
   patient,
   detail,
+  canWrite,
 }: {
   patient: PatientDashboard
   detail: Patient | null | undefined
+  canWrite: boolean
 }) {
   const update = useUpdatePatient()
   const [open, setOpen] = useState(false)
@@ -152,14 +156,16 @@ function EntendaOCaso({
       <article className="group relative h-full rounded-2xl border border-line bg-surface p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Entenda o caso</p>
-          <button
-            type="button"
-            aria-label="Editar entendimento do caso"
-            onClick={() => setOpen(true)}
-            className="rounded-lg p-1.5 text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
-          >
-            <Pencil size={16} />
-          </button>
+          {canWrite ? (
+            <button
+              type="button"
+              aria-label="Editar entendimento do caso"
+              onClick={() => setOpen(true)}
+              className="rounded-lg p-1.5 text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+            >
+              <Pencil size={16} />
+            </button>
+          ) : null}
         </div>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -279,9 +285,11 @@ function EntendaOCaso({
 function ResumoDoPaciente({
   patientId,
   detail,
+  canWrite,
 }: {
   patientId: string
   detail: Patient | null | undefined
+  canWrite: boolean
 }) {
   if (!detail) {
     return (
@@ -364,7 +372,7 @@ function ResumoDoPaciente({
             </div>
           </div>
 
-          <PatientGoalsPanel patientId={patientId} goals={detail.goals} />
+          <PatientGoalsPanel patientId={patientId} goals={detail.goals} canWrite={canWrite} />
         </div>
       </div>
     </article>
@@ -374,21 +382,23 @@ function ResumoDoPaciente({
 function ResumoPanel({
   patient,
   detail,
+  canWrite,
 }: {
   patient: PatientDashboard
   detail: Patient | null | undefined
+  canWrite: boolean
 }) {
   return (
     <div className="space-y-6">
       {/* Desktop 80/20; mobile empilha */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
-        <EntendaOCaso patient={patient} detail={detail} />
+        <EntendaOCaso patient={patient} detail={detail} canWrite={canWrite} />
         <div className="min-h-[14rem] lg:h-full lg:min-h-0">
-          <PatientAlertsPanel patientId={patient.id} alerts={patient.alerts} compact />
+          <PatientAlertsPanel patientId={patient.id} alerts={patient.alerts} compact canWrite={canWrite} />
         </div>
       </div>
 
-      <ResumoDoPaciente patientId={patient.id} detail={detail} />
+      <ResumoDoPaciente patientId={patient.id} detail={detail} canWrite={canWrite} />
 
       <div>
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Atalhos</p>
@@ -425,6 +435,7 @@ function ResumoPanel({
 
 export function PatientPage() {
   const { id } = useParams()
+  const { user, profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const openIdentityRef = useRef<(() => void) | null>(null)
 
@@ -491,9 +502,17 @@ export function PatientPage() {
   }
 
   const meta = `${dashboard.code} · ${dashboard.phone}`
+  const canWrite = canWritePatient(user?.id, detail?.createdBy ?? dashboard.createdBy)
+  const showConsultBanner = profile?.accountType === 'empresa' && !canWrite
 
   return (
     <section className="mx-auto w-full max-w-7xl">
+      {showConsultBanner ? (
+        <div className="rounded-2xl border border-line bg-accent-soft px-4 py-3 text-sm text-forest">
+          Somente consulta — você vê a ficha, mas não pode alterar.
+        </div>
+      ) : null}
+
       <PatientProfileHeader
         name={dashboard.name}
         initials={dashboard.initials}
@@ -503,32 +522,38 @@ export function PatientPage() {
         activeTab={tab}
         onTabChange={setTab}
         identityAction={
-          <button
-            type="button"
-            aria-label="Editar dados iniciais"
-            aria-hidden={tab !== 'cadastro'}
-            tabIndex={tab === 'cadastro' ? 0 : -1}
-            disabled={tab !== 'cadastro'}
-            onClick={() => openIdentityRef.current?.()}
-            className={[
-              'rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest',
-              tab === 'cadastro'
-                ? 'opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100'
-                : 'pointer-events-none invisible',
-            ].join(' ')}
-          >
-            <Pencil size={16} />
-          </button>
+          canWrite ? (
+            <button
+              type="button"
+              aria-label="Editar dados iniciais"
+              aria-hidden={tab !== 'cadastro'}
+              tabIndex={tab === 'cadastro' ? 0 : -1}
+              disabled={tab !== 'cadastro'}
+              onClick={() => openIdentityRef.current?.()}
+              className={[
+                'rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest',
+                tab === 'cadastro'
+                  ? 'opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100'
+                  : 'pointer-events-none invisible',
+              ].join(' ')}
+            >
+              <Pencil size={16} />
+            </button>
+          ) : undefined
         }
       />
 
       <div className="mt-5 sm:mt-6">
         {tab === 'resumo' ? (
-          <ResumoPanel patient={dashboard} detail={detail} />
+          <ResumoPanel patient={dashboard} detail={detail} canWrite={canWrite} />
         ) : tab === 'evolucoes' ? (
-          <PatientEvolutionsPanel patientId={dashboard.id} />
+          <PatientEvolutionsPanel patientId={dashboard.id} canWrite={canWrite} />
         ) : tab === 'avaliacao' ? (
-          <PatientEvaluationPanel patientId={dashboard.id} patientName={dashboard.name} />
+          <PatientEvaluationPanel
+            patientId={dashboard.id}
+            patientName={dashboard.name}
+            canWrite={canWrite}
+          />
         ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />
@@ -538,7 +563,11 @@ export function PatientPage() {
             Não foi possível carregar os dados cadastrais.
           </article>
         ) : (
-          <PatientCadastroPanel patient={detail} onRequestIdentityEdit={registerIdentityOpener} />
+          <PatientCadastroPanel
+            patient={detail}
+            canWrite={canWrite}
+            onRequestIdentityEdit={registerIdentityOpener}
+          />
         )}
       </div>
     </section>
