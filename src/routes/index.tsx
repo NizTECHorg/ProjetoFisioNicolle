@@ -3,6 +3,7 @@ import { GuestRoute, ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { WaitingApprovalPage } from '@/pages/auth/WaitingApprovalPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PatientsPage } from '@/pages/PatientsPage'
 import { PatientPage } from '@/pages/PatientPage'
@@ -19,6 +20,8 @@ export function AppRoutes() {
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/cadastro" element={<RegisterPage />} />
       </Route>
+
+      <Route path="/aguardando" element={<WaitingApprovalPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
