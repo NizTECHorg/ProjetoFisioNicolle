@@ -22,11 +22,15 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 
 ### Active
 
-- [ ] **REQ-14 — Metas do tratamento**
+- [ ] **REQ-15 — Tipos de conta e equipe**
+  - Cadastro: autônomo, empresa ou fisioterapeuta (trabalha em empresa)
+  - Empresa aloca mais fisioterapeutas
+  - Persistido no Supabase
+
+- [ ] **REQ-14 — Metas do tratamento** *(código entregue; SQL + UAT depois)*
   - Objetivos específicos por paciente
-  - Status: não iniciado, em andamento, atingido
-  - Data de criação e data em que foi atingido
-  - Persistidas no Supabase
+  - Status: em andamento / concluído
+  - Clique no card marca como feito
 
 ### Deferred
 
@@ -63,4 +67,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-04 — Phase 2 REQ-14 added; REQ-05 deferred*
+*Last updated: 2026-09-08 — Phase 3 REQ-15 added*
