@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_execute
-stopped_at: "Phase 5 Wave 1 checkpoint: apply 05-autonomo-finance.sql in SQL Editor"
-last_updated: "2026-09-14T18:39:38.124Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-09-14T18:45:21.679Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 14
   percent: 60
 ---
 
@@ -26,13 +26,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 5 (Financeiro do autônomo) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 - Phase: 4 — Atalhos no dashboard
 - Status: Phase complete — ready for verification
 - Progress: Phase 4 plans 01–04 shipped (helpers, form extracts, dashboard shortcuts)
 
-**Progress:** [████████░░] 76%
+**Progress:** [████████░░] 82%
 
 ## Accumulated Context
 
@@ -77,6 +77,10 @@ Plan: 2 of 5
 - [Phase 05]: canSeeFinance true only for autonomo; empresa and fisio are false; UX only (D-01) — ASVS 4.1.1 — client predicates can be skipped; Plan 05-02 RLS is the wall
 - [Phase 05]: sessionFormSchema keeps place as optional clinical text and copies XOR/Pago superRefine (D-05, D-06, D-08) — Local stays clinical; catalog XOR avulso; Pago requires amount
 - [Phase 05]: Boolean(priceId) treats a hidden archived catalog id as allocation; Pago without catalog or parseable avulso fails — Archived catalog snapshots must not become Avulso in Zod
+- [Phase 05]: SQL Editor is the apply path; do not run supabase db push — Supabase CLI is not installed; hosted Editor is the only apply path (same as Phase 03)
+- [Phase 05]: Dedicated autonomo_prices and autonomo_session_charges; no money columns on patient_sessions (T-05-01) — empresa already SELECTs patient_sessions via private.can_read_patient; money must not ride those rows
+- [Phase 05]: Snapshot trigger preserve-not-recopy: same price_id UPDATE copies amount_brl and price_name from OLD without SELECT live catalog (D-04, D-07) — Catalog price edits must not rewrite existing charge snapshots or mark-paid updates
+- [Phase 05]: FORCE RLS owner+autonomo; GRANT select/insert/update only; no DELETE policy (D-01, D-03) — Archive is UPDATE archived_at; empresa and fisio get 0 rows
 
 ### Pending user action
 
@@ -92,9 +96,9 @@ Plan: 2 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:39:38.094Z
-Stopped at: Phase 5 Wave 1 checkpoint: apply 05-autonomo-finance.sql in SQL Editor
-Resume file: .planning/phases/05-financeiro-autonomo/05-02-PLAN.md
+Last session: 2026-09-14T18:45:21.664Z
+Stopped at: Completed 05-02-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -105,3 +109,4 @@ Resume file: .planning/phases/05-financeiro-autonomo/05-02-PLAN.md
 | Phase 04 P03 | 3min | 2 tasks | 2 files |
 | Phase 04 P04 | 3min | 2 tasks | 2 files |
 | Phase 05 P01 | 3min | 2 tasks | 4 files |
+| Phase 05 P02 | 10min | 2 tasks | 1 files |
