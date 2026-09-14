@@ -106,7 +106,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Helpers, toast Ver ficha, create-hook options, Modal Fechar
+- [x] 04-01-PLAN.md — Helpers, toast Ver ficha, create-hook options, Modal Fechar
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

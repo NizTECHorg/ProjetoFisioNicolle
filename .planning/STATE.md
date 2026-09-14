@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Phase 4 planned
-last_updated: "2026-09-14T14:22:43.663Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-09-14T14:36:30.111Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 8
-  percent: 40
+  completed_plans: 9
+  percent: 75
 ---
 
 # Project State
@@ -21,13 +21,18 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 4 — Atalhos no dashboard (REQ-16); em seguida Phase 5 financeiro autônomo (REQ-17)
+**Current focus:** Phase 04 — atalhos-dashboard
 
 ## Current Position
 
+Phase: 04 (atalhos-dashboard) — EXECUTING
+Plan: 2 of 4
+
 - Phase: 4 — Atalhos no dashboard
-- Status: Ready to discuss
-- Progress: Phase 3 7/7 shipped (UAT humano pendente); Phase 4/5 no roadmap, ainda sem plano
+- Status: Executing plan 2 of 4
+- Progress: Phase 4 plan 01 shipped (helpers, toast Ver ficha, Modal Fechar)
+
+**Progress:** [████████░░] 75%
 
 ## Accumulated Context
 
@@ -57,6 +62,9 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 - [Phase 03]: Reject cancels through decide_membership RPC only; page never updates profiles — D-04 / T-03-12: RPC re-checks owner; TeamPage is UX only
 - [Phase 03]: Forward canWrite through PatientEvaluationPanel because PhysicalEvaluationPanel is nested there, not PatientPage — PhysicalEvaluationPanel mounts inside EvaluationPanel; page-only canWrite would leave default true on exame físico.
 - [Phase 03]: Hide write controls; do not disable buttons that look tappable — D-07 / UI-SPEC: disabled controls still look interactive and fail under RLS.
+- [Phase 04]: Optional ToastAction on existing Zustand toast; 6000ms only when action present — D-03 Ver ficha without a second notification library
+- [Phase 04]: writablePatients fail-closed when viewerId missing; canWritePatient UX-only — T-04-01; RLS remains authority
+- [Phase 04]: Create-session/evaluation hooks take optional toastOptions; ficha callers unchanged — One success toast; TanStack hook onSuccess runs before mutate onSuccess
 
 ### Pending user action
 
@@ -72,6 +80,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Session Continuity
 
-Last session: 2026-09-14T14:22:43.646Z
-Stopped at: Phase 4 planned
-Resume file: .planning/phases/04-atalhos-dashboard/04-01-PLAN.md
+Last session: 2026-09-14T14:36:15.777Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 04 P01 | 3min | 3 tasks | 5 files |
