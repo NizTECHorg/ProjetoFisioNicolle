@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { parseBrlInput } from '@/schemas/finance.schema'
+import { FOCUS_REGION_KEYS } from '@/lib/focusRegions'
 import type { AlertTone, PatientStatus } from '@/types/patient'
 
 const optionalText = (max: number, minWhenFilled = 0) =>
@@ -32,6 +33,8 @@ const optionalDate = z
   })
 
 const patientStatusSchema = z.enum(['em_tratamento', 'avaliacao', 'alta', 'inativo'])
+
+export const focusRegionKeySchema = z.enum(FOCUS_REGION_KEYS)
 
 export const createPatientSchema = z.object({
   fullName: z
