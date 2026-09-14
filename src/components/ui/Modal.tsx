@@ -52,8 +52,9 @@ export function Modal({ open, title, description, onClose, children, wide = fals
           </div>
           <button
             type="button"
+            aria-label="Fechar"
             onClick={onClose}
-            className="rounded-xl p-2 text-muted hover:bg-canvas hover:text-ink"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl p-2 text-muted hover:bg-canvas hover:text-ink"
           >
             <X size={18} />
           </button>
