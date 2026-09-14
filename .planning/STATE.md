@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-09-14T14:36:30.111Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-14T14:41:59.429Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
-  percent: 75
+  completed_plans: 10
+  percent: 40
 ---
 
 # Project State
@@ -26,13 +26,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 04 (atalhos-dashboard) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 - Phase: 4 — Atalhos no dashboard
 - Status: Executing plan 2 of 4
 - Progress: Phase 4 plan 01 shipped (helpers, toast Ver ficha, Modal Fechar)
 
-**Progress:** [████████░░] 75%
+**Progress:** [████████░░] 83%
 
 ## Accumulated Context
 
@@ -65,6 +65,8 @@ Plan: 2 of 4
 - [Phase 04]: Optional ToastAction on existing Zustand toast; 6000ms only when action present — D-03 Ver ficha without a second notification library
 - [Phase 04]: writablePatients fail-closed when viewerId missing; canWritePatient UX-only — T-04-01; RLS remains authority
 - [Phase 04]: Create-session/evaluation hooks take optional toastOptions; ficha callers unchanged — One success toast; TanStack hook onSuccess runs before mutate onSuccess
+- [Phase 04]: PatientSessionEditorForm is the shared create/edit body; ficha Modal wraps it; dashboard will mount the form without the panel — REQ-16.2; dashboard mounts the form, not the list panel
+- [Phase 04]: Ficha omits successAction/errorMessage so Plan 04-01 toast copy stays; shortcut chrome is prop-driven — D-03 one toast; D-02 cancel/submit labels as props
 
 ### Pending user action
 
@@ -80,8 +82,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-14T14:36:15.777Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-09-14T14:41:34.883Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -89,3 +91,4 @@ Resume file: None
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 04 P01 | 3min | 3 tasks | 5 files |
+| Phase 04 P02 | 3min | 2 tasks | 2 files |
