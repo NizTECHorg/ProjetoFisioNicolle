@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { parseBrlInput } from '@/schemas/finance.schema'
 import type { AlertTone, PatientStatus } from '@/types/patient'
 
 const optionalText = (max: number, minWhenFilled = 0) =>
@@ -171,21 +172,41 @@ export const sessionFormSchema = z
     treatmentResponse: optionalText(4000),
     incidents: optionalText(4000),
     nextPlan: optionalText(4000),
+    priceId: z.string(),
+    adHocAmount: z.string(),
+    isPaid: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    if (data.mode !== 'realizada') return
-    if (!data.patientState.trim()) {
+    if (data.mode === 'realizada') {
+      if (!data.patientState.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Informe o estado do paciente',
+          path: ['patientState'],
+        })
+      }
+      if (!data.conducts.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Informe as condutas realizadas',
+          path: ['conducts'],
+        })
+      }
+    }
+    const hasCatalog = Boolean(data.priceId)
+    const hasAdHoc = data.adHocAmount.trim() !== ''
+    if (hasCatalog && hasAdHoc) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Informe o estado do paciente',
-        path: ['patientState'],
+        message: 'Escolha um preço do catálogo ou um valor avulso, não os dois.',
+        path: ['adHocAmount'],
       })
     }
-    if (!data.conducts.trim()) {
+    if (data.isPaid && !hasCatalog && parseBrlInput(data.adHocAmount) === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Informe as condutas realizadas',
-        path: ['conducts'],
+        message: 'Informe um valor para marcar como pago.',
+        path: ['isPaid'],
       })
     }
   })

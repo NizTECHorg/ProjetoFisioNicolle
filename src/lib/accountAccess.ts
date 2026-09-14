@@ -20,6 +20,11 @@ export function canManageTeam(accountType: AccountType | null | undefined): bool
   return accountType === 'empresa'
 }
 
+/** Financeiro só para conta Autônomo. Empresa e fisio não veem (D-01). UX only. */
+export function canSeeFinance(accountType: AccountType | null | undefined): boolean {
+  return accountType === 'autonomo'
+}
+
 /**
  * Escrita na ficha só de quem cadastrou (D-05, D-07).
  * Empresa pode consultar, mas não altera ficha de colega.
