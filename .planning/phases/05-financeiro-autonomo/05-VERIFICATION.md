@@ -1,7 +1,7 @@
 ---
 phase: 05-financeiro-autonomo
 verified: 2026-09-14T19:06:28Z
-status: human_needed
+status: passed
 score: 8/8 must-haves verified
 overrides_applied: 0
 human_verification:
@@ -20,7 +20,7 @@ human_verification:
 
 **Phase Goal:** Só o autônomo vê Financeiro. Cria um catálogo de preços (nome + R$), aplica catálogo XOR avulso na sessão com snapshot e Pago, e vê o arrecadado no mês, no ano e no acumulado.
 **Verified:** 2026-09-14T19:06:28Z
-**Status:** human_needed
+**Status:** passed
 **Re-verification:** No — initial verification
 
 Goal-backward from ROADMAP success criteria (non-negotiable) plus PLAN 05-01–05-05 truths. SUMMARY.md was not treated as evidence. CONTEXT overrides REQ-17 acceptance 2–3 and the old “dois valores fixos residência vs escritório” wording: the locked product is a variable catalog (nome + R$) XOR avulso, not two location-tied fees. ROADMAP SC2 already records that override; this report verifies the CONTEXT product, not the obsolete two-fee sentence.
@@ -157,7 +157,7 @@ Harvested from 05-02 and 05-05 `<human-check>` plus VALIDATION.md manual rows. S
 
 ### Gaps Summary
 
-No code gaps against the CONTEXT/ROADMAP contract. The phase goal is implemented: autonomo-only Financeiro, variable catalog, session XOR + snapshot + Pago, RPC totals, dedicated tables. Remaining work is human UAT (RLS matrix and overlay flows), which sets status to `human_needed`, not `passed`.
+No code gaps against the CONTEXT/ROADMAP contract. The phase goal is implemented: autonomo-only Financeiro, variable catalog, session XOR + snapshot + Pago, RPC totals, dedicated tables. Human UAT approved 2026-09-14 (`05-HUMAN-UAT.md` status: passed).
 
 No later milestone phase claims this UAT, so nothing was deferred.
 

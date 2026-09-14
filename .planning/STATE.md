@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_for_verification
-stopped_at: Phase 5 executed — awaiting human UAT
-last_updated: "2026-09-14T19:09:09.574Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 5 was final phase)
+last_updated: 2026-09-14T19:17:18.591Z
 progress:
   total_phases: 5
   completed_phases: 4
@@ -21,12 +21,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 5 — Financeiro do autônomo
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 5 (Financeiro do autônomo) — COMPLETE
-Plan: 5 of 5
+Phase: 5
+Plan: Not started
 
 - Status: Phase complete — ready for verification
 - Progress: Phase 5 plans 01–05 shipped (contracts, SQL, service, session editor, AutonomoFinancePage)

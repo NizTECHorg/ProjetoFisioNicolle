@@ -21,13 +21,9 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 - ✓ REQ-08 — Evolução individual de cada sessão — existing
 - ✓ REQ-15 — Tipos de conta e equipe — Validated in Phase 3
 - ✓ REQ-16 — Atalhos no dashboard — Validated in Phase 4: Nova evolução / Nova avaliação no `/painel`, picker de pacientes graváveis, overlay reusa os editores da ficha
+- ✓ REQ-17 — Financeiro do autônomo — Validated in Phase 5: catálogo nome+R$, XOR avulso + Pago, snapshot, totais RPC mês/ano/sempre; só `autonomo`
 
 ### Active
-
-- [ ] **REQ-17 — Financeiro do autônomo**
-  - Só autônomo vê a aba
-  - Valor fixo residência vs escritório; alocar em cada sessão
-  - Totais mês / ano / sempre
 
 - [ ] **REQ-14 — Metas do tratamento** *(código entregue; SQL + UAT depois)*
   - Objetivos específicos por paciente
@@ -71,4 +67,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-14 — Phase 4 complete (REQ-16); next is Phase 5 financeiro (REQ-17)*
+*Last updated: 2026-09-14 — Phase 5 complete (REQ-17); next is REQ-14 metas / REQ-05 avaliação UAT*
