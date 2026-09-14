@@ -100,11 +100,22 @@ Plans:
   3. Não existe um segundo CRUD; reutiliza `PatientEvolutionsPanel` / `PatientEvaluationPanel`
   4. Empresa em ficha de colega (consulta) não cria por esses atalhos
 
-**Plans**: 0 plans
+**Plans**: 4 plans
 **UI hint:** yes
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 4 to break down)
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Helpers, toast Ver ficha, create-hook options, Modal Fechar
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — Extract Nova sessão form from PatientEvolutionsPanel
+- [ ] 04-03-PLAN.md — Extract Nova avaliação form from PatientEvaluationPanel
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-04-PLAN.md — Dashboard header shortcuts + picker/editor overlay (D-01–D-04)
 
 ### Phase 5: Financeiro do autônomo
 
