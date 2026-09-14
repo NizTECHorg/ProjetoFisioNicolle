@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-09-14T14:47:16.645Z"
+status: ready_for_verification
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-09-14T14:51:34.424Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 40
+  completed_plans: 12
+  percent: 60
 ---
 
 # Project State
@@ -25,14 +25,14 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 04 (atalhos-dashboard) — EXECUTING
+Phase: 04 (atalhos-dashboard) — READY FOR VERIFICATION
 Plan: 4 of 4
 
 - Phase: 4 — Atalhos no dashboard
-- Status: Executing plan 4 of 4
-- Progress: Phase 4 plans 01–03 shipped (helpers, session extract, evaluation extract)
+- Status: Phase complete — ready for verification
+- Progress: Phase 4 plans 01–04 shipped (helpers, form extracts, dashboard shortcuts)
 
-**Progress:** [█████████░] 92%
+**Progress:** [██████████] 100%
 
 ## Accumulated Context
 
@@ -70,6 +70,9 @@ Plan: 4 of 4
 - [Phase 04]: PatientEvaluationEditorForm is the shared create/edit body; ficha wraps it inline; dashboard will mount the form without the panel — REQ-16.2; dashboard mounts the form, not the list panel
 - [Phase 04]: Ficha omits successAction/errorMessage so Plan 04-01 toast copy stays; showInnerHeading and chrome labels are prop-driven — D-03 one toast; D-02 cancel/submit labels as props; Modal title owns Nova avaliação on the shortcut
 - [Phase 04]: Optional draft prop preserves PDF import prefill after extract — draftFromPdf stays on the panel; form must accept create draft without fetching the evaluation list
+- [Phase 04]: Shortcut wizard state lives in DashboardClinicalShortcut, not a URL query — D-01 stay on /painel until Ver ficha or Ir para pacientes
+- [Phase 04]: Header click while overlay open resets to picker for that kind; editor cancel closes entirely — D-04 start from zero; D-02 cancel/X/Escape must not reopen picker
+- [Phase 04]: Shortcut calls usePatients again on queryKey ['patients']; dashboard metrics stay unfiltered — Same cache as dashboard cards; empresa colleague rows remain in metrics
 
 ### Pending user action
 
@@ -85,8 +88,8 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-14T14:46:45.539Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-09-14T14:51:15.046Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -96,3 +99,4 @@ Resume file: None
 | Phase 04 P01 | 3min | 3 tasks | 5 files |
 | Phase 04 P02 | 3min | 2 tasks | 2 files |
 | Phase 04 P03 | 3min | 2 tasks | 2 files |
+| Phase 04 P04 | 3min | 2 tasks | 2 files |

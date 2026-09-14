@@ -9,7 +9,7 @@
 
 - [x] **REQ-08**: Evolução individual de cada sessão (entregue; SQL no Supabase)
 - [x] **REQ-15**: Tipos de conta (autônomo / empresa / fisioterapeuta) e equipe na empresa
-- [ ] **REQ-16**: Atalhos no dashboard para criar evolução ou avaliação
+- [x] **REQ-16**: Atalhos no dashboard para criar evolução ou avaliação
 - [ ] **REQ-17**: Financeiro do autônomo — valores de consulta e arrecadação
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
@@ -123,7 +123,7 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | REQ-15 | Phase 3 | Complete |
-| REQ-16 | Phase 4 | In Progress |
+| REQ-16 | Phase 4 | Complete |
 | REQ-17 | Phase 5 | Pending |
 | REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |

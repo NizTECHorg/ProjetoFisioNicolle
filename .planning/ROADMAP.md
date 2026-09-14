@@ -9,7 +9,7 @@ Completar o prontuário e o modelo de contas. Próximo: atalhos no dashboard (RE
 - [x] **Phase 1: Avaliação inicial** — Registro estruturado e datado da avaliação do paciente
 - [ ] **Phase 2: Metas do tratamento** — Objetivos específicos por paciente, com status e datas
 - [x] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários (completed 2026-09-09)
-- [ ] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel
+- [x] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel (completed 2026-09-14)
 - [ ] **Phase 5: Financeiro do autônomo** — Valores de consulta (residência vs escritório) e arrecadação por mês/ano/sempre
 
 ## Phase Details
@@ -115,7 +115,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-04-PLAN.md — Dashboard header shortcuts + picker/editor overlay (D-01–D-04)
+- [x] 04-04-PLAN.md — Dashboard header shortcuts + picker/editor overlay (D-01–D-04)
 
 ### Phase 5: Financeiro do autônomo
 
