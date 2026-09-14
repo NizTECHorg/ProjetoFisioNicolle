@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabase/client'
+import { mapDbError } from '@/lib/security'
+import { getFocusRegion } from '@/lib/focusRegions'
+import { focusRegionKeySchema } from '@/schemas/patient.schema'
 import type {
   AlertTone,
   CreatePatientAlertInput,
@@ -73,8 +76,11 @@ interface GoalRow {
   sort_order: number
 }
 
+const FOCUS_COLUMNS = 'id, region_key, label, is_active, sort_order'
+
 interface FocusRow {
   id: string
+  region_key: string | null
   label: string
   is_active: boolean
   sort_order: number
@@ -116,6 +122,10 @@ const DASHBOARD_COLUMNS =
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message)
+}
+
+function throwIfFocusError(error: { message?: string; code?: string } | null) {
+  if (error) throw new Error(mapDbError(error))
 }
 
 function ageFrom(isoDate: string | null) {
@@ -319,12 +329,19 @@ function mapPatient(
       .map(mapGoal),
     focusAreas: (extras.focus ?? [])
       .sort((a, b) => a.sort_order - b.sort_order)
-      .map((area) => ({
-        id: area.id,
-        regionKey: '',
-        label: area.label,
-        isActive: area.is_active,
-      })),
+      .flatMap((area) => {
+        if (area.region_key == null) return []
+        const catalog = getFocusRegion(area.region_key)
+        if (!catalog) return []
+        return [
+          {
+            id: area.id,
+            regionKey: catalog.key,
+            label: catalog.label,
+            isActive: area.is_active,
+          },
+        ]
+      }),
     painSeries: (extras.pain ?? [])
       .sort((a, b) => a.recorded_on.localeCompare(b.recorded_on))
       .map((log) => ({
@@ -391,7 +408,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
   const [goals, focus, pain, sessions, alerts, nameById] = await Promise.all([
     supabase.from('patient_goals').select(GOAL_COLUMNS).eq('patient_id', id),
-    supabase.from('patient_focus_areas').select('id, label, is_active, sort_order').eq('patient_id', id),
+    supabase.from('patient_focus_areas').select(FOCUS_COLUMNS).eq('patient_id', id),
     supabase.from('patient_pain_logs').select('recorded_on, eva').eq('patient_id', id),
     supabase
       .from('patient_sessions')
@@ -662,4 +679,41 @@ export async function updatePatientGoal(goalId: string, input: UpsertPatientGoal
 export async function deletePatientGoal(goalId: string): Promise<void> {
   const { error } = await supabase.from('patient_goals').delete().eq('id', goalId)
   throwIfError(error)
+}
+
+export async function togglePatientFocusArea(
+  patientId: string,
+  regionKey: string,
+): Promise<'marked' | 'unmarked'> {
+  const key = focusRegionKeySchema.parse(regionKey)
+  const catalog = getFocusRegion(key)
+  if (!catalog) {
+    throw new Error(mapDbError({ code: '23514' }))
+  }
+
+  const { data: existing, error: findError } = await supabase
+    .from('patient_focus_areas')
+    .select('id')
+    .eq('patient_id', patientId)
+    .eq('region_key', key)
+    .maybeSingle()
+  throwIfFocusError(findError)
+
+  const row = existing as { id: string } | null
+  if (row) {
+    const { error: deleteError } = await supabase.from('patient_focus_areas').delete().eq('id', row.id)
+    throwIfFocusError(deleteError)
+    return 'unmarked'
+  }
+
+  const { error: insertError } = await supabase.from('patient_focus_areas').insert({
+    patient_id: patientId,
+    region_key: key,
+    label: catalog.label,
+    is_active: true,
+    sort_order: catalog.sortOrder,
+  })
+  if (insertError?.code === '23505') return 'marked'
+  throwIfFocusError(insertError)
+  return 'marked'
 }
