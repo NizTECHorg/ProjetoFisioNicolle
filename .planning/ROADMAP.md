@@ -10,7 +10,7 @@ Completar o prontuário e o modelo de contas. Próximo: atalhos no dashboard (RE
 - [ ] **Phase 2: Metas do tratamento** — Objetivos específicos por paciente, com status e datas
 - [x] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários (completed 2026-09-09)
 - [x] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel (completed 2026-09-14)
-- [ ] **Phase 5: Financeiro do autônomo** — Valores de consulta (residência vs escritório) e arrecadação por mês/ano/sempre
+- [ ] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre
 
 ## Phase Details
 
@@ -119,19 +119,31 @@ Plans:
 
 ### Phase 5: Financeiro do autônomo
 
-**Goal**: Só o autônomo vê Financeiro. Define valor de consulta na residência e no escritório, aplica o valor em cada sessão, e vê o arrecadado no mês, no ano e no acumulado.
+**Goal**: Só o autônomo vê Financeiro. Cria um catálogo de preços (nome + R$), aplica catálogo XOR avulso na sessão com snapshot e Pago, e vê o arrecadado no mês, no ano e no acumulado.
 **Depends on**: Phase 3 (account_type) — não depende da Phase 4
 **Requirements**: REQ-17
 **Success Criteria** (what must be TRUE):
 
   1. Nav e rota `/financeiro` só para `account_type === 'autonomo'`; outros tipos não veem e são redirecionados
-  2. Dois valores fixos salvos: residência e escritório
-  3. Cada sessão pode receber o valor correspondente ao local
-  4. Totais mês / ano / sempre vêm das sessões com valor, sem mock
-  5. RLS: empresa e fisioterapeuta não leem nem escrevem esses dados
+  2. Catálogo variável (nome + R$); preços arquivam, não apagam; editar ativo vale só para alocações futuras (CONTEXT D-02–D-04; overrides “dois valores fixos”)
+  3. Sessão: um preço do catálogo XOR um valor avulso; Local permanece texto clínico; a sessão guarda o R$ da época (D-05–D-07)
+  4. Totais mês / ano / sempre vêm das sessões com snapshot e Pago (inclui agendada pré-paga), sem mock (D-08–D-09)
+  5. RLS: empresa e fisioterapeuta não leem nem escrevem esses dados; dinheiro não vive em `patient_sessions`
 
-**Plans**: 0 plans
+**Plans**: 5 plans
 **UI hint:** yes
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 5 to break down)
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Contratos: DTOs, parseBrlInput, canSeeFinance, session XOR/Pago
+- [ ] 05-02-PLAN.md — SQL catalog/charges/RLS + apply no Editor [BLOCKING]
+
+**Wave 2** *(blocked on Wave 1 completion, including SQL apply)*
+
+- [ ] 05-03-PLAN.md — finance.service + useFinance + invalidate ['finance']
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-04-PLAN.md — Valor da consulta no editor compartilhado (D-01, D-05–D-08)
+- [ ] 05-05-PLAN.md — /financeiro: nav, totais, catálogo, lista de realizadas (D-01, D-10)

@@ -39,9 +39,14 @@ created: 2026-09-14
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | REQ-17 | T-05-01 | Empresa/fisio cannot SELECT finance tables | manual | SQL Editor matrix | ❌ | ⬜ pending |
-| TBD | TBD | TBD | REQ-17 D-05 | T-05-05 | Catalog XOR avulso | source | `npm run typecheck` + schema | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-17 D-01 | T-05-01 | `canSeeFinance` only autonomo | source | `npm run typecheck` | ❌ W0 | ⬜ pending |
+| 05-01-T2 | 05-01 | 1 | REQ-17 D-01 | T-05-01 | `canSeeFinance` only autonomo (UX) | source | `npm run lint && npm run typecheck` | ⬜ | ⬜ pending |
+| 05-01-T2 | 05-01 | 1 | REQ-17 D-05 | T-05-05 | Catalog XOR avulso + Pago-without-amount | source | `npm run lint && npm run typecheck` | ⬜ | ⬜ pending |
+| 05-02-T2 | 05-02 | 1 | REQ-17.5 | T-05-01 | Empresa/fisio cannot SELECT finance tables; no money on `patient_sessions` | manual | SQL Editor matrix (10 checks) | ❌ | ⬜ pending |
+| 05-02-T1 | 05-02 | 1 | REQ-17 D-03/D-07 | T-05-03 T-05-04 T-05-06 | Archive not delete; trigger snapshot; totals SUM paid charges | source | grep SQL (no DELETE grant, snapshot trigger, RPC) | ⬜ | ⬜ pending |
+| 05-03-T1 | 05-03 | 2 | REQ-17.4 | T-05-01 | Totals via `autonomo_finance_totals`; no `.delete()` on prices | source | `npm run lint && npm run typecheck` | ⬜ | ⬜ pending |
+| 05-04-T2 | 05-04 | 3 | REQ-17 D-01 | T-05-01 | Session finance block hidden unless `canSeeFinance` | source | `npm run lint && npm run typecheck` | ⬜ | ⬜ pending |
+| 05-05-T1 | 05-05 | 3 | REQ-17.1 | T-05-01 | Drawer + `/financeiro` AutonomoFinancePage; not FinancePage | source | `npm run lint && npm run typecheck` | ⬜ | ⬜ pending |
+| 05-05-UAT | 05-05 | 3 | REQ-17.1 / D-10 | T-05-07 | Redirect empresa/fisio; empty lists have no fake rows | manual | Browser UAT | ❌ no Playwright | ⬜ pending |
 
 *Filled by planner/executor as PLAN.md tasks exist. Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
