@@ -59,18 +59,18 @@ ProjetoFisioNicolle/
 
 **`src/hooks/`:**
 - Purpose: Data-access hooks for clinic; keep bakery queries isolated
-- Contains: `useAuth.ts`, `usePatients.ts`, `useClinic.ts`, `useTeam.ts`, leftover `queries.ts`
+- Contains: `useAuth.ts`, `usePatients.ts`, `useClinic.ts`, `useTeam.ts`, `useFinance.ts`, leftover `queries.ts`
 - Key files: add new clinic hooks as `use<Domain>.ts` next to these, not inside `queries.ts`
 
 **`src/services/`:**
 - Purpose: Supabase I/O + DTO mapping
 - Contains: `*.service.ts` (kebab-case domain + `.service` suffix)
-- Key files: `auth.service.ts`, `team.service.ts`, `patients.service.ts`, `sessions.service.ts`, `calendar.service.ts`, `board.service.ts`, `evaluations.service.ts`, `aiPhysicalEvaluation.service.ts`
+- Key files: `auth.service.ts`, `team.service.ts`, `patients.service.ts`, `sessions.service.ts`, `calendar.service.ts`, `board.service.ts`, `evaluations.service.ts`, `finance.service.ts`, `aiPhysicalEvaluation.service.ts`
 - Leftover: `modules.service.ts` (~900 lines of bakery CRUD) — do not add clinic tables here
 
 **`src/types/`:**
 - Purpose: TypeScript DTOs. Split clinic vs bakery on purpose
-- Contains: `account.ts` (AccountType, membership, ClinicProfile), `patient.ts`, `evaluation.ts`, `database.types.ts` (bakery `Database` + `EmployeeRole`)
+- Contains: `account.ts` (AccountType, membership, ClinicProfile), `patient.ts`, `evaluation.ts`, `finance.ts`, `database.types.ts` (bakery `Database` + `EmployeeRole`)
 - Key files: always add clinic unions to `account.ts` / `patient.ts` / `evaluation.ts`, never to `database.types.ts` `EmployeeRole`
 
 **`src/schemas/`:**
@@ -145,6 +145,7 @@ ProjetoFisioNicolle/
 - `src/services/calendar.service.ts`: Range queries for Agenda
 - `src/services/board.service.ts`: Kanban columns/cards
 - `src/services/team.service.ts`: Org lookup RPC, membership, decide RPC
+- `src/services/finance.service.ts`: Catalog, charges, `autonomo_finance_totals`, realizadas list
 - `src/services/auth.service.ts`: signIn / signUp / signOut / fetchProfile
 - `src/lib/accountAccess.ts`: Clinic UX predicates
 - `src/lib/security/index.ts`: Sanitize, rate limit, error maps, `safeRedirectPath`

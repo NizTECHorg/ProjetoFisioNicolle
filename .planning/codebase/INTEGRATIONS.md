@@ -41,6 +41,7 @@
 
 **Tables used by services (clinic):**
 - `patients`, `patient_goals`, `patient_focus_areas`, `patient_pain_logs`, `patient_alerts`, `patient_sessions`, `patient_session_evolutions`, `patient_evaluations` — `src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/calendar.service.ts`, `src/services/evaluations.service.ts`
+- `autonomo_prices`, `autonomo_session_charges`, RPC `autonomo_finance_totals` — `src/services/finance.service.ts` (clinic autônomo only; not bakery `expenses`)
 - `board_columns`, `board_cards` — `src/services/board.service.ts`
 - `organizations`, `organization_memberships` — `src/services/team.service.ts`
 - `profiles` — auth profile (`src/services/auth.service.ts`) and employee list (`src/services/modules.service.ts`)
