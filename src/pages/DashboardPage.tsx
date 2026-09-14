@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { DashboardClinicalShortcut } from '@/components/patients/DashboardClinicalShortcut'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ArrowDownRight, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
@@ -334,7 +335,7 @@ export function DashboardPage() {
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col lg:min-h-0 lg:flex-1">
-      <PageHeader className="dash-in" title="Dashboard" />
+      <PageHeader className="dash-in" title="Dashboard" action={<DashboardClinicalShortcut />} />
 
       {isLoading ? (
         <div className="dash-in flex min-h-64 items-center justify-center rounded-[1.5rem] border border-line bg-surface">
