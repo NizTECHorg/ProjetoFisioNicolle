@@ -163,8 +163,19 @@ Plans:
   5. Quem não pode escrever a ficha vê as áreas, mas não marca
   6. Visual simples e minimalista nas cores da clínica — a segunda imagem é referência de layout (frente/costas + regiões), não cópia do widget navy/laranja
 
-**Plans**: 0 plans
+**Plans**: 4 plans
 **UI hint:** yes
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 6 to break down)
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Contratos: catálogo 30 keys, types, Zod
+- [ ] 06-02-PLAN.md — SQL region_key + unique index + apply no Editor [BLOCKING]
+
+**Wave 2** *(blocked on Wave 1 completion, including SQL apply)*
+
+- [ ] 06-03-PLAN.md — togglePatientFocusArea + useTogglePatientFocusArea
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 06-04-PLAN.md — PatientFocusAreasPanel SVG + chip + mount, delete BodyFocus
