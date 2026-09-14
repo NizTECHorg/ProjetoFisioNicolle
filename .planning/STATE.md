@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Phase 4 context gathered
-last_updated: "2026-09-14T13:49:20.127Z"
+stopped_at: Phase 4 UI-SPEC approved
+last_updated: "2026-09-14T14:00:35.093Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -72,6 +72,6 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Session Continuity
 
-Last session: 2026-09-14T13:49:20.114Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-atalhos-dashboard/04-CONTEXT.md
+Last session: 2026-09-14T14:00:35.075Z
+Stopped at: Phase 4 UI-SPEC approved
+Resume file: .planning/phases/04-atalhos-dashboard/04-UI-SPEC.md
