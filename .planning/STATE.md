@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_execute
-stopped_at: Phase 5 planned (5 plans, 3 waves)
-last_updated: "2026-09-14T18:27:51.013Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-09-14T18:36:29.993Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 12
-  percent: 60
+  completed_plans: 13
+  percent: 76
 ---
 
 # Project State
@@ -21,18 +21,18 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 05 — financeiro autonomo
+**Current focus:** Phase 5 — Financeiro do autônomo
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
+Phase: 5 (Financeiro do autônomo) — EXECUTING
+Plan: 2 of 5
 
 - Phase: 4 — Atalhos no dashboard
 - Status: Phase complete — ready for verification
 - Progress: Phase 4 plans 01–04 shipped (helpers, form extracts, dashboard shortcuts)
 
-**Progress:** [██████████] 100%
+**Progress:** [████████░░] 76%
 
 ## Accumulated Context
 
@@ -73,6 +73,10 @@ Plan: Not started
 - [Phase 04]: Shortcut wizard state lives in DashboardClinicalShortcut, not a URL query — D-01 stay on /painel until Ver ficha or Ir para pacientes
 - [Phase 04]: Header click while overlay open resets to picker for that kind; editor cancel closes entirely — D-04 start from zero; D-02 cancel/X/Escape must not reopen picker
 - [Phase 04]: Shortcut calls usePatients again on queryKey ['patients']; dashboard metrics stay unfiltered — Same cache as dashboard cards; empresa colleague rows remain in metrics
+- [Phase 05]: Catalog form is name + positive BRL string, not two location-tied fees (D-02) — CONTEXT D-02 overrides ROADMAP two-fee wording
+- [Phase 05]: canSeeFinance true only for autonomo; empresa and fisio are false; UX only (D-01) — ASVS 4.1.1 — client predicates can be skipped; Plan 05-02 RLS is the wall
+- [Phase 05]: sessionFormSchema keeps place as optional clinical text and copies XOR/Pago superRefine (D-05, D-06, D-08) — Local stays clinical; catalog XOR avulso; Pago requires amount
+- [Phase 05]: Boolean(priceId) treats a hidden archived catalog id as allocation; Pago without catalog or parseable avulso fails — Archived catalog snapshots must not become Avulso in Zod
 
 ### Pending user action
 
@@ -88,9 +92,9 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:27:50.992Z
-Stopped at: Phase 5 planned (5 plans, 3 waves)
-Resume file: .planning/phases/05-financeiro-autonomo/05-01-PLAN.md
+Last session: 2026-09-14T18:36:29.970Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -100,3 +104,4 @@ Resume file: .planning/phases/05-financeiro-autonomo/05-01-PLAN.md
 | Phase 04 P02 | 3min | 2 tasks | 2 files |
 | Phase 04 P03 | 3min | 2 tasks | 2 files |
 | Phase 04 P04 | 3min | 2 tasks | 2 files |
+| Phase 05 P01 | 3min | 2 tasks | 4 files |

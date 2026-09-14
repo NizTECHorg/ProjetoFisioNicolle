@@ -136,7 +136,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Contratos: DTOs, parseBrlInput, canSeeFinance, session XOR/Pago
+- [x] 05-01-PLAN.md — Contratos: DTOs, parseBrlInput, canSeeFinance, session XOR/Pago
 - [ ] 05-02-PLAN.md — SQL catalog/charges/RLS + apply no Editor [BLOCKING]
 
 **Wave 2** *(blocked on Wave 1 completion, including SQL apply)*
