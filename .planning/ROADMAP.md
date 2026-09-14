@@ -169,7 +169,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Contratos: catálogo 30 keys, types, Zod
+- [x] 06-01-PLAN.md — Contratos: catálogo 30 keys, types, Zod
 - [ ] 06-02-PLAN.md — SQL region_key + unique index + apply no Editor [BLOCKING]
 
 **Wave 2** *(blocked on Wave 1 completion, including SQL apply)*

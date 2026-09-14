@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-09-14T20:15:20.569Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-09-14T20:43:45.378Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
   percent: 67
 ---
 
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Milestone complete
+**Current focus:** Phase 6 — Silhueta de áreas de foco
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 6 (Silhueta de áreas de foco) — EXECUTING
+Plan: 2 of 4
 
 - Status: Phase complete — ready for verification
 - Progress: Phase 5 plans 01–05 shipped (contracts, SQL, service, session editor, AutonomoFinancePage)
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -92,6 +92,9 @@ Plan: Not started
 - [Phase 05]: canSeeFinance Navigate to /pacientes silent, no toast; do not reuse FinancePage or canManageFinance — D-01
 - [Phase 05]: Three totals from RPC formatCurrency; not derived from the realizadas list — D-08 D-09
 - [Phase 05]: Catalog archives with ConfirmDialog; Completar valor XOR + Pago; Marcar como pago immediate — D-03 D-10
+- [Phase 06]: FOCUS_REGION_KEYS is the locked UI-SPEC 30-key tuple; RESEARCH 38-key draft unused (D-08) — UI-SPEC catalog wins over RESEARCH 38-key table
+- [Phase 06]: focusRegionKeySchema = z.enum(FOCUS_REGION_KEYS); keys are not duplicated in patient.schema.ts — Single tuple is the write-time catalog lock
+- [Phase 06]: _l/_r map to the patient's left/right: front view mirrors, back view does not — Clinical body map convention
 
 ### Pending user action
 
@@ -108,9 +111,9 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-09-14T19:56:19.702Z
-Stopped at: Phase 6 UI-SPEC approved
-Resume file: .planning/phases/06-silhueta-areas-de-foco/06-UI-SPEC.md
+Last session: 2026-09-14T20:43:45.290Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -125,3 +128,4 @@ Resume file: .planning/phases/06-silhueta-areas-de-foco/06-UI-SPEC.md
 | Phase 05 P03 | 2min | 2 tasks | 3 files |
 | Phase 05 P04 | 4min | 2 tasks | 3 files |
 | Phase 05 P05 | 4min | 3 tasks | 3 files |
+| Phase 06 P01 | 7min | 2 tasks | 4 files |
