@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_execute
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-09-14T18:45:21.679Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-09-14T18:49:31.626Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
   percent: 60
 ---
 
@@ -26,13 +26,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 5 (Financeiro do autônomo) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 - Phase: 4 — Atalhos no dashboard
 - Status: Phase complete — ready for verification
 - Progress: Phase 4 plans 01–04 shipped (helpers, form extracts, dashboard shortcuts)
 
-**Progress:** [████████░░] 82%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -81,6 +81,10 @@ Plan: 3 of 5
 - [Phase 05]: Dedicated autonomo_prices and autonomo_session_charges; no money columns on patient_sessions (T-05-01) — empresa already SELECTs patient_sessions via private.can_read_patient; money must not ride those rows
 - [Phase 05]: Snapshot trigger preserve-not-recopy: same price_id UPDATE copies amount_brl and price_name from OLD without SELECT live catalog (D-04, D-07) — Catalog price edits must not rewrite existing charge snapshots or mark-paid updates
 - [Phase 05]: FORCE RLS owner+autonomo; GRANT select/insert/update only; no DELETE policy (D-01, D-03) — Archive is UPDATE archived_at; empresa and fisio get 0 rows
+- [Phase 05]: upsertSessionCharge omits client amount when priceId is set; skips write when both priceId and adHoc are empty (D-10 optional allocation) — Trigger copies catalog on INSERT; empty allocation must not insert a zero row
+- [Phase 05]: markChargePaid is UPDATE is_paid only so the snapshot trigger preserve-not-recopy leaves amount_brl and price_name (D-04, D-07) — Same-price_id UPDATE must not recopy live catalog
+- [Phase 05]: listFinanceRealizadas is realizadas only, no charge embed on the sessions query; empty array not fake rows (D-10, T-05-01) — empresa already SELECTs patient_sessions; money must not ride those rows
+- [Phase 05]: invalidatePatient also invalidates queryKey ['finance'] so /financeiro does not stay stale (Pitfall 8) — Session writes would otherwise leave totals and realizadas cache stale
 
 ### Pending user action
 
@@ -96,8 +100,8 @@ Plan: 3 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:45:21.664Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-09-14T18:49:31.607Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -110,3 +114,4 @@ Resume file: None
 | Phase 04 P04 | 3min | 2 tasks | 2 files |
 | Phase 05 P01 | 3min | 2 tasks | 4 files |
 | Phase 05 P02 | 10min | 2 tasks | 1 files |
+| Phase 05 P03 | 2min | 2 tasks | 3 files |
