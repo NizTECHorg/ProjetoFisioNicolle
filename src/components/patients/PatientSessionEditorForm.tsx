@@ -5,14 +5,26 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
+import { useAuth } from '@/hooks/useAuth'
+import { useFinancePrices, useSessionCharge } from '@/hooks/useFinance'
 import {
   useActiveTherapists,
   useCreatePatientSession,
   useUpdatePatientSession,
 } from '@/hooks/usePatients'
+import { parseBrlInput } from '@/schemas/finance.schema'
 import { sessionFormSchema, type SessionFormData } from '@/schemas/patient.schema'
+import { canSeeFinance } from '@/lib/accountAccess'
+import { formatCurrency } from '@/lib/security'
+import type { SessionCharge, SessionChargeDraft } from '@/types/finance'
 import type { ToastAction } from '@/stores/toast.store'
 import type { PatientSessionRecord } from '@/types/patient'
+
+const emptyFinanceFields = {
+  priceId: '',
+  adHocAmount: '',
+  isPaid: false,
+}
 
 function toDatetimeLocalValue(iso: string) {
   const date = new Date(iso)
@@ -30,6 +42,22 @@ function defaultScheduledLocal() {
   date.setMinutes(0, 0, 0)
   date.setHours(date.getHours() + 1)
   return toDatetimeLocalValue(date.toISOString())
+}
+
+function financeFieldsFromCharge(charge: SessionCharge | null | undefined) {
+  if (!charge) return emptyFinanceFields
+  if (charge.priceName === 'Avulso') {
+    return {
+      priceId: '',
+      adHocAmount: charge.amountBrl.toFixed(2).replace('.', ','),
+      isPaid: charge.isPaid,
+    }
+  }
+  return {
+    priceId: charge.priceId ?? '',
+    adHocAmount: '',
+    isPaid: charge.isPaid,
+  }
 }
 
 type PatientSessionEditorFormProps = {
@@ -53,7 +81,11 @@ export function PatientSessionEditorForm({
   onCancel,
   onSuccess,
 }: PatientSessionEditorFormProps) {
+  const { profile } = useAuth()
+  const showFinance = canSeeFinance(profile?.accountType)
   const { data: therapists = [] } = useActiveTherapists()
+  const { data: prices = [], isLoading: pricesLoading } = useFinancePrices()
+  const { data: charge } = useSessionCharge(showFinance ? editing?.id : undefined)
   const createSession = useCreatePatientSession(patientId, {
     action: successAction,
     errorMessage,
@@ -66,6 +98,17 @@ export function PatientSessionEditorForm({
       ...therapists.map((item) => ({ value: item.id, label: item.fullName })),
     ],
     [therapists],
+  )
+
+  const catalogOptions = useMemo(
+    () => [
+      { value: '', label: 'Sem valor' },
+      ...prices.map((item) => ({
+        value: item.id,
+        label: `${item.name} — ${formatCurrency(item.amountBrl)}`,
+      })),
+    ],
+    [prices],
   )
 
   const form = useForm<SessionFormData>({
@@ -82,12 +125,16 @@ export function PatientSessionEditorForm({
       treatmentResponse: '',
       incidents: '',
       nextPlan: '',
+      ...emptyFinanceFields,
     },
   })
 
   const mode = form.watch('mode')
+  const priceId = form.watch('priceId')
+  const selectValue = prices.some((item) => item.id === priceId) ? priceId : ''
 
   useEffect(() => {
+    const finance = editing && showFinance ? financeFieldsFromCharge(charge) : emptyFinanceFields
     if (editing) {
       form.reset({
         mode: editing.status === 'realizada' ? 'realizada' : 'agendar',
@@ -101,6 +148,7 @@ export function PatientSessionEditorForm({
         treatmentResponse: editing.evolution?.treatmentResponse ?? '',
         incidents: editing.evolution?.incidents ?? '',
         nextPlan: editing.evolution?.nextPlan ?? '',
+        ...finance,
       })
       return
     }
@@ -116,8 +164,9 @@ export function PatientSessionEditorForm({
       treatmentResponse: '',
       incidents: '',
       nextPlan: '',
+      ...emptyFinanceFields,
     })
-  }, [editing, form, therapists])
+  }, [editing, form, therapists, charge, showFinance])
 
   function onSubmit(values: SessionFormData) {
     const therapist = therapists.find((item) => item.id === values.therapistId)
@@ -141,7 +190,25 @@ export function PatientSessionEditorForm({
       nextPlan: values.nextPlan,
     }
 
+    const chargeDraft: SessionChargeDraft = {
+      priceId: values.priceId || null,
+      adHocAmountBrl: parseBrlInput(values.adHocAmount),
+      isPaid: values.isPaid,
+    }
+
     if (editing) {
+      if (showFinance) {
+        updateSession.mutate(
+          {
+            sessionId: editing.id,
+            input,
+            evolutionId: editing.evolution?.id ?? null,
+            charge: chargeDraft,
+          },
+          { onSuccess },
+        )
+        return
+      }
       updateSession.mutate(
         {
           sessionId: editing.id,
@@ -150,6 +217,11 @@ export function PatientSessionEditorForm({
         },
         { onSuccess },
       )
+      return
+    }
+
+    if (showFinance) {
+      createSession.mutate({ ...input, charge: chargeDraft }, { onSuccess })
       return
     }
 
@@ -207,6 +279,69 @@ export function PatientSessionEditorForm({
           {...form.register('place')}
         />
       </div>
+
+      {showFinance ? (
+        <div className="space-y-4">
+          <p className="text-sm font-semibold text-ink">Valor da consulta</p>
+          <input type="hidden" {...form.register('priceId')} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {!pricesLoading && prices.length > 0 ? (
+              <Select
+                label="Preço do catálogo"
+                options={catalogOptions}
+                value={selectValue}
+                onChange={(event) => {
+                  const next = event.target.value
+                  form.setValue('priceId', next, { shouldValidate: true })
+                  if (next) {
+                    form.setValue('adHocAmount', '', { shouldValidate: true })
+                  }
+                }}
+              />
+            ) : null}
+            {!pricesLoading && prices.length === 0 ? (
+              <p className="text-sm text-muted">
+                Nenhum preço ativo no catálogo. Informe um valor avulso ou cadastre um preço em
+                Financeiro.
+              </p>
+            ) : null}
+            <Input
+              label="Valor avulso (R$)"
+              placeholder="0,00"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              error={form.formState.errors.adHocAmount?.message}
+              {...form.register('adHocAmount', {
+                onChange: () => {
+                  form.setValue('priceId', '', { shouldValidate: true })
+                },
+              })}
+            />
+          </div>
+          <div>
+            <label className="flex min-h-11 items-center gap-2 text-sm text-ink">
+              <input type="checkbox" className="accent-forest" {...form.register('isPaid')} />
+              Pago
+            </label>
+            <p className="text-xs text-muted">
+              {mode === 'agendar'
+                ? 'Se estiver pago, o valor entra nos totais mesmo com a sessão só agendada.'
+                : 'Se estiver pago, o valor entra nos totais do mês, do ano e do acumulado.'}
+            </p>
+            {form.formState.errors.isPaid?.message ? (
+              <p role="alert" className="text-xs text-error">
+                {form.formState.errors.isPaid.message}
+              </p>
+            ) : null}
+          </div>
+          {editing && charge ? (
+            <p className="text-xs text-muted">
+              Valor gravado: {charge.priceName} · {formatCurrency(charge.amountBrl)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {mode === 'realizada' ? (
         <div className="space-y-4 border-t border-line pt-4">
