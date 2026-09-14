@@ -1,10 +1,11 @@
 ---
 phase: 5
 slug: financeiro-autonomo
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-14
+reviewed_at: 2026-09-14
 ---
 
 # Phase 5 — UI Design Contract
@@ -97,7 +98,7 @@ Accent reserved for:
 3. Badge **Pago** (`Badge` tone `success` — `bg-accent-soft` + `text-success`)
 4. Success toast surface (`bg-accent-soft` + `border-success/30`) — already in `ToastViewport`
 
-Accent is **not** for: primary `Button` (stays `bg-forest`), page title, body copy, totals numbers (`text-ink`), **Arquivar** (ghost + `text-error` on the label only), Pago checkbox (`accent-forest`), sidebar active item (stays `bg-white/10`), or any bakery caramel class.
+Accent is **not** for: primary `Button` (stays `bg-forest`), page title, body copy, totals numbers (`text-ink`), **Arquivar preço** (ghost + `text-error` on the label only), Pago checkbox (`accent-forest`), sidebar active item (stays `bg-white/10`), or any bakery caramel class.
 
 **Focal point:** **Novo preço** is the visual anchor on `/financeiro` — `Button` primary in the `PageHeader` action slot. The three total cards are supporting chrome: surface cards, Display amount in ink, no accent wash, no `text-5xl`. Do not enlarge totals to compete with the CTA.
 
@@ -170,7 +171,7 @@ Do **not** derive the displayed totals from the realizadas list. Prepaid `Agenda
 | Edit submit | Salvar preço |
 | Edit cancel | Voltar |
 | Edit toast | Preço atualizado. Sessões já gravadas não mudam. |
-| Archive row action | Arquivar |
+| Archive row action | Arquivar preço |
 | Archive dialog title | Arquivar preço? |
 | Archive confirm | Arquivar preço |
 | Archive cancel | Voltar sem arquivar |
@@ -300,8 +301,8 @@ No third-party registries declared. Vetting gate not required. `components.json`
 - Empty: card `flex min-h-40 flex-col items-center … rounded-2xl border border-line bg-surface px-6 py-10 text-center`; icon well 48×48 `rounded-2xl bg-accent-soft text-accent` with `Wallet` 22px; heading 14px/600; body 14px/400 muted (12px is allowed for the supporting sentence if matching Equipe empty — Equipe uses `text-xs` for empty body; **this phase uses 14px body** for the next-step sentence so it meets “empty + next step” at Body size. Keep Equipe `text-xs` only on DataTable empty, which the component already renders).
 - For DataTable empty (realizadas): the kit already uses `text-sm` heading + `text-xs` description — do not fork DataTable.
 - Non-empty catalog: `DataTable` columns Nome (14px/600), Valor (`formatCurrency`), Ações.
-- Ações: **Editar preço** (`Button` ghost) + **Arquivar** (`Button` ghost, `text-error` on the label only). Hit area ≥ 44px.
-- **Arquivar** opens `ConfirmDialog` `tone="danger"` with the archive copy. Edit does **not** confirm.
+- Ações: **Editar preço** (`Button` ghost) + **Arquivar preço** (`Button` ghost, `text-error` on the label only). Hit area ≥ 44px.
+- **Arquivar preço** opens `ConfirmDialog` `tone="danger"` with the archive copy. Edit does **not** confirm.
 - Create and edit use existing `Modal` (default width, already portals to `document.body`). Amount `Input` is `type="text"` `inputMode="decimal"` `autoComplete="off"` — never `type="number"`.
 - Duplicate names allowed. No uniqueness error.
 
@@ -350,7 +351,7 @@ No third-party registries declared. Vetting gate not required. `components.json`
 | Click **Novo preço** | Open create Modal. Focus Nome do preço. |
 | **Cadastrar preço** success | Close Modal; toast **Preço cadastrado**; catalog query refreshes. |
 | **Editar preço** | Open edit Modal prefilled; hint about future-only. Save → toast; snapshots unchanged. |
-| **Arquivar** | ConfirmDialog → archive UPDATE → row leaves the table and the session Select; toast. |
+| **Arquivar preço** | ConfirmDialog → archive UPDATE → row leaves the table and the session Select; toast. |
 | **Voltar** / X / Escape / backdrop on catalog Modal | Close without write; no toast. |
 | Select catalog price on session | Clear avulso. |
 | Type avulso on session | Clear catalog Select. |
@@ -374,7 +375,7 @@ Reuse only. New files are the finance page, hook, service, and schema — not a 
 | Component | Use in this phase |
 |-----------|-------------------|
 | `PageHeader` | `/financeiro`; `action` = Novo preço |
-| `Button` | Novo preço (primary), Cadastrar preço, Salvar preço, Completar valor, Marcar como pago, Arquivar (ghost error), Voltar / Voltar sem arquivar |
+| `Button` | Novo preço (primary), Cadastrar preço, Salvar preço, Completar valor, Marcar como pago, Arquivar preço (ghost error), Voltar / Voltar sem arquivar |
 | `Input` | Nome do preço; Valor (R$) text; existing session fields |
 | `Select` | Preço do catálogo (session + Completar valor) |
 | `Modal` | Novo preço, Editar preço, Completar valor. Portal to `document.body`. Close X: `aria-label="Fechar"` |
@@ -398,9 +399,9 @@ Do **not** add finance types to `database.types.ts` or hooks to bakery `queries.
 | `/financeiro` gate | Auth/profile already settled in AppShell | n/a | Non-autônomo → `/pacientes` | Page |
 | Page load | Spinner `min-h-48` forest border | Sections render their own empty | Error article **Não foi possível carregar o financeiro. Tente de novo em instantes.** | Totais + catálogo + lista |
 | Totais | Same page spinner | `R$ 0,00` on all three cards | Page error article | `formatCurrency` amounts |
-| Catálogo | Page spinner / table spinner | Nenhum preço no catálogo + next step Novo preço | Page error article | Table + Editar / Arquivar |
+| Catálogo | Page spinner / table spinner | Nenhum preço no catálogo + next step Novo preço | Page error article | Table + Editar preço / Arquivar preço |
 | Novo / Editar preço Modal | Button `isLoading` → Aguarde... | n/a | Inline field errors; server → toast **Não foi possível salvar. Verifique os campos e tente de novo.** | Close Modal; toast |
-| Arquivar | Confirm `isLoading` | n/a | Toast permission/save error | Row gone; toast **Preço arquivado** |
+| Arquivar preço | Confirm `isLoading` | n/a | Toast permission/save error | Row gone; toast **Preço arquivado** |
 | Sessões realizadas | DataTable spinner | Nenhuma sessão realizada + next step | **Não foi possível carregar as sessões. Tente de novo em instantes.** | Rows + Completar valor / Marcar como pago |
 | Completar valor | Button Aguarde... | n/a | XOR / pago-without-amount inline; save toast error | Close; toast **Valor da sessão salvo** |
 | Session finance block | Active prices query: hide Select until loaded; avulso + Pago stay (do not flash a disabled Select) | Empty catalog: avulso still shown | Inline XOR / pago errors | Existing **Salvar sessão** |
