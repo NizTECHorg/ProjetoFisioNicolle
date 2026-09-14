@@ -145,5 +145,5 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-04-PLAN.md — Valor da consulta no editor compartilhado (D-01, D-05–D-08)
+- [x] 05-04-PLAN.md — Valor da consulta no editor compartilhado (D-01, D-05–D-08)
 - [ ] 05-05-PLAN.md — /financeiro: nav, totais, catálogo, lista de realizadas (D-01, D-10)

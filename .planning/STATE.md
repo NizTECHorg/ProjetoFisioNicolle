@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_execute
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-09-14T18:49:31.626Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-09-14T18:56:03.526Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
   percent: 60
 ---
 
@@ -26,13 +26,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 5 (Financeiro do autônomo) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 - Phase: 4 — Atalhos no dashboard
 - Status: Phase complete — ready for verification
 - Progress: Phase 4 plans 01–04 shipped (helpers, form extracts, dashboard shortcuts)
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 94%
 
 ## Accumulated Context
 
@@ -85,6 +85,10 @@ Plan: 4 of 5
 - [Phase 05]: markChargePaid is UPDATE is_paid only so the snapshot trigger preserve-not-recopy leaves amount_brl and price_name (D-04, D-07) — Same-price_id UPDATE must not recopy live catalog
 - [Phase 05]: listFinanceRealizadas is realizadas only, no charge embed on the sessions query; empty array not fake rows (D-10, T-05-01) — empresa already SELECTs patient_sessions; money must not ride those rows
 - [Phase 05]: invalidatePatient also invalidates queryKey ['finance'] so /financeiro does not stay stale (Pitfall 8) — Session writes would otherwise leave totals and realizadas cache stale
+- [Phase 05]: createSession.mutate still accepts UpsertPatientSessionInput & { charge? }; update keeps { sessionId, input, evolutionId, charge? } so callers that omit charge compile — Locked 05-04 mutate API; Task 2 must not wrap as { input, charge }
+- [Phase 05]: Archived priceId stays on a hidden input; Select is visual-only and never register('priceId') — Native Select omitting archived options would submit empty and rewrite snapshots as Avulso
+- [Phase 05]: Skip upsert when both XOR fields are empty so an existing charge row is untouched — Clearing money is out of scope; empty allocation must not insert a zero row
+- [Phase 05]: CalendarPage is unchanged; D-05 agenda money remains deferred — Allocate later from ficha, dashboard shortcut, or /financeiro
 
 ### Pending user action
 
@@ -100,8 +104,8 @@ Plan: 4 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:49:31.607Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-09-14T18:56:03.512Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -115,3 +119,4 @@ Resume file: None
 | Phase 05 P01 | 3min | 2 tasks | 4 files |
 | Phase 05 P02 | 10min | 2 tasks | 1 files |
 | Phase 05 P03 | 2min | 2 tasks | 3 files |
+| Phase 05 P04 | 4min | 2 tasks | 3 files |
