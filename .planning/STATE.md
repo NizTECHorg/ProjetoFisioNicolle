@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-09-14T20:56:59.708Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-09-14T21:05:51.777Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 21
-  completed_plans: 20
-  percent: 95
+  completed_plans: 21
+  percent: 83
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 Phase: 6 (Silhueta de áreas de foco) — EXECUTING
 Plan: 4 of 4
 
-- Status: Wave 2 toggle shipped — next is 06-04 panel
-- Progress: Phase 6 plans 01–03 shipped (catalog, region_key SQL, toggle service/hook)
+- Status: Phase complete — ready for verification
+- Progress: Phase 6 plans 01–04 shipped (catalog, region_key SQL, toggle, PatientFocusAreasPanel)
 
-**Progress:** [██████████] 95%
+**Progress:** [██████████] 100%
 
 ## Accumulated Context
 
@@ -102,6 +102,10 @@ Plan: 4 of 4
 - [Phase 06]: Unmark DELETEs the patient_focus_areas row; empty state is focusAreas.length === 0 — D-06
 - [Phase 06]: INSERT 23505 unique race returns marked without Já existe um registro — Pitfall 7
 - [Phase 06]: useTogglePatientFocusArea closes over ficha patientId; mutate argument is regionKey only — T-06-02
+- [Phase 06]: Chip is the only write control; path click never calls mutate (D-06)
+- [Phase 06]: HOVER_OPEN_MS = 500 for fine hover; coarse/touch and prefers-reduced-motion open immediately (D-05)
+- [Phase 06]: When !canWrite the chip is unmounted, paths omit tabIndex, cursor-default, no hover preview (D-10)
+- [Phase 06]: Coarse pointerleave does not close the chip so a finger-lift cannot dismiss before the second tap
 
 ### Pending user action
 
@@ -118,8 +122,8 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-14T20:56:58.597Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-09-14T21:05:50.603Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -138,3 +142,4 @@ Resume file: None
 | Phase 06 P01 | 7min | 2 tasks | 4 files |
 | Phase 06 P02 | 9min | 2 tasks | 1 files |
 | Phase 06 P03 | 4min | 2 tasks | 2 files |
+| Phase 06 P04 | 6min | 2 tasks | 2 files |

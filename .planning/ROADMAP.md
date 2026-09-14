@@ -11,7 +11,7 @@ Completar o prontuário e o modelo de contas. Próximo: silhueta de áreas de fo
 - [x] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários (completed 2026-09-09)
 - [x] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel (completed 2026-09-14)
 - [x] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre (completed 2026-09-14)
-- [ ] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas
+- [x] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas (completed 2026-09-14)
 
 ## Phase Details
 
@@ -178,4 +178,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 06-04-PLAN.md — PatientFocusAreasPanel SVG + chip + mount, delete BodyFocus
+- [x] 06-04-PLAN.md — PatientFocusAreasPanel SVG + chip + mount, delete BodyFocus
