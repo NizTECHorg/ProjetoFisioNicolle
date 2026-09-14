@@ -25,6 +25,7 @@ import {
   listPatientEvaluations,
   updatePatientEvaluation,
 } from '@/services/evaluations.service'
+import { upsertSessionCharge } from '@/services/finance.service'
 import type {
   CreatePatientAlertInput,
   CreatePatientInput,
@@ -33,6 +34,7 @@ import type {
   UpsertPatientGoalInput,
   UpsertPatientSessionInput,
 } from '@/types/patient'
+import type { SessionChargeDraft } from '@/types/finance'
 import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
 import { toast, type ToastAction } from '@/stores/toast.store'
 
@@ -48,6 +50,10 @@ function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patientId: str
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'evaluations'] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
   void qc.invalidateQueries({ queryKey: ['finance'] })
+}
+
+function shouldUpsertCharge(charge: SessionChargeDraft | null | undefined): charge is SessionChargeDraft {
+  return Boolean(charge && (charge.priceId || charge.adHocAmountBrl != null))
 }
 
 export function usePatients() {
@@ -197,7 +203,16 @@ export function useCreatePatientSession(
 ) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (input: UpsertPatientSessionInput) => createPatientSession(patientId, input),
+    mutationFn: async ({
+      charge,
+      ...clinical
+    }: UpsertPatientSessionInput & { charge?: SessionChargeDraft | null }) => {
+      const created = await createPatientSession(patientId, clinical)
+      if (shouldUpsertCharge(charge)) {
+        await upsertSessionCharge({ sessionId: created.id, ...charge })
+      }
+      return created
+    },
     onSuccess: () => {
       invalidatePatient(qc, patientId)
       toast(
@@ -218,15 +233,22 @@ export function useCreatePatientSession(
 export function useUpdatePatientSession(patientId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       sessionId,
       input,
       evolutionId,
+      charge,
     }: {
       sessionId: string
       input: UpsertPatientSessionInput
       evolutionId: string | null
-    }) => updatePatientSession(patientId, sessionId, input, evolutionId),
+      charge?: SessionChargeDraft | null
+    }) => {
+      await updatePatientSession(patientId, sessionId, input, evolutionId)
+      if (shouldUpsertCharge(charge)) {
+        await upsertSessionCharge({ sessionId, ...charge })
+      }
+    },
     onSuccess: () => {
       invalidatePatient(qc, patientId)
       toast('Sessão atualizada', 'success')

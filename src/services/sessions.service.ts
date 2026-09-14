@@ -162,7 +162,7 @@ export async function listPatientSessions(patientId: string): Promise<PatientSes
 export async function createPatientSession(
   patientId: string,
   input: UpsertPatientSessionInput,
-): Promise<void> {
+): Promise<{ id: string }> {
   const author = await resolveAuthor()
   const status: SessionStatus = input.mode === 'realizada' ? 'realizada' : 'agendada'
 
@@ -184,7 +184,7 @@ export async function createPatientSession(
   throwIfError(error)
   const sessionId = (data as { id: string }).id
 
-  if (input.mode !== 'realizada') return
+  if (input.mode !== 'realizada') return { id: sessionId }
 
   const { error: evoError } = await supabase.from('patient_session_evolutions').insert({
     session_id: sessionId,
@@ -199,6 +199,7 @@ export async function createPatientSession(
     created_by_name: author.name,
   })
   throwIfError(evoError)
+  return { id: sessionId }
 }
 
 export async function updatePatientSession(
