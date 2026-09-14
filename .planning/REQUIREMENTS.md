@@ -123,7 +123,7 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | REQ-15 | Phase 3 | Complete |
-| REQ-16 | Phase 4 | Pending |
+| REQ-16 | Phase 4 | In Progress |
 | REQ-17 | Phase 5 | Pending |
 | REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |

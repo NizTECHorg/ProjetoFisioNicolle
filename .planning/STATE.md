@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-14T14:41:59.429Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-09-14T14:47:16.645Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 40
 ---
 
@@ -26,13 +26,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 04 (atalhos-dashboard) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 - Phase: 4 — Atalhos no dashboard
-- Status: Executing plan 2 of 4
-- Progress: Phase 4 plan 01 shipped (helpers, toast Ver ficha, Modal Fechar)
+- Status: Executing plan 4 of 4
+- Progress: Phase 4 plans 01–03 shipped (helpers, session extract, evaluation extract)
 
-**Progress:** [████████░░] 83%
+**Progress:** [█████████░] 92%
 
 ## Accumulated Context
 
@@ -67,6 +67,9 @@ Plan: 3 of 4
 - [Phase 04]: Create-session/evaluation hooks take optional toastOptions; ficha callers unchanged — One success toast; TanStack hook onSuccess runs before mutate onSuccess
 - [Phase 04]: PatientSessionEditorForm is the shared create/edit body; ficha Modal wraps it; dashboard will mount the form without the panel — REQ-16.2; dashboard mounts the form, not the list panel
 - [Phase 04]: Ficha omits successAction/errorMessage so Plan 04-01 toast copy stays; shortcut chrome is prop-driven — D-03 one toast; D-02 cancel/submit labels as props
+- [Phase 04]: PatientEvaluationEditorForm is the shared create/edit body; ficha wraps it inline; dashboard will mount the form without the panel — REQ-16.2; dashboard mounts the form, not the list panel
+- [Phase 04]: Ficha omits successAction/errorMessage so Plan 04-01 toast copy stays; showInnerHeading and chrome labels are prop-driven — D-03 one toast; D-02 cancel/submit labels as props; Modal title owns Nova avaliação on the shortcut
+- [Phase 04]: Optional draft prop preserves PDF import prefill after extract — draftFromPdf stays on the panel; form must accept create draft without fetching the evaluation list
 
 ### Pending user action
 
@@ -82,8 +85,8 @@ Plan: 3 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-14T14:41:34.883Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-09-14T14:46:45.539Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -92,3 +95,4 @@ Resume file: None
 |-------|------|----------|-------|
 | Phase 04 P01 | 3min | 3 tasks | 5 files |
 | Phase 04 P02 | 3min | 2 tasks | 2 files |
+| Phase 04 P03 | 3min | 2 tasks | 2 files |

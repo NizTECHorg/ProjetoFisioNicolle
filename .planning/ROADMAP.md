@@ -111,7 +111,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 04-02-PLAN.md — Extract Nova sessão form from PatientEvolutionsPanel
-- [ ] 04-03-PLAN.md — Extract Nova avaliação form from PatientEvaluationPanel
+- [x] 04-03-PLAN.md — Extract Nova avaliação form from PatientEvaluationPanel
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
