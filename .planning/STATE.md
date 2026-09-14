@@ -104,6 +104,7 @@ Plan: Not started
 - Phase 3 added: Tipos de conta e equipe (REQ-15)
 - Phase 4 added: Atalhos no dashboard para criar evolução ou avaliação (REQ-16)
 - Phase 5 added: Financeiro do autônomo — valores de consulta e arrecadação (REQ-17)
+- Phase 6 added: Silhueta de áreas de foco — marcar partes do corpo na ficha (REQ-18)
 
 ## Session Continuity
 

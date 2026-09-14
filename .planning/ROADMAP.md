@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Próximo: atalhos no dashboard (REQ-16) e financeiro só para autônomo (REQ-17). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Próximo: silhueta de áreas de foco (REQ-18). REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
@@ -11,6 +11,7 @@ Completar o prontuário e o modelo de contas. Próximo: atalhos no dashboard (RE
 - [x] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários (completed 2026-09-09)
 - [x] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel (completed 2026-09-14)
 - [x] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre (completed 2026-09-14)
+- [ ] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas
 
 ## Phase Details
 
@@ -147,3 +148,23 @@ Plans:
 
 - [x] 05-04-PLAN.md — Valor da consulta no editor compartilhado (D-01, D-05–D-08)
 - [x] 05-05-PLAN.md — /financeiro: nav, totais, catálogo, lista de realizadas (D-01, D-10)
+
+### Phase 6: Silhueta de áreas de foco
+
+**Goal**: Na ficha do paciente, o card Áreas de foco deixa de ser um boneco palito decorativo e vira uma silhueta humana simples (frente e costas). Hover 0,5s numa região abre uma abinha; clicar marca ou desmarca aquela parte como área machucada / a trabalhar. Persistido em `patient_focus_areas`.
+**Depends on**: Nothing (card Áreas de foco e tabela `patient_focus_areas` já existem; não depende do financeiro)
+**Requirements**: REQ-18
+**Success Criteria** (what must be TRUE):
+
+  1. O card Áreas de foco mostra silhueta humana frente e costas, não o stick figure atual
+  2. Hover de 0,5s numa parte do corpo abre uma abinha com o nome da região
+  3. Clicar na abinha marca ou desmarca aquela parte como área de foco
+  4. Partes marcadas ficam destacadas na silhueta e persistem no Supabase, sem mock
+  5. Quem não pode escrever a ficha vê as áreas, mas não marca
+  6. Visual simples e minimalista nas cores da clínica — a segunda imagem é referência de layout (frente/costas + regiões), não cópia do widget navy/laranja
+
+**Plans**: 0 plans
+**UI hint:** yes
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 6 to break down)

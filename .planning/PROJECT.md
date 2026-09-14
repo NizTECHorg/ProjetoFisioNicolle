@@ -25,6 +25,11 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 
 ### Active
 
+- [ ] **REQ-18 — Silhueta de áreas de foco**
+  - Card Áreas de foco na ficha com silhueta frente/costas
+  - Hover 0,5s abre abinha; clique marca/desmarca a parte do corpo
+  - Persistido em `patient_focus_areas`
+
 - [ ] **REQ-14 — Metas do tratamento** *(código entregue; SQL + UAT depois)*
   - Objetivos específicos por paciente
   - Status: em andamento / concluído
@@ -67,4 +72,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-14 — Phase 5 complete (REQ-17); next is REQ-14 metas / REQ-05 avaliação UAT*
+*Last updated: 2026-09-14 — Phase 6 added (REQ-18 silhueta de áreas de foco)*

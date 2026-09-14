@@ -11,8 +11,26 @@
 - [x] **REQ-15**: Tipos de conta (autônomo / empresa / fisioterapeuta) e equipe na empresa
 - [x] **REQ-16**: Atalhos no dashboard para criar evolução ou avaliação
 - [x] **REQ-17**: Financeiro do autônomo — valores de consulta e arrecadação
+- [ ] **REQ-18**: Silhueta de áreas de foco — marcar partes do corpo na ficha
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-18 — Silhueta de áreas de foco
+
+**Indispensável · Artur**
+
+No Resumo da ficha, o card **Áreas de foco** deixa de ser um boneco palito estático. O profissional vê uma **silhueta humana** (frente e costas), passa o cursor 0,5s sobre uma parte do corpo, abre uma **abinha** com o nome da região e clica para marcar ou desmarcar aquela parte como machucada / a trabalhar no paciente.
+
+Referência de layout: widget de seletor de partes do corpo com silhueta frente+costas. Visual do produto: **simples e minimalista**, cores da clínica — não copiar o detalhe muscular navy/laranja da referência.
+
+### Acceptance
+
+1. O card Áreas de foco mostra silhueta humana frente e costas no lugar do stick figure.
+2. Hover de 0,5s numa região abre uma abinha clicável com o nome da parte.
+3. Clicar na abinha marca ou desmarca a parte como área de foco do paciente.
+4. Várias partes podem estar marcadas ao mesmo tempo; o destaque na silhueta reflete o estado salvo.
+5. Persistido em `patient_focus_areas` (Supabase), sem dados mockados; RLS existente de leitura/escrita da ficha continua valendo.
+6. Quem não pode escrever a ficha (empresa em consulta de colega) só vê; não marca.
 
 ## REQ-16 — Atalhos no dashboard
 
@@ -125,6 +143,7 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-15 | Phase 3 | Complete |
 | REQ-16 | Phase 4 | Complete |
 | REQ-17 | Phase 5 | Complete |
+| REQ-18 | Phase 6 | Pending |
 | REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |
 | REQ-08 | Prior | Delivered |
