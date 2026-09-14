@@ -2,13 +2,15 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas: autônomo, empresa e fisioterapeuta em empresa (REQ-15). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Próximo: atalhos no dashboard (REQ-16) e financeiro só para autônomo (REQ-17). REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
 - [x] **Phase 1: Avaliação inicial** — Registro estruturado e datado da avaliação do paciente
 - [ ] **Phase 2: Metas do tratamento** — Objetivos específicos por paciente, com status e datas
 - [x] **Phase 3: Tipos de conta e equipe** — Cadastro como autônomo, empresa ou fisioterapeuta; empresa aloca funcionários (completed 2026-09-09)
+- [ ] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel
+- [ ] **Phase 5: Financeiro do autônomo** — Valores de consulta (residência vs escritório) e arrecadação por mês/ano/sempre
 
 ## Phase Details
 
@@ -85,3 +87,40 @@ Plans:
 
 - [x] 03-05-PLAN.md — /equipe para empresa (código + aceitar/recusar)
 - [x] 03-07-PLAN.md — Consulta da empresa na lista e na ficha
+
+### Phase 4: Atalhos no dashboard
+
+**Goal**: No dashboard, o profissional inicia uma evolução ou uma avaliação sem entrar na ficha primeiro — escolhe o paciente e cai no fluxo que já existe.
+**Depends on**: Phase 3 (sessão autenticada clínica; `canWritePatient` já existe)
+**Requirements**: REQ-16
+**Success Criteria** (what must be TRUE):
+
+  1. O dashboard tem botões/ações para Nova evolução e Nova avaliação
+  2. Cada ação pede o paciente (e a sessão, se for evolução) e abre o formulário existente
+  3. Não existe um segundo CRUD; reutiliza `PatientEvolutionsPanel` / `PatientEvaluationPanel`
+  4. Empresa em ficha de colega (consulta) não cria por esses atalhos
+
+**Plans**: 0 plans
+**UI hint:** yes
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 4 to break down)
+
+### Phase 5: Financeiro do autônomo
+
+**Goal**: Só o autônomo vê Financeiro. Define valor de consulta na residência e no escritório, aplica o valor em cada sessão, e vê o arrecadado no mês, no ano e no acumulado.
+**Depends on**: Phase 3 (account_type) — não depende da Phase 4
+**Requirements**: REQ-17
+**Success Criteria** (what must be TRUE):
+
+  1. Nav e rota `/financeiro` só para `account_type === 'autonomo'`; outros tipos não veem e são redirecionados
+  2. Dois valores fixos salvos: residência e escritório
+  3. Cada sessão pode receber o valor correspondente ao local
+  4. Totais mês / ano / sempre vêm das sessões com valor, sem mock
+  5. RLS: empresa e fisioterapeuta não leem nem escrevem esses dados
+
+**Plans**: 0 plans
+**UI hint:** yes
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 5 to break down)

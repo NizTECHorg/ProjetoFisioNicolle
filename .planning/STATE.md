@@ -21,16 +21,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 3 — Tipos de conta e equipe
+**Current focus:** Phase 4 — Atalhos no dashboard (REQ-16); em seguida Phase 5 financeiro autônomo (REQ-17)
 
 ## Current Position
 
-Phase: 3 (Tipos de conta e equipe) — COMPLETE
-Plan: 7 of 7
-
-- Phase: 3 — Tipos de conta e equipe
-- Status: Plans complete — ready for verify
-- Progress: Phase 3 plans 7/7 shipped (empresa consulta UI); Phase 2 (REQ-14) código pronto; Phase 1 (REQ-05) adiada
+- Phase: 4 — Atalhos no dashboard
+- Status: Ready to discuss
+- Progress: Phase 3 7/7 shipped (UAT humano pendente); Phase 4/5 no roadmap, ainda sem plano
 
 ## Accumulated Context
 
@@ -70,9 +67,11 @@ Plan: 7 of 7
 
 - Phase 2 added: Metas do tratamento (REQ-14)
 - Phase 3 added: Tipos de conta e equipe (REQ-15)
+- Phase 4 added: Atalhos no dashboard para criar evolução ou avaliação (REQ-16)
+- Phase 5 added: Financeiro do autônomo — valores de consulta e arrecadação (REQ-17)
 
 ## Session Continuity
 
-Last session: 2026-09-09T20:50:20.994Z
-Stopped at: Completed 03-07-PLAN.md
-Resume file: None
+Last session: 2026-09-14T13:35:00.000Z
+Stopped at: Codebase remapped; REQ-16/REQ-17 added as Phases 4–5
+Resume file: .planning/ROADMAP.md

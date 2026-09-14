@@ -22,10 +22,19 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 
 ### Active
 
-- [ ] **REQ-15 — Tipos de conta e equipe**
+- [x] **REQ-15 — Tipos de conta e equipe**
   - Cadastro: autônomo, empresa ou fisioterapeuta (trabalha em empresa)
   - Empresa aloca mais fisioterapeutas
   - Persistido no Supabase
+
+- [ ] **REQ-16 — Atalhos no dashboard**
+  - Botões para criar evolução e avaliação direto do painel
+  - Reusa os fluxos da ficha (não um CRUD paralelo)
+
+- [ ] **REQ-17 — Financeiro do autônomo**
+  - Só autônomo vê a aba
+  - Valor fixo residência vs escritório; alocar em cada sessão
+  - Totais mês / ano / sempre
 
 - [ ] **REQ-14 — Metas do tratamento** *(código entregue; SQL + UAT depois)*
   - Objetivos específicos por paciente
@@ -44,6 +53,8 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 - Relatórios comparativos automáticos entre avaliações
 - Módulo separado de Reavaliações
 - Multi-clínica / isolamento por clínica
+- Financeiro para empresa/equipe (rateio, comissão)
+- Tela bakery de despesas (`FinancePage`)
 
 ## Constraints
 
@@ -67,4 +78,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-08 — Phase 3 REQ-15 added*
+*Last updated: 2026-09-14 — REQ-16 e REQ-17 added; codebase map refreshed*
