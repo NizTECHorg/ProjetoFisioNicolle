@@ -42,7 +42,7 @@ ProjetoFisioNicolle/
 **`src/pages/`:**
 - Purpose: One file per screen. Clinic screens are wired in `src/routes/index.tsx`. Bakery screens exist but are **not routed**.
 - Contains: `*Page.tsx` function components
-- Key files: `DashboardPage.tsx`, `PatientsPage.tsx`, `PatientPage.tsx`, `CalendarPage.tsx`, `KanbanPage.tsx`, `TeamPage.tsx`, `SetupPage.tsx`
+- Key files: `DashboardPage.tsx`, `PatientsPage.tsx`, `PatientPage.tsx`, `CalendarPage.tsx`, `KanbanPage.tsx`, `TeamPage.tsx`, `AutonomoFinancePage.tsx`, `SetupPage.tsx`
 - Subdirectories: `src/pages/auth/` — `LoginPage.tsx`, `RegisterPage.tsx`, `WaitingApprovalPage.tsx`
 - Leftover (do not extend for clinic): `ProductsPage.tsx`, `OrdersPage.tsx`, `RecipesPage.tsx`, `StockPage.tsx`, `ClientsPage.tsx`, `CouponsPage.tsx`, `DeliveriesPage.tsx`, `EmployeesPage.tsx`, `FinancePage.tsx`, `ProductionPage.tsx`, `ShoppingPage.tsx`, `TasksPage.tsx`, `ReportsPage.tsx`, `SettingsPage.tsx`, `BlankPage.tsx`
 
@@ -154,6 +154,7 @@ ProjetoFisioNicolle/
 - `src/pages/PatientPage.tsx`: Ficha tabs via `?aba=`
 - `src/components/patients/PatientProfileHeader.tsx`: Tab type `resumo | cadastro | evolucoes | avaliacao`
 - `src/pages/TeamPage.tsx`: Empresa-only equipe
+- `src/pages/AutonomoFinancePage.tsx`: Autônomo-only `/financeiro` (catalog, totals, realizadas)
 - `src/pages/DashboardPage.tsx`: Clinic week metrics from patients + calendar (not bakery `useDashboardMetrics`)
 
 **Testing:**

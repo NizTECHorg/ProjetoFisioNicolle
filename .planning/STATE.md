@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_to_execute
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-09-14T18:56:03.526Z"
+status: ready_for_verification
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-09-14T19:02:27.937Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
-  completed_plans: 16
-  percent: 60
+  completed_plans: 17
+  percent: 80
 ---
 
 # Project State
@@ -25,14 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 5 (Financeiro do autônomo) — EXECUTING
+Phase: 5 (Financeiro do autônomo) — COMPLETE
 Plan: 5 of 5
 
-- Phase: 4 — Atalhos no dashboard
 - Status: Phase complete — ready for verification
-- Progress: Phase 4 plans 01–04 shipped (helpers, form extracts, dashboard shortcuts)
+- Progress: Phase 5 plans 01–05 shipped (contracts, SQL, service, session editor, AutonomoFinancePage)
 
-**Progress:** [█████████░] 94%
+**Progress:** [██████████] 100%
 
 ## Accumulated Context
 
@@ -89,6 +88,10 @@ Plan: 5 of 5
 - [Phase 05]: Archived priceId stays on a hidden input; Select is visual-only and never register('priceId') — Native Select omitting archived options would submit empty and rewrite snapshots as Avulso
 - [Phase 05]: Skip upsert when both XOR fields are empty so an existing charge row is untouched — Clearing money is out of scope; empty allocation must not insert a zero row
 - [Phase 05]: CalendarPage is unchanged; D-05 agenda money remains deferred — Allocate later from ficha, dashboard shortcut, or /financeiro
+- [Phase 05]: Drawer-only Wallet Financeiro after clinic items; Equipe still empresa-only; mobileNavItems.length === 4 — D-01
+- [Phase 05]: canSeeFinance Navigate to /pacientes silent, no toast; do not reuse FinancePage or canManageFinance — D-01
+- [Phase 05]: Three totals from RPC formatCurrency; not derived from the realizadas list — D-08 D-09
+- [Phase 05]: Catalog archives with ConfirmDialog; Completar valor XOR + Pago; Marcar como pago immediate — D-03 D-10
 
 ### Pending user action
 
@@ -104,8 +107,8 @@ Plan: 5 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:56:03.512Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-09-14T19:02:26.690Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -120,3 +123,4 @@ Resume file: None
 | Phase 05 P02 | 10min | 2 tasks | 1 files |
 | Phase 05 P03 | 2min | 2 tasks | 3 files |
 | Phase 05 P04 | 4min | 2 tasks | 3 files |
+| Phase 05 P05 | 4min | 3 tasks | 3 files |
