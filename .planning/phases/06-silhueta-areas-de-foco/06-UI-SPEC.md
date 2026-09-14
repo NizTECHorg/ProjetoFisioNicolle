@@ -1,10 +1,11 @@
 ---
 phase: 6
 slug: silhueta-areas-de-foco
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-14
+reviewed_at: 2026-09-14
 ---
 
 # Phase 6 — UI Design Contract
@@ -41,7 +42,7 @@ Declared values (must be multiples of 4) — identical to Phase 3 / Phase 5:
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Chip label inner gap; 1px path gaps between adjacent regions |
+| xs | 4px | Chip label inner gap; visual gap between adjacent region paths |
 | sm | 8px | Gap between a figure and its **Frente** / **Costas** caption |
 | md | 16px | Gap between the two silhouettes; empty-copy top margin (`mt-4`) |
 | lg | 24px | Unused this phase (card stays `p-4`) |
@@ -69,9 +70,9 @@ Exactly four sizes and two weights for **new** copy in this phase (same contract
 | Heading | 20px (`text-xl`) | 600 | 1.2 |
 | Display | 30px (`text-3xl`) | 600 | 1.2 |
 
-Display is **unused** this phase — do not invent a fifth size for the card. Empty copy and chip visible text use **Body 14px / 400**. Chip action that is pressed uses **14px / 600** (the second declared weight), not a new size.
+Display is **unused** this phase — do not invent a fifth size for the card. Empty copy, chip visible text, and **Frente** / **Costas** captions use **Body 14px / 400**. Chip action that is pressed uses **14px / 600** (the second declared weight), not a new size.
 
-Hints and figure captions stay at **12px** (`text-xs`) because muted meta on the ficha already renders that size — do not invent a fifth size; do not change other Resumo cards.
+Do not introduce `text-xs` (12px) on this card. Existing muted meta on other Resumo cards stays as-is.
 
 Existing chrome exceptions (do not restyle):
 
@@ -130,6 +131,7 @@ Empty body is shown **only** when `canWrite` and there are zero keyed rows. When
 | Figure caption right | Costas |
 | Silhouette `aria-label` (frente) | Silhueta de frente |
 | Silhouette `aria-label` (costas) | Silhueta de costas |
+| Region path `aria-label` | `{label}` when unique on that figure; `{label} (frente)` / `{label} (costas)` when the same label exists on both views (ombro, braço, coxa, joelho, perna). Required on every `tabIndex={0}` path **before** the chip mounts. |
 | Group `aria-label` | Áreas de foco do paciente |
 
 ### Abinha (chip)
@@ -231,9 +233,10 @@ No third-party registries declared. Vetting gate not required. `components.json`
 - Two inline SVGs **side by side**, `flex items-end justify-center gap-4`, each `flex flex-col items-center`.
 - Genderless adult outline — one artwork for every patient. No Male/Female control (D-04 / deferred).
 - Simple filled regions + a non-interactive outline layer (`pointerEvents="none"`, `fill="none"`, `stroke="currentColor"`). No muscle striations, no 3D, no photo.
-- Regions: closed, **non-overlapping** `<path>`s with `pointerEvents="fill"` and a real fill (never `fill="none"`). Optional 4px visual gap; do not overlap hit targets.
+- Regions: closed, **non-overlapping** `<path>`s with `pointerEvents="fill"` and a real fill (never `fill="none"`). Visual gap **4px** (xs token) between adjacent paths; do not overlap hit targets. Stroke widths 1.5 / 1.2 are drawing, not spacing.
 - `viewBox` per figure approximately `0 0 140 240`. `className="h-44 w-auto text-forest sm:h-52"`.
-- Caption under each: **Frente** / **Costas** at 12px / 400 / `text-muted` / `mt-2`.
+- Caption under each: **Frente** / **Costas** at Body 14px / 400 / `text-muted` / `mt-2`.
+- Each focusable path (`tabIndex={0}` when `canWrite`) has `aria-label` from the catalog (see Copywriting). The figure `aria-label` is not enough.
 - Highlight = persisted `region_key` in `focusAreas`. Rows with `region_key === null` are ignored (no fake dots).
 
 ### 3. Abinha (chip)
@@ -322,11 +325,11 @@ Outline layer under regions: `pointerEvents="none"`, no fill, `stroke-forest` 1.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG accepted — per-path `aria-label` locked above
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: FLAG accepted — Frente/Costas are Body 14px; no 12px on this card
+- [x] Dimension 5 Spacing: FLAG accepted — 4px path gap; 1.5/1.2 are strokes
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-09-14
