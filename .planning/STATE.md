@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-09-14T20:43:45.378Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-09-14T20:51:06.765Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 21
-  completed_plans: 18
-  percent: 67
+  completed_plans: 19
+  percent: 90
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 6 (Silhueta de áreas de foco) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
-- Status: Phase complete — ready for verification
-- Progress: Phase 5 plans 01–05 shipped (contracts, SQL, service, session editor, AutonomoFinancePage)
+- Status: Wave 1 SQL applied — next is 06-03 toggle
+- Progress: Phase 6 plans 01–02 shipped (catalog, region_key SQL Editor apply)
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 90%
 
 ## Accumulated Context
 
@@ -95,6 +95,9 @@ Plan: 2 of 4
 - [Phase 06]: FOCUS_REGION_KEYS is the locked UI-SPEC 30-key tuple; RESEARCH 38-key draft unused (D-08) — UI-SPEC catalog wins over RESEARCH 38-key table
 - [Phase 06]: focusRegionKeySchema = z.enum(FOCUS_REGION_KEYS); keys are not duplicated in patient.schema.ts — Single tuple is the write-time catalog lock
 - [Phase 06]: _l/_r map to the patient's left/right: front view mirrors, back view does not — Clinical body map convention
+- [Phase 06]: SQL Editor is the apply path; do not run supabase db push — Supabase CLI is not installed; hosted Editor is the only apply path (same as Phase 03/05)
+- [Phase 06]: region_key stays nullable; leftover label-only rows are not SET NOT NULL or backfilled (D-09, Pitfall 8) — Front/back share Portuguese labels; leftovers must stay readable
+- [Phase 06]: Phase 3 patient_focus_areas_select/insert/update/delete policies left intact; no DROP/CREATE POLICY (D-09, D-10) — T-06-01: existing can_write_patient RLS remains the write wall
 
 ### Pending user action
 
@@ -111,8 +114,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-14T20:43:45.290Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-09-14T20:51:06.736Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -129,3 +132,4 @@ Resume file: None
 | Phase 05 P04 | 4min | 2 tasks | 3 files |
 | Phase 05 P05 | 4min | 3 tasks | 3 files |
 | Phase 06 P01 | 7min | 2 tasks | 4 files |
+| Phase 06 P02 | 9min | 2 tasks | 1 files |
