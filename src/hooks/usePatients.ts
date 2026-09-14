@@ -8,6 +8,7 @@ import {
   getPatientById,
   getPatientDashboard,
   listPatients,
+  togglePatientFocusArea,
   updatePatient,
   updatePatientAlert,
   updatePatientGoal,
@@ -177,6 +178,25 @@ export function useDeletePatientGoal(patientId: string) {
       toast('Meta removida', 'success')
     },
     onError,
+  })
+}
+
+export function useTogglePatientFocusArea(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (regionKey: string) => togglePatientFocusArea(patientId, regionKey),
+    onSuccess: (result) => {
+      invalidatePatient(qc, patientId)
+      toast(result === 'marked' ? 'Área marcada' : 'Área desmarcada', 'success')
+    },
+    onError: (error: unknown) => {
+      const permission = 'Você não tem permissão para esta ação.'
+      if (error instanceof Error && error.message === permission) {
+        toast(permission, 'error')
+        return
+      }
+      toast('Não foi possível salvar a área. Tente de novo em instantes.', 'error')
+    },
   })
 }
 
