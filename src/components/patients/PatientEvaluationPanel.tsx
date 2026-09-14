@@ -1,59 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
-import { Textarea } from '@/components/ui/Textarea'
+import { PatientEvaluationEditorForm } from '@/components/patients/PatientEvaluationEditorForm'
 import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhysicalEvaluationPanel'
 import {
-  useActiveTherapists,
-  useCreatePatientEvaluation,
   useDeletePatientEvaluation,
   usePatientEvaluations,
-  useUpdatePatientEvaluation,
 } from '@/hooks/usePatients'
-import { emptyEvaluationForm, evaluationFormSchema, type EvaluationFormData } from '@/schemas/evaluation.schema'
+import { emptyEvaluationForm, type EvaluationFormData } from '@/schemas/evaluation.schema'
 import type { PatientEvaluation, PhysicalEvaluationResult } from '@/types/evaluation'
-
-const FIELD_SECTIONS: Array<{
-  title: string
-  fields: Array<{ name: keyof EvaluationFormData; label: string; rows: number }>
-}> = [
-  {
-    title: 'História',
-    fields: [
-      { name: 'mainComplaint', label: 'Queixa principal', rows: 3 },
-      { name: 'anamnesis', label: 'Anamnese', rows: 4 },
-      { name: 'history', label: 'História do quadro', rows: 3 },
-    ],
-  },
-  {
-    title: 'Funcional',
-    fields: [
-      { name: 'pain', label: 'Dor', rows: 3 },
-      { name: 'limitations', label: 'Limitações', rows: 3 },
-      { name: 'goals', label: 'Objetivos', rows: 3 },
-    ],
-  },
-  {
-    title: 'Exame',
-    fields: [
-      { name: 'physicalExam', label: 'Exame físico', rows: 4 },
-      { name: 'tests', label: 'Testes', rows: 3 },
-      { name: 'measurements', label: 'Medidas', rows: 3 },
-    ],
-  },
-  {
-    title: 'Conduta',
-    fields: [
-      { name: 'physioDiagnosis', label: 'Diagnóstico fisioterapêutico', rows: 3 },
-      { name: 'plan', label: 'Planejamento', rows: 4 },
-    ],
-  },
-]
 
 const DETAIL_FIELDS: Array<{ key: keyof PatientEvaluation; label: string }> = [
   { key: 'mainComplaint', label: 'Queixa principal' },
@@ -83,24 +39,6 @@ function draftFromPdf(result: PhysicalEvaluationResult): EvaluationFormData {
   }
 }
 
-function valuesFromEvaluation(item: PatientEvaluation): EvaluationFormData {
-  return {
-    performedOn: item.performedOn,
-    therapistId: item.therapistId ?? '',
-    mainComplaint: item.mainComplaint,
-    anamnesis: item.anamnesis,
-    history: item.history,
-    pain: item.pain,
-    limitations: item.limitations,
-    goals: item.goals,
-    physicalExam: item.physicalExam,
-    tests: item.tests,
-    measurements: item.measurements,
-    physioDiagnosis: item.physioDiagnosis,
-    plan: item.plan,
-  }
-}
-
 type PatientEvaluationPanelProps = {
   patientId: string
   patientName?: string
@@ -113,13 +51,11 @@ export function PatientEvaluationPanel({
   canWrite = true,
 }: PatientEvaluationPanelProps) {
   const { data: evaluations = [], isLoading, isError } = usePatientEvaluations(patientId)
-  const { data: therapists = [] } = useActiveTherapists()
-  const createEvaluation = useCreatePatientEvaluation(patientId)
-  const updateEvaluation = useUpdatePatientEvaluation(patientId)
   const deleteEvaluation = useDeletePatientEvaluation(patientId)
 
   const [editorOpen, setEditorOpen] = useState(false)
   const [editing, setEditing] = useState<PatientEvaluation | null>(null)
+  const [createDraft, setCreateDraft] = useState<EvaluationFormData | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PatientEvaluation | null>(null)
 
@@ -129,64 +65,23 @@ export function PatientEvaluationPanel({
     if (!selectedId && evaluations[0]) setSelectedId(evaluations[0].id)
   }, [evaluations, selectedId])
 
-  const therapistOptions = useMemo(
-    () => [
-      { value: '', label: 'Selecione…' },
-      ...therapists.map((item) => ({ value: item.id, label: item.fullName })),
-    ],
-    [therapists],
-  )
-
-  const form = useForm<EvaluationFormData>({
-    resolver: zodResolver(evaluationFormSchema),
-    defaultValues: emptyEvaluationForm(),
-  })
-
   function openCreate(draft?: EvaluationFormData) {
     setEditing(null)
+    setCreateDraft(draft ?? null)
     setEditorOpen(true)
-    form.reset(draft ?? emptyEvaluationForm())
   }
 
   function openEdit(item: PatientEvaluation) {
     setEditing(item)
+    setCreateDraft(null)
     setEditorOpen(true)
-    form.reset(valuesFromEvaluation(item))
   }
 
   function closeEditor() {
     setEditorOpen(false)
     setEditing(null)
+    setCreateDraft(null)
   }
-
-  function onSubmit(values: EvaluationFormData) {
-    const therapist = therapists.find((item) => item.id === values.therapistId)
-    const input = {
-      performedOn: values.performedOn,
-      mainComplaint: values.mainComplaint,
-      anamnesis: values.anamnesis,
-      history: values.history,
-      pain: values.pain,
-      limitations: values.limitations,
-      goals: values.goals,
-      physicalExam: values.physicalExam,
-      tests: values.tests,
-      measurements: values.measurements,
-      physioDiagnosis: values.physioDiagnosis,
-      plan: values.plan,
-      therapistId: therapist?.id ?? null,
-      therapistName: therapist?.fullName ?? null,
-    }
-
-    if (editing) {
-      updateEvaluation.mutate({ evaluationId: editing.id, input }, { onSuccess: closeEditor })
-      return
-    }
-
-    createEvaluation.mutate(input, { onSuccess: closeEditor })
-  }
-
-  const saving = createEvaluation.isPending || updateEvaluation.isPending
 
   return (
     <div className="space-y-6">
@@ -218,55 +113,18 @@ export function PatientEvaluationPanel({
       ) : null}
 
       {!isLoading && !isError && canWrite && editorOpen ? (
-        <form className="space-y-5 rounded-2xl border border-line bg-surface p-5" onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-ink">
-                {editing ? 'Editar avaliação' : 'Nova avaliação'}
-              </h3>
-              <p className="mt-1 text-xs text-muted">A data fica vinculada ao registro e não deve ser inventada depois.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Data da avaliação"
-              type="date"
-              error={form.formState.errors.performedOn?.message}
-              {...form.register('performedOn')}
-            />
-            <Select
-              label="Profissional"
-              options={therapistOptions}
-              error={form.formState.errors.therapistId?.message}
-              {...form.register('therapistId')}
-            />
-          </div>
-
-          {FIELD_SECTIONS.map((section) => (
-            <div key={section.title} className="space-y-4 border-t border-line pt-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{section.title}</p>
-              {section.fields.map((field) => (
-                <Textarea
-                  key={field.name}
-                  label={field.label}
-                  rows={field.rows}
-                  error={form.formState.errors[field.name]?.message}
-                  {...form.register(field.name)}
-                />
-              ))}
-            </div>
-          ))}
-
-          <div className="flex justify-end gap-3 pt-1">
-            <Button type="button" variant="secondary" onClick={closeEditor} disabled={saving}>
-              Cancelar
-            </Button>
-            <Button type="submit" isLoading={saving}>
-              Salvar
-            </Button>
-          </div>
-        </form>
+        <div className="rounded-2xl border border-line bg-surface p-5">
+          <PatientEvaluationEditorForm
+            patientId={patientId}
+            cancelLabel="Cancelar"
+            submitLabel="Salvar"
+            showInnerHeading
+            editing={editing}
+            draft={createDraft ?? undefined}
+            onCancel={closeEditor}
+            onSuccess={closeEditor}
+          />
+        </div>
       ) : null}
 
       {!isLoading && !isError && !editorOpen && evaluations.length === 0 ? (
