@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-09-14T20:51:06.765Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-09-14T20:56:59.708Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 21
-  completed_plans: 19
-  percent: 90
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 6 (Silhueta de áreas de foco) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
-- Status: Wave 1 SQL applied — next is 06-03 toggle
-- Progress: Phase 6 plans 01–02 shipped (catalog, region_key SQL Editor apply)
+- Status: Wave 2 toggle shipped — next is 06-04 panel
+- Progress: Phase 6 plans 01–03 shipped (catalog, region_key SQL, toggle service/hook)
 
-**Progress:** [█████████░] 90%
+**Progress:** [██████████] 95%
 
 ## Accumulated Context
 
@@ -98,6 +98,10 @@ Plan: 3 of 4
 - [Phase 06]: SQL Editor is the apply path; do not run supabase db push — Supabase CLI is not installed; hosted Editor is the only apply path (same as Phase 03/05)
 - [Phase 06]: region_key stays nullable; leftover label-only rows are not SET NOT NULL or backfilled (D-09, Pitfall 8) — Front/back share Portuguese labels; leftovers must stay readable
 - [Phase 06]: Phase 3 patient_focus_areas_select/insert/update/delete policies left intact; no DROP/CREATE POLICY (D-09, D-10) — T-06-01: existing can_write_patient RLS remains the write wall
+- [Phase 06]: Focus writes use throwIfFocusError + mapDbError; existing throwIfError stays for other patient CRUD — Pitfall 9, T-06-01
+- [Phase 06]: Unmark DELETEs the patient_focus_areas row; empty state is focusAreas.length === 0 — D-06
+- [Phase 06]: INSERT 23505 unique race returns marked without Já existe um registro — Pitfall 7
+- [Phase 06]: useTogglePatientFocusArea closes over ficha patientId; mutate argument is regionKey only — T-06-02
 
 ### Pending user action
 
@@ -114,8 +118,8 @@ Plan: 3 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-14T20:51:06.736Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-09-14T20:56:58.597Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -133,3 +137,4 @@ Resume file: None
 | Phase 05 P05 | 4min | 3 tasks | 3 files |
 | Phase 06 P01 | 7min | 2 tasks | 4 files |
 | Phase 06 P02 | 9min | 2 tasks | 1 files |
+| Phase 06 P03 | 4min | 2 tasks | 2 files |
