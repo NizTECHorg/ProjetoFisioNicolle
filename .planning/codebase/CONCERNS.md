@@ -1,279 +1,306 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-09-04
+**Analysis Date:** 2026-09-14
 
 ## Tech Debt
 
-**Bakery/confectionery leftover stack (dead product surface):**
-- Issue: A full second product (pedidos, produtos, estoque, finanças, entregas, cupons, receitas) still lives in the repo and is not routed. Roles, search, and notifications still speak that domain.
-- Files: `src/services/modules.service.ts` (918 lines), `src/hooks/queries.ts`, `src/types/database.types.ts`, `src/lib/permissions.ts`, `src/pages/ProductsPage.tsx`, `src/pages/OrdersPage.tsx`, `src/pages/FinancePage.tsx`, `src/pages/ClientsPage.tsx`, `src/pages/StockPage.tsx`, `src/pages/DeliveriesPage.tsx`, `src/pages/RecipesPage.tsx`, `src/pages/ProductionPage.tsx`, `src/pages/ShoppingPage.tsx`, `src/pages/CouponsPage.tsx`, `src/pages/EmployeesPage.tsx`, `src/pages/TasksPage.tsx`, `src/pages/ReportsPage.tsx`, `src/pages/SettingsPage.tsx`, `src/pages/BlankPage.tsx`, `src/components/layout/GlobalSearch.tsx`, `src/components/layout/NotificationsMenu.tsx`, `src/schemas/modules.schema.ts`
-- Impact: New work is easy to wire to the wrong tables/hooks. `EmployeeRole` includes `confeiteiro` / `entregador`. `AppShell` maps those leftovers to clinic labels in `src/components/layout/AppShell.tsx`. Global search still groups `cliente` / `produto` / `pedido`.
-- Fix approach: Delete or quarantine unused pages/hooks/services. Replace `database.types.ts` with generated Supabase types for the clinic schema. Introduce clinic-specific roles (`fisioterapeuta`, `admin`) instead of remapping bakery roles.
+**Bakery domain leftover in the clinic SPA:**
+- Issue: A full confeitaria stack (orders, recipes, stock, coupons, deliveries, finance, production, employees, bakery RBAC) still lives in the repo and is not mounted in `src/routes/index.tsx`. Clinic code must not import it.
+- Files: `src/services/modules.service.ts` (918 lines), `src/hooks/queries.ts`, `src/lib/permissions.ts`, `src/types/database.types.ts`, `src/schemas/modules.schema.ts`, `src/pages/OrdersPage.tsx`, `src/pages/RecipesPage.tsx`, `src/pages/StockPage.tsx`, `src/pages/TasksPage.tsx`, `src/pages/ProductsPage.tsx`, `src/pages/CouponsPage.tsx`, `src/pages/ClientsPage.tsx`, `src/pages/DeliveriesPage.tsx`, `src/pages/EmployeesPage.tsx`, `src/pages/FinancePage.tsx`, `src/pages/ReportsPage.tsx`, `src/pages/ProductionPage.tsx`, `src/pages/ShoppingPage.tsx`, `src/pages/SettingsPage.tsx`, `src/pages/BlankPage.tsx`, `src/components/layout/GlobalSearch.tsx`, `src/components/layout/NotificationsMenu.tsx`, `src/components/dashboard/SalesChart.tsx`
+- Impact: Wrong types (`EmployeeRole` / `confeiteiro` in `src/types/database.types.ts`), accidental bakery table queries, lint/typecheck cost, and planners copying bakery patterns instead of clinic ones (`src/lib/accountAccess.ts` already forbids importing `src/lib/permissions.ts`).
+- Fix approach: Delete or quarantine bakery pages/hooks/services. Keep clinic types in `src/types/patient.ts` / `src/types/account.ts` / `src/types/evaluation.ts`. Do not extend `src/types/database.types.ts` for clinic tables.
 
-**Manual SQL as the only schema source:**
-- Issue: Schema changes are pasted into the Supabase SQL Editor. There is no `supabase/migrations/` history and only one checked-in script.
-- Files: `supabase/patients-req05-evaluations.sql`, `.planning/STATE.md`, `.planning/PROJECT.md`
-- Impact: Local code and production drift. REQ-05 UI is live while `patient_evaluations` may be missing remotely. New tables/policies cannot be reproduced from git.
-- Fix approach: Adopt Supabase CLI migrations. Treat `supabase/*.sql` as the source of truth and apply them in order. Do not ship UI that depends on a table until the migration is applied.
+**Supabase client untyped (`any`):**
+- Issue: `getSupabase()` uses `SupabaseClient<any>` because generated Insert/Update types collapse to `never`. Clinic tables (`patients`, `patient_evaluations`, `organizations`, `board_columns`) are not in `src/types/database.types.ts`.
+- Files: `src/lib/supabase/client.ts`, `src/types/database.types.ts`
+- Impact: Typos in column names compile. Runtime failures only at query time.
+- Fix approach: Generate clinic-only Database types (or hand-write Tables for patients/org/board) and pass that generic to `createClient`. Do not reuse bakery `Database`.
 
-**Untyped Supabase client + stale generated types:**
-- Issue: `getSupabase()` uses `any`. `Database` in `src/types/database.types.ts` has no `patients`, `patient_sessions`, `patient_evaluations`, `board_columns`, or `board_cards`. Clinic services define local row types and cast query results.
-- Files: `src/lib/supabase/client.ts`, `src/types/database.types.ts`, `src/services/patients.service.ts`, `src/services/evaluations.service.ts`, `src/services/calendar.service.ts`, `src/services/sessions.service.ts`, `src/services/board.service.ts`
-- Impact: Insert/update typos compile. Missing `patient_evaluations` is invisible to `tsc`.
-- Fix approach: Run `supabase gen types` after migrations. Type the client as `SupabaseClient<Database>`. Remove `AnyDatabase` and per-file `as EvaluationRow` casts.
+**God files mixing mapping, I/O, and UI helpers:**
+- Issue: Single files own too many responsibilities, so a small change risks regressions across list/detail/dashboard.
+- Files: `src/services/modules.service.ts` (918), `src/services/patients.service.ts` (656), `src/pages/PatientPage.tsx` (577), `src/pages/DashboardPage.tsx` (530), `src/hooks/queries.ts` (447), `src/components/patients/PatientCadastroPanel.tsx` (418)
+- Impact: Hard reviews, duplicated date/status helpers (`src/pages/DashboardPage.tsx` vs `src/pages/CalendarPage.tsx`), missed `canWrite` plumbing.
+- Fix approach: Split PatientPage by tab (resumo / evoluções / avaliação / cadastro). Move date helpers to `src/lib/`. Keep services as thin query+map layers.
 
-**Duplicated date/calendar helpers:**
-- Issue: `startOfDay`, `sameDay`, `toLocalInput`, weekday labels, and `Intl` formatters are copied across pages.
-- Files: `src/pages/DashboardPage.tsx`, `src/pages/CalendarPage.tsx`, `src/pages/KanbanPage.tsx`, `src/services/patients.service.ts`, `src/services/evaluations.service.ts`, `src/lib/security/index.ts`
-- Impact: Timezone bugs (UTC `toISOString().slice(0, 10)` vs local `T00:00:00`) will be fixed in one place and left in another.
-- Fix approach: One `src/lib/dates.ts` (local calendar date, range, format). Ban `toISOString().slice(0, 10)` for user-facing dates.
+**Schema scripts not versioned with the app:**
+- Issue: `.gitignore` ignores `/supabase/`. Clinic SQL for evaluations and goals lives only on disk (`supabase/patients-req05-evaluations.sql`, `supabase/patients-req14-goals.sql`). Org/RLS SQL is duplicated: tracked copy at `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql` and a gitignored local `supabase/03-account-types-team.sql`. `src/pages/SetupPage.tsx` tells operators to run `supabase/migrations/` and copy `.env.example`; neither exists in the repo.
+- Files: `.gitignore`, `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql`, `src/pages/SetupPage.tsx`, `.planning/STATE.md`
+- Impact: New clones cannot recreate the database. Two SQL copies drift. REQ-05 evaluations SQL may be missing in production.
+- Fix approach: Commit idempotent SQL under a tracked path (for example `.planning/phases/*/sql/` as source of truth). Point SetupPage at that path. Stop documenting `.env.example` until the file exists.
 
-**Patient modules still stubbed:**
-- Issue: Shortcuts send users to “Em breve” modules that look like product features.
-- Files: `src/pages/PatientPage.tsx` (`shortcuts`), `src/pages/PatientModuleStubPage.tsx`, `src/routes/index.tsx`
-- Impact: Reavaliações, Exercícios, Documentos, and Financeiro look available and dead-end.
-- Fix approach: Hide unfinished shortcuts or route them to existing tabs. Keep `PatientModuleStubPage` only for explicit placeholders.
+**Inconsistent DB error mapping:**
+- Issue: Bakery `src/services/modules.service.ts` uses `mapDbError`. Clinic services throw raw PostgREST messages via local `throwIfError`.
+- Files: `src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/calendar.service.ts`, `src/services/evaluations.service.ts`, `src/services/board.service.ts`, `src/services/team.service.ts` (mixed: `throwIfError` plus `mapDbError` only on `decideMembership`)
+- Impact: Toasts can leak schema/RLS details. UX differs by screen.
+- Fix approach: Use `mapDbError` from `src/lib/security/index.ts` in every service `throwIfError`. Do not pass `error.message` to the UI.
 
-**Header/search leftovers after FLUXO layout:**
-- Issue: Desktop shell has no top header. `GlobalSearch` and `NotificationsMenu` are unused and still bakery-themed (`dark-border`, pedidos/clientes).
-- Files: `src/components/layout/AppShell.tsx`, `src/components/layout/GlobalSearch.tsx`, `src/components/layout/NotificationsMenu.tsx`
-- Impact: Adding search/notifications later will resurrect the wrong product language.
-- Fix approach: Delete unused components or rewrite them against `listPatients` / clinic alerts before putting them back in the shell.
+**Unused Gemini SDK:**
+- Issue: `@google/genai` is in `package.json` but AI calls use raw `fetch` in `src/services/aiPhysicalEvaluation.service.ts`.
+- Files: `package.json`, `src/services/aiPhysicalEvaluation.service.ts`
+- Impact: Extra supply-chain surface with no benefit.
+- Fix approach: Remove `@google/genai` until a server-side SDK is introduced.
 
-**Client header still branded as fisio-web:**
-- Issue: Supabase client sends `X-Client-Info: fisio-web` after the FLUXO rebrand.
-- Files: `src/lib/supabase/client.ts`
-- Impact: Logs and support traces do not match the product name.
-- Fix approach: Change the header to `fluxo-web` when touching that client.
+**`canWrite` defaults to true on every patient panel:**
+- Issue: Panels treat missing `canWrite` as writable. RLS still blocks, but UI shows edit/delete until the mutation fails.
+- Files: `src/components/patients/PatientCadastroPanel.tsx`, `src/components/patients/PatientGoalsPanel.tsx`, `src/components/patients/PatientEvolutionsPanel.tsx`, `src/components/patients/PatientAlertsPanel.tsx`, `src/components/patients/PatientEvaluationPanel.tsx`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`
+- Impact: Empresa consulta (read-only) regresses if a new mount forgets the prop.
+- Fix approach: Default `canWrite` to `false`. Require the page (`src/pages/PatientPage.tsx`) to pass `canWritePatient(...)`.
 
 ## Known Bugs
 
-**REQ-05 table may be missing in Supabase:**
-- Symptoms: Aba Avaliação shows “Não foi possível carregar as avaliações. Confira se o script SQL do REQ-05 já foi executado no Supabase.” Create/edit/delete fail. `.planning/ROADMAP.md` marks Phase 1 done while `.planning/REQUIREMENTS.md` and `.planning/STATE.md` still wait on SQL + UAT.
-- Files: `supabase/patients-req05-evaluations.sql`, `src/services/evaluations.service.ts`, `src/components/patients/PatientEvaluationPanel.tsx`, `.planning/STATE.md`, `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`
-- Trigger: Open any patient → Avaliação before applying the script.
-- Workaround: Run `supabase/patients-req05-evaluations.sql` in the Supabase SQL Editor, then reload.
+**`npm run lint` fails on explicit `any`:**
+- Symptoms: ESLint `@typescript-eslint/no-explicit-any` at the Gemini catch. `.planning/phases/03-tipos-de-conta-e-equipe/deferred-items.md` records this as out of phase 03 scope. `npm run typecheck` still passes.
+- Files: `src/services/aiPhysicalEvaluation.service.ts`
+- Trigger: Run `npm run lint`.
+- Workaround: Typecheck-only CI. Do not ship new `any`.
 
-**AI fallback invents a clinical chart:**
-- Symptoms: Without `VITE_GEMINI_API_KEY`, PDF upload waits ~1.8s and returns a hardcoded lombar/L5-S1 case. The UI presents it as an analysis of the uploaded file.
+**Gemini key missing silently fabricates a clinical report:**
+- Symptoms: Without `VITE_GEMINI_API_KEY`, `analyzePhysicalEvaluationPdf` waits ~1.8s then returns hardcoded lombar/L5-S1 findings unrelated to the PDF. The UI presents this as an evaluation.
 - Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`, `AI_EVALUATION_FLOW.md`
-- Trigger: Upload any PDF in an environment without the Gemini key (or after all model names 404).
-- Workaround: Do not click “Usar na avaliação estruturada” or “Aplicar Diagnóstico ao Prontuário” unless the result was clearly produced by the model. Prefer failing closed when the key is missing.
+- Trigger: Upload any PDF on a build without the env var.
+- Workaround: Never persist the result to `patient_evaluations` without a human review. Fail closed: if no key, throw a user-facing error instead of simulating.
 
-**Dashboard “Novas avaliações” is patient status, not REQ-05 records:**
-- Symptoms: The card counts `patient.status === 'avaliacao'`, not rows in `patient_evaluations`. A saved structured evaluation does not increment the card. A patient left on status `avaliacao` does.
-- Files: `src/pages/DashboardPage.tsx`, `src/hooks/usePatients.ts`
-- Trigger: Compare the dashboard card with the Avaliação tab after creating a structured evaluation.
-- Workaround: Treat the card as “pacientes em status Avaliação”, not new ficha records.
+**Membership fetch failure locks fisioterapeuta out of the clinic:**
+- Symptoms: `AuthProvider` swallows `fetchMembership` errors (`catch(() => null)`). `isAuthenticated` is false when `accountType === 'fisioterapeuta' && membership === null`, so a network/RLS blip sends an already-accepted therapist to `/aguardando`.
+- Files: `src/providers/AuthProvider.tsx`, `src/pages/auth/WaitingApprovalPage.tsx`, `src/components/auth/ProtectedRoute.tsx`
+- Trigger: Transient error on `organization_memberships` during login.
+- Workaround: Sign out and sign in again (copy on WaitingApprovalPage). Distinguish “query failed” from “no row” in `src/services/team.service.ts`.
 
-**Session progress counters drift from calendar status:**
-- Symptoms: Calendar “Marcar realizada” only updates `patient_sessions.status`. List/dashboard progress uses denormalized `patients.sessions_done` / `sessions_planned`.
-- Files: `src/services/calendar.service.ts`, `src/services/patients.service.ts` (`mapListItem`), `src/pages/DashboardPage.tsx` (`progressLabel`), `src/pages/CalendarPage.tsx`
-- Trigger: Confirm/complete sessions only from Agenda.
-- Workaround: Edit the planned/done fields on the patient ficha, or recount from `patient_sessions` in one place.
+**Profile query errors look like a deactivated account:**
+- Symptoms: `fetchProfile` returns `null` on both missing row and PostgREST error. `ProtectedRoute` then shows “Conta sem perfil ativo”.
+- Files: `src/services/auth.service.ts`, `src/components/auth/ProtectedRoute.tsx`
+- Trigger: RLS/network error on `profiles` after a valid session.
+- Workaround: Sign out. Split error vs empty in `fetchProfile` and show a retry state.
 
-**Default evaluation date uses UTC, not clinic local date:**
-- Symptoms: After 21:00 in Brazil (UTC−3), “Nova avaliação” can prefill yesterday.
-- Files: `src/schemas/evaluation.schema.ts` (`emptyEvaluationForm`)
-- Trigger: Open a new evaluation at night.
-- Workaround: Correct `performedOn` before save. Use a local `YYYY-MM-DD` helper.
+**Physical PDF analyses never reach Postgres:**
+- Symptoms: Results live in `localStorage` key `fisio.evaluations.${patientId}` only. Another device, another browser, or storage eviction loses them. Applying to the structured evaluation is a separate `patient_evaluations` write.
+- Files: `src/components/patients/PatientPhysicalEvaluationPanel.tsx`, `src/services/evaluations.service.ts`
+- Trigger: Analyze a PDF, then open the patient on another browser.
+- Workaround: Click “usar como avaliação” so a copy lands in `patient_evaluations`. Persist AI artifacts in Storage + a table, or drop localStorage.
 
-**Agenda has no query error state:**
-- Symptoms: Failed `useCalendarSessions` still renders an empty month. User cannot tell load failure from an empty clinic.
-- Files: `src/pages/CalendarPage.tsx`, `src/hooks/useClinic.ts`
-- Trigger: Network/RLS error on `patient_sessions`.
-- Workaround: Check the network tab. Dashboard already surfaces `isError`; Agenda does not.
+**Raw Postgres errors in toasts:**
+- Symptoms: Calendar, board, patients, sessions, evaluations throw `new Error(error.message)`. Failed RLS/check constraints can surface English PostgREST text.
+- Files: `src/services/calendar.service.ts`, `src/services/board.service.ts`, `src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/evaluations.service.ts`
+- Trigger: Forbidden write as empresa on a colleague’s patient; invalid status.
+- Workaround: None for the user. Map through `mapDbError`.
 
-**Body map is decorative, not clinical data:**
-- Symptoms: `BodyFocus` always highlights the same right-leg region, independent of focus areas or pain logs.
-- Files: `src/pages/PatientPage.tsx` (`BodyFocus`)
-- Trigger: Open Resumo for any patient.
-- Workaround: Read “Foco do tratamento” text, not the SVG.
+**Kanban “done” is inferred from column title:**
+- Symptoms: Calendar due cards mark done when `columnTitle.toLowerCase().includes('conclu')`. Renaming the list breaks the heuristic.
+- Files: `src/pages/CalendarPage.tsx`, `src/services/board.service.ts`
+- Trigger: Rename a “Concluído” column.
+- Workaround: Keep “conclu” in the title. Add a real `status` or `is_done` column.
 
 ## Security Considerations
 
-**RLS on evaluations is “any authenticated user, all rows”:**
-- Risk: Every logged-in account can `SELECT`/`INSERT`/`UPDATE`/`DELETE` every patient’s clinical evaluation. Combined with open `/cadastro`, a stranger who registers can read PHI if a profile row is created for them.
-- Files: `supabase/patients-req05-evaluations.sql` (`patient_evaluations_authenticated_all`, `using (true)`, `with check (true)`), `src/pages/auth/RegisterPage.tsx`, `src/services/auth.service.ts`, `src/providers/AuthProvider.tsx`
-- Current mitigation: UI requires an active `profiles` row (`isAuthenticated` in `src/providers/AuthProvider.tsx`). That is not RLS. Rate limit in `src/lib/security/index.ts` is browser `sessionStorage` only.
-- Recommendations: Scope policies to clinic membership (or at least `created_by` / assigned therapist). Disable public sign-up or require an invite/admin-created profile. Add server-side Auth rate limits. Do not consider `using (true)` acceptable for clinical tables.
+**Gemini API key in the Vite bundle:**
+- Risk: `VITE_GEMINI_API_KEY` is compiled into client JS. Anyone can extract it and burn quota or send PHI to Google as this project.
+- Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/vite-env.d.ts` (key is used but not declared), `index.html` (`connect-src` includes `https://generativelanguage.googleapis.com`)
+- Current mitigation: Key is optional; CSP limits connect-src. No server proxy.
+- Recommendations: Move Gemini to a Supabase Edge Function or backend. Never prefix secrets with `VITE_`. Add `VITE_GEMINI_API_KEY` to `src/vite-env.d.ts` only if it remains public (it should not).
 
-**Gemini API key and clinical PDFs leave the browser:**
-- Risk: `VITE_GEMINI_API_KEY` is bundled into the client. Anyone can extract it and consume quota. PDF bytes (PHI) go to `generativelanguage.googleapis.com` with the key in the query string. `vite-env.d.ts` does not even declare the variable.
-- Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/vite-env.d.ts`, `src/config/env.ts`
-- Current mitigation: Feature no-ops to a fake chart if the key is absent. No Edge Function, no key rotation story.
-- Recommendations: Move Gemini calls to a Supabase Edge Function or backend. Never prefix the key with `VITE_`. Add consent, retention, and a hard fail when the proxy is down. Enforce a real size limit (UI says 20MB; `handleFile` in `src/components/patients/PatientPhysicalEvaluationPanel.tsx` does not check).
+**PHI sent to Google and stored in `localStorage`:**
+- Risk: PDF of avaliação física (health data, LGPD art. 5º II) is base64-posted to `generativelanguage.googleapis.com`. Parsed JSON is stored in `localStorage` (`fisio.evaluations.*`) with no encryption, TTL, or tenant isolation beyond the key name. XSS can read it. Shared computers retain it after logout (`signOut` in `src/services/auth.service.ts` does not clear those keys).
+- Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`, `src/providers/AuthProvider.tsx`
+- Current mitigation: Upload UI gated by `canWrite`. No file-size or magic-byte check (extension/`file.type` only).
+- Recommendations: Proxy AI through a backend with DPA. Cap size (e.g. 10 MB) and verify `%PDF` header. Encrypt or do not persist locally. Wipe `fisio.evaluations.*` on logout. Log access.
 
-**PHI in `localStorage`:**
-- Risk: IA drafts persist as `fisio.evaluations.{patientId}` on the device. Shared computers keep clinical text. Clearing storage loses the history; another browser never sees it. This is not the official ficha, but it looks like one.
-- Files: `src/components/patients/PatientPhysicalEvaluationPanel.tsx`
-- Current mitigation: Official record is `patient_evaluations` via `src/services/evaluations.service.ts`.
-- Recommendations: Stop persisting IA output in `localStorage`. Keep drafts in memory or in a server table with RLS. Wipe on sign-out.
+**Session tokens in browser storage:**
+- Risk: `createClient` in `src/lib/supabase/client.ts` uses `persistSession: true` (supabase-js default: `localStorage`). `security.skill.md` forbids JWT in `localStorage`/`sessionStorage` for this healthcare app. Client rate limit (`fisio.auth.rate` in `sessionStorage` via `src/lib/security/index.ts`) is trivially bypassable.
+- Files: `src/lib/supabase/client.ts`, `src/lib/security/index.ts`, `security.skill.md`
+- Current mitigation: PKCE (`flowType: 'pkce'`), HTTPS URL check in `src/config/env.ts`, CSP in `index.html`, nosniff/frame deny on the Vite dev server in `vite.config.ts`.
+- Recommendations: Prefer httpOnly cookie auth via a BFF if the threat model requires it. Keep relying on Supabase Auth rate limits, not the client counter. Add production CSP/headers on the host (meta CSP in `index.html` is not equivalent to a server header).
 
-**Raw Postgres errors reach toasts:**
-- Risk: Clinic services throw `error.message` instead of `mapDbError`. Missing-table and constraint text can leak schema details.
-- Files: `src/services/evaluations.service.ts`, `src/services/patients.service.ts`, `src/services/calendar.service.ts`, `src/services/sessions.service.ts`, `src/services/board.service.ts`, `src/lib/security/index.ts` (`mapDbError` used mainly by `src/services/modules.service.ts`)
-- Current mitigation: Evaluation list has a dedicated SQL-missing copy. Mutations still toast the raw message via `onError` in `src/hooks/usePatients.ts`.
-- Recommendations: Route every service error through `mapDbError`. Add a specific “relação não existe” mapping for pending SQL.
+**Board tables outside org RLS:**
+- Risk: `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql` leaves `board_columns` / `board_cards` unchanged. Card titles can hold patient names (PHI). Cross-tenant read/write is possible if those tables still use `authenticated`/`using (true)` policies.
+- Files: `src/services/board.service.ts`, `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql`
+- Current mitigation: Patient RLS exists for `patients` and related clinical tables in that SQL file. Board is explicit residual risk.
+- Recommendations: Add `organization_id` (or owner) to board tables and policies matching `private.viewer_org_id()`. Until then, do not put identifiable patient data in card titles.
 
-**Open registration + no clinic isolation:**
-- Risk: `/cadastro` is a guest route. PROJECT.md marks multi-clínica out of scope, so one Supabase project is one shared PHI pool.
-- Files: `src/routes/index.tsx`, `src/pages/auth/RegisterPage.tsx`, `.planning/PROJECT.md`
-- Current mitigation: Profile must exist and be `is_active` (`src/services/auth.service.ts` `fetchProfile`). `fetchProfile` swallows query errors and returns `null`.
-- Recommendations: Invite-only onboarding. Log profile-fetch failures. Plan tenant isolation before a second clinic uses the same project.
+**Null `patients.created_by` visible to any authenticated user:**
+- Risk: The SQL comments document a residual: rows with `created_by` null remain selectable by any authenticated user during/after migration.
+- Files: `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql`
+- Current mitigation: Trigger `patients_set_created_by` on insert; index `patients_created_by_idx`.
+- Recommendations: Backfill `created_by`, then tighten SELECT so null-owner rows are not world-readable.
+
+**No MFA, no prontuário audit log:**
+- Risk: `security.skill.md` requires MFA for clinic admins and access logs (who/when/which patient). Neither exists in app or SQL.
+- Files: `src/services/auth.service.ts`, `src/services/patients.service.ts`, `security.skill.md`
+- Current mitigation: Password complexity in `src/schemas/auth.schema.ts`; fail-closed pending fisio in `src/providers/AuthProvider.tsx`; RLS on clinical tables in the phase-03 SQL.
+- Recommendations: Enable Supabase MFA for `empresa` owners. Insert an `audit_events` row (or use pgaudit) on patient SELECT/UPDATE via RPC.
+
+**Client `canWrite` is UX only:**
+- Risk: Hiding buttons is not authorization. Safe only because Plan 03-02 RLS is the authority (`src/lib/accountAccess.ts` documents this).
+- Files: `src/lib/accountAccess.ts`, `src/pages/PatientPage.tsx`
+- Current mitigation: RLS `can_write_patient` / `can_read_patient` in `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql`.
+- Recommendations: Never add a client-only check without a matching policy. Do not reintroduce bakery `src/lib/permissions.ts` for clinic routes.
 
 ## Performance Bottlenecks
 
-**`listPatients` pulls every session for every patient:**
-- Problem: After listing patients, a second query loads all `patient_sessions` with `.in('patient_id', ids)` and no date filter. Dashboard and Agenda both call this just to decorate a few rows.
-- Files: `src/services/patients.service.ts` (`listPatients`), `src/hooks/usePatients.ts`, `src/pages/DashboardPage.tsx`, `src/pages/CalendarPage.tsx`, `src/pages/PatientsPage.tsx`, `src/pages/KanbanPage.tsx`
-- Cause: Next-session preview is computed in the client from the full session set. Done/planned counts still come from denormalized columns, so most of the payload is unused on Dashboard.
-- Improvement path: List query should select list columns only. Next session via a view/RPC (`distinct on (patient_id)`). Dashboard metrics via a dedicated RPC, not `usePatients()` + a wide calendar range.
+**Patient list hydrates every session for every patient:**
+- Problem: `listPatients` loads all patients then `patient_sessions` with `.in('patient_id', ids)` and no date/status filter, then aggregates in JS.
+- Files: `src/services/patients.service.ts`, `src/hooks/usePatients.ts`, `src/pages/PatientsPage.tsx`, `src/pages/CalendarPage.tsx`, `src/pages/KanbanPage.tsx`, `src/pages/DashboardPage.tsx`
+- Cause: Session counts and next-session live on the list DTO. Calendar and Kanban also call `usePatients()` just to fill a select.
+- Improvement path: Postgres view or RPC returning counts + next session. Paginate/search the list. Add `usePatientOptions()` with `id, full_name` only for selects.
 
-**Dashboard over-fetches calendar + patients:**
-- Problem: One range query from `prevMonthStart` through `max(weekEnd, nextMonthStart, upcomingEnd)` plus the full patient list, on every `/painel` visit.
-- Files: `src/pages/DashboardPage.tsx`, `src/services/calendar.service.ts`, `src/hooks/useClinic.ts`
-- Cause: Stats, chart, and “próximas sessões” share one hook with a conservative window.
-- Improvement path: Split queries (month counts, week series, next 4 sessions). Keep `staleTime` (already 60s on patients).
+**Dashboard over-fetches then filters in the browser:**
+- Problem: `DashboardPage` loads the full patient list plus all sessions from `min(weekStart, prevMonthStart)` to `max(weekEnd, nextMonthStart, upcomingEnd)`, then filters in `useMemo`.
+- Files: `src/pages/DashboardPage.tsx`, `src/hooks/useClinic.ts`, `src/services/calendar.service.ts`
+- Cause: Metrics (active patients, month session counts, activity chart) are derived client-side.
+- Improvement path: One RPC `clinic_dashboard_metrics(week_offset)` returning counts and upcoming rows. Keep `listSessionsInRange` for the calendar month only.
 
-**Agenda loads the entire Kanban board for due dots:**
-- Problem: `useBoard()` fetches all columns and cards. `useDueCards` in `src/hooks/useClinic.ts` is unused.
-- Files: `src/pages/CalendarPage.tsx`, `src/services/board.service.ts`, `src/hooks/useClinic.ts`
-- Cause: Due markers are derived client-side (`card.dueOn as string`, column title contains `conclu`).
-- Improvement path: Call `listDueCards` for the visible month. Persist a real `done` flag instead of parsing column titles.
+**Patient detail fan-out:**
+- Problem: `getPatientById` / `getPatientDashboard` fire parallel selects (goals, focus, pain, sessions, alerts, names). `PatientPage` also mounts evaluations/sessions hooks.
+- Files: `src/services/patients.service.ts`, `src/pages/PatientPage.tsx`, `src/hooks/usePatients.ts`
+- Cause: No nested select / single payload for the ficha.
+- Improvement path: One view `patient_ficha` or nested `select` with FK embeds. Lazy-load tabs so avaliação/evoluções queries run only when the tab is open.
 
-**PDF → Base64 in memory:**
-- Problem: The whole file is read with `FileReader.readAsDataURL` and sent in JSON. No size cap despite “até 20MB”.
+**Unbounded PDF → base64 in memory:**
+- Problem: `fileToBase64` reads the whole file; no size cap before `fetch`.
 - Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`
-- Cause: Multimodal inline upload from the browser.
-- Improvement path: Reject over a few MB on the client; upload to Storage; process on the server.
+- Cause: Missing validation.
+- Improvement path: Reject files > N MB before FileReader. Stream via backend upload.
 
 ## Fragile Areas
 
-**REQ-05 evaluation stack:**
-- Files: `src/services/evaluations.service.ts`, `src/components/patients/PatientEvaluationPanel.tsx`, `src/hooks/usePatients.ts`, `supabase/patients-req05-evaluations.sql`
-- Why fragile: Runtime depends on a table that is not in `database.types.ts` and may not exist remotely. “Inicial” is computed in the client from `performed_on`, not stored. Updates do not rewrite author. Deletes are hard deletes of clinical history. No `updated_at` trigger in the SQL script.
-- Safe modification: Apply SQL first. Add types. Keep Zod limits in `src/schemas/evaluation.schema.ts`. Do not drop columns used by `EVALUATION_COLUMNS`. Prefer soft-delete or audit before allowing purge.
-- Test coverage: None. No `*.test.*` / `*.spec.*` in the repo. `package.json` has no test script.
+**Auth gate (pending / rejected / missing profile):**
+- Files: `src/providers/AuthProvider.tsx`, `src/components/auth/ProtectedRoute.tsx`, `src/pages/auth/WaitingApprovalPage.tsx`, `src/services/auth.service.ts`, `src/lib/accountAccess.ts`
+- Why fragile: Four boolean combinations (`isActive`, `accountType`, `membership === null`, `membership.status`) must stay aligned. Comment in AuthProvider: `onAuthStateChange` must stay synchronous or login deadlocks.
+- Safe modification: Change one predicate in `src/lib/accountAccess.ts` and update AuthProvider + ProtectedRoute + WaitingApprovalPage together. Do not await inside `onAuthStateChange`.
+- Test coverage: No automated tests. Manual UAT only (`.planning/phases/03-tipos-de-conta-e-equipe/03-HUMAN-UAT.md`).
 
-**Dashboard metrics (new real-data wiring):**
-- Files: `src/pages/DashboardPage.tsx` (530 lines: helpers, chart, page)
-- Why fragile: Status filters, “sessão do mês”, and chart rules (`countsAsMonthSession`, `countsInActivity`) are inline. Week offset +1 means previous week. Chart and stat cards have no unit tests.
-- Safe modification: Extract pure metric functions and test them. Do not mix `avaliacao` status with `patient_evaluations` without renaming the card.
+**Patient write UX vs RLS:**
+- Files: `src/pages/PatientPage.tsx`, `src/lib/accountAccess.ts`, all `src/components/patients/*Panel.tsx`
+- Why fragile: Nested `PatientPhysicalEvaluationPanel` must receive `canWrite` from `PatientEvaluationPanel`, not only from PatientPage (documented in `.planning/STATE.md`). Default `true` undoes D-07 if omitted.
+- Safe modification: Thread `canWrite` from `canWritePatient(viewerId, patient.createdBy)` at the page. Default new panels to `false`.
+- Test coverage: No component tests for hidden vs disabled controls.
+
+**SQL apply path (hosted Editor, not CLI):**
+- Files: `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql`, `.gitignore`
+- Why fragile: Idempotent but order-sensitive (`patients.created_by` before helper functions). A second `handle_new_user` trigger would duplicate profiles. Gitignored `/supabase/` diverges from the tracked planning copy.
+- Safe modification: Apply only the tracked planning SQL. Inspect live `on_auth_user_created` before running. Do not `supabase db push`.
+- Test coverage: Optional checks listed at the bottom of the SQL file; not automated.
+
+**AI JSON contract:**
+- Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/types/evaluation.ts`, `src/components/patients/PatientEvaluationPanel.tsx` (`draftFromPdf`)
+- Why fragile: Model list (`gemini-3.6-flash` … `gemini-flash-latest`) and unvalidated `JSON.parse`. Extra/missing keys become empty clinical fields.
+- Safe modification: Parse with a Zod schema (`src/schemas/evaluation.schema.ts` or a new AI result schema). Fail if parse fails; never use the simulated lombar payload in production.
 - Test coverage: None.
 
-**Agenda + session status machine:**
-- Files: `src/pages/CalendarPage.tsx`, `src/services/calendar.service.ts`
-- Why fragile: UI only advances `agendada → confirmada → realizada`. No cancel, no reschedule, no therapist on create (defaults `Sala 1` / `Sessão`). Date math is copied from Dashboard.
-- Safe modification: Keep status transitions in one helper. Add `cancelada` before inventing new statuses. Validate create with Zod like patient forms.
-- Test coverage: None.
-
-**Kanban “done” = column title:**
-- Files: `src/pages/CalendarPage.tsx` (`columnTitle.toLowerCase().includes('conclu')`), `src/pages/KanbanPage.tsx`, `src/services/board.service.ts`
-- Why fragile: Renaming “Concluído” breaks Agenda due styling. HTML5 drag-and-drop has no keyboard alternative.
-- Safe modification: Store `is_done` or a column type. Use `useDueCards` from Agenda.
-- Test coverage: None.
-
-**Auth bootstrap:**
-- Files: `src/providers/AuthProvider.tsx`, `src/components/auth/ProtectedRoute.tsx`, `src/services/auth.service.ts`
-- Why fragile: Profile fetch is async and silent on error (`return null`). Comment documents a supabase-js deadlock if `onAuthStateChange` awaits. Easy to reintroduce the infinite login spinner.
-- Safe modification: Keep the auth callback synchronous. Surface profile-load errors. Do not add awaits inside `onAuthStateChange`.
+**Date/week math copied between pages:**
+- Files: `src/pages/DashboardPage.tsx`, `src/pages/CalendarPage.tsx`
+- Why fragile: `startOfWeek` (Monday offset) duplicated. Off-by-one in ISO vs local `toISOString()` can drop timezone-edge sessions.
+- Safe modification: Shared helpers in `src/lib/datetime.ts`. Query ranges in local date strings if the column is `timestamptz`.
 - Test coverage: None.
 
 ## Scaling Limits
 
-**Unbounded patient + session reads:**
-- Current capacity: Fine for a single small clinic (tens of patients).
-- Limit: `listPatients` + all sessions, plus Dashboard/Agenda/Kanban each calling it, will grow as O(patients × sessions). No pagination on `src/pages/PatientsPage.tsx`.
-- Scaling path: Server-side search/pagination. Dashboard RPC. Session range queries only. Do not add a second clinic on the same RLS-open project.
+**Client-side clinic aggregation:**
+- Current capacity: Fine for tens of patients and a few hundred sessions (single-practitioner / small empresa).
+- Limit: `listPatients` + all sessions payload grows linearly. Dashboard and Kanban each pull the full list. No pagination in `src/pages/PatientsPage.tsx`.
+- Scaling path: Server-side search (`escapeIlike` already exists in `src/lib/security/index.ts`), cursor pagination, metrics RPC, `select` options endpoint.
 
-**Client-side rate limit:**
-- Current capacity: 5 attempts / email and 20 global per 15 minutes, per browser (`src/lib/security/index.ts`).
-- Limit: Incognito or another device resets the counter. Does not protect Supabase Auth.
-- Scaling path: Supabase Auth rate limits + disable public sign-up.
+**Org / tenant:**
+- Current capacity: One `organizations` row per empresa owner (`owner_id` unique in SQL).
+- Limit: Board is not org-scoped. Empresa consulta of all teammate patients loads every ficha the RLS allows into one SPA list.
+- Scaling path: Tenant column on board. List virtualization. Optional filters by therapist (`created_by`).
 
-**Single-tenant PHI store:**
-- Current capacity: One clinic, one Supabase project (constraint in `.planning/PROJECT.md`).
-- Limit: A second clinic or a leaked anon key + registered user exposes everyone’s charts.
-- Scaling path: Org/clinic_id on every clinical table and RLS that checks membership.
+**Auth rate limit:**
+- Current capacity: 5 attempts / email and 20 global per 15 minutes per browser (`src/lib/security/index.ts`).
+- Limit: Per-tab memory + `sessionStorage`; does not protect the project from distributed brute force.
+- Scaling path: Supabase Auth rate limits + CAPTCHA. Treat client limiter as UX only.
 
 ## Dependencies at Risk
 
-**`@google/genai` unused; raw `fetch` + speculative model names:**
-- Risk: `package.json` lists `@google/genai` but `src/services/aiPhysicalEvaluation.service.ts` calls REST with `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-2.5-flash`, `gemini-flash-latest`. Those IDs may 404. Docs in `AI_EVALUATION_FLOW.md` still say `gemini-2.0-flash`.
-- Impact: Upload “succeeds” via the fake fallback, or fails after several round-trips.
-- Migration plan: Drop the unused SDK or use it from a server. Pin one supported model. Fail if it is unavailable.
+**`@google/genai` unused; browser `fetch` to Gemini:**
+- Risk: Unused SDK still installed. Browser key exposure. Model IDs in `src/services/aiPhysicalEvaluation.service.ts` may 404 (loop continues only on 404).
+- Impact: Broken AI upload or leaked key.
+- Migration plan: Server-side Gemini (Edge Function). Pin one model. Remove the npm package.
 
-**No CI, no test runner:**
-- Risk: `package.json` has `lint` / `typecheck` / `build` only. No Vitest/Jest/Playwright. No `.github/workflows`.
-- Impact: Dashboard, REQ-05, and RLS changes ship untested. `tsc` cannot see clinic table mistakes because of `any`.
-- Migration plan: Add Vitest for services/metrics. Add a CI workflow that runs `lint`, `typecheck`, and tests. Do not add Cypress until unit coverage exists for dates and evaluations.
+**Zod 3 + bakery `database.types.ts`:**
+- Risk: `zod` `^3.25.28` vs Zod 4; clinic schema is hand-mapped while bakery `Database` is stale.
+- Impact: Type drift vs live Postgres (`account_type`, `organizations`, `patient_*`).
+- Migration plan: Generate types from live schema into a clinic `Database` interface. Stay on Zod 3 until `zodResolver` supports 4.
 
-**Hand-maintained `database.types.ts`:**
-- Risk: Types describe the bakery schema. Clinic tables are untyped.
-- Impact: Refactors compile while querying missing relations.
-- Migration plan: Generate types from the live schema after REQ-05 SQL is applied.
+**No CI, no `npm audit` gate, no lockfile policy beyond `package-lock.json`:**
+- Risk: `package.json` has no `test` script. No `.github/workflows`. Lint already fails. Dependabot/Renovate not present.
+- Impact: Regressions and vulnerable deps ship unnoticed.
+- Migration plan: GitHub Action: `npm ci`, `npm run typecheck`, `npm run lint`, `npm audit --audit-level=high`. Fix the existing `any` first.
+
+**React 19 / Vite 6 / supabase-js 2:**
+- Risk: Stack is current; auth deadlock comment in `src/providers/AuthProvider.tsx` is a known supabase-js footgun.
+- Impact: Reintroducing `await` in `onAuthStateChange` freezes login.
+- Migration plan: Keep the sync callback. Add a regression test around AuthProvider if tests are introduced.
 
 ## Missing Critical Features
 
-**Applied REQ-05 schema in production:**
-- Problem: Code assumes `patient_evaluations`. Remote DB may not have it. UAT is blocked (`.planning/STATE.md`).
-- Blocks: Closing REQ-05, dashboard-from-evaluations, any report that compares avaliações.
+**Prontuário modules still stubs:**
+- Problem: Reavaliações, exercícios, documentos, financeiro are “Em breve” shortcuts and `PatientModuleStubPage`.
+- Files: `src/pages/PatientPage.tsx`, `src/pages/PatientModuleStubPage.tsx`, `src/routes/index.tsx`
+- Blocks: Full clinical chart, billing, exercise plans, document vault (README claims cobranças).
 
-**Tenant-aware RLS and invite-only access:**
-- Problem: Authenticated-all policies + public register are not enough for clinical data.
-- Blocks: Safe multi-user use, a second professional with least privilege, any compliance review (LGPD).
+**REQ-05 evaluations SQL apply:**
+- Problem: App code writes `patient_evaluations` (`src/services/evaluations.service.ts`) but `.planning/STATE.md` still lists executing `supabase/patients-req05-evaluations.sql` as pending. Without that table/policies, the Avaliação tab fails at runtime.
+- Files: `src/services/evaluations.service.ts`, `.planning/STATE.md`
+- Blocks: Structured initial evaluation in production.
 
-**Authoritative session/evaluation metrics:**
-- Problem: Dashboard mixes status enums, denormalized counters, and calendar rows. No query against `patient_evaluations`.
-- Blocks: Trustworthy “novas avaliações” and progress %.
+**Search, notifications, settings for the clinic:**
+- Problem: `GlobalSearch` / `NotificationsMenu` query bakery tables (`clients`, `products`, `orders`) and are not mounted in `src/components/layout/AppShell.tsx`. No clinic patient search in the shell.
+- Files: `src/components/layout/GlobalSearch.tsx`, `src/components/layout/NotificationsMenu.tsx`, `src/components/layout/AppShell.tsx`
+- Blocks: Finding a patient from the header; clinic alerts (session today, pending membership) in the bell.
 
-**Server-side AI import:**
-- Problem: Key in the client, fake fallback, PHI in `localStorage`.
-- Blocks: Safe use of “PDF + IA só preenche rascunho” in production.
+**Observability and error boundary:**
+- Problem: No Error Boundary in `src/main.tsx`. One `console.error` in the AI panel. No Sentry/Logflare.
+- Files: `src/main.tsx`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`
+- Blocks: Diagnosing white-screen crashes and production AI failures.
 
-**Tests and schema-as-code:**
-- Problem: No test files, no migrations, no CI.
-- Blocks: Safe refactors of Dashboard, Agenda, and evaluations.
+**`.env.example` and tracked migrations:**
+- Problem: SetupPage and README document files that are not in git. `.env*` is gitignored (contents not read for this audit); no example file is committed.
+- Files: `src/pages/SetupPage.tsx`, `README.md`, `.gitignore`
+- Blocks: Repeatable onboarding.
+
+**LGPD operational controls:**
+- Problem: No retention/delete workflow, no access audit, no encryption-at-rest beyond what Supabase provides for the project.
+- Files: `security.skill.md` vs `src/services/patients.service.ts`
+- Blocks: Healthcare compliance claims.
 
 ## Test Coverage Gaps
 
-**Structured evaluations (REQ-05):**
-- What's not tested: Mapping, “Inicial” = oldest `performed_on`, Zod limits, create/update/delete, SQL-missing error path.
-- Files: `src/services/evaluations.service.ts`, `src/schemas/evaluation.schema.ts`, `src/components/patients/PatientEvaluationPanel.tsx`
-- Risk: Wrong initial flag, empty complaint persisted, UI shipping against a missing table.
+**Entire application untested:**
+- What's not tested: No `*.test.*` / `*.spec.*`, no Vitest/Jest/Playwright config, no `test` script in `package.json`.
+- Files: `package.json`, `src/` (all services, auth, RLS-sensitive UI)
+- Risk: Auth fail-closed rules, `canWrite` defaults, Gemini fallback, and list-query payloads can break without detection. `npm run lint` already fails so it is not a useful gate.
 - Priority: High
 
-**Dashboard aggregations:**
-- What's not tested: Month/week windows, status filters, chart values, upcoming slice.
-- Files: `src/pages/DashboardPage.tsx`
-- Risk: Silent wrong clinic numbers after a filter tweak.
+**Auth and membership (High):**
+- What's not tested: Login rate limit, pending/rejected/null-membership routing, `safeRedirectPath` open-redirect checks, `decideMembership` error mapping.
+- Files: `src/providers/AuthProvider.tsx`, `src/components/auth/ProtectedRoute.tsx`, `src/lib/security/index.ts`, `src/services/team.service.ts`
+- Risk: Privilege leak into `/painel` or lockout of valid therapists.
 - Priority: High
 
-**Calendar date math and status transitions:**
-- What's not tested: Month grid, due-date parsing, create payload, status buttons.
-- Files: `src/pages/CalendarPage.tsx`, `src/services/calendar.service.ts`
-- Risk: Sessions land on the wrong day; cancel never exists; board dues mis-parse.
-- Priority: Medium
+**Patient RLS UX (High):**
+- What's not tested: Empresa user sees ficha but no edit controls; fisio B cannot open fisio A’s patient.
+- Files: `src/pages/PatientPage.tsx`, `src/lib/accountAccess.ts`
+- Risk: D-05 / D-07 regressions.
+- Priority: High
 
-**Auth and path safety:**
-- What's not tested: `safeRedirectPath`, rate-limit store, register duplicate-user probe, profile-required gate.
-- Files: `src/lib/security/index.ts`, `src/services/auth.service.ts`, `src/providers/AuthProvider.tsx`
-- Risk: Open redirect regressions; login spinner deadlock if the callback is “fixed” with `await`.
-- Priority: Medium
-
-**AI PDF import:**
-- What's not tested: File-type/size rejection, JSON parse failure, missing-key path (must not return fake PHI).
+**AI evaluation path (High):**
+- What's not tested: PDF type/size validation, Zod parse of model JSON, no-key behavior, localStorage isolation per patient.
 - Files: `src/services/aiPhysicalEvaluation.service.ts`, `src/components/patients/PatientPhysicalEvaluationPanel.tsx`
-- Risk: Fabricated charts applied to real patients.
+- Risk: Fabricated clinical text saved as if it came from the PDF.
 - Priority: High
 
-**Dead bakery modules:**
-- What's not tested: Entire `modules.service` / leftover pages. Do not add tests there; delete or isolate first.
-- Files: `src/services/modules.service.ts`, `src/pages/OrdersPage.tsx` and siblings
-- Risk: Effort spent testing unused product code.
-- Priority: Low (delete, don’t test)
+**Calendar / board (Medium):**
+- What's not tested: Week start (Monday), session range filters, column-title “done” heuristic, drag/move card.
+- Files: `src/pages/CalendarPage.tsx`, `src/pages/DashboardPage.tsx`, `src/pages/KanbanPage.tsx`, `src/services/board.service.ts`
+- Risk: Wrong counts and lost cards.
+- Priority: Medium
+
+**Bakery dead code (Low):**
+- What's not tested: `src/services/modules.service.ts` and pages not in the router.
+- Files: listed under Tech Debt
+- Risk: Low for clinic users; high if someone remounts those routes against a clinic database (queries to missing `orders` / `products` tables).
+- Priority: Low — delete rather than test.
 
 ---
 
-*Concerns audit: 2026-09-04*
+*Concerns audit: 2026-09-14*

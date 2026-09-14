@@ -1,97 +1,121 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-09-04
+**Analysis Date:** 2026-09-14
 
 ## Test Framework
 
 **Runner:**
-- Not detected. `package.json` has no `test` script. No `vitest.config.*`, `jest.config.*`, or Playwright/Cypress config. `package-lock.json` has no `vitest`, `jest`, `@testing-library/*`, or `playwright`.
-- Quality gates that **do** exist: `npm run lint` (`eslint.config.js`) and `npm run typecheck` / the `tsc --noEmit` step in `npm run build` (`package.json`, `tsconfig.json`).
-- When introducing automated tests, add **Vitest** (same Vite 6 toolchain as `vite.config.ts`) plus **@testing-library/react** / **@testing-library/user-event** for components, and **Playwright** for browser flows. Do not add Jest in parallel.
+- Not detected. `package.json` has no `test` script. There is no `vitest.config.*`, `jest.config.*`, or `playwright.config.*`.
+- `devDependencies` in `package.json` contain ESLint, TypeScript, Vite, and Tailwind only — no Vitest, Jest, Testing Library, or Playwright.
+- Quality gates today are `npm run lint` (`eslint.config.js`) and `npm run typecheck` / `npm run build` (`tsc --noEmit`).
+
+When adding tests to this Vite + TypeScript app, use **Vitest** for unit tests (same toolchain as `vite.config.ts`) and **Playwright** for browser E2E. That matches `/gsd-add-tests` and `.cursor/get-shit-done/references/tdd.md`.
 
 **Assertion Library:**
-- Not detected. Use Vitest’s `expect` (`import { describe, it, expect, vi, beforeEach } from 'vitest'`).
+- Not detected. Use Vitest's `expect` from `'vitest'`. Do not add Chai or Jest as a second runner.
 
 **Run Commands:**
 ```bash
-npm run lint          # ESLint — current substitute for a test suite
-npm run typecheck     # tsc --noEmit
-npm run build         # typecheck + production bundle
+npm run lint                  # ESLint on **/*.{ts,tsx}
+npm run typecheck             # tsc --noEmit (current static check)
+# After Vitest is added:
+npx vitest run                # Run all unit tests once
+npx vitest                    # Watch mode
+npx vitest run --coverage     # Coverage (only after @vitest/coverage-v8)
+# After Playwright is added:
+npx playwright test           # E2E
+```
 
-# Add these when the runner is installed:
-npm test              # vitest run
-npm run test:watch    # vitest
-npm run test:coverage # vitest run --coverage
-npm run test:e2e      # playwright test
+Add these scripts to `package.json` when the runner lands — do not invent a Jest script:
+
+```json
+"test": "vitest run",
+"test:watch": "vitest",
+"test:coverage": "vitest run --coverage",
+"test:e2e": "playwright test"
 ```
 
 ## Test File Organization
 
 **Location:**
-- No `*.test.*`, `*.spec.*`, `__tests__/`, `e2e/`, or `tests/` files exist under the repo (application `src/` has 81 TypeScript modules and zero tests). `/supabase/` SQL is gitignored (`.gitignore`) and is not a test target from this tree.
-- Adopt **co-located unit tests** next to the module: `src/lib/security/index.test.ts` beside `src/lib/security/index.ts`. Use `*.test.ts` for logic, `*.test.tsx` for React.
-- Put Playwright specs in `e2e/` at the repo root (`e2e/auth.spec.ts`, `e2e/patients.spec.ts`), not inside `src/` (Vite app code only).
-- GSD `/gsd-add-tests` expects files matching `*.test.*`, `*.spec.*`, or `tests/**` and RED→GREEN commit messages `test(phase-N): ...`. Follow that naming when generating phase tests.
+- Not detected. No `src/**/*.test.*`, `src/**/*.spec.*`, `__tests__/`, `tests/`, `e2e/`, or `cypress/` directories.
 
 **Naming:**
-- `{module}.test.ts` mirroring the source file (`permissions.test.ts` for `src/lib/permissions.ts`).
-- E2E: `{flow}.spec.ts` named after the user journey (`login.spec.ts`, `patient-alerts.spec.ts`).
+- Colocate unit tests next to the source file: `src/lib/accountAccess.test.ts` beside `src/lib/accountAccess.ts`.
+- Use `.test.ts` for pure modules and `.test.tsx` only when rendering React.
+- Put Playwright specs in `e2e/` at the repo root: `e2e/auth-login.spec.ts`, `e2e/patients-create.spec.ts`.
+- Do not use `.spec.ts` for Vitest (reserve `.spec.ts` for Playwright).
 
 **Structure:**
 ```
-src/lib/security/index.test.ts
-src/lib/permissions.test.ts
-src/lib/avatar.test.ts
-src/schemas/auth.schema.test.ts
+src/lib/accountAccess.ts
+src/lib/accountAccess.test.ts          # predicates, join-code normalize
+src/lib/security/index.ts
+src/lib/security/index.test.ts         # mapAuthError, mapDbError, safeRedirectPath
+src/schemas/auth.schema.ts
+src/schemas/auth.schema.test.ts        # Zod accept/reject cases
+src/schemas/patient.schema.ts
 src/schemas/patient.schema.test.ts
-src/hooks/usePatients.test.ts          # after wrapping QueryClient
-e2e/login.spec.ts
-e2e/patients-crud.spec.ts
+src/config/navigation.ts
+src/config/navigation.test.ts          # clinicNavigationItems filter
+e2e/auth-login.spec.ts
+e2e/team-join-code.spec.ts
 ```
+
+Do not test `src/types/*.ts`, SQL under `supabase/`, or `src/index.css`.
 
 ## Test Structure
 
 **Suite Organization:**
-No in-repo example. Use this pattern (Vitest + arrange/act/assert), matching GSD add-tests:
+No suite exists yet. Write Vitest files in the same style as production (single quotes, no semicolons, `@/` imports):
 
 ```typescript
 import { describe, it, expect } from 'vitest'
-import { mapAuthError, isSafeInternalPath } from '@/lib/security'
+import {
+  canManageTeam,
+  canWritePatient,
+  isPendingTherapist,
+  isRejectedAccount,
+  normalizeJoinCode,
+} from '@/lib/accountAccess'
 
-describe('mapAuthError', () => {
-  it('hides invalid login credentials', () => {
-    // Arrange
-    const error = { message: 'Invalid login credentials' }
-
-    // Act
-    const message = mapAuthError(error)
-
-    // Assert
-    expect(message).toBe('E-mail ou senha incorretos.')
+describe('normalizeJoinCode', () => {
+  it('trims, strips inner spaces, and uppercases', () => {
+    expect(normalizeJoinCode(' ab 12cd ')).toBe('AB12CD')
   })
 })
 
-describe('isSafeInternalPath', () => {
-  it('rejects protocol-relative URLs', () => {
-    expect(isSafeInternalPath('//evil.example/x')).toBe(false)
+describe('canWritePatient', () => {
+  it('allows only the creator', () => {
+    expect(canWritePatient('user-1', 'user-1')).toBe(true)
+    expect(canWritePatient('user-1', 'user-2')).toBe(false)
+    expect(canWritePatient(undefined, 'user-1')).toBe(false)
+  })
+})
+
+describe('isPendingTherapist', () => {
+  it('is true only for fisioterapeuta + pending', () => {
+    expect(isPendingTherapist('fisioterapeuta', 'pending')).toBe(true)
+    expect(isPendingTherapist('empresa', 'pending')).toBe(false)
+    expect(isPendingTherapist('fisioterapeuta', 'active')).toBe(false)
   })
 })
 ```
 
 **Patterns:**
-- One `describe` per exported function or schema. `it` names state the behavior in English or Portuguese; keep expected strings in Portuguese because production copy is pt-BR (`src/lib/security/index.ts`, `src/schemas/auth.schema.ts`).
-- No shared setup/teardown exists. For sessionStorage rate limits (`checkRateLimit` in `src/lib/security/index.ts`), `beforeEach(() => { sessionStorage.clear(); vi.restoreAllMocks() })`.
-- Assert on exact Portuguese messages for mappers and Zod `.safeParse()` `error.issues[0].message`.
-- Prefer `safeParse` over throwing `schema.parse` in unit tests so failures stay assertion-shaped.
+- One `describe` per exported function. `it('does x')` in present tense, Portuguese domain words allowed in the title (`fisioterapeuta`, `join code`).
+- No `beforeEach` unless the module mutates (rate-limit store in `src/lib/security/index.ts` uses `sessionStorage` — reset with `sessionStorage.clear()` in `beforeEach` / `afterEach`).
+- Assert with `toBe` / `toEqual` / `toThrow`. Prefer `safeParse` on Zod rather than `parse` + try/catch for expected failures.
+- Do not enable Vitest globals; always import `describe`, `it`, `expect`, `vi` from `'vitest'` so `tsconfig.json` `include: ["src"]` stays explicit.
 
 ## Mocking
 
 **Framework:**
-- Not detected. Use Vitest `vi.mock` / `vi.fn`. Do not mock TypeScript types.
+- Not detected. Use Vitest `vi` when a unit test must touch I/O.
 
 **Patterns:**
 ```typescript
-import { vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/supabase/client', () => ({
   supabase: {
@@ -103,75 +127,72 @@ vi.mock('@/lib/supabase/client', () => ({
     },
   },
 }))
-
-vi.mock('@/stores/toast.store', () => ({
-  toast: vi.fn(),
-}))
 ```
 
-Chainable query builder for services (`src/services/patients.service.ts` uses `.from().select().eq().maybeSingle()`):
-
-```typescript
-function mockQuery(result: { data: unknown; error: { message: string } | null }) {
-  const query: Record<string, unknown> = {}
-  const self = () => query
-  query.select = vi.fn(self)
-  query.eq = vi.fn(self)
-  query.order = vi.fn(self)
-  query.maybeSingle = vi.fn().mockResolvedValue(result)
-  return query
-}
-```
+Keep the mock surface small. Prefer testing `mapAuthError` / `mapDbError` / `canWritePatient` without mocking at all.
 
 **What to Mock:**
-- `@/lib/supabase/client` (`supabase` Proxy in `src/lib/supabase/client.ts`) — never hit a live project in unit tests.
-- `toast` from `@/stores/toast.store` when testing hooks (`src/hooks/usePatients.ts`).
-- `import.meta.env` / `src/config/env.ts` when testing Setup vs App boot (`src/App.tsx`).
-- `fetch` and `FileReader` for `src/services/aiPhysicalEvaluation.service.ts` (Gemini HTTP + PDF base64).
-- `sessionStorage` for `checkRateLimit` (`src/lib/security/index.ts`).
-- `localStorage` for `src/components/patients/PatientPhysicalEvaluationPanel.tsx` (`fisio.evaluations.${patientId}`).
+- `@/lib/supabase/client` when a service test cannot stay pure
+- `sessionStorage` / `localStorage` for `checkRateLimit` (`src/lib/security/index.ts`) and PDF cache (`src/components/patients/PatientPhysicalEvaluationPanel.tsx`)
+- `@google/genai` / `fetch` in `src/services/aiPhysicalEvaluation.service.ts` — never hit Gemini from unit tests
+- `window.location` / `navigator.clipboard` in page-level tests (`src/pages/TeamPage.tsx` copy-code path)
 
 **What NOT to Mock:**
-- Zod schemas (`src/schemas/*.schema.ts`) — call them for real.
-- Pure helpers: `src/lib/permissions.ts`, `src/lib/avatar.ts`, `mapAuthError` / `mapDbError` / `escapeIlike` / `formatCurrency` / `safeRedirectPath` in `src/lib/security/index.ts`.
-- `statusLabels` and other lookup maps in `src/types/patient.ts`.
+- Zod schemas (`src/schemas/*.ts`) — call `.safeParse` on real schemas
+- Predicates in `src/lib/accountAccess.ts`, `src/lib/permissions.ts`, `src/lib/avatar.ts`, `src/config/navigation.ts`
+- `mapAuthError` / `mapDbError` / `sanitizeText` / `safeRedirectPath` / `escapeIlike` in `src/lib/security/index.ts`
+- React Query `onError` toast strings — if testing hooks, wrap with a real `QueryClient` (`retry: false`) rather than mocking `@tanstack/react-query`
+
+Do not mock RLS. Postgres policy behavior is verified with SQL Editor allow/deny cases (see phase research), not Vitest.
 
 ## Fixtures and Factories
 
 **Test Data:**
-No fixture directory exists. Build small factories next to tests, using camelCase for clinic domain and snake_case for bakery rows:
+No fixture directory exists. Build small inline objects that match domain types in `src/types/patient.ts` and `src/types/account.ts`:
 
 ```typescript
-import type { PatientListItem } from '@/types/patient'
+import type { ClinicProfile } from '@/types/account'
 
-export function makePatientListItem(
-  overrides: Partial<PatientListItem> = {},
-): PatientListItem {
+function makeProfile(overrides: Partial<ClinicProfile> = {}): ClinicProfile {
   return {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Ana Costa',
-    code: 'PAC-001',
-    phone: '11999999999',
-    status: 'em_tratamento',
-    photoTone: 'bg-forest',
-    initials: 'AC',
-    program: 'Reabilitação',
-    sessionsDone: 2,
-    sessionsPlanned: 10,
+    id: 'profile-1',
+    fullName: 'Ana Silva',
+    email: 'ana@clinica.test',
+    role: 'administrador',
+    avatarUrl: null,
+    isActive: true,
+    accountType: 'empresa',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   }
 }
 ```
 
-Row fixtures for services keep snake_case (`PatientRow` / `EvaluationRow` shapes in `src/services/patients.service.ts`, `src/services/evaluations.service.ts`).
+Zod cases: pass form-shaped objects, not DB rows.
+
+```typescript
+import { loginSchema, registerSchema } from '@/schemas/auth.schema'
+
+it('rejects short passwords on register', () => {
+  const result = registerSchema.safeParse({
+    fullName: 'Ana Silva',
+    email: 'ana@clinica.test',
+    accountType: 'autonomo',
+    password: 'Aa1!',
+    confirmPassword: 'Aa1!',
+  })
+  expect(result.success).toBe(false)
+})
+```
 
 **Location:**
-- Put factories in the test file until a third test needs them, then `src/test/factories/{domain}.ts`.
-- Do not commit `.env`, credentials, or real patient PHI. Use synthetic UUIDs and names.
+- Keep factories in the test file until a third file needs the same builder, then add `src/test/factories.ts`.
+- Do not commit `.env` fixtures. Tests that construct the Supabase client must stub `import.meta.env` via Vitest `define` / `vi.stubEnv` — never read real keys.
 
 ## Coverage
 
-**Requirements:** None enforced. No coverage reporter, no CI workflow under `.github/`.
+**Requirements:** None enforced. No `coverageThreshold`, no CI workflow under `.github/`, no `test` job.
 
 **View Coverage:**
 ```bash
@@ -179,87 +200,114 @@ Row fixtures for services keep snake_case (`PatientRow` / `EvaluationRow` shapes
 npx vitest run --coverage
 ```
 
-**First-wave targets (highest value, no browser):**
-- `src/lib/security/index.ts` — sanitization, open-redirect guard, auth/DB error mapping, ILIKE escape, pt-BR formatters, client rate limit.
-- `src/lib/permissions.ts` — role gates (`canManageCatalog`, `isAdmin`, …).
-- `src/lib/avatar.ts` — `avatarColor`, `initialsFromName`.
-- `src/schemas/auth.schema.ts`, `src/schemas/patient.schema.ts`, `src/schemas/evaluation.schema.ts` — min/max, password rules, session `superRefine`.
-- `src/config/env.ts` — reject empty, placeholder, and non-https URLs (needs env mocking).
+When coverage is added, treat it as advisory. Priority surfaces (not line-count theater):
 
-**Lower priority until a runner + QueryClient wrapper exist:** `src/hooks/usePatients.ts`, `src/hooks/queries.ts` (optimistic `useMoveTask` / `useDismissNotification`). Skip CSS-only and `src/types/database.types.ts`.
+| Priority | Module | Why |
+|----------|--------|-----|
+| High | `src/lib/accountAccess.ts` | D-03 / D-04 / D-05 gating |
+| High | `src/lib/security/index.ts` | Open-redirect, auth/db error mapping, ILIKE escape, rate limit |
+| High | `src/schemas/auth.schema.ts` | Password/join-code rules |
+| High | `src/config/navigation.ts` | Equipe item only for `empresa` |
+| Medium | `src/schemas/patient.schema.ts`, `src/schemas/evaluation.schema.ts` | Form contracts |
+| Medium | `src/lib/permissions.ts` | Bakery role flags (legacy pages) |
+| Low | Pages, panels, Tailwind | Cover via E2E, not unit |
+
+Do not chase coverage on `src/services/*.ts` until a Supabase mock (or test project) exists. Those files are glue over RLS.
 
 ## Test Types
 
 **Unit Tests:**
-- Not used yet. Treat pure functions and Zod schemas as the default TDD surface (GSD add-tests “TDD” class).
-- Extract mappers (`mapEvaluation`, `mapListItem`) only if a test cannot reach them through the exported service with a mocked `supabase`.
+- Not used. Introduce first for pure functions listed above.
+- TDD-ready without a database: `normalizeJoinCode`, `canManageTeam`, `canWritePatient`, `isPendingTherapist`, `isRejectedAccount`, `accountTypeLabel`, `clinicNavigationItems`, `isSafeInternalPath`, `safeRedirectPath`, `mapAuthError`, `mapDbError`, `sanitizeText`, `escapeIlike`, `avatarColor`, `initialsFromName`, Zod schemas.
+- GSD classification (`/gsd-add-tests`): these files are **TDD**. SQL, types, and CSS are **Skip**.
 
 **Integration Tests:**
-- Not used. Service files are the integration seam with Supabase (`src/services/*.service.ts`). Unit-test them with a mocked client; do not require a local Postgres for CI until an explicit supabase test harness exists.
-- TanStack Query defaults live in `src/main.tsx` (`staleTime: 60_000`, `retry: 1`, mutations `retry: 0`). Hook tests must wrap with `QueryClientProvider` using `retry: false`.
+- Not used. A future service test would mock `supabase.from().select()` chain and assert `mapPatient` / `mapTeamMember` output.
+- `AuthProvider` (`src/providers/AuthProvider.tsx`) is integration-shaped (session + profile + membership). Prefer E2E for login/pending/rejected; do not unit-test the `onAuthStateChange` deadlock comment by mocking timers.
 
 **E2E Tests:**
-- Not used. When adding Playwright:
-  - Base URL: Vite dev server (`npm run dev`).
-  - Routes in `src/routes/index.tsx`: `/` and `/cadastro` (guest), `/painel`, `/pacientes`, `/pacientes/:id`, `/agenda`, `/quadro` (protected). `/login` redirects to `/`. `/kanban` redirects to `/quadro`.
-  - Auth: `GuestRoute` / `ProtectedRoute` (`src/components/auth/ProtectedRoute.tsx`). Session without profile shows “Conta sem perfil ativo”.
-  - Do not mark E2E green without actually running the browser (GSD add-tests no-skip rule).
-  - Seed users via a dedicated test clinic; never use production Supabase.
+- Not used. No Playwright/Cypress.
+- When added, drive flows a real user hits:
+  1. Login success / invalid credentials banner (`src/pages/auth/LoginPage.tsx`)
+  2. Register as `fisioterapeuta` without 8-char join code shows Zod error (`src/schemas/auth.schema.ts`)
+  3. Pending fisio lands on `/aguardando` (`src/components/auth/ProtectedRoute.tsx`)
+  4. Empresa sees `/equipe`, copies join code (`src/pages/TeamPage.tsx`)
+  5. Create patient from `PatientsPage` modal and land on `/pacientes/:id`
+  6. Non-creator cannot submit cadastro when `canWrite` is false
+- Point Playwright at `npm run dev`. Do not hit production Supabase. Use a dedicated project or skip tests when `VITE_SUPABASE_URL` is unset (`src/config/env.ts` already treats placeholder values as unconfigured and renders `SetupPage`).
 
 ## Common Patterns
 
 **Async Testing:**
 ```typescript
-it('maps a failed insert to a user-safe error', async () => {
-  const { upsertProduct } = await import('@/services/modules.service')
-  // after vi.mock of supabase.from → error { code: '23505' }
-  await expect(upsertProduct(null, form)).rejects.toThrow(
-    'Já existe um registro com esses dados.',
+import { expect, it } from 'vitest'
+import { signInWithEmail } from '@/services/auth.service'
+
+it('throws a mapped message on invalid credentials', async () => {
+  await expect(signInWithEmail({ email: 'a@b.c', password: 'x' })).rejects.toThrow(
+    'E-mail ou senha incorretos.',
   )
 })
 ```
 
-- Hook mutations: `await result.current.mutateAsync(...)` inside `waitFor`.
-- `void qc.invalidateQueries` is fire-and-forget (`src/hooks/usePatients.ts`); assert `invalidateQueries` was called, not that a follow-up fetch finished.
+Only write this style after mocking `supabase.auth.signInWithPassword` to return `{ error: { message: 'Invalid login credentials' } }`. Unmocked, this test is forbidden (network + secrets).
 
 **Error Testing:**
 ```typescript
-it('rejects passwords that contain the email local part', () => {
-  const parsed = registerSchema.safeParse({
-    fullName: 'Maria Silva',
-    email: 'maria@clinica.com',
-    password: 'Maria123!',
-    confirmPassword: 'Maria123!',
+import { describe, expect, it } from 'vitest'
+import { mapAuthError, mapDbError, safeRedirectPath } from '@/lib/security'
+
+describe('mapAuthError', () => {
+  it('hides duplicate-email details', () => {
+    expect(mapAuthError({ message: 'User already registered' })).toBe(
+      'Não foi possível concluir o cadastro. Tente entrar ou use outro e-mail.',
+    )
   })
-  expect(parsed.success).toBe(false)
 })
 
-it('useAuth throws outside AuthProvider', () => {
-  expect(() => render(<NeedsAuth />)).toThrow(
-    'useAuth deve ser usado dentro de AuthProvider',
-  )
+describe('mapDbError', () => {
+  it('maps RLS denial', () => {
+    expect(mapDbError({ code: '42501' })).toBe('Você não tem permissão para esta ação.')
+  })
+})
+
+describe('safeRedirectPath', () => {
+  it('rejects open redirects and auth paths', () => {
+    expect(safeRedirectPath('https://evil.test')).toBe('/painel')
+    expect(safeRedirectPath('//evil.test')).toBe('/painel')
+    expect(safeRedirectPath('/login')).toBe('/painel')
+    expect(safeRedirectPath('/pacientes')).toBe('/pacientes')
+  })
 })
 ```
 
-- Auth UI: assert `role="alert"` text, not a toast (`src/pages/auth/LoginPage.tsx`).
-- Mutation UI: assert `toast` was called with `('…', 'error')` (`src/hooks/usePatients.ts`).
-- `mapAuthError` / `mapDbError` must never return raw `error.message` for known codes (`src/lib/security/index.ts`).
-- Clinic `throwIfError` currently rethrows Postgres `error.message` (`src/services/calendar.service.ts`). Tests should document current behavior; new code should map through `mapDbError`.
+**Hook testing (when React Testing Library is added):**
+- Wrap with `QueryClientProvider` using a fresh `QueryClient({ defaultOptions: { queries: { retry: false } } })`.
+- Assert `onError` calls `toast(..., 'error')` by spying `src/stores/toast.store.ts` `toast`.
+- Do not snapshot Tailwind class strings.
 
-**Component testing (when RTL is added):**
-- Render `Input` / `Select` / `Textarea` with `label` + `error` and assert `aria-invalid` and `role="alert"` (`src/components/ui/Input.tsx`).
-- `DataTable` loading spinner vs empty title vs rows (`src/components/ui/DataTable.tsx`).
-- `ConfirmDialog` for delete flows (`src/components/patients/PatientAlertsPanel.tsx`).
-- Do not snapshot entire pages (`src/pages/PatientPage.tsx` is a large composition). Test panels in isolation with mocked hooks.
+**SQL / RLS:**
+- Automate nothing in Vitest. Record allow/deny matrices in phase `VERIFICATION.md` and run them in the Supabase SQL Editor against `supabase/03-account-types-team.sql`.
 
-**Query keys (keep tests in sync):**
-- Patients: `['patients']`, `['patients', id]`, `['patients', id, 'dashboard']`, `['patients', id, 'sessions']`, `['patients', id, 'evaluations']`, `['therapists']` (`src/hooks/usePatients.ts`).
-- Clinic: `['calendar-sessions', fromIso, toIso]`, `['board']`, `['board-dues', fromDate, toDate]` (`src/hooks/useClinic.ts`).
-- Modules: `['products']`, `['orders', filter]`, `['search', term]` (enabled when `term.trim().length >= 2`) (`src/hooks/queries.ts`).
+**Vitest config to add (do not create until the first test file exists):**
+```typescript
+// vitest.config.ts — share alias with vite.config.ts
+import { defineConfig } from 'vitest/config'
+import { fileURLToPath, URL } from 'node:url'
 
-**Manual / UAT (current practice):**
-- Verification today is `npm run lint`, `npm run typecheck`, and in-browser UAT (GSD `/gsd-verify-work`). Gemini PDF analysis without `VITE_GEMINI_API_KEY` returns a simulated result after a delay (`src/services/aiPhysicalEvaluation.service.ts`) — useful for UI UAT, not a substitute for a mocked unit test.
+export default defineConfig({
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+  },
+})
+```
+
+Use `environment: 'jsdom'` only for `.test.tsx` files (hooks/components). Pure `src/lib` and `src/schemas` tests stay on `node`. `checkRateLimit` needs `jsdom` or a `sessionStorage` stub.
 
 ---
 
-*Testing analysis: 2026-09-04*
+*Testing analysis: 2026-09-14*

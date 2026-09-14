@@ -1,316 +1,335 @@
-<!-- refreshed: 2026-09-04 -->
+<!-- refreshed: 2026-09-14 -->
 # Architecture
 
-**Analysis Date:** 2026-09-04
+**Analysis Date:** 2026-09-14
 
 ## System Overview
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Browser SPA (FLUXO)                                  │
-│  `index.html` → `src/main.tsx` → `src/App.tsx` → `src/routes/index.tsx`    │
-├──────────────────┬──────────────────┬──────────────────┬────────────────────┤
-│  Pages           │  Feature panels  │  App chrome      │  Auth gates        │
-│  `src/pages/`    │  `components/    │  `AppShell`      │  `ProtectedRoute`  │
-│                  │   patients/`     │  `src/components │  `GuestRoute`      │
-│                  │                  │   /layout/`      │                    │
-└────────┬─────────┴────────┬─────────┴────────┬─────────┴─────────┬──────────┘
-         │                  │                  │                   │
-         ▼                  ▼                  ▼                   ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Query + session layer                                                       │
-│  TanStack Query hooks: `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts` │
-│  Auth context: `src/providers/AuthProvider.tsx` + `src/hooks/useAuth.ts`    │
-│  Toasts: `src/stores/toast.store.ts`                                         │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Browser SPA (Vite + React)                      │
+│  `index.html` → `src/main.tsx` → `src/App.tsx` → `src/routes/index.tsx` │
+├──────────────────┬──────────────────┬───────────────────────────────────┤
+│  Auth / Guest    │  App Shell       │  Clinic pages + patient panels    │
+│  `pages/auth/`   │  `AppShell.tsx`  │  `pages/*Page.tsx`                │
+│  `ProtectedRoute`│  `navigation.ts` │  `components/patients/`           │
+└────────┬─────────┴────────┬─────────┴──────────────────┬────────────────┘
+         │                  │                            │
+         ▼                  ▼                            ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Data-access hooks                               │
+│  `src/hooks/useAuth.ts`  `usePatients.ts`  `useClinic.ts`  `useTeam.ts` │
+│  TanStack Query cache (`QueryClient` in `src/main.tsx`)                 │
+└─────────────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Domain services (snake_case DB → camelCase UI)                              │
-│  `src/services/*.service.ts`                                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Service layer                                   │
+│  `src/services/*.service.ts`  — map snake_case rows → camelCase DTOs    │
+│  Zod re-parse at auth/service boundary (`src/schemas/`)                 │
+└─────────────────────────────────────────────────────────────────────────┘
          │
          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Supabase (Postgres + Auth + RLS)                                            │
-│  Client: `src/lib/supabase/client.ts`                                        │
-│  Env gate: `src/config/env.ts`                                               │
-│  Optional AI: Gemini via `src/services/aiPhysicalEvaluation.service.ts`      │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Supabase (hosted Postgres + Auth + RLS + RPCs)                         │
+│  Client: `src/lib/supabase/client.ts`  Schema apply: `supabase/*.sql`   │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-FLUXO is a clinic/physiotherapy SPA. There is no application backend in this repo. The browser talks to Supabase with the anon key; Postgres RLS is the security authority. A leftover bakery/confectionery domain (`src/services/modules.service.ts`, `src/hooks/queries.ts`, unrouted pages) still lives in `src/` but is not mounted in `src/routes/index.tsx`.
+The product is a **single-page clinic app** (FLUXO / Fisio). There is **no application server**. The browser talks to Supabase with the anon key. **Postgres RLS and RPCs are the authorization authority.** Client predicates in `src/lib/accountAccess.ts` are UX only.
+
+A parallel **bakery/confeitaria domain** still lives in the tree (`src/services/modules.service.ts`, `src/hooks/queries.ts`, `src/pages/{Products,Orders,Recipes,…}Page.tsx`, `src/lib/permissions.ts`, `src/types/database.types.ts`). Those pages are **not registered** in `src/routes/index.tsx`. Do not copy bakery RBAC (`EmployeeRole`, `canManageCatalog`) into clinic features.
 
 ## Component Responsibilities
 
 | Component | Responsibility | File |
 |-----------|----------------|------|
-| Vite entry | Mount React, create the QueryClient, load global CSS | `src/main.tsx` |
-| App root | Env gate, BrowserRouter, AuthProvider, toasts | `src/App.tsx` |
-| Router | Guest vs protected trees, AppShell outlet, redirects | `src/routes/index.tsx` |
-| Auth provider | Session + active `profiles` row; `isAuthenticated` requires both | `src/providers/AuthProvider.tsx` |
-| Route guards | Redirect guests, block session-without-profile, safe post-login path | `src/components/auth/ProtectedRoute.tsx` |
-| App chrome | Sidebar + mobile nav from `navigationItems` | `src/components/layout/AppShell.tsx` |
-| Navigation config | Top-level clinic paths | `src/config/navigation.ts` |
-| Env | Validate `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | `src/config/env.ts` |
-| Supabase client | Lazy singleton + Proxy so imports do not throw before env is ready | `src/lib/supabase/client.ts` |
-| Auth service | Login/register/sign-out/profile; Zod + client rate limit | `src/services/auth.service.ts` |
-| Patients service | List/detail/dashboard/alerts; maps DB rows to UI models | `src/services/patients.service.ts` |
-| Sessions service | Patient sessions + evolutions + therapist list | `src/services/sessions.service.ts` |
-| Evaluations service | Structured initial evaluations (`patient_evaluations`) | `src/services/evaluations.service.ts` |
-| Calendar service | Range query + create/update session status | `src/services/calendar.service.ts` |
-| Board service | Kanban columns/cards + due dates shown on Agenda | `src/services/board.service.ts` |
-| AI evaluation | Client-side Gemini PDF analysis; localStorage cache in the panel | `src/services/aiPhysicalEvaluation.service.ts` |
-| Bakery leftover | Catalog/orders/finance/tasks/RPCs — do not extend for clinic work | `src/services/modules.service.ts` |
-| Clinic query hooks | Query keys, invalidate, toast on mutation | `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts` |
-| Bakery query hooks | Unrouted leftover — do not add clinic queries here | `src/hooks/queries.ts` |
-| Patient record | Tabbed ficha (`?aba=`) composing feature panels | `src/pages/PatientPage.tsx` |
-| Security helpers | Sanitize, safe redirect, auth/db error maps, client rate limit | `src/lib/security/index.ts` |
+| Vite bootstrap | QueryClient defaults, StrictMode, CSS | `src/main.tsx` |
+| App root | Env gate → SetupPage; else Router + Auth + routes + toasts | `src/App.tsx` |
+| Route table | Guest / waiting / protected clinic routes | `src/routes/index.tsx` |
+| Auth provider | Session listener, profile + membership load, fail-closed `isAuthenticated` | `src/providers/AuthProvider.tsx` |
+| Route guards | Redirect unauthenticated, pending therapist, rejected/inactive | `src/components/auth/ProtectedRoute.tsx` |
+| App chrome | Drawer + mobile nav from account type | `src/components/layout/AppShell.tsx` |
+| Clinic pages | Screen composition, forms, navigation | `src/pages/*.tsx` |
+| Patient panels | Tab-scoped CRUD UI for ficha | `src/components/patients/*.tsx` |
+| Query hooks | TanStack Query keys, invalidate, toast on mutate | `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`, `src/hooks/useTeam.ts` |
+| Services | Supabase I/O + row mapping | `src/services/*.service.ts` |
+| Account UX predicates | Team/ficha visibility; not authorization | `src/lib/accountAccess.ts` |
+| Security helpers | Sanitize, rate-limit, map errors, safe redirects | `src/lib/security/index.ts` |
+| SQL scripts | Tables, RLS, RPCs applied in Supabase SQL Editor | `supabase/*.sql` |
 
 ## Pattern Overview
 
-**Overall:** Layered SPA with a service-per-domain data access layer. Server state lives in TanStack Query. Session identity lives in React context. UI notifications live in a Zustand store.
+**Overall:** Layered SPA with BaaS (page → hook → service → Supabase). Clinic domain is the live product; bakery modules are leftover and unrouted.
 
 **Key Characteristics:**
-- Pages and feature panels call hooks, not `supabase` directly.
-- Services own table access, row mapping, and thrown `Error` messages.
-- Forms validate with Zod (`src/schemas/`) + `react-hook-form` + `@hookform/resolvers/zod`.
-- Clinic UI types are hand-written in `src/types/patient.ts` and `src/types/evaluation.ts`. `src/types/database.types.ts` still describes the leftover bakery schema plus `profiles`.
-- Patient modules that are not built yet use stub routes (`src/pages/PatientModuleStubPage.tsx`), not empty tables.
+- Client-only React 19 + Vite 6; SPA fallback on Netlify (`netlify.toml`) and Vercel (`vercel.json`)
+- Path alias `@/` → `src/` (`vite.config.ts`, `tsconfig.json`)
+- Server state in TanStack Query; session identity in React Context; toasts in Zustand
+- Domain DTOs in camelCase; Postgres columns in snake_case; services own the mapping
+- Authorization is RLS + RPCs. Hide write controls in UI; never treat hidden buttons as security
+- SQL is pasted into the hosted SQL Editor. Root `supabase/` is gitignored; keep a copy under `.planning/phases/` when shipping schema
 
 ## Layers
 
-**Presentation:**
-- Purpose: Screens, layout, and feature panels. Compose hooks and UI primitives. No Supabase imports.
+**Presentation (pages + feature components):**
+- Purpose: Compose screens, bind forms (react-hook-form + zodResolver), call hooks, navigate
 - Location: `src/pages/`, `src/components/`
-- Contains: Routed clinic pages, patient panels, auth layout, shared UI kit
-- Depends on: hooks, schemas, types, `src/lib/security`, `src/config/navigation.ts`
-- Used by: `src/routes/index.tsx`, `src/App.tsx`
+- Contains: `*Page.tsx` screens, `components/patients/*Panel.tsx`, `components/ui/*` primitives
+- Depends on: hooks, schemas, types, `accountAccess` / `useAuth`, UI kit
+- Used by: `src/routes/index.tsx` (pages) and pages (panels)
+- Rule: Do not call `supabase` from pages. Auth screens (`LoginPage`, `RegisterPage`) are the documented exception: they call `src/services/auth.service.ts` / `team.service.ts` directly because the session is not established yet.
 
-**Auth / session:**
-- Purpose: Resolve Supabase session + active profile before any clinic screen renders.
-- Location: `src/providers/AuthProvider.tsx`, `src/hooks/useAuth.ts`, `src/components/auth/`
-- Contains: Context value, loading gate, guest/protected outlets
-- Depends on: `src/services/auth.service.ts`, `src/lib/supabase/client.ts`
-- Used by: every protected page via `useAuth()`
+**Routing and session gate:**
+- Purpose: Decide guest vs waiting vs clinic chrome
+- Location: `src/routes/index.tsx`, `src/components/auth/ProtectedRoute.tsx`, `src/providers/AuthProvider.tsx`
+- Contains: `GuestRoute`, `ProtectedRoute`, `AppShell` nested routes
+- Depends on: `useAuth`, `accountAccess`, `safeRedirectPath` in `src/lib/security/index.ts`
+- Used by: `src/App.tsx`
+- Rule: Fail-closed. `fisioterapeuta` with pending or **null** membership is not authenticated (`AuthProvider.tsx`). Send that state to `/aguardando`.
 
-**Query hooks:**
-- Purpose: Cache clinic reads, run mutations, invalidate related keys, toast success/error.
-- Location: `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`
-- Contains: `useQuery` / `useMutation` wrappers only — no JSX, no raw `.from()`
+**Data-access hooks:**
+- Purpose: Own query keys, `staleTime`, mutation invalidation, success/error toasts
+- Location: `src/hooks/`
+- Contains: `usePatients.ts` (patients, sessions, evaluations), `useClinic.ts` (calendar + board), `useTeam.ts`, `useAuth.ts` (context consumer)
 - Depends on: matching `src/services/*.service.ts`, `src/stores/toast.store.ts`
-- Used by: pages and `src/components/patients/`
+- Used by: pages and patient panels
+- Rule: New clinic feature gets a domain hook file (`useX.ts`), not an entry in `src/hooks/queries.ts` (bakery).
 
-**Domain services:**
-- Purpose: Talk to Postgres/Auth. Map `snake_case` rows to camelCase UI models. Throw on PostgREST errors.
+**Service layer:**
+- Purpose: Encapsulate Supabase calls, map rows, throw `Error` with user-facing Portuguese messages
 - Location: `src/services/`
-- Contains: async functions, private mappers, column lists
-- Depends on: `src/lib/supabase/client.ts`, `src/types/*`, sometimes `src/schemas/*` and `src/lib/security`
-- Used by: hooks; auth pages also call `src/services/auth.service.ts` directly
+- Contains: exported async functions (no classes). Clinic: `auth`, `team`, `patients`, `sessions`, `calendar`, `board`, `evaluations`, `aiPhysicalEvaluation`. Leftover: `modules.service.ts`
+- Depends on: `src/lib/supabase/client.ts`, `src/types/*`, schemas for auth; `mapDbError` for permission-sensitive RPCs
+- Used by: hooks (clinic), AuthProvider, auth pages, `PatientPhysicalEvaluationPanel.tsx` (Gemini)
+- Rule: Map `snake_case` → camelCase in the service. UI never reads `full_name`.
 
-**Shared libraries:**
-- Purpose: Env, Supabase client, sanitization, formatting, role helpers, labels.
+**Validation and types:**
+- Purpose: Form contracts (Zod) and domain DTOs (TypeScript)
+- Location: `src/schemas/`, `src/types/`
+- Contains: `auth.schema.ts`, `patient.schema.ts`, `evaluation.schema.ts`; `account.ts`, `patient.ts`, `evaluation.ts`. Bakery types stay in `database.types.ts` and `modules.schema.ts`
+- Depends on: nothing above services
+- Used by: pages (zodResolver), services (auth parse), hooks (input types)
+- Rule: Put `AccountType` / `Membership*` only in `src/types/account.ts`. Do not extend `EmployeeRole` in `src/types/database.types.ts`.
+
+**Cross-cutting lib:**
+- Purpose: Env, Supabase client, sanitization, clinic UX predicates, navigation config
 - Location: `src/config/`, `src/lib/`
-- Contains: singletons and pure helpers
-- Depends on: `import.meta.env`, `@supabase/supabase-js`
-- Used by: services, hooks, pages
+- Contains: `config/env.ts`, `lib/supabase/client.ts`, `lib/security/index.ts`, `lib/accountAccess.ts`, `config/navigation.ts`
+- Depends on: env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`)
+- Used by: all layers
+- Rule: Import clinic gating from `accountAccess.ts`. Do not import `src/lib/permissions.ts` for clinic.
 
-**Remote store:**
-- Purpose: Persist clinic data and identities.
-- Location: Supabase project (not a first-class migrations tree in git — `.gitignore` ignores `/supabase/`)
-- Contains: `profiles`, `patients`, `patient_*`, `board_*`; leftover bakery tables/RPCs
-- Used by: services via the anon client under RLS
+**Persistence (Supabase):**
+- Purpose: Tables, RLS, triggers, RPCs (`lookup_organization_by_code`, `decide_membership`, `handle_new_user`)
+- Location: `supabase/*.sql` (local working copies); `.planning/phases/03-tipos-de-conta-e-equipe/sql/`
+- Contains: `03-account-types-team.sql`, `patients-req05-evaluations.sql`, `patients-req14-goals.sql`
+- Depends on: hosted Supabase project
+- Used by: the JS client via PostgREST / Auth / RPC
+- Rule: Apply SQL in the Dashboard SQL Editor. Do not assume `supabase db push`. Do not insert `organization_memberships` from the client.
 
 ## Data Flow
 
 ### Primary Request Path
 
-1. `index.html` loads `/src/main.tsx` and mounts `#root`.
-2. `src/main.tsx` wraps the tree in `QueryClientProvider` (staleTime 60s, mutation retry 0).
-3. `src/App.tsx` returns `SetupPage` when `env.isConfigured` is false (`src/config/env.ts`).
-4. Configured builds wrap `AppRoutes` in `BrowserRouter` + `AuthProvider` + `ToastViewport` (`src/App.tsx`).
-5. `src/routes/index.tsx` sends `/` and `/cadastro` through `GuestRoute`; clinic paths through `ProtectedRoute` → `AppShell`.
-6. `AuthProvider` (`src/providers/AuthProvider.tsx`) reads `supabase.auth.getSession()` and `onAuthStateChange` **synchronously**, then loads `profiles` via `fetchProfile` in a separate effect.
-7. `ProtectedRoute` (`src/components/auth/ProtectedRoute.tsx`) waits for `isLoading`, redirects missing session to `/`, and blocks session-without-active-profile.
-8. A page (for example `src/pages/PatientsPage.tsx`) calls `usePatients()` / `useCreatePatient()` from `src/hooks/usePatients.ts`.
-9. The hook calls `src/services/patients.service.ts`, which queries `patients` / related tables through `src/lib/supabase/client.ts`.
-10. Mutations invalidate query keys and call `toast()` from `src/stores/toast.store.ts`.
+1. Browser loads `index.html` → `src/main.tsx` creates `QueryClient` (staleTime 60s, retry 1, no refetchOnWindowFocus) and mounts `App`.
+2. `src/App.tsx` checks `env.isConfigured` (`src/config/env.ts`). If false, render `src/pages/SetupPage.tsx` and stop.
+3. `BrowserRouter` + `AuthProvider` (`src/providers/AuthProvider.tsx`) + `AppRoutes` (`src/routes/index.tsx`) + `ToastViewport`.
+4. `ProtectedRoute` / `GuestRoute` (`src/components/auth/ProtectedRoute.tsx`) branch on session, pending therapist, rejected/inactive, `isAuthenticated`.
+5. Authenticated clinic routes render inside `AppShell` (`src/components/layout/AppShell.tsx`). Pages call `use*` hooks.
+6. Hooks call services; services use `supabase.from(...)` or `supabase.rpc(...)`; RLS filters rows; services map to DTOs.
+7. Mutations invalidate query keys and call `toast()` (`src/stores/toast.store.ts`).
 
-### Login Path
+### Authentication Flow
 
-1. `src/pages/auth/LoginPage.tsx` validates with `loginSchema` (`src/schemas/auth.schema.ts`).
-2. `signInWithEmail` in `src/services/auth.service.ts` re-parses, sanitizes, applies client rate limit (`src/lib/security/index.ts`), then `supabase.auth.signInWithPassword`.
-3. `onAuthStateChange` updates session; the profile effect loads an active `profiles` row.
-4. `GuestRoute` redirects an existing session to `safeRedirectPath` (default `/painel`).
-5. `isAuthenticated` is `!!session && !!profile` (`src/providers/AuthProvider.tsx`). A user without an active profile sees `AccountWithoutProfile`, not the clinic.
+1. `LoginPage` (`src/pages/auth/LoginPage.tsx:34`) validates with `loginSchema`, then `signInWithEmail` (`src/services/auth.service.ts:60`).
+2. Service sanitizes email, client rate-limits (`checkRateLimit`), `signInWithPassword`, then `fetchProfile` + `fetchMembership`. Rejected accounts sign out immediately.
+3. `onAuthStateChange` in `AuthProvider.tsx` **must stay synchronous** (Supabase lock deadlock if awaited). Profile/membership load in a separate `useEffect` on `userId`.
+4. `isAuthenticated` requires session + active profile + not pending therapist + fisio must have a membership row.
+5. `GuestRoute` sends pending fisio to `/aguardando` (`WaitingApprovalPage.tsx`). Authenticated users go to `safeRedirectPath` (default `/painel`).
 
-### Patient Record Path
+### Registration and team join
 
-1. List: `src/pages/PatientsPage.tsx` → `usePatients()` → `listPatients()` (`src/services/patients.service.ts`) → `patients` + `patient_sessions`.
-2. Create: Zod `createPatientSchema` (`src/schemas/patient.schema.ts`) → `useCreatePatient()` → `createPatient()` inserts `status: 'avaliacao'` and a generated `PAC-******` code, then navigates to `/pacientes/:id`.
-3. Ficha: `src/pages/PatientPage.tsx` reads `?aba=` and sets `PatientTab` (`resumo` | `cadastro` | `evolucoes` | `avaliacao`).
-4. Header + tab switch live in `src/components/patients/PatientProfileHeader.tsx`.
-5. `resumo` uses `usePatientDashboard()` (always) and `usePatient()` (after dashboard exists).
-6. `cadastro` renders `src/components/patients/PatientCadastroPanel.tsx` (alerts via `src/components/patients/PatientAlertsPanel.tsx`).
-7. `evolucoes` renders `src/components/patients/PatientEvolutionsPanel.tsx` → session hooks → `src/services/sessions.service.ts`.
-8. `avaliacao` renders `src/components/patients/PatientEvaluationPanel.tsx` → evaluation hooks → `src/services/evaluations.service.ts`, plus PDF AI in `src/components/patients/PatientPhysicalEvaluationPanel.tsx`.
-9. Legacy `/pacientes/:id/cadastro` redirects to `?aba=cadastro` (`src/pages/PatientCadastroPage.tsx`). `/pacientes/:id/evolucoes` redirects to `?aba=evolucoes`. Other `/:module` values show `src/pages/PatientModuleStubPage.tsx`.
+1. `RegisterPage` (`src/pages/auth/RegisterPage.tsx`) uses `registerSchema` (`accountType`, optional 8-char `joinCode` for `fisioterapeuta`).
+2. `signUpWithEmail` stores `account_type` and `join_code` in Auth `user_metadata`. Postgres `handle_new_user` creates `profiles` / org / pending membership.
+3. `lookupOrganizationByCode` (`src/services/team.service.ts:86`) calls RPC and returns **boolean only** (never org name).
+4. Empresa owner lists team via `listTeamMembers` and decides via `decide_membership` RPC (`team.service.ts:141`). Page never `update`s `profiles` for reject.
 
-### Calendar + Board Path
+### Patient ficha flow
 
-1. `src/pages/CalendarPage.tsx` loads `useCalendarSessions(from, to)` and `useBoard()` from `src/hooks/useClinic.ts`.
-2. Sessions come from `patient_sessions` joined to `patients` (`src/services/calendar.service.ts`).
-3. Board due dates overlay the month grid (cards with `due_on` from `src/services/board.service.ts`).
-4. `src/pages/KanbanPage.tsx` mutates columns/cards; creating a card with `dueOn` surfaces it on Agenda.
-5. Patient session writes invalidate `['patients']`, `['patients', id, …]`, and `['calendar-sessions']` (`invalidatePatient` in `src/hooks/usePatients.ts`).
+1. `PatientsPage` lists via `usePatients` → `listPatients` (`src/services/patients.service.ts:339`). Create uses `createPatientSchema` + `useCreatePatient`, then navigates to `/pacientes/:id`.
+2. `PatientPage` (`src/pages/PatientPage.tsx:438`) reads `?aba=` (`resumo` | `cadastro` | `evolucoes` | `avaliacao`). Dashboard query first; detail query waits until dashboard exists.
+3. `canWritePatient(viewerId, patient.createdBy)` (`src/lib/accountAccess.ts`) hides write controls. Empresa can view a colleague’s ficha; RLS blocks writes (D-05 / D-07).
+4. Panels (`PatientCadastroPanel`, `PatientGoalsPanel`, `PatientEvolutionsPanel`, `PatientEvaluationPanel`, `PatientAlertsPanel`) call `usePatients` mutations. `canWrite` must be forwarded into nested `PatientPhysicalEvaluationPanel`.
+5. `/pacientes/:id/cadastro` redirects to `?aba=cadastro`. Unknown modules hit `PatientModuleStubPage`.
 
-### AI Physical Evaluation Path
+### Calendar and board
 
-1. `src/components/patients/PatientPhysicalEvaluationPanel.tsx` accepts a PDF and calls `analyzePhysicalEvaluationPdf` (`src/services/aiPhysicalEvaluation.service.ts`).
-2. The service POSTs Base64 to `https://generativelanguage.googleapis.com` when `VITE_GEMINI_API_KEY` is set; otherwise it returns a demo payload.
-3. Results persist in `localStorage` under `fisio.evaluations.${patientId}` — not in `patient_evaluations`.
-4. “Apply to chart” uses `useUpdatePatient()` to write `complaint` / `diagnosis` on `patients`.
+1. Agenda: `useCalendarSessions` / `useCreateSession` → `src/services/calendar.service.ts` on `patient_sessions`.
+2. Quadro: `useBoard` / card mutations → `src/services/board.service.ts` on `board_columns` / `board_cards`. Due dates surface on Agenda via `listDueCards`.
+
+### Gemini PDF draft (client-side)
+
+1. `PatientPhysicalEvaluationPanel.tsx` calls `analyzePhysicalEvaluationPdf` (`src/services/aiPhysicalEvaluation.service.ts`) with `VITE_GEMINI_API_KEY` (optional; falls back to a local simulation).
+2. Results persist in `localStorage` (`fisio.evaluations.${patientId}`). Official evaluation is the structured row in `patient_evaluations`, not the PDF draft.
 
 **State Management:**
-- **Server/clinic data:** TanStack Query only. Query keys: `['patients']`, `['patients', id]`, `['patients', id, 'dashboard']`, `['patients', id, 'sessions']`, `['patients', id, 'evaluations']`, `['calendar-sessions', fromIso, toIso]`, `['board']`, `['board-dues', from, to]`, `['therapists']`. Invalidate the shared prefix, not a one-off key, when a write touches related screens.
-- **Auth:** React context from `AuthProvider`. Do not store session in Zustand.
-- **Toasts:** Zustand `useToastStore` / `toast()` in `src/stores/toast.store.ts`.
-- **Ephemeral UI:** `useState` in the page/panel (modals, tab local helpers, drag state).
-- **Client-only caches:** `sessionStorage` key `fisio.auth.rate` (auth rate limit); `localStorage` key `fisio.evaluations.${id}` (AI PDF results).
+- **Server/clinic data:** TanStack Query. Keys: `['patients']`, `['patients', id]`, `['patients', id, 'dashboard'|'sessions'|'evaluations']`, `['calendar-sessions', from, to]`, `['board']`, `['board-dues', from, to]`, `['team']`, `['membership']`, `['therapists']`. Invalidate the family, not a single exact key.
+- **Session identity:** `AuthProvider` Context (`session`, `profile`, `membership`, `isAuthenticated`). Do not stash patients in Context.
+- **Toasts:** Zustand `src/stores/toast.store.ts` — `toast(message, tone)` from hooks.
+- **Ephemeral UI:** `useState` in pages (modals, tab search params).
+- **PDF AI drafts:** `localStorage` in `PatientPhysicalEvaluationPanel.tsx` only.
 
 ## Key Abstractions
 
-**Domain service:**
-- Purpose: One file per clinic capability. Export async functions. Keep mappers private.
-- Examples: `src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/evaluations.service.ts`, `src/services/calendar.service.ts`, `src/services/board.service.ts`
-- Pattern: `throwIfError` (or `mapAuthError` / `mapDbError`) → return mapped camelCase objects. Never return raw PostgREST rows to UI.
+**Named page:**
+- Purpose: Routed screen; default export `export function FooPage()`
+- Examples: `src/pages/PatientsPage.tsx`, `src/pages/TeamPage.tsx`, `src/pages/auth/LoginPage.tsx`
+- Pattern: Compose `PageHeader` + data hooks + UI primitives. Gate with `Navigate` when the account type cannot access (see `TeamPage.tsx` + `canManageTeam`).
 
-**Query hook module:**
-- Purpose: Bind a service to cache + toast.
-- Examples: `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`
-- Pattern: shared `onError` → `toast(..., 'error')`; mutations invalidate the same key family the page reads.
+**Patient panel:**
+- Purpose: One ficha tab or card of CRUD
+- Examples: `src/components/patients/PatientGoalsPanel.tsx`, `PatientEvolutionsPanel.tsx`, `PatientEvaluationPanel.tsx`
+- Pattern: Receive `patientId` + `canWrite`; call `usePatients` mutations; hide controls when `!canWrite` (do not disable them so they still look tappable).
 
-**UI model vs table row:**
-- Purpose: Pages consume `Patient`, `PatientListItem`, `PatientDashboard`, `PatientEvaluation` — not `PatientRow`.
-- Examples: `src/types/patient.ts`, `src/types/evaluation.ts`
-- Pattern: add fields on the UI type, then map in the service. Do not leak `full_name` into new clinic components; use `name`.
+**Service module:**
+- Purpose: All Supabase I/O for one aggregate
+- Examples: `src/services/patients.service.ts`, `src/services/team.service.ts`, `src/services/evaluations.service.ts`
+- Pattern: File of exported async functions. Private `*Row` types, `mapX()`, `throwIfError` or `mapDbError`. `requireUserId()` via `supabase.auth.getUser()` when the caller must be the session user (team owner queries).
 
-**Zod form schema:**
-- Purpose: Client validation before mutate.
-- Examples: `src/schemas/auth.schema.ts`, `src/schemas/patient.schema.ts`, `src/schemas/evaluation.schema.ts`
-- Pattern: `z.object` + `z.infer` exported as `*FormData`. Wire with `zodResolver` in the page/panel.
+**Query hook:**
+- Purpose: Cache + invalidation + toast
+- Examples: `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`, `src/hooks/useTeam.ts`
+- Pattern: `useQuery({ queryKey, queryFn, staleTime, enabled })`. Mutations: `onSuccess` invalidate + `toast(..., 'success')`; `onError` → `toast(error.message, 'error')`. Copy `invalidatePatient()` when a write touches the ficha.
 
-**Patient tab:**
-- Purpose: One route, several clinical surfaces.
-- Examples: `src/pages/PatientPage.tsx`, `src/components/patients/PatientProfileHeader.tsx`
-- Pattern: `?aba=` query param. Add a tab by extending `PatientTab`, the header nav, and the switch in `PatientPage`. Use `PatientModuleStubPage` only for not-yet-built modules.
+**Zod schema:**
+- Purpose: Form input contract and Portuguese messages
+- Examples: `src/schemas/patient.schema.ts`, `src/schemas/auth.schema.ts`, `src/schemas/evaluation.schema.ts`
+- Pattern: `z.object` + `superRefine` for conditionals. Export `type XFormData = z.infer<typeof xSchema>`. Wire with `zodResolver` in the page/panel. Auth service also `.parse()`s before calling Auth.
 
-**Route gate:**
-- Purpose: Separate “has session” from “may use the product”.
-- Examples: `src/components/auth/ProtectedRoute.tsx`
-- Pattern: loading spinner → no session → `/` → session without profile → `AccountWithoutProfile` → `<Outlet />`.
+**Clinic DTO:**
+- Purpose: UI/domain shape (camelCase)
+- Examples: `src/types/patient.ts`, `src/types/account.ts`, `src/types/evaluation.ts`
+- Pattern: `export type` closed unions + `Record<Union, string>` labels + `export interface` objects. Keep bakery `Profile.role` out of these files.
+
+**UX predicate (not auth):**
+- Purpose: Show/hide chrome
+- Examples: `canManageTeam`, `canWritePatient`, `isPendingTherapist` in `src/lib/accountAccess.ts`
+- Pattern: Pure functions. RLS still enforces. Skip client checks only if the UI can tolerate a mapped permission error.
+
+**Supabase client singleton:**
+- Purpose: Lazy `createClient` after env check
+- Examples: `getSupabase()` / `supabase` Proxy in `src/lib/supabase/client.ts`
+- Pattern: Import `supabase` in services. Do not instantiate another client. Auth: PKCE, persist session, `X-Client-Info: fisio-web`. Client is typed as `any` Database on purpose (Insert/Update inference otherwise collapses to `never`).
 
 ## Entry Points
 
 **Browser bootstrap:**
-- Location: `index.html`, `src/main.tsx`
-- Triggers: Vite `npm run dev` / static `dist` host (`netlify.toml`, `vercel.json`, `public/_redirects` all rewrite to `index.html`)
-- Responsibilities: CSP/security headers in HTML; React 19 root; QueryClient defaults
+- Location: `index.html` → `src/main.tsx`
+- Triggers: Vite `npm run dev` / production static host
+- Responsibilities: Mount React, provide QueryClient, load `src/index.css`
 
-**Application shell:**
+**App composition:**
 - Location: `src/App.tsx`
-- Triggers: every load
-- Responsibilities: refuse to boot without valid HTTPS Supabase env; otherwise provide router + auth + toasts
+- Triggers: After QueryClientProvider
+- Responsibilities: Block on missing Supabase env; wrap router, auth, routes, toasts
 
-**HTTP routes:**
+**Route table:**
 - Location: `src/routes/index.tsx`
-- Triggers: React Router
-- Responsibilities: map clinic URLs. Active: `/`, `/cadastro`, `/painel`, `/pacientes`, `/pacientes/:id`, `/pacientes/:id/cadastro`, `/pacientes/:id/:module`, `/agenda`, `/quadro` (`/kanban` → `/quadro`). Catch-all inside the shell goes to `/pacientes`.
+- Triggers: URL change
+- Responsibilities: Register **only** clinic routes. Live paths: `/`, `/cadastro`, `/aguardando`, `/painel`, `/pacientes`, `/pacientes/:id`, `/pacientes/:id/cadastro`, `/pacientes/:id/:module`, `/equipe`, `/agenda`, `/quadro`. Catch-all inside the shell → `/pacientes`.
 
-**Supabase:**
-- Location: `src/lib/supabase/client.ts`
-- Triggers: first property access on the `supabase` Proxy after `env.isConfigured`
-- Responsibilities: PKCE session, `X-Client-Info: fisio-web`. Do not instantiate a second client.
+**SQL apply:**
+- Location: `supabase/03-account-types-team.sql`, `supabase/patients-req05-evaluations.sql`, `supabase/patients-req14-goals.sql`
+- Triggers: Human paste in Supabase SQL Editor
+- Responsibilities: Schema + RLS + RPCs. Scripts are written to be idempotent.
 
-**SQL bootstrap (local file, gitignored directory):**
-- Location: `supabase/patients-req05-evaluations.sql`
-- Triggers: manual paste in Supabase SQL Editor
-- Responsibilities: `patient_evaluations` table + permissive authenticated RLS. Other clinic tables are assumed already in the remote project.
+**Static hosting:**
+- Location: `netlify.toml`, `vercel.json`, `public/_redirects`
+- Triggers: Deploy
+- Responsibilities: SPA rewrite to `index.html`; security headers / CSP (Gemini + Supabase hosts in `connect-src`)
 
 ## Architectural Constraints
 
-- **Threading:** Single-threaded browser event loop. `onAuthStateChange` in `src/providers/AuthProvider.tsx` must stay synchronous — awaiting DB work inside that callback deadlocks supabase-js auth and freezes login.
-- **Global state:** `QueryClient` in `src/main.tsx`; Supabase singleton in `src/lib/supabase/client.ts`; Zustand toast store in `src/stores/toast.store.ts`; Auth context in `src/hooks/useAuth.ts`; client rate-limit maps in `src/lib/security/index.ts`.
-- **Circular imports:** `src/providers/AuthProvider.tsx` imports `AuthContext` from `src/hooks/useAuth.ts`. Keep the context object in the hook file; do not import `AuthProvider` from `useAuth.ts`.
-- **Layering:** Pages/components must not import `@/lib/supabase/client`. Services must not import React, hooks, or pages. Hooks must not call `.from()` / `.rpc()`.
-- **Security authority:** Client checks (Zod, `src/lib/permissions.ts`, rate limit) are UX only. RLS and Auth on Supabase are authoritative.
-- **Dual domain:** Do not register leftover bakery pages (`src/pages/OrdersPage.tsx`, `src/pages/ProductsPage.tsx`, …) or add clinic logic to `src/services/modules.service.ts` / `src/hooks/queries.ts`.
-- **Types:** Clinic tables are not modeled in `src/types/database.types.ts`. The Supabase client is typed as `any` on purpose (`src/lib/supabase/client.ts`) because generated Insert/Update types collapsed to `never`. New clinic shapes go in `src/types/patient.ts` or a new `src/types/<domain>.ts`.
-- **Hosting:** SPA only. `netlify.toml` and `vercel.json` rewrite all paths to `index.html`. There are no Edge Functions or API routes in this repo.
+- **Threading:** Single-threaded browser event loop. No Web Workers. Auth callback in `AuthProvider.tsx` must not `await` (deadlock on supabase-js lock).
+- **Global state:** `QueryClient` in `src/main.tsx`; `supabase` Proxy in `src/lib/supabase/client.ts`; Zustand toast store; `AuthContext` in `src/hooks/useAuth.ts`; in-memory + `sessionStorage` rate-limit in `src/lib/security/index.ts` (`fisio.auth.rate`).
+- **Circular imports:** `AuthProvider` imports `AuthContext` from `useAuth.ts` (context lives with the hook). `auth.service.ts` imports `fetchMembership` from `team.service.ts` (one-way). Do not import providers from services.
+- **No backend of our own:** Cannot put secrets in the Vite bundle except the public anon key. Gemini key (`VITE_GEMINI_API_KEY`) is a client secret if set — treat PDF AI as best-effort, not a trust boundary.
+- **RLS is the tenant wall:** Empresa vs autônomo vs fisio visibility is decided in SQL (`03-account-types-team.sql`), not by JS-filtering `listPatients`.
+- **No route lazy-loading:** All pages are statically imported in `src/routes/index.tsx`. Keep clinic route graph small; do not register bakery pages.
+- **SQL vs git:** `/.gitignore` ignores `/supabase/`. Committed planning copy: `.planning/phases/03-tipos-de-conta-e-equipe/sql/03-account-types-team.sql`.
+- **LGPD:** Clinical data. Empty lists stay empty (no fake placeholders). Seeds only in development SQL.
 
 ## Anti-Patterns
 
-### Calling Supabase from a page or panel
+### Bakery RBAC on clinic screens
 
-**What happens:** A component imports `supabase` and runs `.from()` / `.auth`.
-**Why it's wrong:** Bypasses mapping, query-key invalidation, and the env Proxy. Duplicates error handling. The current clinic pages do not do this.
-**Do this instead:** Add a function in the matching `src/services/*.service.ts` and a hook in `src/hooks/usePatients.ts` or `src/hooks/useClinic.ts`. Auth forms are the exception: they may call `src/services/auth.service.ts` directly (`src/pages/auth/LoginPage.tsx`).
+**What happens:** Import `canManageCatalog` / `isAdmin` from `src/lib/permissions.ts` or gate on `profiles.role` (`EmployeeRole` in `src/types/database.types.ts`).
+**Why it's wrong:** Clinic identity is `accountType` + membership (`src/types/account.ts`). Bakery roles (`confeiteiro`, `atendente`, …) do not describe autônomo / empresa / fisioterapeuta.
+**Do this instead:** Use `canManageTeam` / `canWritePatient` from `src/lib/accountAccess.ts` and `profile.accountType` from `useAuth()`. Copy `TeamPage.tsx` and `PatientPage.tsx`.
 
-### Extending the bakery module service for clinic features
+### Client insert of membership or profile cancel
 
-**What happens:** New patient/agenda code is appended to `src/services/modules.service.ts` or `src/hooks/queries.ts`.
-**Why it's wrong:** That stack is the unrouted confectionery domain (orders, recipes, RPCs like `confirm_order`). Clinic query keys and mappings already live in dedicated files.
-**Do this instead:** New clinic file `src/services/<domain>.service.ts` + hook module. Leave `modules.service.ts` untouched unless the work is explicitly the leftover domain.
+**What happens:** `supabase.from('organization_memberships').insert(...)` or `profiles.update({ is_active: false })` from the app on reject.
+**Why it's wrong:** Join and reject are RPC-owned (`decide_membership`). Client writes skip owner re-check (T-03-12 / D-04).
+**Do this instead:** `decideMembership` in `src/services/team.service.ts`. Sign-up only passes metadata; the trigger creates rows.
 
-### Treating `database.types.ts` as the clinic schema
+### Supabase calls in UI components
 
-**What happens:** New patient fields are added only to `src/types/database.types.ts`, or UI reads `full_name` / bakery `EmployeeRole` values.
-**Why it's wrong:** That file is the bakery `Database` shape plus `profiles`. Clinic UI already uses `src/types/patient.ts` (`name`, `PatientStatus`, `SessionStatus`).
-**Do this instead:** Extend `src/types/patient.ts` or `src/types/evaluation.ts` and map in the service.
+**What happens:** `supabase.from('patients')` inside a page or panel.
+**Why it's wrong:** Skips mapping, error mapping, and query-key invalidation; duplicates RLS-aware column lists.
+**Do this instead:** Add a function to the domain service and a hook in `usePatients.ts` / `useClinic.ts` / `useTeam.ts`. Exceptions: auth pages (no session yet) and Gemini PDF in `PatientPhysicalEvaluationPanel.tsx`.
 
-### Async work inside `onAuthStateChange`
+### Treating UX predicates as authorization
 
-**What happens:** `await fetchProfile(...)` (or any query) inside the auth callback in `src/providers/AuthProvider.tsx`.
-**Why it's wrong:** supabase-js holds an internal auth lock; this is the documented infinite-spinner login bug.
-**Do this instead:** Set `session` synchronously. Load profile in the `userId` effect already in `AuthProvider`.
+**What happens:** Skip RLS because the button is hidden, or disable rather than hide writes.
+**Why it's wrong:** Hidden UI is not a control. Disabled buttons still look interactive. Direct API calls bypass the page.
+**Do this instead:** Keep RLS policies in SQL. Hide write controls when `!canWrite`. Expect `mapDbError` / 42501 if someone bypasses the UI.
 
-### New top-level route without navigation + query keys
+### Await inside `onAuthStateChange`
 
-**What happens:** A page is added to `src/routes/index.tsx` but not `src/config/navigation.ts`, or it fetches in `useEffect` instead of a hook.
-**Why it's wrong:** Desktop/mobile nav drift; cache will not invalidate across Dashboard / Agenda / ficha.
-**Do this instead:** Register the path in both `navigationItems` and `mobileNavItems` (`src/config/navigation.ts`) and use the shared query-key families.
+**What happens:** `await fetchProfile()` in the auth callback (`AuthProvider.tsx`).
+**Why it's wrong:** Deadlocks supabase-js internal lock → infinite login spinner.
+**Do this instead:** Set `session` synchronously; load profile/membership in the `userId` effect.
 
-### Persisting clinical AI output only in `localStorage`
+### Raw Postgres errors in clinic RPCs
 
-**What happens:** Structured evaluation data stays in `fisio.evaluations.${id}` (`src/components/patients/PatientPhysicalEvaluationPanel.tsx`) and never reaches `patient_evaluations`.
-**Why it's wrong:** Data is per-browser, not shared, not RLS-protected, and diverges from `src/services/evaluations.service.ts`.
-**Do this instead:** If the result is clinical record, write through `useCreatePatientEvaluation` / `updatePatient`. Keep localStorage only for draft/demo analysis.
+**What happens:** `throw new Error(error.message)` on `decide_membership`.
+**Why it's wrong:** Leaks internals; permission failures should read as “Você não tem permissão…”.
+**Do this instead:** `mapDbError` (`src/lib/security/index.ts`) for RPC/permission paths, as in `decideMembership`. Simple table CRUD may use `throwIfError` but prefer mapped errors for user-facing writes.
+
+### Registering leftover bakery routes
+
+**What happens:** Add `/produtos` or `/pedidos` pointing at `ProductsPage.tsx` / `OrdersPage.tsx`.
+**Why it's wrong:** Those screens use bakery tables and `permissions.ts`. They are not the clinic product (`src/config/navigation.ts`).
+**Do this instead:** Add routes only for clinic aggregates and follow page → hook → service.
 
 ## Error Handling
 
-**Strategy:** Services throw `Error`. Hooks toast. Pages show query `isError` / `isLoading` blocks. Auth forms keep a local `serverError` string.
+**Strategy:** Services throw `Error` with a Portuguese message. Hooks catch via mutation `onError` and `toast(..., 'error')`. Auth pages set local `serverError` state. Route guards render dedicated inactive/rejected cards instead of throwing.
 
 **Patterns:**
-- Clinic services: `throwIfError(error)` with `error.message` (`src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/evaluations.service.ts`, `src/services/calendar.service.ts`, `src/services/board.service.ts`).
-- Auth: `mapAuthError` + rate-limit message (`src/services/auth.service.ts`, `src/lib/security/index.ts`).
-- Leftover bakery: `mapDbError` / `throwDb` in `src/services/modules.service.ts`.
-- Mutations: shared `onError` in `src/hooks/usePatients.ts` and `src/hooks/useClinic.ts` → `toast(message, 'error')`.
-- Reads: page-level empty/error cards (see `src/pages/PatientPage.tsx`, `src/pages/PatientsPage.tsx`).
-- Missing patient id: `<Navigate to="/pacientes" />`.
-- Open-redirect: `safeRedirectPath` (`src/lib/security/index.ts`) used by `GuestRoute` and `LoginPage`.
+- Zod at the form (`zodResolver`) and again in `auth.service.ts` before Auth API
+- `mapAuthError` for Auth; `mapDbError` for PostgREST/RPC (`42501` → permission copy)
+- Client login/register rate limit (5 / 15 min per key; 20 global) in `src/lib/security/index.ts` — does not replace Supabase Auth rate limits
+- Query `isError` branches render inline “Não foi possível carregar…” (see `TeamPage.tsx`, `PatientsPage.tsx`)
+- Optimistic updates exist only in bakery `useMoveTask` / `useDismissNotification` (`src/hooks/queries.ts`). Clinic board/calendar wait for the server then invalidate
 
 ## Cross-Cutting Concerns
 
-**Logging:** No logging SDK. User-visible errors go through toast or inline alerts. Do not add `console.log` in services for control flow.
+**Logging:** No telemetry SDK. `console` is not a product logger. User feedback is toasts + inline error text.
 
-**Validation:** Zod schemas in `src/schemas/`. Auth service re-parses on the way in. `src/lib/security/index.ts` sanitizes email/text and escapes ILIKE wildcards. Postgres check/unique errors are mapped only on the bakery path (`mapDbError`).
+**Validation:** Zod schemas in `src/schemas/`. Sanitize with `sanitizeText` / `sanitizeEmail` / `escapeIlike` before Auth and ILIKE search. Backend/RLS constraints remain mandatory (`security.skill.md`).
 
-**Authentication:** Supabase Auth (email/password, PKCE) in `src/services/auth.service.ts`. Product access requires `profiles.is_active = true` (`fetchProfile`). Role strings on `profiles.role` still use bakery enums (`administrador`, `gerente`, `atendente`, `confeiteiro`, `entregador`) — `src/components/layout/AppShell.tsx` remaps several to “Fisioterapeuta”. `src/lib/permissions.ts` is bakery capability helpers (`canManageOrders`, …); do not use those names for new clinic authorization. Prefer RLS and, if needed, a clinic-specific helper next to `src/lib/permissions.ts`.
+**Authentication:** Supabase Auth password + PKCE (`src/lib/supabase/client.ts`). Session persistence is the supabase-js default (not a custom cookie layer). Fail-closed clinic entry in `AuthProvider.tsx`. Open-redirect blocked by `safeRedirectPath`.
 
-**Styling:** Tailwind v4 tokens in `src/index.css` (`forest`, `accent`, `canvas`, `surface`, `ink`). Use the `src/components/ui/` kit (`Button`, `Input`, `Modal`, `PageHeader`, `PatientAvatar`, …) instead of new raw controls.
+**Authorization:** RLS + RPCs in `supabase/03-account-types-team.sql`. UX predicates in `src/lib/accountAccess.ts`. Do not use `src/lib/permissions.ts` for clinic.
 
-**i18n:** Hard-coded pt-BR copy and `Intl.DateTimeFormat('pt-BR')` in services/pages. Keep new UI strings in Portuguese.
+**Styling:** Tailwind v4 via `@tailwindcss/vite`. Tokens in `src/index.css` (`forest`, `accent`, `canvas`, `ink`, …). Portuguese UI copy. Empty states with no fake rows (`PROJECT.md`).
+
+**Security headers / CSP:** `index.html`, `vite.config.ts` `server.headers`, `netlify.toml`. `connect-src` allows `https://*.supabase.co`, `wss://*.supabase.co`, `https://generativelanguage.googleapis.com`.
 
 ---
 
-*Architecture analysis: 2026-09-04*
+*Architecture analysis: 2026-09-14*
+*Update when major patterns change*
