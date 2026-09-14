@@ -26,6 +26,7 @@ export interface PatientGoal {
 
 export interface PatientFocusArea {
   id: string
+  regionKey: string
   label: string
   isActive: boolean
 }

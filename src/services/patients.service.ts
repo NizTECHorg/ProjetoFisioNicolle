@@ -319,7 +319,12 @@ function mapPatient(
       .map(mapGoal),
     focusAreas: (extras.focus ?? [])
       .sort((a, b) => a.sort_order - b.sort_order)
-      .map((area) => ({ id: area.id, label: area.label, isActive: area.is_active })),
+      .map((area) => ({
+        id: area.id,
+        regionKey: '',
+        label: area.label,
+        isActive: area.is_active,
+      })),
     painSeries: (extras.pain ?? [])
       .sort((a, b) => a.recorded_on.localeCompare(b.recorded_on))
       .map((log) => ({
