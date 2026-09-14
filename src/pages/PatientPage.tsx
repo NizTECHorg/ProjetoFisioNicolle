@@ -19,6 +19,7 @@ import {
   type PatientTab,
 } from '@/components/patients/PatientProfileHeader'
 import { PatientAlertsPanel } from '@/components/patients/PatientAlertsPanel'
+import { PatientFocusAreasPanel } from '@/components/patients/PatientFocusAreasPanel'
 import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
@@ -91,27 +92,6 @@ function EvaChart({ series }: { series: PatientPainLog[] }) {
           </text>
         </g>
       ))}
-    </svg>
-  )
-}
-
-function BodyFocus() {
-  return (
-    <svg viewBox="0 0 140 220" className="h-36 w-auto text-forest">
-      <g fill="none" stroke="currentColor" strokeWidth="1.6">
-        <circle cx="70" cy="18" r="12" />
-        <path d="M70 30 v18" />
-        <path d="M48 52 h44" />
-        <path d="M48 52 v38" />
-        <path d="M92 52 v38" />
-        <rect x="54" y="48" width="32" height="58" rx="10" />
-        <path d="M60 106 v70" />
-        <path d="M80 106 v70" />
-        <path d="M60 176 l-8 22" />
-        <path d="M80 176 l8 22" />
-      </g>
-      <circle cx="80" cy="132" r="9" fill="#2f7dff" fillOpacity="0.35" stroke="#2f7dff" strokeWidth="2" />
-      <circle cx="80" cy="108" r="7" fill="#2f7dff" fillOpacity="0.25" stroke="#2f7dff" />
     </svg>
   )
 }
@@ -357,21 +337,11 @@ function ResumoDoPaciente({
         <div className="space-y-4 lg:col-span-1">
           <div className="rounded-2xl border border-line p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
-            <div className="mt-3 flex items-center gap-4">
-              <BodyFocus />
-              <ul className="space-y-2 text-sm">
-                {detail.focusAreas.length === 0 ? (
-                  <li className="text-muted">Sem áreas registradas.</li>
-                ) : (
-                  detail.focusAreas.map((area) => (
-                    <li key={area.id} className="flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full ${area.isActive ? 'bg-accent' : 'bg-line'}`} />
-                      {area.label}
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
+            <PatientFocusAreasPanel
+              patientId={patientId}
+              focusAreas={detail.focusAreas}
+              canWrite={canWrite}
+            />
           </div>
 
           <PatientGoalsPanel patientId={patientId} goals={detail.goals} canWrite={canWrite} />
