@@ -504,7 +504,9 @@ export async function createPatient(input: CreatePatientInput): Promise<{ id: st
   throwIfError(userError)
   if (!user) throw new Error('Sessão expirada. Entre novamente.')
 
+  const id = crypto.randomUUID()
   const payload = {
+    id,
     full_name: input.fullName.trim(),
     code: generatePatientCode(),
     birth_date: emptyToNull(input.birthDate),
@@ -521,10 +523,12 @@ export async function createPatient(input: CreatePatientInput): Promise<{ id: st
     created_by: user.id,
   }
 
-  const { data, error } = await supabase.from('patients').insert(payload).select('id').single()
+  // INSERT ... RETURNING applies SELECT RLS to the new row. patients_select
+  // called private.can_read_patient (STABLE), which cannot see the row of the
+  // current command → "new row violates row-level security policy".
+  const { error } = await supabase.from('patients').insert(payload)
   throwIfError(error)
-  if (!data?.id) throw new Error('Paciente criado sem identificador')
-  return { id: data.id as string }
+  return { id }
 }
 
 export async function updatePatient(id: string, input: UpdatePatientInput): Promise<void> {

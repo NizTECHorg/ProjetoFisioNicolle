@@ -527,7 +527,19 @@ create policy patients_select
   for select
   to authenticated
   using (
-    (select private.can_read_patient(id))
+    -- Creator column check must come first: INSERT ... RETURNING applies SELECT
+    -- RLS to the new row. private.can_read_patient is STABLE and cannot see
+    -- the row of the current command (42501 "new row violates row-level security").
+    (
+      created_by = (select auth.uid())
+      and not exists (
+        select 1
+        from public.organization_memberships m
+        where m.profile_id = (select auth.uid())
+          and m.status in ('pending', 'rejected')
+      )
+    )
+    or (select private.can_read_patient(id))
     or (created_by is null and (select auth.uid()) is not null)
   );
 
