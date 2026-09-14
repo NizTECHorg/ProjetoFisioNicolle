@@ -570,18 +570,18 @@ Hide this entire label when `!canSeeFinance`. Default `isPaid: false`.
 
 **If this table is used in discuss-phase:** A2, A3, and A7 are the only product-facing assumptions. A1 is technical with a fallback.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should Agenda’s separate create mount `PatientSessionEditorForm` so money appears there too?**
+1. **RESOLVED: Calendar deferral** — Should Agenda’s separate create mount `PatientSessionEditorForm` so money appears there too?
    - What we know: D-05 says “ficha, atalho do dashboard, agenda — o mesmo editor”. Canonical refs say CalendarPage has its own create and the planner must not invent a **third** money UI unless it reuses the shared form.
    - What's unclear: Is “reuse the shared form on Calendar” in this phase or later?
    - Recommendation: **Do not** refactor Calendar this phase. Document that Agenda-created sessions get money from ficha edit or `/financeiro` list. If the planner includes Calendar, the **only** allowed path is replacing that form with `PatientSessionEditorForm`, not a second XOR widget.
 
-2. **Unarchive?**
+2. **RESOLVED: no unarchive** — Unarchive?
    - What we know: D-03 archive, not delete. No mention of restore.
    - Recommendation: omit unarchive. New price with the same name is allowed (A4).
 
-3. **Pago without amount**
+3. **RESOLVED: Pago requires amount** — Pago without amount
    - What we know: D-08 counts sessions with snapshot **and** pago.
    - Recommendation: cannot persist `is_paid` without a charge row. UI: if they check Pago with neither catalog nor avulso, Zod error “Informe um valor para marcar como pago”.
 
