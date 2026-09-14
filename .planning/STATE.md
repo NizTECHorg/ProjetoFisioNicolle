@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_for_verification
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-09-14T14:51:34.424Z"
+status: ready_to_plan
+stopped_at: Phase 04 complete (4/4) — ready to discuss Phase 05
+last_updated: 2026-09-14T17:01:55.834Z
 progress:
   total_phases: 5
   completed_phases: 3
@@ -21,12 +21,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 04 — atalhos-dashboard
+**Current focus:** Phase 05 — financeiro autonomo
 
 ## Current Position
 
-Phase: 04 (atalhos-dashboard) — READY FOR VERIFICATION
-Plan: 4 of 4
+Phase: 05
+Plan: Not started
 
 - Phase: 4 — Atalhos no dashboard
 - Status: Phase complete — ready for verification

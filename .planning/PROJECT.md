@@ -19,17 +19,10 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 - ✓ Agenda mensal sobre `patient_sessions` — existing
 - ✓ Autenticação Supabase + profiles — existing
 - ✓ REQ-08 — Evolução individual de cada sessão — existing
+- ✓ REQ-15 — Tipos de conta e equipe — Validated in Phase 3
+- ✓ REQ-16 — Atalhos no dashboard — Validated in Phase 4: Nova evolução / Nova avaliação no `/painel`, picker de pacientes graváveis, overlay reusa os editores da ficha
 
 ### Active
-
-- [x] **REQ-15 — Tipos de conta e equipe**
-  - Cadastro: autônomo, empresa ou fisioterapeuta (trabalha em empresa)
-  - Empresa aloca mais fisioterapeutas
-  - Persistido no Supabase
-
-- [ ] **REQ-16 — Atalhos no dashboard**
-  - Botões para criar evolução e avaliação direto do painel
-  - Reusa os fluxos da ficha (não um CRUD paralelo)
 
 - [ ] **REQ-17 — Financeiro do autônomo**
   - Só autônomo vê a aba
@@ -78,4 +71,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-14 — REQ-16 e REQ-17 added; codebase map refreshed*
+*Last updated: 2026-09-14 — Phase 4 complete (REQ-16); next is Phase 5 financeiro (REQ-17)*
