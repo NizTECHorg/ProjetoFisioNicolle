@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { isSafeInternalPath } from '@/lib/security'
 import { useToastStore } from '@/stores/toast.store'
 
 const toneStyles = {
@@ -23,7 +25,16 @@ export function ToastViewport() {
           role="status"
         >
           <div className="flex items-start justify-between gap-3">
-            <p>{item.message}</p>
+            <p className="text-sm">{item.message}</p>
+            {item.action && isSafeInternalPath(item.action.href) ? (
+              <Link
+                to={item.action.href}
+                className="text-sm font-semibold text-forest"
+                onClick={() => dismiss(item.id)}
+              >
+                {item.action.label}
+              </Link>
+            ) : null}
             <button
               type="button"
               className="text-xs opacity-60 hover:opacity-100"

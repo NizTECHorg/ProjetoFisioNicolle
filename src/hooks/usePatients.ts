@@ -34,7 +34,7 @@ import type {
   UpsertPatientSessionInput,
 } from '@/types/patient'
 import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
-import { toast } from '@/stores/toast.store'
+import { toast, type ToastAction } from '@/stores/toast.store'
 
 function onError(error: unknown) {
   toast(error instanceof Error ? error.message : 'Erro inesperado', 'error')
@@ -190,15 +190,27 @@ export function useActiveTherapists() {
   })
 }
 
-export function useCreatePatientSession(patientId: string) {
+export function useCreatePatientSession(
+  patientId: string,
+  toastOptions?: { action?: ToastAction; errorMessage?: string },
+) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: UpsertPatientSessionInput) => createPatientSession(patientId, input),
     onSuccess: () => {
       invalidatePatient(qc, patientId)
-      toast('Sessão salva', 'success')
+      toast(
+        'Sessão salva',
+        'success',
+        toastOptions?.action ? { action: toastOptions.action } : undefined,
+      )
     },
-    onError,
+    onError: (error: unknown) => {
+      toast(
+        toastOptions?.errorMessage ?? (error instanceof Error ? error.message : 'Erro inesperado'),
+        'error',
+      )
+    },
   })
 }
 
@@ -243,15 +255,27 @@ export function usePatientEvaluations(patientId: string | undefined) {
   })
 }
 
-export function useCreatePatientEvaluation(patientId: string) {
+export function useCreatePatientEvaluation(
+  patientId: string,
+  toastOptions?: { action?: ToastAction; errorMessage?: string },
+) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: UpsertPatientEvaluationInput) => createPatientEvaluation(patientId, input),
     onSuccess: () => {
       invalidatePatient(qc, patientId)
-      toast('Avaliação salva', 'success')
+      toast(
+        'Avaliação salva',
+        'success',
+        toastOptions?.action ? { action: toastOptions.action } : undefined,
+      )
     },
-    onError,
+    onError: (error: unknown) => {
+      toast(
+        toastOptions?.errorMessage ?? (error instanceof Error ? error.message : 'Erro inesperado'),
+        'error',
+      )
+    },
   })
 }
 
