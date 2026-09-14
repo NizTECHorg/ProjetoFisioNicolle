@@ -47,6 +47,7 @@ function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patientId: str
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'sessions'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'evaluations'] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
+  void qc.invalidateQueries({ queryKey: ['finance'] })
 }
 
 export function usePatients() {
