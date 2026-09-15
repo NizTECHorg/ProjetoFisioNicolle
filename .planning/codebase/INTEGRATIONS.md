@@ -41,6 +41,7 @@
 
 **Tables used by services (clinic):**
 - `patients`, `patient_goals`, `patient_focus_areas`, `patient_pain_logs`, `patient_alerts`, `patient_sessions`, `patient_session_evolutions`, `patient_evaluations` — `src/services/patients.service.ts`, `src/services/sessions.service.ts`, `src/services/calendar.service.ts`, `src/services/evaluations.service.ts`
+- `patient_images` — `src/services/patientImages.service.ts` (local `ImageRow`; do not add to bakery `database.types.ts`)
 - `autonomo_prices`, `autonomo_session_charges`, RPC `autonomo_finance_totals` — `src/services/finance.service.ts` (clinic autônomo only; not bakery `expenses`)
 - `board_columns`, `board_cards` — `src/services/board.service.ts`
 - `organizations`, `organization_memberships` — `src/services/team.service.ts`
@@ -72,7 +73,7 @@
 - Private helpers in schema `private` (`is_org_owner`, `viewer_org_id`, `can_read_patient`, `can_write_patient`, …) in `03-account-types-team.sql`. New patient queries must remain compatible with `patients.created_by` and org membership. Trigger `patients_set_created_by` fills `created_by` from `auth.uid()`.
 
 **File Storage:**
-- Supabase Storage: Not used (`storage.` not referenced in `src/`).
+- Supabase Storage: private bucket `patient-images` via `src/services/patientImages.service.ts` (`upload` / `createSignedUrls` / `remove`). Components and hooks must not import the Storage client. Signed URLs live only on the `PatientImage` DTO (3600s); never persist them.
 - Static assets: `public/` (`favicon.png`, `favicon-32.png`, `apple-touch-icon.png`, `_redirects`).
 - Physical-evaluation PDFs: read in-browser as base64, sent to Gemini, not uploaded to a bucket.
 - Avatars: CSS initials (`src/lib/avatar.ts`, `src/components/ui/PatientAvatar.tsx`), not object storage. `profiles.avatar_url` exists on the row but is not a Storage integration.

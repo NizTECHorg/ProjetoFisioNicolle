@@ -91,7 +91,7 @@ A parallel **bakery/confeitaria domain** still lives in the tree (`src/services/
 **Data-access hooks:**
 - Purpose: Own query keys, `staleTime`, mutation invalidation, success/error toasts
 - Location: `src/hooks/`
-- Contains: `usePatients.ts` (patients, sessions, evaluations), `useClinic.ts` (calendar + board), `useTeam.ts`, `useAuth.ts` (context consumer)
+- Contains: `usePatients.ts` (patients, sessions, evaluations), `usePatientImages.ts` (gallery list/upload/edit/delete), `useClinic.ts` (calendar + board), `useTeam.ts`, `useAuth.ts` (context consumer)
 - Depends on: matching `src/services/*.service.ts`, `src/stores/toast.store.ts`
 - Used by: pages and patient panels
 - Rule: New clinic feature gets a domain hook file (`useX.ts`), not an entry in `src/hooks/queries.ts` (bakery).

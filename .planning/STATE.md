@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-09-15T02:28:51.059Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-09-15T02:34:08.560Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 71
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 7 (Galeria de imagens na ficha do paciente) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
-- Status: 07-02 shipped — next 07-03 patientImages.service
-- Progress: Phase 7 plan 02 SQL bucket/table/RLS applied in Editor
+- Status: 07-03 shipped — next 07-04 gallery tab/panel
+- Progress: Phase 7 plan 03 service + hooks; signed URLs and invalidatePatient images key
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 92%
 
 ## Accumulated Context
 
@@ -113,6 +113,9 @@ Plan: 3 of 5
 - [Phase 07]: session_id ON DELETE SET NULL so deleting a sessão does not delete photos (D-06) — Photos remain on the ficha as avulsa; client must not CASCADE delete storage objects
 - [Phase 07]: session_removed boolean default false; BEFORE DELETE on patient_sessions sets it true (D-07) — Do not use UPDATE OF session_id on patient_images; that would fight Editar avulsa
 - [Phase 07]: Table and storage.objects policies call private.can_read_patient / can_write_patient; Phase 3 helpers are not rewritten (D-11) — ASVS 4.1.1 — RLS remains the write wall; empresa is not a writer
+- [Phase 07]: Export invalidatePatient from usePatients so image mutations share the same key set as session delete — Plain helper, not a hook; usePatients.ts already has allowConstantExport
+- [Phase 07]: Path is patientId/randomUUID.ext with upsert false; never user filenames — T-07-05: service builds the Storage path from the route patient id plus crypto.randomUUID
+- [Phase 07]: Batch upload skips invalid MIME/size files and returns successes; throws first mapped message only if none succeed — D-04: one bad file must not abort the lote; Portuguese copy still surfaces when every file fails
 
 ### Pending user action
 
@@ -130,9 +133,9 @@ Plan: 3 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-15T02:27:59.160Z
-Stopped at: Completed 07-02-PLAN.md
-Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-03-PLAN.md
+Last session: 2026-09-15T02:33:54.200Z
+Stopped at: Completed 07-03-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -153,3 +156,4 @@ Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-03-P
 | Phase 06 P04 | 6min | 2 tasks | 2 files |
 | Phase 07 P01 | 5min | 2 tasks | 3 files |
 | Phase 07 P02 | 7min | 2 tasks | 1 files |
+| Phase 07 P03 | 3min | 2 tasks | 3 files |

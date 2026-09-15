@@ -34,7 +34,7 @@
 - Tailwind CSS 4.3.3 via `@tailwindcss/vite` `^4.1.7` — styling. Import plugin in `vite.config.ts`; tokens in `src/index.css` (`--color-forest`, `--font-sans` = Plus Jakarta Sans, `--font-display` = Cormorant Garamond).
 - Zod 3.25.76 (`zod` `^3.25.28`) — form and payload validation. Schemas: `src/schemas/auth.schema.ts`, `src/schemas/patient.schema.ts`, `src/schemas/evaluation.schema.ts`, `src/schemas/modules.schema.ts`. Wire to forms with `zodResolver` from `@hookform/resolvers`.
 - React Hook Form 7.81.0 (`react-hook-form` `^7.56.4`) + `@hookform/resolvers` 5.4.0 — all create/edit forms. Pattern: `useForm({ resolver: zodResolver(schema) })`.
-- TanStack Query 5.101.2 (`@tanstack/react-query` `^5.76.1`) — server state. Singleton `QueryClient` in `src/main.tsx` (`staleTime: 60_000`, `retry: 1`, `refetchOnWindowFocus: false`, mutations `retry: 0`). Hooks: `src/hooks/queries.ts`, `src/hooks/usePatients.ts`, `src/hooks/useClinic.ts`, `src/hooks/useTeam.ts`, `src/hooks/useFinance.ts`.
+- TanStack Query 5.101.2 (`@tanstack/react-query` `^5.76.1`) — server state. Singleton `QueryClient` in `src/main.tsx` (`staleTime: 60_000`, `retry: 1`, `refetchOnWindowFocus: false`, mutations `retry: 0`). Hooks: `src/hooks/queries.ts`, `src/hooks/usePatients.ts`, `src/hooks/usePatientImages.ts`, `src/hooks/useClinic.ts`, `src/hooks/useTeam.ts`, `src/hooks/useFinance.ts`.
 - Zustand 5.0.14 (`zustand` `^5.0.5`) — client-only UI state. Current store: `src/stores/toast.store.ts`. Do not put auth or Supabase data in Zustand; those belong in `AuthProvider` / React Query.
 
 **Testing:**

@@ -59,13 +59,13 @@ ProjetoFisioNicolle/
 
 **`src/hooks/`:**
 - Purpose: Data-access hooks for clinic; keep bakery queries isolated
-- Contains: `useAuth.ts`, `usePatients.ts`, `useClinic.ts`, `useTeam.ts`, `useFinance.ts`, leftover `queries.ts`
+- Contains: `useAuth.ts`, `usePatients.ts`, `usePatientImages.ts`, `useClinic.ts`, `useTeam.ts`, `useFinance.ts`, leftover `queries.ts`
 - Key files: add new clinic hooks as `use<Domain>.ts` next to these, not inside `queries.ts`
 
 **`src/services/`:**
 - Purpose: Supabase I/O + DTO mapping
 - Contains: `*.service.ts` (kebab-case domain + `.service` suffix)
-- Key files: `auth.service.ts`, `team.service.ts`, `patients.service.ts`, `sessions.service.ts`, `calendar.service.ts`, `board.service.ts`, `evaluations.service.ts`, `finance.service.ts`, `aiPhysicalEvaluation.service.ts`
+- Key files: `auth.service.ts`, `team.service.ts`, `patients.service.ts`, `sessions.service.ts`, `calendar.service.ts`, `board.service.ts`, `evaluations.service.ts`, `finance.service.ts`, `patientImages.service.ts`, `aiPhysicalEvaluation.service.ts`
 - Leftover: `modules.service.ts` (~900 lines of bakery CRUD) — do not add clinic tables here
 
 **`src/types/`:**
@@ -141,6 +141,7 @@ ProjetoFisioNicolle/
 - `src/components/auth/ProtectedRoute.tsx`: Guest vs clinic vs waiting vs rejected
 - `src/services/patients.service.ts`: Patient aggregate (list, detail, dashboard, goals, alerts)
 - `src/services/sessions.service.ts`: Session + evolution rows
+- `src/services/patientImages.service.ts`: `patient_images` metadata + private Storage bucket `patient-images`
 - `src/services/evaluations.service.ts`: `patient_evaluations`
 - `src/services/calendar.service.ts`: Range queries for Agenda
 - `src/services/board.service.ts`: Kanban columns/cards
