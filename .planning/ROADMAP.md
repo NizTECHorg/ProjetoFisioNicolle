@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Próximo: silhueta de áreas de foco (REQ-18). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Próximo: galeria de imagens na ficha (Phase 7). REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
@@ -12,6 +12,7 @@ Completar o prontuário e o modelo de contas. Próximo: silhueta de áreas de fo
 - [x] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel (completed 2026-09-14)
 - [x] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre (completed 2026-09-14)
 - [x] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas (completed 2026-09-14)
+- [ ] **Phase 7: Galeria de imagens na ficha do paciente** — Galeria na ficha, avulsa ou por sessão, com descrição
 
 ## Phase Details
 
@@ -179,3 +180,40 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 06-04-PLAN.md — PatientFocusAreasPanel SVG + chip + mount, delete BodyFocus
+
+### Phase 7: Galeria de imagens na ficha do paciente
+
+**Goal:** Na ficha do paciente, a aba Imagens mostra uma galeria persistida (sem mock). Cada foto é avulsa ou ligada a uma sessão, com descrição opcional. No viewport estreito o envio inclui câmera traseira; várias fotos sobem no mesmo lote. Excluir a sessão não apaga as fotos — elas ficam avulsas, com aviso Sessão removida. no lightbox até o profissional salvar Editar. Quem não pode escrever vê a galeria e o lightbox; Adicionar / Editar / Excluir / Compartilhar ficam ocultos.
+**Depends on:** Phase 6 (numbering; functionally ficha tabs + patient_sessions + Phase 3 RLS)
+**Requirements**: REQ-19 *(proposed — REQUIREMENTS.md still unlocked)*
+**Success Criteria** (what must be TRUE):
+
+  1. A aba Imagens (`?aba=imagens`) lista fotos reais do Supabase, sem mock
+  2. Cada foto é avulsa ou ligada a uma sessão, com descrição opcional
+  3. Viewport estreito: Tirar foto (câmera traseira) e Escolher arquivos; várias no mesmo lote, mesma descrição/sessão
+  4. Arquivo inválido (HEIC, MIME, > 8 MB) gera toast em português e não sobe; as válidas do lote sobem
+  5. Excluir a sessão não apaga as fotos (`ON DELETE SET NULL`); o lightbox mostra Sessão removida. até salvar Editar; o tile mostra Avulsa
+  6. O confirm de excluir sessão em Evoluções avisa: As fotos dessa sessão ficam na ficha como avulsas.
+  7. Empresa em consulta vê grid e lightbox; Adicionar / Editar / Excluir / Compartilhar ficam ocultos; RLS `can_read_patient` / `can_write_patient` é a parede
+  8. Lightbox tem Compartilhar (`navigator.share` com o arquivo) para quem escreve; sem baixar e sem link público
+
+**Plans:** 5 plans
+**UI hint:** yes
+
+Plans:
+**Wave 1**
+
+- [ ] 07-01-PLAN.md — Contratos: PatientImage, Zod MIME/lote, mapStorageError
+- [ ] 07-02-PLAN.md — SQL bucket/table/RLS + apply no Editor [BLOCKING]
+
+**Wave 2** *(blocked on Wave 1 completion, including SQL apply)*
+
+- [ ] 07-03-PLAN.md — patientImages.service + hooks + invalidate images (D-06/D-07)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 07-04-PLAN.md — Aba Imagens, galeria leitura, lightbox D-07, D-08 Evoluções
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 07-05-PLAN.md — Lote/câmera, editar/excluir, Compartilhar (D-01–D-05, D-09–D-12)
