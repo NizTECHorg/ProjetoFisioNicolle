@@ -79,7 +79,7 @@ export function mapAuthError(error: { message?: string; status?: number }): stri
   }
 
   if (message.includes('rate limit') || error.status === 429) {
-    return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
+    return 'Muitas tentativas. Aguarde e tente novamente mais tarde.'
   }
 
   if (message.includes('network') || message.includes('fetch')) {
@@ -89,9 +89,11 @@ export function mapAuthError(error: { message?: string; status?: number }): stri
   return 'Ocorreu um erro. Tente novamente mais tarde.'
 }
 
-const MAX_ATTEMPTS_PER_KEY = 5
-const MAX_ATTEMPTS_GLOBAL = 20
-const WINDOW_MS = 15 * 60 * 1000
+const LOGIN_MAX_ATTEMPTS_PER_KEY = 5
+const LOGIN_MAX_ATTEMPTS_GLOBAL = 20
+const LOGIN_WINDOW_MS = 15 * 60 * 1000
+const REGISTER_MAX_ATTEMPTS = 7
+const REGISTER_WINDOW_MS = 60 * 60 * 1000
 const STORAGE_KEY = 'fisio.auth.rate'
 
 type AttemptEntry = { count: number; resetAt: number }
@@ -140,20 +142,31 @@ function deleteEntry(key: string) {
   writeStore(store)
 }
 
+function limitsFor(key: string): { max: number; windowMs: number } {
+  if (key.startsWith('auth:register:')) {
+    return { max: REGISTER_MAX_ATTEMPTS, windowMs: REGISTER_WINDOW_MS }
+  }
+
+  return {
+    max: key.endsWith(':global') ? LOGIN_MAX_ATTEMPTS_GLOBAL : LOGIN_MAX_ATTEMPTS_PER_KEY,
+    windowMs: LOGIN_WINDOW_MS,
+  }
+}
+
 /**
  * Rate limit no cliente para reduzir força bruta neste browser.
  * Não substitui o rate limit do Supabase Auth no servidor.
+ * Cadastro: 7 tentativas por hora. Login: 5 por chave / 20 globais a cada 15 minutos.
  */
 export function checkRateLimit(key: string): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now()
+  const { max, windowMs } = limitsFor(key)
   const entry = getEntry(key)
 
   if (!entry || now > entry.resetAt) {
-    setEntry(key, { count: 1, resetAt: now + WINDOW_MS })
+    setEntry(key, { count: 1, resetAt: now + windowMs })
     return { allowed: true }
   }
-
-  const max = key.endsWith(':global') ? MAX_ATTEMPTS_GLOBAL : MAX_ATTEMPTS_PER_KEY
 
   if (entry.count >= max) {
     return { allowed: false, retryAfterMs: entry.resetAt - now }
@@ -169,7 +182,11 @@ export function resetRateLimit(key: string): void {
 }
 
 export function formatRetryAfter(ms: number): string {
-  const minutes = Math.ceil(ms / 60_000)
+  const minutes = Math.max(1, Math.ceil(ms / 60_000))
+  if (minutes >= 60) {
+    const hours = Math.ceil(ms / 3_600_000)
+    return `${hours} hora${hours > 1 ? 's' : ''}`
+  }
   return `${minutes} minuto${minutes > 1 ? 's' : ''}`
 }
 

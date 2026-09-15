@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { useTogglePatientFocusArea } from '@/hooks/usePatients'
 import {
   focusRegionListLabel,
@@ -15,9 +16,6 @@ export const HOVER_OPEN_MS = 500
 
 const FRONT_REGIONS = listFocusRegionsByView('front')
 const BACK_REGIONS = listFocusRegionsByView('back')
-
-const BODY_OUTLINE =
-  'M70 8C56 8 49 16 49 26C49 34 54 40 62 44L59 56H34C24 56 18 64 18 74V86L14 138C10 150 14 166 28 170C42 174 52 164 50 152L52 144L48 172L46 204L43 220C28 222 20 226 20 232L24 238H52C62 238 66 232 66 224L68 204L70 172L72 204L74 224C74 232 78 238 88 238H116L120 232C120 226 112 222 97 220L94 204L92 172L88 144L90 152C88 164 98 174 112 170C126 166 130 150 126 138L122 86V74C122 64 116 56 106 56H81L78 44C86 40 91 34 91 26C91 16 84 8 70 8Z'
 
 type PatientFocusAreasPanelProps = {
   patientId: string
@@ -89,24 +87,54 @@ export function PatientFocusAreasPanel({
       setChipPos(null)
       return
     }
-    const path = pathRefs.current.get(openKey)
-    const region = getFocusRegion(openKey)
-    const group = region ? groupRefs.current[region.view] : null
-    const svg = path?.ownerSVGElement
-    if (!path || !region || !group || !svg) return
-    const bbox = path.getBBox()
-    const ctm = path.getScreenCTM()
-    if (!ctm) return
-    const point = svg.createSVGPoint()
-    point.x = bbox.x + bbox.width
-    point.y = bbox.y + bbox.height / 2
-    const screen = point.matrixTransform(ctm)
-    const wrap = group.getBoundingClientRect()
-    setChipPos({
-      key: openKey,
-      left: screen.x - wrap.left - 4,
-      top: screen.y - wrap.top,
-    })
+    const regionKey = openKey
+
+    function placeChip() {
+      const path = pathRefs.current.get(regionKey)
+      const region = getFocusRegion(regionKey)
+      const group = region ? groupRefs.current[region.view] : null
+      const svg = path?.ownerSVGElement
+      if (!path || !region || !group || !svg) return
+      const bbox = path.getBBox()
+      const ctm = path.getScreenCTM()
+      if (!ctm) return
+      const right = svg.createSVGPoint()
+      right.x = bbox.x + bbox.width
+      right.y = bbox.y + bbox.height / 2
+      const screenRight = right.matrixTransform(ctm)
+      let left = screenRight.x - 4
+      let top = screenRight.y
+      const chip = chipRef.current
+      if (chip) {
+        const width = chip.offsetWidth
+        const height = chip.offsetHeight
+        const margin = 8
+        if (left + width > window.innerWidth - margin) {
+          const leftPt = svg.createSVGPoint()
+          leftPt.x = bbox.x
+          leftPt.y = bbox.y + bbox.height / 2
+          left = leftPt.matrixTransform(ctm).x - width + 4
+        }
+        left = Math.min(Math.max(margin, left), window.innerWidth - width - margin)
+        top = Math.min(Math.max(margin, top - height / 2), window.innerHeight - height - margin)
+      }
+      setChipPos((current) => {
+        if (current && current.key === regionKey && current.left === left && current.top === top) {
+          return current
+        }
+        return { key: regionKey, left, top }
+      })
+    }
+
+    placeChip()
+    const frame = window.requestAnimationFrame(placeChip)
+    window.addEventListener('resize', placeChip)
+    document.addEventListener('scroll', placeChip, true)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('resize', placeChip)
+      document.removeEventListener('scroll', placeChip, true)
+    }
   }, [openKey])
 
   useEffect(() => {
@@ -117,6 +145,7 @@ export function PatientFocusAreasPanel({
       if (!(target instanceof Node)) return
       if (groupRefs.current.front?.contains(target)) return
       if (groupRefs.current.back?.contains(target)) return
+      if (chipRef.current?.contains(target)) return
       closeChip()
     }
 
@@ -124,7 +153,7 @@ export function PatientFocusAreasPanel({
       if (event.key !== 'Escape') return
       const key = openKey
       closeChip()
-      if (key) pathRefs.current.get(key)?.focus()
+      if (key) pathRefs.current.get(key)?.focus({ preventScroll: true })
     }
 
     document.addEventListener('pointerdown', onPointerDown)
@@ -165,8 +194,10 @@ export function PatientFocusAreasPanel({
     openRegion(key)
   }
 
-  function onGroupPointerLeave() {
+  function onGroupPointerLeave(event: ReactPointerEvent<HTMLDivElement>) {
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const next = event.relatedTarget
+    if (next instanceof Node && chipRef.current?.contains(next)) return
     closeChip()
   }
 
@@ -179,13 +210,6 @@ export function PatientFocusAreasPanel({
     const regions = view === 'front' ? FRONT_REGIONS : BACK_REGIONS
     const caption = view === 'front' ? 'Frente' : 'Costas'
     const svgLabel = view === 'front' ? 'Silhueta de frente' : 'Silhueta de costas'
-    const openRegionMeta = openKey ? getFocusRegion(openKey) : undefined
-    const markedOpen = openKey ? selectedKeys.has(openKey) : false
-    const openLabel = openRegionMeta?.label ?? ''
-    const showChip = Boolean(
-      canWrite && openKey && openRegionMeta?.view === view && chipPos?.key === openKey,
-    )
-
     return (
       <div className="flex flex-col items-center">
         <div
@@ -197,16 +221,10 @@ export function PatientFocusAreasPanel({
         >
           <svg
             viewBox="0 0 140 240"
-            className="h-44 w-auto text-forest sm:h-52"
+            overflow="hidden"
+            className="h-44 w-auto overflow-hidden text-forest sm:h-52"
             aria-label={svgLabel}
           >
-            <path
-              d={BODY_OUTLINE}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.2}
-              pointerEvents="none"
-            />
             {regions.map((region) => {
               const marked = selectedKeys.has(region.key)
               const preview = hotKey === region.key || openKey === region.key
@@ -221,25 +239,56 @@ export function PatientFocusAreasPanel({
                   data-region={region.key}
                   aria-label={focusRegionPathAriaLabel(region)}
                   pointerEvents="fill"
-                  strokeWidth={1.5}
-                  className={regionPathClassName(marked, preview, canWrite)}
+                  strokeWidth={0.65}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  className={`${regionPathClassName(marked, preview, canWrite)} scroll-m-0 outline-none focus-visible:outline-none`}
                   tabIndex={canWrite ? 0 : undefined}
                   onPointerEnter={() => onRegionPointerEnter(region.key)}
-                  onPointerDown={() => onRegionPointerDown(region.key)}
+                  onPointerDown={(event) => {
+                    event.preventDefault()
+                    onRegionPointerDown(region.key)
+                  }}
                   onFocus={() => onRegionFocus(region.key)}
                 />
               )
             })}
           </svg>
-          {showChip && openKey ? (
+        </div>
+        <p className="mt-2 text-sm font-normal text-muted">{caption}</p>
+      </div>
+    )
+  }
+
+  const openRegionMeta = openKey ? getFocusRegion(openKey) : undefined
+  const markedOpen = openKey ? selectedKeys.has(openKey) : false
+  const openLabel = openRegionMeta?.label ?? ''
+  const showChip = Boolean(canWrite && openKey && chipPos?.key === openKey)
+
+  return (
+    <div role="group" aria-label="Áreas de foco do paciente" className="mt-3 w-full overflow-visible">
+      <div className="flex items-end justify-center gap-4">
+        {renderFigure('front')}
+        {renderFigure('back')}
+      </div>
+      {showChip && openKey
+        ? createPortal(
             <button
               ref={chipRef}
               type="button"
               aria-pressed={markedOpen}
               aria-busy={toggle.isPending || undefined}
               onClick={onChipClick}
+              onPointerLeave={(event) => {
+                if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+                const next = event.relatedTarget
+                const region = getFocusRegion(openKey)
+                const group = region ? groupRefs.current[region.view] : null
+                if (next instanceof Node && group?.contains(next)) return
+                closeChip()
+              }}
               className={[
-                'absolute z-10 min-h-11 min-w-11 whitespace-nowrap rounded-lg border px-3 text-sm shadow-[0_8px_24px_rgba(11,29,54,0.10)]',
+                'fixed z-50 min-h-11 min-w-11 whitespace-nowrap rounded-lg border px-3 text-sm shadow-[0_8px_24px_rgba(11,29,54,0.10)]',
                 markedOpen
                   ? 'border-accent bg-accent-soft font-semibold text-ink'
                   : 'border-line bg-surface text-ink',
@@ -247,24 +296,13 @@ export function PatientFocusAreasPanel({
               style={{
                 left: chipPos?.left ?? 0,
                 top: chipPos?.top ?? 0,
-                transform: 'translateY(-50%)',
               }}
             >
               {markedOpen ? `Desmarcar ${openLabel}` : `Marcar ${openLabel}`}
-            </button>
-          ) : null}
-        </div>
-        <p className="mt-2 text-sm font-normal text-muted">{caption}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div role="group" aria-label="Áreas de foco do paciente" className="mt-3">
-      <div className="flex items-end justify-center gap-4">
-        {renderFigure('front')}
-        {renderFigure('back')}
-      </div>
+            </button>,
+            document.body,
+          )
+        : null}
 
       {focusAreas.length === 0 ? (
         <div className="mt-4 text-center text-sm text-muted">

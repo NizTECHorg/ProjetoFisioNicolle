@@ -175,6 +175,18 @@ export async function fetchChargeBySessionId(sessionId: string): Promise<Session
   return mapCharge(data as ChargeRow)
 }
 
+export async function fetchChargesBySessionIds(sessionIds: string[]): Promise<SessionCharge[]> {
+  if (sessionIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('autonomo_session_charges')
+    .select(CHARGE_COLUMNS)
+    .in('session_id', sessionIds)
+
+  throwIfError(error)
+  return ((data ?? []) as ChargeRow[]).map(mapCharge)
+}
+
 export async function upsertSessionCharge(input: UpsertSessionChargeInput): Promise<void> {
   const ownerId = await requireUserId()
   const hasCatalog = Boolean(input.priceId)

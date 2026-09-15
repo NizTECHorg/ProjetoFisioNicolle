@@ -69,7 +69,7 @@ function dash(value: string) {
 
 function EvaChart({ series }: { series: PatientPainLog[] }) {
   if (series.length === 0) {
-    return <p className="mt-3 text-sm text-muted">Sem registros de dor ainda.</p>
+    return <p className="mt-3 w-full text-sm text-muted">Sem registros de dor ainda.</p>
   }
 
   const width = 320
@@ -298,53 +298,57 @@ function ResumoDoPaciente({
         </p>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-1">
-          <div className="rounded-2xl border border-line p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Programa</p>
-            <h3 className="mt-2 text-sm font-semibold text-ink">{detail.program}</h3>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
+      <div className="mt-4 grid gap-4 lg:grid-cols-3 lg:grid-flow-col lg:grid-rows-[auto_auto]">
+        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Programa</p>
+          <h3 className="mt-2 text-sm font-semibold text-ink">{detail.program}</h3>
+          <div className="mt-auto pt-3">
+            <div className="h-2 overflow-hidden rounded-full bg-canvas">
               <div className="h-full rounded-full bg-accent" style={{ width: `${detail.programProgress}%` }} />
             </div>
             <p className="mt-2 text-xs text-muted">{detail.programProgress}% concluído</p>
           </div>
+        </div>
 
-          <div className="rounded-2xl border border-line p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
-            <p className="mt-2 text-sm leading-6 text-ink">{detail.evolutionSummary || '—'}</p>
-            <div className="mt-4 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-forest">
-                {detail.eva}/10
-              </span>
-              <span className="text-xs text-muted">EVA na sessão de {detail.lastVisit}</span>
-            </div>
+        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
+          <p className="mt-2 text-sm leading-6 text-ink">{detail.evolutionSummary || '—'}</p>
+          <div className="mt-auto flex items-center gap-3 pt-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-forest">
+              {detail.eva}/10
+            </span>
+            <span className="text-xs text-muted">EVA na sessão de {detail.lastVisit}</span>
           </div>
         </div>
 
-        <div className="space-y-4 lg:col-span-1">
-          <div className="rounded-2xl border border-line p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
-            <p className="mt-2 text-sm leading-6 text-ink">{detail.lastConducts || '—'}</p>
-            <p className="mt-4 text-xs text-muted">Plano próxima sessão</p>
+        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
+          <p className="mt-2 text-sm leading-6 text-ink">{detail.lastConducts || '—'}</p>
+          <div className="mt-auto pt-4">
+            <p className="text-xs text-muted">Plano próxima sessão</p>
             <p className="mt-1 text-sm text-ink">{detail.nextSessionPlan || '—'}</p>
           </div>
+        </div>
 
-          <div className="rounded-2xl border border-line p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Dor (EVA)</p>
+        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Dor (EVA)</p>
+          <div className="mt-auto flex w-full flex-1 items-end">
             <EvaChart series={detail.painSeries} />
           </div>
         </div>
 
-        <div className="space-y-4 lg:col-span-1">
-          <div className="rounded-2xl border border-line p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
+        <div className="flex h-full min-h-[16rem] flex-col rounded-2xl border border-line p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
+          <div className="mt-auto flex w-full flex-1 items-center">
             <PatientFocusAreasPanel
               patientId={patientId}
               focusAreas={detail.focusAreas}
               canWrite={canWrite}
             />
           </div>
+        </div>
 
+        <div className="h-full min-h-[11rem]">
           <PatientGoalsPanel patientId={patientId} goals={detail.goals} canWrite={canWrite} />
         </div>
       </div>

@@ -3,6 +3,7 @@ import {
   archivePrice,
   createPrice,
   fetchChargeBySessionId,
+  fetchChargesBySessionIds,
   fetchFinanceTotals,
   listActivePrices,
   listFinanceRealizadas,
@@ -50,6 +51,16 @@ export function useSessionCharge(sessionId: string | undefined) {
     queryKey: ['finance', 'charge', sessionId],
     queryFn: () => fetchChargeBySessionId(sessionId!),
     enabled: Boolean(sessionId),
+    staleTime: 30_000,
+  })
+}
+
+export function useSessionCharges(patientId: string, sessionIds: string[], enabled: boolean) {
+  const idsKey = sessionIds.slice().sort().join('|')
+  return useQuery({
+    queryKey: ['finance', 'charges', patientId, idsKey],
+    queryFn: () => fetchChargesBySessionIds(idsKey ? idsKey.split('|') : []),
+    enabled: enabled && sessionIds.length > 0,
     staleTime: 30_000,
   })
 }

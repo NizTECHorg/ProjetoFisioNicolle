@@ -89,6 +89,7 @@ export interface PatientImage {
   createdAt: string
   sessionRemoved: boolean
   signedUrl: string | null
+  thumbUrl: string | null
 }
 
 export interface UpdatePatientImageInput {

@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase/client'
 import {
   checkRateLimit,
+  formatRetryAfter,
   mapAuthError,
   resetRateLimit,
   sanitizeEmail,
@@ -51,7 +52,7 @@ function assertRateLimit(keys: string[]) {
     const rateCheck = checkRateLimit(key)
     if (!rateCheck.allowed) {
       throw new Error(
-        `Muitas tentativas. Tente novamente em ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 60_000)} minutos.`,
+        `Muitas tentativas. Tente novamente em ${formatRetryAfter(rateCheck.retryAfterMs ?? 0)}.`,
       )
     }
   }

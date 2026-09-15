@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Image, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { SignedPhoto } from '@/components/patients/SignedPhoto'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
@@ -14,6 +15,7 @@ import {
   useUploadPatientImages,
 } from '@/hooks/usePatientImages'
 import { usePatientSessions } from '@/hooks/usePatients'
+import { compressImageForThumb } from '@/lib/compressImage'
 import {
   imageMetadataFormSchema,
   imageUploadSchema,
@@ -91,46 +93,9 @@ function useNarrowViewport() {
   return narrow
 }
 
-function SignedPhoto({
-  src,
-  alt,
-  contain,
-}: {
-  src: string | null
-  alt: string
-  contain?: boolean
-}) {
-  const [failed, setFailed] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    setFailed(false)
-    setLoaded(false)
-  }, [src])
-
-  if (!src || failed) {
-    return (
-      <div className="flex h-full min-h-24 w-full items-center justify-center bg-canvas px-3">
-        <p className="text-center text-xs text-muted">Não foi possível mostrar a imagem.</p>
-      </div>
-    )
-  }
-
-  return (
-    <>
-      {loaded ? null : <div className="h-full w-full bg-canvas" />}
-      <img
-        src={src}
-        alt={alt}
-        className={[
-          contain ? 'max-h-[70vh] w-full object-contain' : 'h-full w-full object-cover',
-          loaded ? '' : 'hidden',
-        ].join(' ')}
-        onLoad={() => setLoaded(true)}
-        onError={() => setFailed(true)}
-      />
-    </>
-  )
+function sessionIdFromFilter(filter: GalleryFilter, sessions: PatientSessionRecord[]) {
+  if (filter === 'todas' || filter === 'avulsas') return ''
+  return sessions.some((session) => session.id === filter) ? filter : ''
 }
 
 function EmptyWell({ heading, body }: { heading: string; body?: string }) {
@@ -145,33 +110,69 @@ function EmptyWell({ heading, body }: { heading: string; body?: string }) {
   )
 }
 
-function LoteThumbs({ files, onRemove }: { files: File[]; onRemove: (index: number) => void }) {
-  const urls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files])
+function LoteThumbItem({ file, onRemove }: { file: File; onRemove: () => void }) {
+  const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [urls])
+    const originalUrl = URL.createObjectURL(file)
+    setUrl(originalUrl)
+    let compressedUrl: string | null = null
+    let cancelled = false
 
+    async function prepare() {
+      try {
+        const thumb = await compressImageForThumb(file)
+        if (cancelled) return
+        compressedUrl = URL.createObjectURL(thumb)
+        setUrl(compressedUrl)
+      } catch {
+        // A URL original já está no tile.
+      }
+    }
+
+    void prepare()
+
+    return () => {
+      cancelled = true
+      URL.revokeObjectURL(originalUrl)
+      if (compressedUrl) URL.revokeObjectURL(compressedUrl)
+    }
+  }, [file])
+
+  return (
+    <li className="relative">
+      <div className="aspect-square overflow-hidden rounded-xl border border-line bg-canvas">
+        {url ? (
+          <img src={url} alt="" className="block h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        aria-label="Remover do envio"
+        onClick={onRemove}
+        className="absolute -right-1 -top-1 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-surface text-muted shadow-sm hover:text-error"
+      >
+        <X size={14} />
+      </button>
+    </li>
+  )
+}
+
+function LoteThumbs({ files, onRemove }: { files: File[]; onRemove: (index: number) => void }) {
   if (files.length === 0) return null
 
   return (
     <ul className="grid grid-cols-4 gap-2">
       {files.map((file, index) => (
-        <li key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="relative">
-          <div className="aspect-square overflow-hidden rounded-xl border border-line bg-canvas">
-            <img src={urls[index]} alt="" className="h-full w-full object-cover" />
-          </div>
-          <button
-            type="button"
-            aria-label="Remover do envio"
-            onClick={() => onRemove(index)}
-            className="absolute -right-1 -top-1 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-surface text-muted shadow-sm hover:text-error"
-          >
-            <X size={14} />
-          </button>
-        </li>
+        <LoteThumbItem
+          key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+          file={file}
+          onRemove={() => onRemove(index)}
+        />
       ))}
     </ul>
   )
@@ -214,10 +215,8 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
 
   useEffect(() => {
     if (!uploadOpen) return
-    uploadForm.reset(emptyMeta)
-    setFileError(null)
     chooseFilesRef.current?.focus()
-  }, [uploadOpen, uploadForm])
+  }, [uploadOpen])
 
   useEffect(() => {
     if (!editing) return
@@ -249,6 +248,15 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
       label: `${session.dateLabel} · ${session.timeLabel}`,
     })),
   ]
+
+  function openUpload() {
+    uploadForm.reset({
+      description: '',
+      sessionId: sessionIdFromFilter(filter, sessions),
+    })
+    setFileError(null)
+    setUploadOpen(true)
+  }
 
   function closeUpload() {
     setUploadOpen(false)
@@ -360,7 +368,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
             <p className="mt-1 text-sm text-muted">Fotos avulsas ou ligadas a uma sessão.</p>
           </div>
           {canWrite ? (
-            <Button type="button" onClick={() => setUploadOpen(true)}>
+            <Button type="button" onClick={openUpload}>
               <Plus size={16} />
               Adicionar imagem
             </Button>
@@ -440,7 +448,11 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                         open ? 'ring-2 ring-accent ring-offset-2' : '',
                       ].join(' ')}
                     >
-                      <SignedPhoto src={image.signedUrl} alt={imageAlt(image)} />
+                      <SignedPhoto
+                        src={image.thumbUrl ?? image.signedUrl}
+                        fallbackSrc={image.signedUrl}
+                        alt={imageAlt(image)}
+                      />
                     </div>
                     <p
                       className={[

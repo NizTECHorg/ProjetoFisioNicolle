@@ -112,7 +112,7 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
 
   return (
     <>
-      <div className="rounded-2xl border border-line p-4">
+      <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Flag size={14} className="text-accent" />

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { compressImageForThumb, thumbStoragePath } from '@/lib/compressImage'
 import { mapDbError, mapStorageError, sanitizeText } from '@/lib/security'
 import { imageUploadSchema } from '@/schemas/patient.schema'
 import type { PatientImage, PatientImageMime, UpdatePatientImageInput } from '@/types/patient'
@@ -47,7 +48,7 @@ function mimeToExt(mime: PatientImageMime) {
   return 'webp'
 }
 
-function mapImageRow(row: ImageRow, signedUrl: string | null): PatientImage {
+function mapImageRow(row: ImageRow, signedUrl: string | null, thumbUrl: string | null): PatientImage {
   return {
     id: row.id,
     patientId: row.patient_id,
@@ -59,6 +60,7 @@ function mapImageRow(row: ImageRow, signedUrl: string | null): PatientImage {
     createdAt: row.created_at,
     sessionRemoved: row.session_removed,
     signedUrl,
+    thumbUrl,
   }
 }
 
@@ -122,7 +124,7 @@ async function insertImageRow(
     .single()
 
   if (error) {
-    await supabase.storage.from(IMAGE_BUCKET).remove([path])
+    await supabase.storage.from(IMAGE_BUCKET).remove([path, thumbStoragePath(path)])
     throw new Error(mapDbError(error))
   }
 
@@ -141,15 +143,50 @@ export async function listPatientImages(patientId: string): Promise<PatientImage
   const rows = (data ?? []) as ImageRow[]
   if (rows.length === 0) return []
 
-  const paths = rows.map((row) => row.storage_path)
+  const originalPaths = rows.map((row) => row.storage_path)
   const { data: signed, error: signedError } = await supabase.storage
     .from(IMAGE_BUCKET)
-    .createSignedUrls(paths, SIGNED_URL_SECONDS)
+    .createSignedUrls(originalPaths, SIGNED_URL_SECONDS)
 
   throwIfStorageError(signedError)
 
+  const { data: thumbSigned } = await supabase.storage
+    .from(IMAGE_BUCKET)
+    .createSignedUrls(
+      rows.map((row) => thumbStoragePath(row.storage_path)),
+      SIGNED_URL_SECONDS,
+    )
+
   const urls = signedUrlByPath(signed)
-  return rows.map((row) => mapImageRow(row, urls.get(row.storage_path) ?? null))
+  const thumbUrls = signedUrlByPath(thumbSigned)
+  const transformed = await Promise.all(
+    rows.map(async (row) => {
+      const storedThumb = thumbUrls.get(thumbStoragePath(row.storage_path)) ?? null
+      if (storedThumb) return storedThumb
+      return signedTransformUrl(row.storage_path)
+    }),
+  )
+
+  return rows.map((row, index) =>
+    mapImageRow(
+      row,
+      urls.get(row.storage_path) ?? null,
+      transformed[index] ?? urls.get(row.storage_path) ?? null,
+    ),
+  )
+}
+
+async function signedTransformUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from(IMAGE_BUCKET).createSignedUrl(path, SIGNED_URL_SECONDS, {
+    transform: {
+      width: 320,
+      height: 320,
+      resize: 'cover',
+      quality: 50,
+    },
+  })
+  if (error || !data?.signedUrl) return null
+  return data.signedUrl
 }
 
 export async function uploadPatientImage(
@@ -167,8 +204,18 @@ export async function uploadPatientImage(
   })
   throwIfStorageError(uploadError)
 
+  try {
+    const thumb = await compressImageForThumb(file)
+    await supabase.storage.from(IMAGE_BUCKET).upload(thumbStoragePath(path), thumb, {
+      contentType: 'image/jpeg',
+      upsert: false,
+    })
+  } catch {
+    // Miniatura é acelerador de grid. A foto original segue.
+  }
+
   const row = await insertImageRow(patientId, imageId, path, parsed)
-  return mapImageRow(row, null)
+  return mapImageRow(row, null, null)
 }
 
 export async function uploadPatientImages(
@@ -220,7 +267,7 @@ export async function updatePatientImage(
     .single()
 
   throwIfDbError(error)
-  return mapImageRow(data as ImageRow, null)
+  return mapImageRow(data as ImageRow, null, null)
 }
 
 export async function deletePatientImage(
@@ -231,6 +278,8 @@ export async function deletePatientImage(
     .from(IMAGE_BUCKET)
     .remove([image.storagePath])
   throwIfStorageError(storageError)
+
+  await supabase.storage.from(IMAGE_BUCKET).remove([thumbStoragePath(image.storagePath)])
 
   const { error } = await supabase
     .from('patient_images')
