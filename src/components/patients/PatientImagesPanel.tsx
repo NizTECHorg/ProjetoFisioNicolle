@@ -1,8 +1,20 @@
-import { useEffect, useState } from 'react'
-import { Image } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Image, Plus, X } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { usePatientImages } from '@/hooks/usePatientImages'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
+import { usePatientImages, useUploadPatientImages } from '@/hooks/usePatientImages'
 import { usePatientSessions } from '@/hooks/usePatients'
+import {
+  imageMetadataFormSchema,
+  imageUploadSchema,
+  MAX_BATCH_FILES,
+  type ImageMetadataFormData,
+} from '@/schemas/patient.schema'
+import { toast } from '@/stores/toast.store'
 import type { PatientImage, PatientSessionRecord } from '@/types/patient'
 
 type PatientImagesPanelProps = {
@@ -11,6 +23,10 @@ type PatientImagesPanelProps = {
 }
 
 type GalleryFilter = 'todas' | 'avulsas' | string
+
+const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp'
+const NARROW_MEDIA = '(max-width: 767px)'
+const emptyMeta: ImageMetadataFormData = { description: '', sessionId: '' }
 
 function tileAllocation(image: PatientImage, sessions: PatientSessionRecord[]) {
   if (!image.sessionId) return 'Avulsa'
@@ -33,6 +49,24 @@ function filterImages(images: PatientImage[], filter: GalleryFilter) {
   if (filter === 'todas') return images
   if (filter === 'avulsas') return images.filter((image) => image.sessionId === null)
   return images.filter((image) => image.sessionId === filter)
+}
+
+function useNarrowViewport() {
+  const [narrow, setNarrow] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(NARROW_MEDIA).matches : false,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia(NARROW_MEDIA)
+    function sync() {
+      setNarrow(media.matches)
+    }
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
+
+  return narrow
 }
 
 function SignedPhoto({
@@ -77,37 +111,165 @@ function SignedPhoto({
   )
 }
 
-function EmptyWell({ heading }: { heading: string }) {
+function EmptyWell({ heading, body }: { heading: string; body?: string }) {
   return (
     <article className="rounded-2xl border border-dashed border-line bg-surface px-5 py-10 text-center">
       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent">
         <Image size={22} />
       </div>
       <p className="mt-3 text-sm text-ink">{heading}</p>
+      {body ? <p className="mt-2 text-sm text-muted">{body}</p> : null}
     </article>
+  )
+}
+
+function LoteThumbs({ files, onRemove }: { files: File[]; onRemove: (index: number) => void }) {
+  const urls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files])
+
+  useEffect(() => {
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [urls])
+
+  if (files.length === 0) return null
+
+  return (
+    <ul className="grid grid-cols-4 gap-2">
+      {files.map((file, index) => (
+        <li key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="relative">
+          <div className="aspect-square overflow-hidden rounded-xl border border-line bg-canvas">
+            <img src={urls[index]} alt="" className="h-full w-full object-cover" />
+          </div>
+          <button
+            type="button"
+            aria-label="Remover do envio"
+            onClick={() => onRemove(index)}
+            className="absolute -right-1 -top-1 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-surface text-muted shadow-sm hover:text-error"
+          >
+            <X size={14} />
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }
 
 export function PatientImagesPanel({ patientId, canWrite = false }: PatientImagesPanelProps) {
   const { data: images = [], isLoading, isError } = usePatientImages(patientId)
   const { data: sessions = [] } = usePatientSessions(patientId)
+  const uploadImages = useUploadPatientImages(patientId)
+  const narrowViewport = useNarrowViewport()
 
   const [filter, setFilter] = useState<GalleryFilter>('todas')
   const [openId, setOpenId] = useState<string | null>(null)
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [lote, setLote] = useState<File[]>([])
+  const [fileError, setFileError] = useState<string | null>(null)
+
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const chooseFilesRef = useRef<HTMLButtonElement>(null)
+
+  const uploadForm = useForm<ImageMetadataFormData>({
+    resolver: zodResolver(imageMetadataFormSchema),
+    defaultValues: emptyMeta,
+  })
 
   useEffect(() => {
     if (filter === 'todas' || filter === 'avulsas') return
     if (!sessions.some((session) => session.id === filter)) setFilter('todas')
   }, [filter, sessions])
 
+  useEffect(() => {
+    if (!uploadOpen) return
+    uploadForm.reset(emptyMeta)
+    setFileError(null)
+    chooseFilesRef.current?.focus()
+  }, [uploadOpen, uploadForm])
+
   const filtered = filterImages(images, filter)
   const openImage = images.find((image) => image.id === openId) ?? null
-  const emptyHeading =
-    images.length === 0
-      ? 'Nenhuma imagem nesta ficha.'
-      : filter === 'avulsas'
-        ? 'Nenhuma imagem avulsa.'
-        : 'Nenhuma imagem nesta sessão.'
+  const unfilteredEmpty = images.length === 0
+  const emptyHeading = unfilteredEmpty
+    ? 'Nenhuma imagem nesta ficha.'
+    : filter === 'avulsas'
+      ? 'Nenhuma imagem avulsa.'
+      : 'Nenhuma imagem nesta sessão.'
+  const emptyBody = canWrite
+    ? unfilteredEmpty
+      ? 'Toque em Adicionar imagem para enviar uma foto avulsa ou ligada a uma sessão.'
+      : 'Altere o filtro ou toque em Adicionar imagem.'
+    : undefined
+
+  const sessionOptions = [
+    { value: '', label: 'Avulsa (sem sessão)' },
+    ...sessions.map((session) => ({
+      value: session.id,
+      label: `${session.dateLabel} · ${session.timeLabel}`,
+    })),
+  ]
+
+  function closeUpload() {
+    setUploadOpen(false)
+    setLote([])
+    setFileError(null)
+    uploadForm.reset(emptyMeta)
+  }
+
+  function appendToLote(incoming: File[]) {
+    if (incoming.length === 0) return
+    setFileError(null)
+    setLote((current) => {
+      const merged = [...current, ...incoming]
+      if (merged.length <= MAX_BATCH_FILES) return merged
+      toast('Envie no máximo 10 fotos por vez.', 'error')
+      return merged.slice(0, MAX_BATCH_FILES)
+    })
+  }
+
+  function onGalleryChange(event: ChangeEvent<HTMLInputElement>) {
+    appendToLote(Array.from(event.target.files ?? []))
+    event.target.value = ''
+  }
+
+  function onCameraChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (file) appendToLote([file])
+    event.target.value = ''
+  }
+
+  function onUploadSubmit(values: ImageMetadataFormData) {
+    if (lote.length === 0) {
+      setFileError('Escolha um arquivo')
+      return
+    }
+
+    const sessionId = values.sessionId === '' ? null : values.sessionId
+    const valids: File[] = []
+    for (const file of lote) {
+      const parsed = imageUploadSchema.safeParse({
+        mimeType: file.type,
+        byteSize: file.size,
+        sessionId,
+        description: values.description,
+      })
+      if (parsed.success) {
+        valids.push(file)
+        continue
+      }
+      const message = parsed.error.issues[0]?.message
+      toast(message ?? 'Não foi possível salvar. Verifique o arquivo e tente de novo.', 'error')
+    }
+
+    setLote(valids)
+    if (valids.length === 0) return
+
+    uploadImages.mutate(
+      { files: valids, sessionId, description: values.description },
+      { onSuccess: () => closeUpload() },
+    )
+  }
 
   return (
     <>
@@ -117,7 +279,12 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Imagens</p>
             <p className="mt-1 text-sm text-muted">Fotos avulsas ou ligadas a uma sessão.</p>
           </div>
-          {canWrite ? null : null}
+          {canWrite ? (
+            <Button type="button" onClick={() => setUploadOpen(true)}>
+              <Plus size={16} />
+              Adicionar imagem
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex gap-2 overflow-x-auto">
@@ -174,7 +341,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
             Não foi possível carregar as imagens. Tente de novo em instantes.
           </article>
         ) : filtered.length === 0 ? (
-          <EmptyWell heading={emptyHeading} />
+          <EmptyWell heading={emptyHeading} body={emptyBody} />
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {filtered.map((image) => {
@@ -227,6 +394,91 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
           </div>
         ) : null}
       </Modal>
+
+      {canWrite ? (
+        <Modal
+          open={uploadOpen}
+          title="Adicionar imagem"
+          description="JPEG, PNG ou WebP. Avulsa ou de uma sessão."
+          onClose={closeUpload}
+        >
+          <form className="space-y-4" onSubmit={uploadForm.handleSubmit(onUploadSubmit)}>
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  ref={chooseFilesRef}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => galleryInputRef.current?.click()}
+                >
+                  Escolher arquivos
+                </Button>
+                {narrowViewport ? (
+                  <Button type="button" variant="secondary" onClick={() => cameraInputRef.current?.click()}>
+                    Tirar foto
+                  </Button>
+                ) : null}
+              </div>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept={IMAGE_ACCEPT}
+                multiple
+                className="hidden"
+                onChange={onGalleryChange}
+              />
+              {narrowViewport ? (
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept={IMAGE_ACCEPT}
+                  capture="environment"
+                  className="hidden"
+                  onChange={onCameraChange}
+                />
+              ) : null}
+              <p className="text-xs text-muted">JPEG, PNG ou WebP · até 8 MB</p>
+              {fileError ? (
+                <p role="alert" className="text-xs text-error">
+                  {fileError}
+                </p>
+              ) : null}
+            </div>
+
+            <LoteThumbs
+              files={lote}
+              onRemove={(index) => setLote((current) => current.filter((_, i) => i !== index))}
+            />
+
+            <Textarea
+              label="Descrição"
+              placeholder="Opcional"
+              rows={3}
+              error={uploadForm.formState.errors.description?.message}
+              {...uploadForm.register('description')}
+            />
+            <Select
+              label="Sessão"
+              options={sessionOptions}
+              error={uploadForm.formState.errors.sessionId?.message}
+              {...uploadForm.register('sessionId')}
+            />
+            <div className="flex justify-end gap-3 pt-1">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={closeUpload}
+                disabled={uploadImages.isPending}
+              >
+                Voltar
+              </Button>
+              <Button type="submit" isLoading={uploadImages.isPending}>
+                Adicionar imagem
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
     </>
   )
 }
