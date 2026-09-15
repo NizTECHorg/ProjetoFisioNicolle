@@ -419,7 +419,9 @@ export function PatientPage() {
         ? 'evolucoes'
         : aba === 'avaliacao'
           ? 'avaliacao'
-          : 'resumo'
+          : aba === 'imagens'
+            ? 'imagens'
+            : 'resumo'
 
   const {
     data: dashboard,
@@ -448,6 +450,10 @@ export function PatientPage() {
     }
     if (next === 'avaliacao') {
       setSearchParams({ aba: 'avaliacao' }, { replace: true })
+      return
+    }
+    if (next === 'imagens') {
+      setSearchParams({ aba: 'imagens' }, { replace: true })
       return
     }
     setSearchParams({}, { replace: true })
@@ -526,7 +532,7 @@ export function PatientPage() {
             patientName={dashboard.name}
             canWrite={canWrite}
           />
-        ) : detailLoading && !detail ? (
+        ) : tab === 'imagens' ? null : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />
           </div>
