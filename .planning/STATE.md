@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-09-15T02:34:08.560Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-09-15T02:40:24.962Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 71
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 7 (Galeria de imagens na ficha do paciente) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
-- Status: 07-03 shipped — next 07-04 gallery tab/panel
-- Progress: Phase 7 plan 03 service + hooks; signed URLs and invalidatePatient images key
+- Status: 07-04 shipped — next 07-05 lote/câmera write chrome
+- Progress: Phase 7 plan 04 Imagens tab, read gallery, D-07 lightbox, D-08 Evoluções copy
 
-**Progress:** [█████████░] 92%
+**Progress:** [██████████] 96%
 
 ## Accumulated Context
 
@@ -116,6 +116,9 @@ Plan: 4 of 5
 - [Phase 07]: Export invalidatePatient from usePatients so image mutations share the same key set as session delete — Plain helper, not a hook; usePatients.ts already has allowConstantExport
 - [Phase 07]: Path is patientId/randomUUID.ext with upsert false; never user filenames — T-07-05: service builds the Storage path from the route patient id plus crypto.randomUUID
 - [Phase 07]: Batch upload skips invalid MIME/size files and returns successes; throws first mapped message only if none succeed — D-04: one bad file must not abort the lote; Portuguese copy still surfaces when every file fails
+- [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Fail-closed canWrite default false on PatientImagesPanel (Pitfall 6 — do not copy Evoluções default true) — A missed canWrite prop must not show write chrome; Evoluções default true is the analog pitfall.
+- [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Empty/filter-empty states are heading-only this plan so copy never points at a missing Adicionar button — Adicionar imagem ships in 07-05; UI-SPEC empty body would instruct tapping a button that is not mounted.
+- [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: D-07: tile always Avulsa for null/orphan sessionId; lightbox shows Sessão removida. when sessionRemoved — CONTEXT wins over UI-SPEC; tile stays Avulsa including orphans until Editar save in 07-05.
 
 ### Pending user action
 
@@ -133,8 +136,8 @@ Plan: 4 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-15T02:33:54.200Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-09-15T02:40:16.005Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -157,3 +160,4 @@ Resume file: None
 | Phase 07 P01 | 5min | 2 tasks | 3 files |
 | Phase 07 P02 | 7min | 2 tasks | 1 files |
 | Phase 07 P03 | 3min | 2 tasks | 3 files |
+| Phase 07 P04 | 4min | 3 tasks | 4 files |

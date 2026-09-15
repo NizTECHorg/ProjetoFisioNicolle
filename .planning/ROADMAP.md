@@ -197,7 +197,7 @@ Plans:
   7. Empresa em consulta vê grid e lightbox; Adicionar / Editar / Excluir / Compartilhar ficam ocultos; RLS `can_read_patient` / `can_write_patient` é a parede
   8. Lightbox tem Compartilhar (`navigator.share` com o arquivo) para quem escreve; sem baixar e sem link público
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 **UI hint:** yes
 
 Plans:
@@ -212,7 +212,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 07-04-PLAN.md — Aba Imagens, galeria leitura, lightbox D-07, D-08 Evoluções
+- [x] 07-04-PLAN.md — Aba Imagens, galeria leitura, lightbox D-07, D-08 Evoluções
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

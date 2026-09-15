@@ -153,7 +153,7 @@ ProjetoFisioNicolle/
 
 **Clinic UI surfaces:**
 - `src/pages/PatientPage.tsx`: Ficha tabs via `?aba=`
-- `src/components/patients/PatientProfileHeader.tsx`: Tab type `resumo | cadastro | evolucoes | avaliacao`
+- `src/components/patients/PatientProfileHeader.tsx`: Tab type `resumo | cadastro | evolucoes | avaliacao | imagens`
 - `src/pages/TeamPage.tsx`: Empresa-only equipe
 - `src/pages/AutonomoFinancePage.tsx`: Autônomo-only `/financeiro` (catalog, totals, realizadas)
 - `src/pages/DashboardPage.tsx`: Clinic week metrics from patients + calendar (not bakery `useDashboardMetrics`)
