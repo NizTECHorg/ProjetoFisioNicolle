@@ -24,6 +24,7 @@ import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
+import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -532,7 +533,9 @@ export function PatientPage() {
             patientName={dashboard.name}
             canWrite={canWrite}
           />
-        ) : tab === 'imagens' ? null : detailLoading && !detail ? (
+        ) : tab === 'imagens' ? (
+          <PatientImagesPanel patientId={dashboard.id} canWrite={canWrite} />
+        ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />
           </div>
