@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Image, Plus, X } from 'lucide-react'
+import { Image, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
-import { usePatientImages, useUploadPatientImages } from '@/hooks/usePatientImages'
+import {
+  useDeletePatientImage,
+  usePatientImages,
+  useUpdatePatientImage,
+  useUploadPatientImages,
+} from '@/hooks/usePatientImages'
 import { usePatientSessions } from '@/hooks/usePatients'
 import {
   imageMetadataFormSchema,
@@ -49,6 +55,22 @@ function filterImages(images: PatientImage[], filter: GalleryFilter) {
   if (filter === 'todas') return images
   if (filter === 'avulsas') return images.filter((image) => image.sessionId === null)
   return images.filter((image) => image.sessionId === filter)
+}
+
+function canShareImageFiles() {
+  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') return false
+  if (typeof navigator.canShare !== 'function') return false
+  try {
+    const probe = new File([new Blob(['x'], { type: 'image/jpeg' })], 'x.jpg', { type: 'image/jpeg' })
+    return navigator.canShare({ files: [probe] })
+  } catch {
+    return false
+  }
+}
+
+function fileNameFromStoragePath(storagePath: string) {
+  const segment = storagePath.split('/').pop()
+  return segment && segment.length > 0 ? segment : 'imagem.jpg'
 }
 
 function useNarrowViewport() {
@@ -159,19 +181,28 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
   const { data: images = [], isLoading, isError } = usePatientImages(patientId)
   const { data: sessions = [] } = usePatientSessions(patientId)
   const uploadImages = useUploadPatientImages(patientId)
+  const updateImage = useUpdatePatientImage(patientId)
+  const deleteImage = useDeletePatientImage(patientId)
   const narrowViewport = useNarrowViewport()
+  const showShare = canWrite && canShareImageFiles()
 
   const [filter, setFilter] = useState<GalleryFilter>('todas')
   const [openId, setOpenId] = useState<string | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [lote, setLote] = useState<File[]>([])
   const [fileError, setFileError] = useState<string | null>(null)
+  const [editing, setEditing] = useState<PatientImage | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<PatientImage | null>(null)
 
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const chooseFilesRef = useRef<HTMLButtonElement>(null)
 
   const uploadForm = useForm<ImageMetadataFormData>({
+    resolver: zodResolver(imageMetadataFormSchema),
+    defaultValues: emptyMeta,
+  })
+  const editForm = useForm<ImageMetadataFormData>({
     resolver: zodResolver(imageMetadataFormSchema),
     defaultValues: emptyMeta,
   })
@@ -187,6 +218,15 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
     setFileError(null)
     chooseFilesRef.current?.focus()
   }, [uploadOpen, uploadForm])
+
+  useEffect(() => {
+    if (!editing) return
+    const sessionStillExists = sessions.some((session) => session.id === editing.sessionId)
+    editForm.reset({
+      description: editing.description,
+      sessionId: editing.sessionId && sessionStillExists ? editing.sessionId : '',
+    })
+  }, [editing, editForm, sessions])
 
   const filtered = filterImages(images, filter)
   const openImage = images.find((image) => image.id === openId) ?? null
@@ -271,6 +311,46 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
     )
   }
 
+  function closeEdit() {
+    setEditing(null)
+    editForm.reset(emptyMeta)
+  }
+
+  function onEditSubmit(values: ImageMetadataFormData) {
+    if (!editing) return
+    updateImage.mutate(
+      {
+        imageId: editing.id,
+        input: {
+          description: values.description,
+          sessionId: values.sessionId === '' ? null : values.sessionId,
+        },
+      },
+      { onSuccess: () => closeEdit() },
+    )
+  }
+
+  async function shareImage(image: PatientImage) {
+    if (!image.signedUrl || typeof navigator.share !== 'function') return
+    try {
+      const response = await fetch(image.signedUrl)
+      if (!response.ok) {
+        toast('Não foi possível salvar. Verifique o arquivo e tente de novo.', 'error')
+        return
+      }
+      const blob = await response.blob()
+      const file = new File([blob], fileNameFromStoragePath(image.storagePath), {
+        type: image.mimeType || blob.type,
+      })
+      if (typeof navigator.canShare === 'function' && !navigator.canShare({ files: [file] })) return
+      await navigator.share({ files: [file] })
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      if (error instanceof Error && error.name === 'AbortError') return
+      toast('Não foi possível salvar. Verifique o arquivo e tente de novo.', 'error')
+    }
+  }
+
   return (
     <>
       <div className="space-y-6">
@@ -348,30 +428,51 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
               const description = image.description.trim()
               const open = openId === image.id
               return (
-                <button
-                  key={image.id}
-                  type="button"
-                  className="text-left"
-                  onClick={() => setOpenId(image.id)}
-                >
-                  <div
-                    className={[
-                      'aspect-square overflow-hidden rounded-2xl border border-line bg-canvas',
-                      open ? 'ring-2 ring-accent ring-offset-2' : '',
-                    ].join(' ')}
+                <article key={image.id} className="group relative">
+                  <button
+                    type="button"
+                    className="w-full text-left"
+                    onClick={() => setOpenId(image.id)}
                   >
-                    <SignedPhoto src={image.signedUrl} alt={imageAlt(image)} />
-                  </div>
-                  <p
-                    className={[
-                      'mt-2 line-clamp-2 text-sm',
-                      description ? 'text-ink' : 'text-muted',
-                    ].join(' ')}
-                  >
-                    {description || 'Sem descrição.'}
-                  </p>
-                  <p className="mt-1 text-xs text-muted">{tileAllocation(image, sessions)}</p>
-                </button>
+                    <div
+                      className={[
+                        'aspect-square overflow-hidden rounded-2xl border border-line bg-canvas',
+                        open ? 'ring-2 ring-accent ring-offset-2' : '',
+                      ].join(' ')}
+                    >
+                      <SignedPhoto src={image.signedUrl} alt={imageAlt(image)} />
+                    </div>
+                    <p
+                      className={[
+                        'mt-2 line-clamp-2 text-sm',
+                        description ? 'text-ink' : 'text-muted',
+                      ].join(' ')}
+                    >
+                      {description || 'Sem descrição.'}
+                    </p>
+                    <p className="mt-1 text-xs text-muted">{tileAllocation(image, sessions)}</p>
+                  </button>
+                  {canWrite ? (
+                    <div className="absolute right-1 top-1 flex opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                      <button
+                        type="button"
+                        aria-label="Editar imagem"
+                        onClick={() => setEditing(image)}
+                        className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-surface/90 text-muted hover:text-forest"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Excluir imagem"
+                        onClick={() => setPendingDelete(image)}
+                        className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-surface/90 text-muted hover:text-error"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : null}
+                </article>
               )
             })}
           </div>
@@ -391,6 +492,21 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
               {openImage.description.trim() || 'Sem descrição.'}
             </p>
             <p className="mt-1 text-xs text-muted">{lightboxAllocation(openImage, sessions)}</p>
+            {canWrite ? (
+              <div className="mt-4 flex flex-wrap justify-end gap-3">
+                {showShare ? (
+                  <Button type="button" variant="secondary" onClick={() => void shareImage(openImage)}>
+                    Compartilhar
+                  </Button>
+                ) : null}
+                <Button type="button" variant="secondary" onClick={() => setEditing(openImage)}>
+                  Editar imagem
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setPendingDelete(openImage)}>
+                  <span className="text-error">Excluir imagem</span>
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </Modal>
@@ -478,6 +594,65 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
             </div>
           </form>
         </Modal>
+      ) : null}
+
+      {canWrite ? (
+        <Modal
+          open={Boolean(editing)}
+          title="Editar imagem"
+          description="Altere a descrição ou a sessão."
+          onClose={closeEdit}
+        >
+          <form className="space-y-4" onSubmit={editForm.handleSubmit(onEditSubmit)}>
+            <Textarea
+              label="Descrição"
+              placeholder="Opcional"
+              rows={3}
+              error={editForm.formState.errors.description?.message}
+              {...editForm.register('description')}
+            />
+            <Select
+              label="Sessão"
+              options={sessionOptions}
+              error={editForm.formState.errors.sessionId?.message}
+              {...editForm.register('sessionId')}
+            />
+            <div className="flex justify-end gap-3 pt-1">
+              <Button type="button" variant="secondary" onClick={closeEdit} disabled={updateImage.isPending}>
+                Voltar
+              </Button>
+              <Button type="submit" isLoading={updateImage.isPending}>
+                Salvar alterações
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
+
+      {canWrite ? (
+        <ConfirmDialog
+          open={Boolean(pendingDelete)}
+          title="Excluir imagem"
+          description="A imagem será removida desta ficha."
+          confirmLabel="Excluir imagem"
+          cancelLabel="Voltar"
+          tone="danger"
+          isLoading={deleteImage.isPending}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={() => {
+            if (!pendingDelete) return
+            deleteImage.mutate(
+              { id: pendingDelete.id, storagePath: pendingDelete.storagePath },
+              {
+                onSuccess: () => {
+                  if (openId === pendingDelete.id) setOpenId(null)
+                  if (editing?.id === pendingDelete.id) closeEdit()
+                  setPendingDelete(null)
+                },
+              },
+            )
+          }}
+        />
       ) : null}
     </>
   )
