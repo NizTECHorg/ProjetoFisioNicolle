@@ -75,6 +75,27 @@ export interface PatientSessionRecord {
   evolution: SessionEvolution | null
 }
 
+export type PatientImageMime = 'image/jpeg' | 'image/png' | 'image/webp'
+
+/** Foto da galeria. signedUrl só no DTO (createSignedUrls). sessionRemoved é D-07. */
+export interface PatientImage {
+  id: string
+  patientId: string
+  sessionId: string | null
+  storagePath: string
+  description: string
+  mimeType: PatientImageMime
+  byteSize: number
+  createdAt: string
+  sessionRemoved: boolean
+  signedUrl: string | null
+}
+
+export interface UpdatePatientImageInput {
+  description: string
+  sessionId: string | null
+}
+
 export interface TherapistOption {
   id: string
   fullName: string
