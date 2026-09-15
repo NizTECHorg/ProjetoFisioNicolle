@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-09-15T02:19:14.896Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-09-15T02:28:51.059Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 26
-  completed_plans: 22
-  percent: 85
+  completed_plans: 23
+  percent: 71
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 7 (Galeria de imagens na ficha do paciente) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
-- Status: 07-01 shipped — next 07-02 SQL bucket/table/RLS
-- Progress: Phase 7 plan 01 contracts (PatientImage, Zod, mapStorageError)
+- Status: 07-02 shipped — next 07-03 patientImages.service
+- Progress: Phase 7 plan 02 SQL bucket/table/RLS applied in Editor
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -109,6 +109,10 @@ Plan: 2 of 5
 - [Phase 07]: MAX_BATCH_FILES is 10 so later lote UI can reject the surplus
 - [Phase 07]: sessionRemoved is the D-07 flag; sessionId null alone does not distinguish avulsa-original vs órfã
 - [Phase 07]: mapStorageError permission path reuses mapDbError with code 42501 so copy stays Você não tem permissão para esta ação.
+- [Phase 07]: SQL Editor is the apply path; do not run supabase db push — Supabase CLI is not installed; hosted Editor is the only apply path (same as Phase 03/05/06)
+- [Phase 07]: session_id ON DELETE SET NULL so deleting a sessão does not delete photos (D-06) — Photos remain on the ficha as avulsa; client must not CASCADE delete storage objects
+- [Phase 07]: session_removed boolean default false; BEFORE DELETE on patient_sessions sets it true (D-07) — Do not use UPDATE OF session_id on patient_images; that would fight Editar avulsa
+- [Phase 07]: Table and storage.objects policies call private.can_read_patient / can_write_patient; Phase 3 helpers are not rewritten (D-11) — ASVS 4.1.1 — RLS remains the write wall; empresa is not a writer
 
 ### Pending user action
 
@@ -126,9 +130,9 @@ Plan: 2 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-15T02:19:14.863Z
-Stopped at: Completed 07-01-PLAN.md
-Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-02-PLAN.md
+Last session: 2026-09-15T02:27:59.160Z
+Stopped at: Completed 07-02-PLAN.md
+Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-03-PLAN.md
 
 ## Performance Metrics
 
@@ -148,3 +152,4 @@ Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-02-P
 | Phase 06 P03 | 4min | 2 tasks | 2 files |
 | Phase 06 P04 | 6min | 2 tasks | 2 files |
 | Phase 07 P01 | 5min | 2 tasks | 3 files |
+| Phase 07 P02 | 7min | 2 tasks | 1 files |
