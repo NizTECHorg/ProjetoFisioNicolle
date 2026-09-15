@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-09-15T02:40:24.962Z"
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-09-15T02:46:00.549Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 26
-  completed_plans: 25
-  percent: 71
+  completed_plans: 26
+  percent: 86
 ---
 
 # Project State
@@ -31,7 +31,7 @@ Plan: 5 of 5
 - Status: 07-04 shipped — next 07-05 lote/câmera write chrome
 - Progress: Phase 7 plan 04 Imagens tab, read gallery, D-07 lightbox, D-08 Evoluções copy
 
-**Progress:** [██████████] 96%
+**Progress:** [██████████] 100%
 
 ## Accumulated Context
 
@@ -119,6 +119,9 @@ Plan: 5 of 5
 - [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Fail-closed canWrite default false on PatientImagesPanel (Pitfall 6 — do not copy Evoluções default true) — A missed canWrite prop must not show write chrome; Evoluções default true is the analog pitfall.
 - [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Empty/filter-empty states are heading-only this plan so copy never points at a missing Adicionar button — Adicionar imagem ships in 07-05; UI-SPEC empty body would instruct tapping a button that is not mounted.
 - [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: D-07: tile always Avulsa for null/orphan sessionId; lightbox shows Sessão removida. when sessionRemoved — CONTEXT wins over UI-SPEC; tile stays Avulsa including orphans until Editar save in 07-05.
+- [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Tirar foto mounts only when matchMedia (max-width: 767px); Escolher arquivos is first focus and has multiple without capture — D-01: Tailwind md is 768px; CONTEXT < ~768px. Camera capture=environment must not sit on the gallery input.
+- [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Compartilhar uses navigator.share with a File from the signed-URL blob and is hidden when share or canShare files is missing; never clipboard signed URL — D-10/D-12: share bytes, not a durable URL; AbortError from dismiss is silent.
+- [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Empty and filter-empty bodies instruct Adicionar only when canWrite; ConfirmDialog cancelLabel is Voltar — D-11 hide-write; UI-SPEC empty body would mislead consult-only users; image ConfirmDialog must not ship Cancelar.
 
 ### Pending user action
 
@@ -136,8 +139,8 @@ Plan: 5 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-15T02:40:16.005Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-09-15T02:45:52.495Z
+Stopped at: Completed 07-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -161,3 +164,4 @@ Resume file: None
 | Phase 07 P02 | 7min | 2 tasks | 1 files |
 | Phase 07 P03 | 3min | 2 tasks | 3 files |
 | Phase 07 P04 | 4min | 3 tasks | 4 files |
+| Phase 07-galeria-de-imagens-na-ficha-do-paciente P05 | 5min | 2 tasks | 1 files |

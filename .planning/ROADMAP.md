@@ -12,7 +12,7 @@ Completar o prontuário e o modelo de contas. Próximo: galeria de imagens na fi
 - [x] **Phase 4: Atalhos no dashboard** — Criar evolução ou avaliação direto do painel (completed 2026-09-14)
 - [x] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre (completed 2026-09-14)
 - [x] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas (completed 2026-09-14)
-- [ ] **Phase 7: Galeria de imagens na ficha do paciente** — Galeria na ficha, avulsa ou por sessão, com descrição
+- [x] **Phase 7: Galeria de imagens na ficha do paciente** — Galeria na ficha, avulsa ou por sessão, com descrição (completed 2026-09-15)
 
 ## Phase Details
 
@@ -197,7 +197,7 @@ Plans:
   7. Empresa em consulta vê grid e lightbox; Adicionar / Editar / Excluir / Compartilhar ficam ocultos; RLS `can_read_patient` / `can_write_patient` é a parede
   8. Lightbox tem Compartilhar (`navigator.share` com o arquivo) para quem escreve; sem baixar e sem link público
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 **UI hint:** yes
 
 Plans:
@@ -216,4 +216,4 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 07-05-PLAN.md — Lote/câmera, editar/excluir, Compartilhar (D-01–D-05, D-09–D-12)
+- [x] 07-05-PLAN.md — Lote/câmera, editar/excluir, Compartilhar (D-01–D-05, D-09–D-12)
