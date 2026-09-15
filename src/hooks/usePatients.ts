@@ -43,12 +43,13 @@ function onError(error: unknown) {
   toast(error instanceof Error ? error.message : 'Erro inesperado', 'error')
 }
 
-function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patientId: string) {
+export function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patientId: string) {
   void qc.invalidateQueries({ queryKey: ['patients'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'dashboard'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'sessions'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'evaluations'] })
+  void qc.invalidateQueries({ queryKey: ['patients', patientId, 'images'] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
   void qc.invalidateQueries({ queryKey: ['finance'] })
 }
