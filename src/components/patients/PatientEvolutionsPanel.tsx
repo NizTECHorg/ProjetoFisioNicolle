@@ -152,7 +152,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
         <ConfirmDialog
           open={Boolean(pendingDelete)}
           title="Excluir sessão"
-          description="A sessão e a evolução vinculada serão removidas. Essa ação não pode ser desfeita."
+          description="A sessão e a evolução vinculada serão removidas. Essa ação não pode ser desfeita. As fotos dessa sessão ficam na ficha como avulsas."
           confirmLabel="Excluir"
           tone="danger"
           isLoading={deleteSession.isPending}
