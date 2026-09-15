@@ -215,3 +215,27 @@ export const sessionFormSchema = z
   })
 
 export type SessionFormData = z.infer<typeof sessionFormSchema>
+
+export const PATIENT_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const
+export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+export const MAX_BATCH_FILES = 10
+
+export const imageUploadSchema = z.object({
+  mimeType: z.enum(PATIENT_IMAGE_MIMES, {
+    errorMap: () => ({
+      message: 'Envie JPEG, PNG ou WebP. Fotos do iPhone: escolha a opção mais compatível.',
+    }),
+  }),
+  byteSize: z.number().int().positive().max(MAX_IMAGE_BYTES, 'A imagem deve ter no máximo 8 MB.'),
+  sessionId: z.string().uuid().nullable(),
+  description: optionalText(500),
+})
+
+export type ImageUploadInput = z.infer<typeof imageUploadSchema>
+
+export const imageMetadataFormSchema = z.object({
+  description: optionalText(500),
+  sessionId: z.string(),
+})
+
+export type ImageMetadataFormData = z.infer<typeof imageMetadataFormSchema>

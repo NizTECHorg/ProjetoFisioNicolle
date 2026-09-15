@@ -210,6 +210,55 @@ export function mapDbError(error: { message?: string; code?: string }): string {
   return 'Não foi possível concluir a operação. Tente novamente.'
 }
 
+/**
+ * Mapeia erros do Storage para copy em português (D-04). Nunca devolve error.message cru.
+ */
+export function mapStorageError(error: {
+  message?: string
+  code?: string
+  statusCode?: string | number
+  error?: string
+  status?: number
+}): string {
+  const message = `${error.message ?? ''} ${error.error ?? ''}`.toLowerCase()
+  const code = error.code ?? ''
+  const statusCode = String(error.statusCode ?? error.status ?? '')
+
+  if (
+    message.includes('size') ||
+    statusCode === '413' ||
+    message.includes('exceeded') ||
+    message.includes('too large') ||
+    message.includes('maximum allowed size')
+  ) {
+    return 'A imagem deve ter no máximo 8 MB.'
+  }
+
+  if (
+    message.includes('mime') ||
+    message.includes('not allowed') ||
+    message.includes('heic') ||
+    message.includes('heif') ||
+    message.includes('invalid content type') ||
+    message.includes('content-type')
+  ) {
+    return 'Envie JPEG, PNG ou WebP. Fotos do iPhone: escolha a opção mais compatível.'
+  }
+
+  if (
+    code === '42501' ||
+    statusCode === '403' ||
+    error.status === 403 ||
+    message.includes('unauthorized') ||
+    message.includes('row-level security') ||
+    message.includes('not allowed')
+  ) {
+    return mapDbError({ ...error, code: code === '42501' ? code : '42501' })
+  }
+
+  return 'Não foi possível salvar. Verifique o arquivo e tente de novo.'
+}
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
