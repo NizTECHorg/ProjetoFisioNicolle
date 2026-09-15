@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Phase 7 planned
-last_updated: "2026-09-15T02:11:03.612Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-09-15T02:19:14.896Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 26
-  completed_plans: 21
-  percent: 71
+  completed_plans: 22
+  percent: 85
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 6 — Silhueta de áreas de foco
+**Current focus:** Phase 7 — Galeria de imagens na ficha do paciente
 
 ## Current Position
 
-Phase: 6 (Silhueta de áreas de foco) — EXECUTING
-Plan: 4 of 4
+Phase: 7 (Galeria de imagens na ficha do paciente) — EXECUTING
+Plan: 2 of 5
 
-- Status: Phase complete — ready for verification
-- Progress: Phase 6 plans 01–04 shipped (catalog, region_key SQL, toggle, PatientFocusAreasPanel)
+- Status: 07-01 shipped — next 07-02 SQL bucket/table/RLS
+- Progress: Phase 7 plan 01 contracts (PatientImage, Zod, mapStorageError)
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -106,6 +106,9 @@ Plan: 4 of 4
 - [Phase 06]: HOVER_OPEN_MS = 500 for fine hover; coarse/touch and prefers-reduced-motion open immediately (D-05)
 - [Phase 06]: When !canWrite the chip is unmounted, paths omit tabIndex, cursor-default, no hover preview (D-10)
 - [Phase 06]: Coarse pointerleave does not close the chip so a finger-lift cannot dismiss before the second tap
+- [Phase 07]: MAX_BATCH_FILES is 10 so later lote UI can reject the surplus
+- [Phase 07]: sessionRemoved is the D-07 flag; sessionId null alone does not distinguish avulsa-original vs órfã
+- [Phase 07]: mapStorageError permission path reuses mapDbError with code 42501 so copy stays Você não tem permissão para esta ação.
 
 ### Pending user action
 
@@ -123,9 +126,9 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-15T02:11:03.582Z
-Stopped at: Phase 7 planned
-Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-01-PLAN.md
+Last session: 2026-09-15T02:19:14.863Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-02-PLAN.md
 
 ## Performance Metrics
 
@@ -144,3 +147,4 @@ Resume file: .planning/phases/07-galeria-de-imagens-na-ficha-do-paciente/07-01-P
 | Phase 06 P02 | 9min | 2 tasks | 1 files |
 | Phase 06 P03 | 4min | 2 tasks | 2 files |
 | Phase 06 P04 | 6min | 2 tasks | 2 files |
+| Phase 07 P01 | 5min | 2 tasks | 3 files |

@@ -197,13 +197,13 @@ Plans:
   7. Empresa em consulta vê grid e lightbox; Adicionar / Editar / Excluir / Compartilhar ficam ocultos; RLS `can_read_patient` / `can_write_patient` é a parede
   8. Lightbox tem Compartilhar (`navigator.share` com o arquivo) para quem escreve; sem baixar e sem link público
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 **UI hint:** yes
 
 Plans:
 **Wave 1**
 
-- [ ] 07-01-PLAN.md — Contratos: PatientImage, Zod MIME/lote, mapStorageError
+- [x] 07-01-PLAN.md — Contratos: PatientImage, Zod MIME/lote, mapStorageError
 - [ ] 07-02-PLAN.md — SQL bucket/table/RLS + apply no Editor [BLOCKING]
 
 **Wave 2** *(blocked on Wave 1 completion, including SQL apply)*
