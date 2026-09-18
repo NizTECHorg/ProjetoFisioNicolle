@@ -439,22 +439,11 @@ alter table public.google_calendar_session_links enable row level security;
 | A4 | After PKCE `linkIdentity`, `provider_refresh_token` appears on session like `signInWithOAuth` | Pattern 2 | May need implicit capture path / support ticket; gate with reconnect UX |
 | A5 | Google verification not blocking for internal UAT test users | Pitfall 6 | Production launch delayed |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Edge Function deploy path for this team**
-   - What we know: No `supabase` CLI in environment; SQL Editor is the DB apply path.
-   - What's unclear: Whether Dashboard Functions UI is acceptable for Wave 0.
-   - Recommendation: Planner Wave 0 = human checkpoint to deploy 3 functions + secrets.
-
-2. **Google Cloud project / consent branding**
-   - What we know: Supabase docs recommend branding/custom domain to reduce phishing risk.
-   - What's unclear: Whether production domain and privacy policy URLs exist.
-   - Recommendation: Use testing audience until branding ready.
-
-3. **Empresa viewers exporting colleague sessions**
-   - What we know: Empresa can SELECT sessions via `can_read_patient` but cannot write patients.
-   - What's unclear: Should empresa owners export sessions they can only read?
-   - Recommendation: Allow export of any session **visible** via RLS to the caller’s Google calendar (read ≠ invent patient); still per-user event links. Confirm in plan if product wants “only therapist_id = me”.
+1. **Edge Function deploy path for this team** — **RESOLVED:** Human checkpoint in Plan 08-03 Task 2 — deploy via Supabase Dashboard Functions UI and/or install CLI; secrets set in Dashboard. SQL remains SQL Editor only (no `db push`).
+2. **Google Cloud project / consent branding** — **RESOLVED:** Plan 08-03 `user_setup` uses testing audience / OAuth consent until production branding and privacy URLs exist; not a code blocker for export MVP.
+3. **Empresa viewers exporting colleague sessions** — **RESOLVED:** Plan 08-05 — export any session **visible** via RLS to the caller’s Google calendar (Agenda already shows those rows); per-user `(user_id, session_id)` event links; do **not** invent patients. No `therapist_id = me` filter this phase.
 
 ## Environment Availability
 

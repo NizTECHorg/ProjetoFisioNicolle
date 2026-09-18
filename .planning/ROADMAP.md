@@ -236,8 +236,19 @@ Plans:
 **UI hint:** yes
 
 Plans:
+**Wave 1**
+
 - [ ] 08-01-PLAN.md — Types, Zod, mapper D-08, mapGoogleCalendarError, exportação copy
 - [ ] 08-02-PLAN.md — SQL connections/secrets/links + [BLOCKING] SQL Editor apply
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 08-03-PLAN.md — Edge Functions vault/export/disconnect + [BLOCKING] deploy/secrets
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 08-04-PLAN.md — googleCalendar.service + useGoogleCalendar hooks
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 08-05-PLAN.md — CalendarPage Google strip + UAT connect/export/disconnect
