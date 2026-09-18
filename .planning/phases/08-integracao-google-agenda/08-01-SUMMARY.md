@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: Google Calendar DTOs and Zod schema** - `e938ce8` (feat)
 2. **Task 2: mapSessionToGoogleEvent and mapGoogleCalendarError** - `0b1d17b` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `29556c7` (docs: complete plan)
 
 ## Files Created/Modified
 
