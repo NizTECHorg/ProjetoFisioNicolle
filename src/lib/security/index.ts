@@ -1,3 +1,5 @@
+import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
+
 /**
  * Sanitiza entrada de texto removendo caracteres de controle e limitando tamanho.
  * Nunca confie apenas nisso — validação com Zod e RLS no Supabase são obrigatórios.
@@ -274,6 +276,61 @@ export function mapStorageError(error: {
   }
 
   return 'Não foi possível salvar. Verifique o arquivo e tente de novo.'
+}
+
+/**
+ * Mapeia erros do Google Calendar / Edge Functions para copy em português (REQ-20.5).
+ * Nunca devolve error.message cru nem JSON OAuth em inglês.
+ */
+export function mapGoogleCalendarError(
+  error: { message?: string; status?: number; code?: string | number } | null | undefined,
+): string {
+  if (!error) {
+    return GOOGLE_CALENDAR_COPY.exportError
+  }
+
+  const message = (error.message ?? '').toLowerCase()
+  const code = String(error.code ?? '').toLowerCase()
+  const status = error.status
+
+  if (
+    status === 401 ||
+    status === 403 ||
+    message.includes('invalid_grant') ||
+    message.includes('insufficient') ||
+    message.includes('needs_reconnect') ||
+    code === 'needs_reconnect' ||
+    code === '401' ||
+    code === '403'
+  ) {
+    return GOOGLE_CALENDAR_COPY.tokenExpired
+  }
+
+  if (
+    message.includes('network') ||
+    message.includes('failed to fetch') ||
+    message.includes('fetch failed') ||
+    message.includes('unavailable') ||
+    code === 'network' ||
+    (typeof status === 'number' && status >= 500 && status < 600)
+  ) {
+    return GOOGLE_CALENDAR_COPY.networkError
+  }
+
+  if (message.includes('empty_month') || message.includes('empty') || code === 'empty_month') {
+    return GOOGLE_CALENDAR_COPY.exportEmpty
+  }
+
+  if (
+    code === '42501' ||
+    message.includes('permission') ||
+    message.includes('row-level security') ||
+    message.includes('rls')
+  ) {
+    return mapDbError({ message: error.message, code: '42501' })
+  }
+
+  return GOOGLE_CALENDAR_COPY.exportError
 }
 
 export function formatCurrency(value: number): string {
