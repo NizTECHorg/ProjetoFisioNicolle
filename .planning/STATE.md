@@ -136,6 +136,7 @@ Plan: 5 of 5
 - Phase 5 added: Financeiro do autônomo — valores de consulta e arrecadação (REQ-17)
 - Phase 6 added: Silhueta de áreas de foco — marcar partes do corpo na ficha (REQ-18)
 - Phase 7 added: Galeria de imagens na ficha do paciente
+- Phase 8 added: Integração Google Agenda — exportar sessões da agenda da aplicação para o Google Calendar
 
 ## Session Continuity
 

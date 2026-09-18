@@ -12,8 +12,23 @@
 - [x] **REQ-16**: Atalhos no dashboard para criar evolução ou avaliação
 - [x] **REQ-17**: Financeiro do autônomo — valores de consulta e arrecadação
 - [x] **REQ-18**: Silhueta de áreas de foco — marcar partes do corpo na ficha
+- [ ] **REQ-20**: Integração Google Agenda — exportar sessões da agenda para o Google Calendar
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-20 — Integração Google Agenda
+
+**Indispensável · Artur**
+
+Na Agenda da aplicação, o profissional conecta a conta Google e sobe as sessões/tarefas agendadas para o Google Calendar. Prioridade é **app → Google**. Se for possível e seguro trazer eventos do Google para dentro da agenda da aplicação, incluir; se não for, entregar só a exportação e documentar o bloqueio.
+
+### Acceptance
+
+1. O profissional conecta e desconecta a conta Google a partir da Agenda.
+2. Sessões da aplicação podem ser criadas/atualizadas como eventos no Google Calendar do usuário conectado.
+3. Credenciais OAuth não ficam expostas no cliente de forma insegura; acesso respeita o dono da conta.
+4. Se sync Google → app for inviável nesta fase, a UI deixa claro que a integração é só exportação.
+5. Falha de token / escopo / rede mostra mensagem em português e permite reconectar.
 
 ## REQ-18 — Silhueta de áreas de foco
 
@@ -147,3 +162,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |
 | REQ-08 | Prior | Delivered |
+| REQ-20 | Phase 8 | Pending |

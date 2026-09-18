@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Próximo: galeria de imagens na ficha (Phase 7). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Próximo: integração Google Agenda (Phase 8). REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
@@ -13,6 +13,7 @@ Completar o prontuário e o modelo de contas. Próximo: galeria de imagens na fi
 - [x] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre (completed 2026-09-14)
 - [x] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas (completed 2026-09-14)
 - [x] **Phase 7: Galeria de imagens na ficha do paciente** — Galeria na ficha, avulsa ou por sessão, com descrição (completed 2026-09-15)
+- [ ] **Phase 8: Integração Google Agenda** — Exportar sessões da agenda da aplicação para o Google Calendar
 
 ## Phase Details
 
@@ -217,3 +218,22 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 07-05-PLAN.md — Lote/câmera, editar/excluir, Compartilhar (D-01–D-05, D-09–D-12)
+
+### Phase 8: Integração Google Agenda
+
+**Goal:** O profissional conecta a conta Google e envia as sessões da agenda da aplicação para o Google Calendar. Se a integração bidirecional (Google → app) for viável sem quebrar o modelo clínico, incluir; senão, entregar só app → Google.
+**Depends on:** Phase 7 (numbering; functionally agenda/`patient_sessions` + Phase 3 auth)
+**Requirements**: REQ-20
+**Success Criteria** (what must be TRUE):
+
+  1. Na Agenda (`/agenda`) o profissional consegue conectar/desconectar a conta Google
+  2. Sessões da aplicação podem ser enviadas (criar/atualizar) como eventos no Google Calendar
+  3. Tokens OAuth ficam seguros (não em localStorage puro; RLS / backend adequado)
+  4. Se sync Google → app for inviável ou inseguro, a fase entrega só app → Google e documenta o motivo
+  5. Erros de permissão / token expirado aparecem em português, com caminho claro para reconectar
+
+**Plans:** 0 plans
+**UI hint:** yes
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 8 to break down)
