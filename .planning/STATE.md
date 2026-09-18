@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-09-18T22:22:00.456Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-09-18T22:30:20.311Z"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 31
-  completed_plans: 27
-  percent: 87
+  completed_plans: 28
+  percent: 90
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 8 (Integração Google Agenda) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
-- Status: 08-01 shipped — next 08-02 SQL connections/secrets/links
-- Progress: Google Calendar DTOs, export copy, session→event mapper, mapGoogleCalendarError
+- Status: 08-02 shipped — next 08-03 Edge Functions vault/export/disconnect
+- Progress: Google Calendar SQL (connections/secrets/links) applied in SQL Editor; secrets wall in place
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 90%
 
 ## Accumulated Context
 
@@ -125,6 +125,9 @@ Plan: 2 of 5
 - [Phase 08]: Import GOOGLE_CALENDAR_COPY into mapGoogleCalendarError to avoid copy drift — Single source for UI-SPEC reconnect/network/export strings
 - [Phase 08]: DEFAULT_EVENT_DURATION_MS = 60 minutes; timeZone America/Sao_Paulo — Claude discretion locked in plan interfaces
 - [Phase 08]: Omit location when place is empty or em dash placeholder — CalendarSession uses — as empty place sentinel
+- [Phase 08]: SQL Editor only for Google Calendar schema; never supabase db push — Supabase CLI not installed; /supabase/ gitignored; same dual-path as Phase 5/7
+- [Phase 08]: google_calendar_secrets REVOKE ALL from authenticated with no GRANT — REQ-20.3 / T-08-04 — tokens only via Edge Function service_role
+- [Phase 08]: session_links PK (user_id, session_id); no google_event_id on patient_sessions — D-09 / Pitfall 5 — per-user event links for idempotent re-export
 
 ### Pending user action
 
@@ -143,8 +146,8 @@ Plan: 2 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-18T22:22:00.424Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-09-18T22:30:20.256Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -170,3 +173,4 @@ Resume file: None
 | Phase 07 P04 | 4min | 3 tasks | 4 files |
 | Phase 07-galeria-de-imagens-na-ficha-do-paciente P05 | 5min | 2 tasks | 1 files |
 | Phase 08 P01 | 5min | 2 tasks | 4 files |
+| Phase 08 P02 | 6min | 2 tasks | 2 files |
