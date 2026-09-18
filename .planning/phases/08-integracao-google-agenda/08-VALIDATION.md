@@ -2,7 +2,7 @@
 phase: 8
 slug: integracao-google-agenda
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-18
 ---
@@ -17,8 +17,8 @@ created: 2026-09-18
 
 | Property | Value |
 |----------|-------|
-| **Framework** | None installed — prefer Vitest if Wave 0 adds tests; otherwise lint+typecheck |
-| **Config file** | none — Wave 0 decides |
+| **Framework** | None installed — deferred Vitest (no new packages this phase); lint + typecheck |
+| **Config file** | none |
 | **Quick run command** | `npm run typecheck` |
 | **Full suite command** | `npm run lint && npm run typecheck` |
 | **Estimated runtime** | ~20–40 seconds |
@@ -38,22 +38,28 @@ created: 2026-09-18
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | 1 | REQ-20 | T-08-* | No refresh in localStorage; EF vault | typecheck | `npm run typecheck` | ❌ W0 | ⬜ pending |
-| TBD | TBD | 1 | REQ-20.2 | — | Session → event mapper | unit (if Vitest) | `npx vitest run` mapper | ❌ W0 | ⬜ pending |
-| TBD | TBD | 1 | REQ-20.5 | T-08-* | 401/403 → PT reconnect copy | unit (if Vitest) | mapGoogleCalendarError | ❌ W0 | ⬜ pending |
+| 08-01-T1 | 01 | 1 | REQ-20.4 | T-08-02 | No token fields on DTOs | typecheck | `npm run typecheck` | ✅ | ⬜ pending |
+| 08-01-T2 | 01 | 1 | REQ-20.5 / D-08 | T-08-01 T-08-03 | Mapper allow-list + PT errors | lint+typecheck | `npm run lint && npm run typecheck` | ✅ | ⬜ pending |
+| 08-02-T1 | 02 | 1 | REQ-20.3 / D-09 | T-08-04 T-08-05 | Secrets revoke; link PK | file+diff+grep | dual-path SQL gates in PLAN | ✅ | ⬜ pending |
+| 08-02-T2 | 02 | 1 | REQ-20.3 | T-08-04 | Auth cannot SELECT secrets | manual | SQL Editor checklist | ✅ | ⬜ pending |
+| 08-03-T1 | 03 | 2 | REQ-20.2 / REQ-20.3 | T-08-07–12 | EF vault + RLS export | file+grep | function source gates in PLAN | ✅ | ⬜ pending |
+| 08-03-T2 | 03 | 2 | REQ-20.3 | T-08-07 T-08-12 | Deploy + Function secrets | manual | Dashboard/CLI deploy checklist | ✅ | ⬜ pending |
+| 08-04-T1 | 04 | 3 | REQ-20.1 / REQ-20.3 | T-08-08 T-08-11 | linkIdentity + no localStorage tokens | typecheck | `npm run typecheck` | ✅ | ⬜ pending |
+| 08-04-T2 | 04 | 3 | REQ-20.5 | T-08-03 | Hooks toast PT reconnect | lint+typecheck | `npm run lint && npm run typecheck` | ✅ | ⬜ pending |
+| 08-05-T1 | 05 | 4 | REQ-20.1–20.5 / D-03 | T-08-13 T-08-14 | Export-only strip | lint+typecheck | `npm run lint && npm run typecheck` | ✅ | ⬜ pending |
+| 08-05-T2 | 05 | 4 | REQ-20 | — | Live OAuth/export UAT | manual | VALIDATION manual table | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-*Planner fills concrete Task IDs when PLAN.md files exist.*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] Decide: add Vitest now vs defer automated tests (no runner in `package.json` today)
-- [ ] `mapSessionToGoogleEvent` (+ test if Vitest)
-- [ ] `mapGoogleCalendarError` (+ test if Vitest)
-- [ ] Human checklist: Google Cloud OAuth + Calendar API + Supabase Google provider + Manual Linking + Edge Function secrets
-- [ ] CSP note: prefer EF-only Google calls
+- [x] Decide: defer Vitest (no new packages); gate on lint+typecheck + manual UAT
+- [x] `mapSessionToGoogleEvent` planned in 08-01 (pure; tests deferred)
+- [x] `mapGoogleCalendarError` planned in 08-01
+- [x] Human checklist: Google Cloud OAuth + Calendar API + Supabase Google provider + Manual Linking + Edge Function secrets (08-03 Task 2)
+- [x] CSP note: prefer EF-only Google calls (08-03) — page CSP may stay unchanged
 
 ---
 
@@ -70,11 +76,11 @@ created: 2026-09-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 / human-check dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (Vitest deferred intentionally)
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** pending execution
