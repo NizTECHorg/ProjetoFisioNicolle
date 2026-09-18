@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-09-18T19:08:23.137Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-09-18T22:22:00.456Z"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 31
-  completed_plans: 26
-  percent: 75
+  completed_plans: 27
+  percent: 87
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 7 — Galeria de imagens na ficha do paciente
+**Current focus:** Phase 8 — Integração Google Agenda
 
 ## Current Position
 
-Phase: 7 (Galeria de imagens na ficha do paciente) — EXECUTING
-Plan: 5 of 5
+Phase: 8 (Integração Google Agenda) — EXECUTING
+Plan: 2 of 5
 
-- Status: 07-04 shipped — next 07-05 lote/câmera write chrome
-- Progress: Phase 7 plan 04 Imagens tab, read gallery, D-07 lightbox, D-08 Evoluções copy
+- Status: 08-01 shipped — next 08-02 SQL connections/secrets/links
+- Progress: Google Calendar DTOs, export copy, session→event mapper, mapGoogleCalendarError
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -122,6 +122,9 @@ Plan: 5 of 5
 - [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Tirar foto mounts only when matchMedia (max-width: 767px); Escolher arquivos is first focus and has multiple without capture — D-01: Tailwind md is 768px; CONTEXT < ~768px. Camera capture=environment must not sit on the gallery input.
 - [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Compartilhar uses navigator.share with a File from the signed-URL blob and is hidden when share or canShare files is missing; never clipboard signed URL — D-10/D-12: share bytes, not a durable URL; AbortError from dismiss is silent.
 - [Phase 07-galeria-de-imagens-na-ficha-do-paciente]: Empty and filter-empty bodies instruct Adicionar only when canWrite; ConfirmDialog cancelLabel is Voltar — D-11 hide-write; UI-SPEC empty body would mislead consult-only users; image ConfirmDialog must not ship Cancelar.
+- [Phase 08]: Import GOOGLE_CALENDAR_COPY into mapGoogleCalendarError to avoid copy drift — Single source for UI-SPEC reconnect/network/export strings
+- [Phase 08]: DEFAULT_EVENT_DURATION_MS = 60 minutes; timeZone America/Sao_Paulo — Claude discretion locked in plan interfaces
+- [Phase 08]: Omit location when place is empty or em dash placeholder — CalendarSession uses — as empty place sentinel
 
 ### Pending user action
 
@@ -140,9 +143,9 @@ Plan: 5 of 5
 
 ## Session Continuity
 
-Last session: 2026-09-18T18:53:51.240Z
-Stopped at: Phase 8 UI-SPEC approved
-Resume file: .planning/phases/08-integracao-google-agenda/08-UI-SPEC.md
+Last session: 2026-09-18T22:22:00.424Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -166,3 +169,4 @@ Resume file: .planning/phases/08-integracao-google-agenda/08-UI-SPEC.md
 | Phase 07 P03 | 3min | 2 tasks | 3 files |
 | Phase 07 P04 | 4min | 3 tasks | 4 files |
 | Phase 07-galeria-de-imagens-na-ficha-do-paciente P05 | 5min | 2 tasks | 1 files |
+| Phase 08 P01 | 5min | 2 tasks | 4 files |

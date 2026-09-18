@@ -162,4 +162,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |
 | REQ-08 | Prior | Delivered |
-| REQ-20 | Phase 8 | Pending |
+| REQ-20 | Phase 8 | In Progress |

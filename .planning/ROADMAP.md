@@ -232,13 +232,13 @@ Plans:
   4. Se sync Google → app for inviável ou inseguro, a fase entrega só app → Google e documenta o motivo
   5. Erros de permissão / token expirado aparecem em português, com caminho claro para reconectar
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 **UI hint:** yes
 
 Plans:
 **Wave 1**
 
-- [ ] 08-01-PLAN.md — Types, Zod, mapper D-08, mapGoogleCalendarError, exportação copy
+- [x] 08-01-PLAN.md — Types, Zod, mapper D-08, mapGoogleCalendarError, exportação copy
 - [ ] 08-02-PLAN.md — SQL connections/secrets/links + [BLOCKING] SQL Editor apply
 
 **Wave 2** *(blocked on Wave 1 completion)*
