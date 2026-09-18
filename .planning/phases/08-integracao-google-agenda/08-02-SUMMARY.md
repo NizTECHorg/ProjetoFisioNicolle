@@ -70,7 +70,7 @@ Each task was committed atomically:
 1. **Task 1: Author idempotent 08-google-calendar.sql** - `7849aa5` (feat)
 2. **Task 2: Apply SQL in Editor [BLOCKING]** - human-action (no code commit; approved after SQL Editor + privilege guidance)
 
-**Plan metadata:** (pending docs close-out commit)
+**Plan metadata:** `5175a95` (docs: complete plan)
 
 ## Files Created/Modified
 
