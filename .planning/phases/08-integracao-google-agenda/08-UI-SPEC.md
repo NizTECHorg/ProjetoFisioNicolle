@@ -1,7 +1,8 @@
 ---
 phase: 8
 slug: integracao-google-agenda
-status: draft
+status: approved
+reviewed_at: 2026-09-18T15:52:00-03:00
 shadcn_initialized: false
 preset: none
 created: 2026-09-18
