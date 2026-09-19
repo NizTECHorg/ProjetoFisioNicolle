@@ -376,22 +376,19 @@ Live clinic routes: `/`, `/cadastro`, `/aguardando`, `/painel`, `/pacientes`, `/
 | A3 | No automated visual regression tooling will be added this phase (manual UAT only) | Validation | Coverage depends on human checklist |
 | A4 | `min-h-11` (2.75rem) equals 44 CSS px under default root font size | Touch targets | Rem root changes would desync |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **SettingsPage**
+1. **SettingsPage** — RESOLVED
    - What we know: Listed in D-01; file exists; **not** in `routes/index.tsx`.
-   - What's unclear: Wire a route vs treat as out of scope until product wants Configurações.
-   - Recommendation: **Skip** in Phase 10 unless product asks to route it (orphan uses bakery color tokens).
+   - Decision: **Skip** in Phase 10 (orphan / bakery tokens). UAT does not include Settings.
 
-2. **Kanban UX on phone**
+2. **Kanban UX on phone** — RESOLVED
    - What we know: Horizontal columns are standard for boards; D-03 allows contained overflow.
-   - What's unclear: Affordance-only vs vertical accordion.
-   - Recommendation: Affordance + larger controls in W2; escalate only if UAT fails.
+   - Decision: Affordance + larger controls in Wave 2; escalate only if UAT fails (no accordion rewrite).
 
-3. **Calendar day cell size**
+3. **Calendar day cell size** — RESOLVED
    - What we know: 7-column month is dense at 360px.
-   - What's unclear: Shrink typography vs switch mobile to agenda-list-first.
-   - Recommendation: Keep month grid; enlarge hit area / reduce gap; list panel already stacks below on small screens via `lg:grid-cols`.
+   - Decision: Keep month grid; enlarge hit area / reduce gap; day list already stacks below via `lg:grid-cols`.
 
 ## Environment Availability
 
