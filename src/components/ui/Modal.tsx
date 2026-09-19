@@ -28,7 +28,7 @@ export function Modal({ open, title, description, onClose, children, wide = fals
   if (!open) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center sm:pb-4">
       <button
         type="button"
         aria-label="Fechar"

@@ -26,14 +26,26 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Modal open={open} title={title} description={description} onClose={onClose}>
-      <div className="flex justify-end gap-3">
-        <Button variant="secondary" onClick={onClose} disabled={isLoading}>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button
+          variant="secondary"
+          fullWidth
+          className="sm:w-auto"
+          onClick={onClose}
+          disabled={isLoading}
+        >
           {cancelLabel}
         </Button>
         <Button
+          fullWidth
+          className={[
+            'sm:w-auto',
+            tone === 'danger' ? '!bg-error !text-white hover:!bg-error/90' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           onClick={onConfirm}
           isLoading={isLoading}
-          className={tone === 'danger' ? '!bg-error !text-white hover:!bg-error/90' : ''}
         >
           {confirmLabel}
         </Button>
