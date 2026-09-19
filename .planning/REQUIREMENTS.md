@@ -12,9 +12,24 @@
 - [x] **REQ-16**: Atalhos no dashboard para criar evolução ou avaliação
 - [x] **REQ-17**: Financeiro do autônomo — valores de consulta e arrecadação
 - [x] **REQ-18**: Silhueta de áreas de foco — marcar partes do corpo na ficha
-- [ ] **REQ-20**: Integração Google Agenda — exportar sessões da agenda para o Google Calendar
+- [ ] **REQ-20**: Integração Google Agenda — exportar sessões da agenda para o Google Calendar *(UAT pendente)*
+- [ ] **REQ-21**: Empresa cria paciente e sessão sem alocar fisioterapeuta
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-21 — Paciente/sessão sem fisioterapeuta (empresa)
+
+**Indispensável · Artur**
+
+Na conta **empresa**, dá para cadastrar um **paciente** e criar/agendar uma **sessão** **sem** alocar um fisioterapeuta. O vínculo com o profissional fica opcional e pode ser preenchido depois.
+
+### Acceptance
+
+1. Fluxos de novo paciente (empresa) não exigem fisioterapeuta.
+2. Fluxos de nova sessão / agendar (empresa) não exigem `therapistId`.
+3. Registros sem profissional exibem estado claro na UI e permitem atribuir na edição.
+4. Autônomo e fisioterapeuta não perdem o fluxo atual.
+5. Dados persistem no Supabase com profissional nulo quando não alocado; RLS de equipe permanece válido.
 
 ## REQ-20 — Integração Google Agenda
 
@@ -162,4 +177,5 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-14 | Phase 2 | Implemented (SQL + UAT depois) |
 | REQ-05 | Phase 1 | Deferred (SQL + UAT depois) |
 | REQ-08 | Prior | Delivered |
-| REQ-20 | Phase 8 | In Progress |
+| REQ-20 | Phase 8 | In Progress (UAT pendente) |
+| REQ-21 | Phase 9 | Planned |

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Próximo: integração Google Agenda (Phase 8). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Phase 8 (Google Agenda) em UAT — histórico preservado, ainda sem approved. Em paralelo: Phase 9 (sessão/paciente sem fisio para empresa). REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
@@ -13,7 +13,8 @@ Completar o prontuário e o modelo de contas. Próximo: integração Google Agen
 - [x] **Phase 5: Financeiro do autônomo** — Catálogo de preços do autônomo, alocação na sessão e arrecadação por mês/ano/sempre (completed 2026-09-14)
 - [x] **Phase 6: Silhueta de áreas de foco** — Marcar partes do corpo na ficha com silhueta frente/costas (completed 2026-09-14)
 - [x] **Phase 7: Galeria de imagens na ficha do paciente** — Galeria na ficha, avulsa ou por sessão, com descrição (completed 2026-09-15)
-- [ ] **Phase 8: Integração Google Agenda** — Exportar sessões da agenda da aplicação para o Google Calendar
+- [ ] **Phase 8: Integração Google Agenda** — Exportar sessões da agenda da aplicação para o Google Calendar *(UAT pendente — não approved)*
+- [ ] **Phase 9: Paciente/sessão sem fisioterapeuta (empresa)** — Empresa cria paciente e sessão sem alocar profissional
 
 ## Phase Details
 
@@ -232,7 +233,7 @@ Plans:
   4. Se sync Google → app for inviável ou inseguro, a fase entrega só app → Google e documenta o motivo
   5. Erros de permissão / token expirado aparecem em português, com caminho claro para reconectar
 
-**Plans:** 2/5 plans executed
+**Plans:** 4/5 plans executed
 **UI hint:** yes
 
 Plans:
@@ -243,12 +244,28 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 08-03-PLAN.md — Edge Functions vault/export/disconnect + [BLOCKING] deploy/secrets
+- [x] 08-03-PLAN.md — Edge Functions vault/export/disconnect + [BLOCKING] deploy/secrets
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 08-04-PLAN.md — googleCalendar.service + useGoogleCalendar hooks
+- [x] 08-04-PLAN.md — googleCalendar.service + useGoogleCalendar hooks
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [ ] 08-05-PLAN.md — CalendarPage Google strip + UAT connect/export/disconnect
+
+### Phase 9: Paciente/sessão sem fisioterapeuta (empresa)
+
+**Goal:** Conta **empresa** consegue cadastrar paciente e criar/agendar sessão **sem** obrigar a alocação de um fisioterapeuta. O profissional pode ficar vazio e ser atribuído depois.
+**Depends on:** Phase 3 (account types + team) — não bloqueia em Phase 8
+**Requirements**: REQ-21
+**Success Criteria** (what must be TRUE):
+
+  1. Empresa cria paciente sem selecionar/alocar fisioterapeuta
+  2. Empresa cria ou agenda sessão sem `therapistId` obrigatório
+  3. UI deixa claro quando não há profissional (ex.: Sem profissional) e permite atribuir depois na edição
+  4. Autônomo e fisioterapeuta mantêm o comportamento atual (não regredir fluxo solo/equipe)
+  5. Persistência e RLS continuam corretos com `therapist_id` / vínculo nulo
+
+**Plans:** TBD
+**UI hint:** yes
