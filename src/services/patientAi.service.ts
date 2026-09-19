@@ -22,42 +22,57 @@ interface SummaryResponseBody {
   message?: string
 }
 
+function payloadFromBody(
+  body: FunctionsErrorBody,
+  status?: number,
+  fallbackMessage?: string,
+): { status?: number; code?: string; message?: string } {
+  return {
+    status,
+    code: typeof body.code === 'string' ? body.code : undefined,
+    message:
+      typeof body.message === 'string'
+        ? body.message
+        : typeof body.error === 'string'
+          ? body.error
+          : fallbackMessage,
+  }
+}
+
 async function readFunctionsErrorPayload(
-  error: { context?: unknown; message?: string } | null,
+  error: { context?: unknown; message?: string; name?: string } | null,
   data: unknown,
 ): Promise<{ status?: number; code?: string; message?: string }> {
   if (data && typeof data === 'object') {
-    const body = data as FunctionsErrorBody
-    return {
-      code: typeof body.code === 'string' ? body.code : undefined,
-      message:
-        typeof body.message === 'string'
-          ? body.message
-          : typeof body.error === 'string'
-            ? body.error
-            : undefined,
-    }
+    return payloadFromBody(data as FunctionsErrorBody, undefined, error?.message)
   }
 
   const context = error?.context
-  if (context && typeof context === 'object' && 'status' in context) {
+  if (context && typeof Response !== 'undefined' && context instanceof Response) {
+    const status = context.status
+    try {
+      const body = (await context.clone().json()) as FunctionsErrorBody
+      return payloadFromBody(body, status, error?.message)
+    } catch {
+      return { status, message: error?.message }
+    }
+  }
+
+  // Older supabase-js: context is Response-like but not instanceof Response
+  if (context && typeof context === 'object' && 'status' in context && 'json' in context) {
     const response = context as Response
     const status = response.status
     try {
       const body = (await response.clone().json()) as FunctionsErrorBody
-      return {
-        status,
-        code: typeof body.code === 'string' ? body.code : undefined,
-        message:
-          typeof body.message === 'string'
-            ? body.message
-            : typeof body.error === 'string'
-              ? body.error
-              : error?.message,
-      }
+      return payloadFromBody(body, status, error?.message)
     } catch {
       return { status, message: error?.message }
     }
+  }
+
+  const message = error?.message ?? ''
+  if (message.toLowerCase().includes('function was not found')) {
+    return { status: 404, code: 'NOT_FOUND', message }
   }
 
   return { message: error?.message }

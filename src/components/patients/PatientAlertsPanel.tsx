@@ -150,7 +150,7 @@ export function PatientAlertsPanel({
               {alerts.map((alert) => (
                 <li
                   key={alert.id}
-                  className={`rounded-[7px] border px-2.5 py-2 ${alertToneClass(alert.tone)}`}
+                  className={`group rounded-[7px] border px-2.5 py-2 ${alertToneClass(alert.tone)}`}
                 >
                   <div className="flex items-start gap-2">
                     <Bell size={12} className={`mt-0.5 shrink-0 ${alertIconClass(alert.tone)}`} />
@@ -163,7 +163,7 @@ export function PatientAlertsPanel({
                       </p>
                     </div>
                     {canWrite ? (
-                      <div className="flex shrink-0 flex-col gap-0.5">
+                      <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                         <button
                           type="button"
                           aria-label="Editar alerta"

@@ -63,7 +63,7 @@ function EditableCard({
             type="button"
             aria-label={`Editar ${title}`}
             onClick={onEdit}
-            className="rounded-lg p-1.5 text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+            className="rounded-lg p-1.5 text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
           >
             <Pencil size={14} />
           </button>

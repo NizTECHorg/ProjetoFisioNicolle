@@ -375,7 +375,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
           ) : null}
         </div>
 
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain">
           <button
             type="button"
             className={[
@@ -465,7 +465,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                     <p className="mt-1 text-xs text-muted">{tileAllocation(image, sessions)}</p>
                   </button>
                   {canWrite ? (
-                    <div className="absolute right-1 top-1 flex opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                    <div className="absolute right-1 top-1 flex opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                       <button
                         type="button"
                         aria-label="Editar imagem"

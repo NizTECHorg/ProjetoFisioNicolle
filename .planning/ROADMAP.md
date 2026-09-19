@@ -313,12 +313,12 @@ Plans:
   4. Export PDF: geral (estado atual) **ou** por sessão escolhida; arquivos listados em “Avaliações salvas” com tipo, data e sessão quando aplicável
   5. Quem não pode escrever a ficha só consulta (sem gerar/exportar/excluir)
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 **UI hint:** yes
 
 Plans:
 
-- [ ] 11-01-PLAN.md — SQL/contracts: `ai_summary` write, Zod/DTOs, `patient_ai_reports` + SQL Editor apply
+- [x] 11-01-PLAN.md — SQL/contracts: `ai_summary` write, Zod/DTOs, `patient_ai_reports` + SQL Editor apply
 - [ ] 11-02-PLAN.md — Edge Function `patient-ai-summary` + client invoke + GEMINI secret deploy
 - [ ] 11-03-PLAN.md — pdf-lib gate + PDF builder + Storage reports service/hooks
 - [ ] 11-04-PLAN.md — Tab Resumo IA, unified composer, Avaliações salvas, canWrite UAT

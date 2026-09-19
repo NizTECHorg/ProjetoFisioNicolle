@@ -199,7 +199,7 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
                     </div>
                   )}
                   {canWrite ? (
-                    <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                    <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                       <button
                         type="button"
                         aria-label="Editar meta"

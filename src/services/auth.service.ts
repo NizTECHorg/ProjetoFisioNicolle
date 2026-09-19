@@ -123,14 +123,17 @@ export async function signUpWithEmail(
     throw new Error(mapAuthError(error))
   }
 
+  // Com "Confirm email" ligado, o Supabase não retorna erro no e-mail duplicado:
+  // devolve um user ofuscado com identities vazias. Tratar como já cadastrado.
   const identities = authData.user?.identities ?? []
   const isDuplicateProbe = Boolean(authData.user) && identities.length === 0
-
-  if (!isDuplicateProbe) {
-    resetRateLimit(`auth:register:${email}`)
+  if (isDuplicateProbe) {
+    throw new Error('Este e-mail já está cadastrado. Entre ou use outro e-mail.')
   }
 
-  return { needsEmailConfirmation: !authData.session || isDuplicateProbe }
+  resetRateLimit(`auth:register:${email}`)
+
+  return { needsEmailConfirmation: !authData.session }
 }
 
 export async function signOut(): Promise<void> {

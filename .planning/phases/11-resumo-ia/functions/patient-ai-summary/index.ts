@@ -2,6 +2,7 @@
  * patient-ai-summary — self-contained for Supabase Dashboard deploy.
  * Self-contained for Dashboard paste (no shared-folder imports).
  * Secret: Deno.env GEMINI_API_KEY only — never VITE_*.
+ * Deploy marker: prefer gemini-3.6-flash (2026-09-19).
  */
 import { createClient, type SupabaseClient, type User } from 'npm:@supabase/supabase-js@2'
 
@@ -90,9 +91,11 @@ const FOCUS_REGION_KEYS = new Set([
   'back.leg_r',
 ])
 
+/** Prefer current flash ids — 2.5/2.0 return 404 for new API keys (2026). */
 const GEMINI_MODELS = [
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
   'gemini-2.5-flash',
-  'gemini-2.0-flash',
   'gemini-flash-latest',
 ] as const
 
@@ -436,56 +439,82 @@ function parseGeminiJson(text: string): { summary: string; focusRegionKeys: stri
 async function callGemini(
   apiKey: string,
   prompt: string,
-): Promise<{ summary: string; focusRegionKeys: string[] } | { error: 'ai_unavailable' }> {
-  let lastStatus = 0
+): Promise<
+  | { summary: string; focusRegionKeys: string[] }
+  | { error: 'ai_unavailable' | 'misconfigured' }
+> {
+  let sawKeyError = false
 
   for (const modelName of GEMINI_MODELS) {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              response_mime_type: 'application/json',
+    for (const useJsonMime of [true, false]) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey,
             },
-          }),
-        },
-      )
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: useJsonMime
+                ? { response_mime_type: 'application/json' }
+                : { temperature: 0.2 },
+            }),
+          },
+        )
 
-      lastStatus = res.status
+        // Status only — never log response bodies (may echo prompt/PHI).
+        console.log('gemini_try', modelName, res.status, useJsonMime ? 'json_mime' : 'text')
 
-      if (res.status === 404) {
+        if (res.status === 400 || res.status === 401 || res.status === 403) {
+          // Consume body only to classify key errors; do not log it.
+          const errText = await res.text().catch(() => '')
+          const lower = errText.toLowerCase()
+          if (
+            lower.includes('api key') ||
+            lower.includes('api_key') ||
+            lower.includes('permission') ||
+            lower.includes('consumer') ||
+            lower.includes('invalid')
+          ) {
+            sawKeyError = true
+          }
+          continue
+        }
+
+        // Retired models or transient capacity → try next.
+        if (res.status === 404 || res.status === 429 || res.status === 503) {
+          continue
+        }
+
+        if (!res.ok) {
+          continue
+        }
+
+        const data = (await res.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+        }
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
+        if (!rawText) {
+          continue
+        }
+
+        const parsed = parseGeminiJson(rawText)
+        if (!parsed) {
+          continue
+        }
+        return parsed
+      } catch (err) {
+        console.log('gemini_try_error', modelName, err instanceof Error ? err.name : 'unknown')
         continue
       }
-
-      if (!res.ok) {
-        // Do not log response bodies (may echo prompt/PHI)
-        return { error: 'ai_unavailable' }
-      }
-
-      const data = (await res.json()) as {
-        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-      }
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-      if (!rawText) {
-        return { error: 'ai_unavailable' }
-      }
-
-      const parsed = parseGeminiJson(rawText)
-      if (!parsed) {
-        return { error: 'ai_unavailable' }
-      }
-      return parsed
-    } catch {
-      return { error: 'ai_unavailable' }
     }
   }
 
-  if (lastStatus === 404) {
-    return { error: 'ai_unavailable' }
+  if (sawKeyError) {
+    return { error: 'misconfigured' }
   }
   return { error: 'ai_unavailable' }
 }
@@ -534,8 +563,15 @@ Deno.serve(async (req: Request) => {
   if (packOrError instanceof Response) return packOrError
 
   const prompt = buildPrompt(packOrError, userHint)
-  const result = await callGemini(apiKey, prompt)
+  // Hard cap — oversized packs can make Gemini return empty/blocked candidates.
+  const cappedPrompt =
+    prompt.length > 90000 ? `${prompt.slice(0, 90000)}\n[contexto truncado]` : prompt
+
+  const result = await callGemini(apiKey, cappedPrompt)
   if ('error' in result) {
+    if (result.error === 'misconfigured') {
+      return jsonResponse({ error: 'misconfigured', code: 'misconfigured' }, 500)
+    }
     return jsonResponse({ error: 'ai_unavailable', code: 'ai_unavailable' }, 503)
   }
 

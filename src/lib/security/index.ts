@@ -389,6 +389,15 @@ export function mapPatientAiError(
     return PATIENT_AI_COPY.forbidden
   }
 
+  if (
+    code === 'not_found' ||
+    status === 404 ||
+    message.includes('function was not found') ||
+    message.includes('requested function was not found')
+  ) {
+    return PATIENT_AI_COPY.notDeployed
+  }
+
   if (code === 'misconfigured' || message.includes('misconfigured')) {
     return PATIENT_AI_COPY.misconfigured
   }

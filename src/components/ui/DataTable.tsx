@@ -47,7 +47,7 @@ export function DataTable<T>({
   return (
     <div className="relative min-w-0 overflow-hidden rounded-3xl border border-line bg-surface">
       <div
-        className="overflow-x-auto overscroll-x-contain"
+        className="overflow-x-auto overflow-y-hidden overscroll-x-contain"
         aria-label="Tabela com rolagem horizontal"
       >
         <table className="min-w-full text-left text-sm">

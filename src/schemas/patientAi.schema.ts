@@ -6,8 +6,10 @@ export const PATIENT_AI_COPY = {
   generateError: 'Não foi possível gerar o resumo. Tente de novo em instantes.',
   unavailable: 'IA indisponível no momento.',
   forbidden: 'Você não tem permissão para esta ação.',
+  notDeployed:
+    'A função patient-ai-summary ainda não está no projeto. Faça o deploy no Dashboard e defina GEMINI_API_KEY.',
   misconfigured:
-    'A IA no servidor está incompleta. Confira GEMINI_API_KEY nas Edge Functions.',
+    'A IA no servidor está incompleta. Confira o deploy de patient-ai-summary e o secret GEMINI_API_KEY.',
   exportSuccess: 'Avaliação exportada',
   exportError: 'Não foi possível exportar o PDF. Tente de novo.',
   deleteSuccess: 'Avaliação excluída',

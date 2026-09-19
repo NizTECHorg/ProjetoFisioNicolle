@@ -126,7 +126,7 @@ export function KanbanPage() {
       {!isLoading && !isError ? (
         <div className="relative min-w-0 overflow-hidden">
           <div
-            className="flex gap-4 overflow-x-auto overscroll-x-contain pb-4"
+            className="flex gap-4 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-4"
             aria-label="Quadro com rolagem horizontal"
           >
           {columns.length === 0 ? (
@@ -149,7 +149,7 @@ export function KanbanPage() {
                   setDropColumnId(null)
                 }}
                 className={[
-                  'dash-in dash-card flex w-72 shrink-0 flex-col rounded-2xl border bg-canvas p-3',
+                  'dash-in dash-card group/column flex w-72 shrink-0 flex-col rounded-2xl border bg-canvas p-3',
                   dropColumnId === column.id ? 'border-accent bg-accent-soft/60' : 'border-line',
                 ].join(' ')}
                 style={{ animationDelay: `${140 + index * 80}ms` }}
@@ -163,7 +163,7 @@ export function KanbanPage() {
                     <button
                       type="button"
                       aria-label={`Excluir lista ${column.title}`}
-                      className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted hover:text-error"
+                      className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:text-error group-hover/column:opacity-100 group-focus-within/column:opacity-100 [@media(hover:none)]:opacity-100"
                       onClick={() => setColumnToDelete({ id: column.id, title: column.title })}
                     >
                       <Trash2 size={14} />
@@ -183,14 +183,14 @@ export function KanbanPage() {
                           setDraggingId(null)
                           setDropColumnId(null)
                         }}
-                        className="cursor-grab rounded-2xl border border-line bg-surface p-3 active:cursor-grabbing"
+                        className="group/card cursor-grab rounded-2xl border border-line bg-surface p-3 active:cursor-grabbing"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-sm font-medium text-ink">{card.title}</p>
                           <button
                             type="button"
                             aria-label="Excluir card"
-                            className="text-muted hover:text-error"
+                            className="shrink-0 text-muted opacity-0 transition-opacity hover:text-error group-hover/card:opacity-100 group-focus-within/card:opacity-100 [@media(hover:none)]:opacity-100"
                             onClick={(event) => {
                               event.stopPropagation()
                               removeCard.mutate(card.id)

@@ -190,7 +190,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
               const photos = photosForSession(images, session.id)
               const charge = chargeBySession.get(session.id) ?? null
               return (
-                <li key={session.id} className="rounded-2xl border border-line bg-surface p-4">
+                <li key={session.id} className="group rounded-2xl border border-line bg-surface p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -212,7 +212,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                       ) : null}
                     </div>
                     {canWrite ? (
-                      <div className="flex shrink-0 gap-1">
+                      <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                         <button
                           type="button"
                           aria-label="Editar sessão"
