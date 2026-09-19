@@ -50,6 +50,7 @@ export function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patient
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'sessions'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'evaluations'] })
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'images'] })
+  void qc.invalidateQueries({ queryKey: ['patients', patientId, 'ai-reports'] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
   void qc.invalidateQueries({ queryKey: ['finance'] })
 }
