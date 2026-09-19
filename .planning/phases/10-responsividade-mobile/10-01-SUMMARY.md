@@ -80,7 +80,7 @@ Each task was committed atomically:
 1. **Task 1: viewport-fit, Modal safe-area, ConfirmDialog stack** - `6dc7cf6` (feat)
 2. **Task 2: AppShell targets, DataTable/PageHeader contracts, UI checklist** - `6191cdb` (feat)
 
-**Plan metadata:** _(pending docs commit)_
+**Plan metadata:** `aad52fd` (docs: complete plan)
 
 ## Files Created/Modified
 
