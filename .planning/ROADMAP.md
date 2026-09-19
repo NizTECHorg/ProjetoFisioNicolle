@@ -267,5 +267,10 @@ Plans:
   4. Autônomo e fisioterapeuta mantêm o comportamento atual (não regredir fluxo solo/equipe)
   5. Persistência e RLS continuam corretos com `therapist_id` / vínculo nulo
 
-**Plans:** TBD
+**Plans:** 2 plans
 **UI hint:** yes
+
+Plans:
+
+- [ ] 09-01-PLAN.md — Schema factory, canOmitSessionTherapist, nullable upsert, sessions.service null coalesce
+- [ ] 09-02-PLAN.md — PatientSessionEditorForm empresa omit + Sem profissional displays
