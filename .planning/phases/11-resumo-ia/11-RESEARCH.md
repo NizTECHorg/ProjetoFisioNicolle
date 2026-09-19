@@ -496,22 +496,19 @@ Do not start Wave 4 generate CTA against missing EF, or export against missing b
 | A6 | `storage.objects` policies can call `private.can_*` (same as Phase 7) | SQL | May need thin SECURITY DEFINER wrapper |
 | A7 | Pin primary model `gemini-2.5-flash` | Standard Stack | 404s → fallbacks; catalog includes newer 3.x flash ids |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Focus areas: additive vs replace?**
-   - What we know: D-03 allows mark/update when AI returns regions.
-   - Unclear: Should generate clear unmarked regions?
-   - Recommendation: **Additive only** (A3); confirm in UI-SPEC if needed.
+1. **Focus areas: additive vs replace?** — RESOLVED
+   - Decision: **Additive only** (mark suggested regions; do not clear unmarked).
 
-2. **Tab slug `avaliacao` vs `resumo-ia`?**
-   - What we know: D-01 locks label, not URL.
-   - Recommendation: New slug `resumo-ia` + accept legacy `avaliacao` → same panel.
+2. **Tab slug `avaliacao` vs `resumo-ia`?** — RESOLVED
+   - Decision: New slug `resumo-ia` + accept legacy `avaliacao` → same panel.
 
-3. **Migrate physical-eval off Vite key in this phase?**
-   - D-07 says do not block. Recommendation: **out of critical path**; note follow-up.
+3. **Migrate physical-eval off Vite key in this phase?** — RESOLVED
+   - Decision: **Out of critical path** (D-07); follow-up later. Resumo IA generate uses Edge Function + `GEMINI_API_KEY` secret.
 
-4. **EF writes `ai_summary` with service_role vs client update?**
-   - Recommendation: EF returns text; **client** `updatePatient` under user JWT (simpler RLS). EF may optionally update if it verifies `can_write_patient` via RPC — not required.
+4. **EF writes `ai_summary` with service_role vs client update?** — RESOLVED
+   - Decision: EF returns text; **client** `updatePatient` under user JWT (RLS). Optional EF write not required.
 
 ## Environment Availability
 
