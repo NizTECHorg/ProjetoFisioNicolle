@@ -1,3 +1,5 @@
+import { PatientAiComposer } from '@/components/patients/PatientAiComposer'
+import { PatientAiReportsList } from '@/components/patients/PatientAiReportsList'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 
 type PatientResumoIaPanelProps = {
@@ -9,7 +11,6 @@ type PatientResumoIaPanelProps = {
 
 /**
  * Ficha hub for REQ-23: composer + Avaliações salvas + structured eval subsection.
- * Composer and list wire in plan 11-04 Task 2.
  */
 export function PatientResumoIaPanel({
   patientId,
@@ -25,16 +26,9 @@ export function PatientResumoIaPanel({
         </p>
       </div>
 
-      {/* Composer — Task 2 */}
-      <div className="rounded-2xl border border-dashed border-line bg-surface p-4 sm:p-5">
-        <p className="text-sm text-muted">Composer (resumo | PDF) em breve.</p>
-      </div>
+      <PatientAiComposer patientId={patientId} canWrite={canWrite} />
 
-      {/* Avaliações salvas — Task 2 */}
-      <div className="rounded-2xl border border-dashed border-line bg-surface p-4 sm:p-5">
-        <p className="text-sm font-medium text-ink">Avaliações salvas</p>
-        <p className="mt-1 text-sm text-muted">Lista de PDFs em breve.</p>
-      </div>
+      <PatientAiReportsList patientId={patientId} canWrite={canWrite} />
 
       <details className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
         <summary className="cursor-pointer text-sm font-medium text-forest">

@@ -167,7 +167,7 @@ export function PatientEvaluationPanel({
           </ul>
 
           {selected ? (
-            <article className="rounded-2xl border border-line bg-surface p-5">
+            <article className="group rounded-2xl border border-line bg-surface p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -184,7 +184,7 @@ export function PatientEvaluationPanel({
                   </p>
                 </div>
                 {canWrite ? (
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                     <button
                       type="button"
                       aria-label="Editar avaliação"
@@ -225,7 +225,7 @@ export function PatientEvaluationPanel({
       {canWrite && !editorOpen ? (
         <details className="rounded-2xl border border-line bg-surface p-5">
           <summary className="cursor-pointer text-sm font-medium text-forest">
-            Importar avaliação de PDF (IA)
+            Importar avaliação de PDF (IA) — legado
           </summary>
           <div className="mt-4">
             <PatientPhysicalEvaluationPanel

@@ -52,7 +52,7 @@ function toWinAnsiSafe(text: string): string {
     .replace(/[\u201C\u201D]/g, '"')
     .replace(/\u2013|\u2014/g, '-')
     .replace(/\u2026/g, '...')
-    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '?')
+    .replace(/[^\t\n\r\x20-\x7E\xA0-\xFF]/g, '?')
 }
 
 function wrapLines(font: PDFFont, text: string, size: number, maxWidth: number): string[] {
