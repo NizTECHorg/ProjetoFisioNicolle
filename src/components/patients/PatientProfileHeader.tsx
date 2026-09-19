@@ -57,14 +57,14 @@ export function PatientProfileHeader({
         />
 
         <div className="min-w-0">
-          <div className="relative flex min-h-9 flex-wrap items-center gap-2 pr-9 sm:gap-3">
+          <div className="relative flex min-h-11 flex-wrap items-center gap-2 pr-12 sm:gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{name}</h1>
             <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
               {statusLabels[status]}
             </span>
             {/* Fora do fluxo — o nome não muda de lugar entre abas */}
             {identityAction ? (
-              <span className="absolute right-0 top-0.5 inline-flex h-8 w-8 items-center justify-center">
+              <span className="absolute right-0 top-0 inline-flex min-h-11 min-w-11 items-center justify-center">
                 {identityAction}
               </span>
             ) : null}
@@ -73,7 +73,7 @@ export function PatientProfileHeader({
           <p className="mt-2 min-h-5 break-words text-sm text-muted">{meta}</p>
 
           <nav
-            className="mt-4 flex items-end gap-5 overflow-x-auto border-b border-line sm:gap-6"
+            className="mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overscroll-x-contain border-b border-line sm:gap-6"
             aria-label="Seções do paciente"
             role="tablist"
           >
@@ -82,7 +82,7 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'resumo'}
               className={[
-                '-mb-px shrink-0 border-b-2 py-2.5 text-sm font-medium transition-colors',
+                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
                 activeTab === 'resumo'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',
@@ -96,7 +96,7 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'cadastro'}
               className={[
-                '-mb-px shrink-0 border-b-2 py-2.5 text-sm font-medium transition-colors',
+                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
                 activeTab === 'cadastro'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',
@@ -110,7 +110,7 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'evolucoes'}
               className={[
-                '-mb-px shrink-0 border-b-2 py-2.5 text-sm font-medium transition-colors',
+                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
                 activeTab === 'evolucoes'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',
@@ -124,7 +124,7 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'avaliacao'}
               className={[
-                '-mb-px shrink-0 border-b-2 py-2.5 text-sm font-medium transition-colors',
+                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
                 activeTab === 'avaliacao'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',
@@ -138,7 +138,7 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'imagens'}
               className={[
-                '-mb-px shrink-0 border-b-2 py-2.5 text-sm font-medium transition-colors',
+                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
                 activeTab === 'imagens'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',

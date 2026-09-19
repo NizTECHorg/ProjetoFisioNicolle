@@ -142,7 +142,7 @@ function EntendaOCaso({
               type="button"
               aria-label="Editar entendimento do caso"
               onClick={() => setOpen(true)}
-              className="rounded-lg p-1.5 text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
             >
               <Pencil size={16} />
             </button>
@@ -250,7 +250,7 @@ function EntendaOCaso({
               {...form.register('sessionsTotal')}
             />
           </div>
-          <div className="flex justify-end gap-3 pt-1">
+          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
@@ -298,8 +298,8 @@ function ResumoDoPaciente({
         </p>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3 lg:grid-flow-col lg:grid-rows-[auto_auto]">
-        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+      <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-3 lg:grid-flow-col lg:grid-rows-[auto_auto]">
+        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Programa</p>
           <h3 className="mt-2 text-sm font-semibold text-ink">{detail.program}</h3>
           <div className="mt-auto pt-3">
@@ -310,36 +310,36 @@ function ResumoDoPaciente({
           </div>
         </div>
 
-        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
-          <p className="mt-2 text-sm leading-6 text-ink">{detail.evolutionSummary || '—'}</p>
-          <div className="mt-auto flex items-center gap-3 pt-4">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-forest">
+          <p className="mt-2 break-words text-sm leading-6 text-ink">{detail.evolutionSummary || '—'}</p>
+          <div className="mt-auto flex min-w-0 items-center gap-3 pt-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-forest">
               {detail.eva}/10
             </span>
-            <span className="text-xs text-muted">EVA na sessão de {detail.lastVisit}</span>
+            <span className="min-w-0 text-xs text-muted">EVA na sessão de {detail.lastVisit}</span>
           </div>
         </div>
 
-        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
-          <p className="mt-2 text-sm leading-6 text-ink">{detail.lastConducts || '—'}</p>
+          <p className="mt-2 break-words text-sm leading-6 text-ink">{detail.lastConducts || '—'}</p>
           <div className="mt-auto pt-4">
             <p className="text-xs text-muted">Plano próxima sessão</p>
-            <p className="mt-1 text-sm text-ink">{detail.nextSessionPlan || '—'}</p>
+            <p className="mt-1 break-words text-sm text-ink">{detail.nextSessionPlan || '—'}</p>
           </div>
         </div>
 
-        <div className="flex h-full min-h-[11rem] flex-col rounded-2xl border border-line p-4">
+        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Dor (EVA)</p>
-          <div className="mt-auto flex w-full flex-1 items-end">
+          <div className="mt-auto flex w-full min-w-0 flex-1 items-end">
             <EvaChart series={detail.painSeries} />
           </div>
         </div>
 
-        <div className="flex h-full min-h-[16rem] flex-col rounded-2xl border border-line p-4">
+        <div className="flex h-full min-h-[16rem] min-w-0 flex-col rounded-2xl border border-line p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
-          <div className="mt-auto flex w-full flex-1 items-center">
+          <div className="mt-auto flex w-full min-w-0 flex-1 items-center">
             <PatientFocusAreasPanel
               patientId={patientId}
               focusAreas={detail.focusAreas}
@@ -348,7 +348,7 @@ function ResumoDoPaciente({
           </div>
         </div>
 
-        <div className="h-full min-h-[11rem]">
+        <div className="h-full min-h-[11rem] min-w-0">
           <PatientGoalsPanel patientId={patientId} goals={detail.goals} canWrite={canWrite} />
         </div>
       </div>
@@ -368,18 +368,18 @@ function ResumoPanel({
   return (
     <div className="space-y-6">
       {/* Desktop 80/20; mobile empilha */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
         <EntendaOCaso patient={patient} detail={detail} canWrite={canWrite} />
-        <div className="min-h-[14rem] lg:h-full lg:min-h-0">
+        <div className="min-h-[14rem] min-w-0 lg:h-full lg:min-h-0">
           <PatientAlertsPanel patientId={patient.id} alerts={patient.alerts} compact canWrite={canWrite} />
         </div>
       </div>
 
       <ResumoDoPaciente patientId={patient.id} detail={detail} canWrite={canWrite} />
 
-      <div>
+      <div className="min-w-0">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Atalhos</p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {shortcuts.map((item) => {
             const Icon = item.icon
             const to =
@@ -392,14 +392,14 @@ function ResumoPanel({
               <Link
                 key={item.label}
                 to={to}
-                className="dash-card flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 text-left transition hover:border-forest/25"
+                className="dash-card flex min-w-0 items-center gap-3 rounded-2xl border border-line bg-surface p-4 text-left transition hover:border-forest/25"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-forest">
                   <Icon size={18} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-ink">{item.label}</span>
-                  <span className="block text-xs text-muted">{item.detail}</span>
+                  <span className="block truncate text-sm font-medium text-ink">{item.label}</span>
+                  <span className="block truncate text-xs text-muted">{item.detail}</span>
                 </span>
               </Link>
             )
@@ -489,7 +489,7 @@ export function PatientPage() {
   const showConsultBanner = profile?.accountType === 'empresa' && !canWrite
 
   return (
-    <section className="mx-auto w-full max-w-7xl">
+    <section className="mx-auto w-full min-w-0 max-w-7xl">
       {showConsultBanner ? (
         <div className="rounded-2xl border border-line bg-accent-soft px-4 py-3 text-sm text-forest">
           Somente consulta — você vê a ficha, mas não pode alterar.
@@ -514,7 +514,7 @@ export function PatientPage() {
               disabled={tab !== 'cadastro'}
               onClick={() => openIdentityRef.current?.()}
               className={[
-                'rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest',
+                'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest',
                 tab === 'cadastro'
                   ? 'opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100'
                   : 'pointer-events-none invisible',

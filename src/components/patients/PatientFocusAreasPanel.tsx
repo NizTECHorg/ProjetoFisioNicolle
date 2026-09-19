@@ -267,7 +267,7 @@ export function PatientFocusAreasPanel({
 
   return (
     <div role="group" aria-label="Áreas de foco do paciente" className="mt-3 w-full overflow-visible">
-      <div className="flex items-end justify-center gap-4">
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-center">
         {renderFigure('front')}
         {renderFigure('back')}
       </div>
