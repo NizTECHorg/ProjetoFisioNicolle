@@ -72,8 +72,13 @@ export function mapAuthError(error: { message?: string; status?: number }): stri
     return 'Confirme seu e-mail antes de entrar.'
   }
 
-  if (message.includes('user already registered') || message.includes('already been registered')) {
-    return 'Não foi possível concluir o cadastro. Tente entrar ou use outro e-mail.'
+  if (
+    message.includes('user already registered') ||
+    message.includes('already been registered') ||
+    message.includes('email address has already been registered') ||
+    message.includes('already exists')
+  ) {
+    return 'Este e-mail já está cadastrado. Entre ou use outro e-mail.'
   }
 
   if (message.includes('password')) {
@@ -294,14 +299,26 @@ export function mapGoogleCalendarError(
   const status = error.status
 
   if (
-    status === 401 ||
-    status === 403 ||
+    code === 'misconfigured' ||
+    message.includes('misconfigured') ||
+    message.includes('invalid_client')
+  ) {
+    return GOOGLE_CALENDAR_COPY.misconfigured
+  }
+
+  // JWT/unauthorized da Edge Function ≠ token Google expirado
+  if (code === 'unauthorized' || message === 'unauthorized') {
+    return GOOGLE_CALENDAR_COPY.exportError
+  }
+
+  if (
+    code === 'needs_reconnect' ||
+    message.includes('needs_reconnect') ||
     message.includes('invalid_grant') ||
     message.includes('insufficient') ||
-    message.includes('needs_reconnect') ||
-    code === 'needs_reconnect' ||
-    code === '401' ||
-    code === '403'
+    code === '403' ||
+    status === 403 ||
+    (status === 401 && (code === 'needs_reconnect' || message.includes('reconnect')))
   ) {
     return GOOGLE_CALENDAR_COPY.tokenExpired
   }

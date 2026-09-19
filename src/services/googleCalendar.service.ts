@@ -102,8 +102,6 @@ function throwMappedFunctionsError(payload: {
   const mapped = mapGoogleCalendarError(payload)
   const err = new Error(mapped) as Error & { code?: GoogleCalendarExportErrorCode }
   if (
-    payload.status === 401 ||
-    payload.status === 403 ||
     payload.code === 'needs_reconnect' ||
     mapped === GOOGLE_CALENDAR_COPY.tokenExpired
   ) {
@@ -165,11 +163,15 @@ export async function vaultGoogleTokensIfPresent(): Promise<'vaulted' | 'skipped
 
   const googleEmail = session.user ? googleEmailFromUser(session.user) : undefined
 
+  // Google access tokens ~1h; store expiry so export can use them before refresh.
+  const expiresAt = new Date(Date.now() + 55 * 60 * 1000).toISOString()
+
   const { data, error } = await supabase.functions.invoke('google-calendar-connect', {
     body: {
       refreshToken,
       accessToken: accessToken ?? undefined,
       googleEmail,
+      expiresAt,
     },
   })
 

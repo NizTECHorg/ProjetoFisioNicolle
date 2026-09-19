@@ -52,14 +52,45 @@ async function requireUser(
   return { user: data.user, authHeader }
 }
 
-interface RefreshedGoogleToken {
+interface ResolvedGoogleToken {
   accessToken: string
   expiresIn?: number
+  fromRefresh: boolean
+}
+
+type TokenResolveError = { error: 'needs_reconnect' | 'misconfigured' }
+
+interface SecretRow {
+  refresh_token: string
+  access_token: string | null
+  access_token_expires_at: string | null
+  updated_at: string | null
+}
+
+function accessTokenStillValid(row: SecretRow): string | null {
+  const token = row.access_token?.trim()
+  if (!token) return null
+
+  const expiresAt = row.access_token_expires_at
+    ? Date.parse(row.access_token_expires_at)
+    : NaN
+  if (Number.isFinite(expiresAt)) {
+    // 60s skew — prefer refresh near expiry
+    return expiresAt > Date.now() + 60_000 ? token : null
+  }
+
+  // Vault often stores access_token without expires_at; treat recent vault as fresh (~50 min).
+  const updatedAt = row.updated_at ? Date.parse(row.updated_at) : NaN
+  if (Number.isFinite(updatedAt) && Date.now() - updatedAt < 50 * 60 * 1000) {
+    return token
+  }
+
+  return null
 }
 
 async function refreshGoogleAccessToken(
   refreshToken: string,
-): Promise<RefreshedGoogleToken | { error: 'needs_reconnect' | 'misconfigured' }> {
+): Promise<ResolvedGoogleToken | TokenResolveError> {
   const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
   const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
   if (!clientId || !clientSecret) {
@@ -79,11 +110,30 @@ async function refreshGoogleAccessToken(
     body,
   })
 
+  let json: {
+    access_token?: string
+    expires_in?: number
+    error?: string
+  } = {}
+  try {
+    json = (await res.json()) as typeof json
+  } catch {
+    json = {}
+  }
+
   if (!res.ok) {
+    const googleError = (json.error ?? '').toLowerCase()
+    if (
+      googleError === 'invalid_client' ||
+      googleError === 'unauthorized_client' ||
+      res.status === 401
+    ) {
+      // Wrong Function secrets vs Auth Web client — not "user reconnect"
+      return { error: 'misconfigured' }
+    }
     return { error: 'needs_reconnect' }
   }
 
-  const json = (await res.json()) as { access_token?: string; expires_in?: number }
   if (!json.access_token) {
     return { error: 'needs_reconnect' }
   }
@@ -91,7 +141,19 @@ async function refreshGoogleAccessToken(
   return {
     accessToken: json.access_token,
     expiresIn: json.expires_in,
+    fromRefresh: true,
   }
+}
+
+async function resolveGoogleAccessToken(
+  row: SecretRow,
+): Promise<ResolvedGoogleToken | TokenResolveError> {
+  const cached = accessTokenStillValid(row)
+  if (cached) {
+    return { accessToken: cached, fromRefresh: false }
+  }
+
+  return refreshGoogleAccessToken(row.refresh_token)
 }
 
 const DEFAULT_EVENT_DURATION_MS = 60 * 60 * 1000
@@ -185,7 +247,7 @@ Deno.serve(async (req: Request) => {
   const admin = createServiceClient()
   const { data: secretRow, error: secretError } = await admin
     .from('google_calendar_secrets')
-    .select('refresh_token')
+    .select('refresh_token, access_token, access_token_expires_at, updated_at')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -193,14 +255,29 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'needs_reconnect', code: 'needs_reconnect' }, 401)
   }
 
-  const refreshed = await refreshGoogleAccessToken(secretRow.refresh_token)
-  if ('error' in refreshed) {
-    const status = refreshed.error === 'misconfigured' ? 500 : 401
-    const code = refreshed.error === 'misconfigured' ? 'misconfigured' : 'needs_reconnect'
+  const resolved = await resolveGoogleAccessToken(secretRow as SecretRow)
+  if ('error' in resolved) {
+    const status = resolved.error === 'misconfigured' ? 500 : 401
+    const code = resolved.error === 'misconfigured' ? 'misconfigured' : 'needs_reconnect'
     return jsonResponse({ error: code, code }, status)
   }
 
-  const accessToken = refreshed.accessToken
+  const accessToken = resolved.accessToken
+
+  // Persist refreshed access token for subsequent exports within the hour.
+  if (resolved.fromRefresh) {
+    const expiresAt = new Date(
+      Date.now() + (resolved.expiresIn ?? 3600) * 1000,
+    ).toISOString()
+    await admin
+      .from('google_calendar_secrets')
+      .update({
+        access_token: accessToken,
+        access_token_expires_at: expiresAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id)
+  }
 
   const userClient = createUserClient(authHeader)
   const { data: sessionRows, error: sessionsError } = await userClient
@@ -243,6 +320,7 @@ Deno.serve(async (req: Request) => {
   let exportedCount = 0
   let failedCount = 0
   let hardAuthFail = false
+  let calendarMisconfigured = false
 
   for (const row of withTime) {
     const patient = Array.isArray(row.patients) ? row.patients[0] : row.patients
@@ -260,6 +338,31 @@ Deno.serve(async (req: Request) => {
     try {
       let googleEventId: string | null = null
 
+      async function classifyGoogleFail(res: Response): Promise<'auth' | 'config' | 'other'> {
+        if (res.status === 401) return 'auth'
+        if (res.status !== 403) return 'other'
+        try {
+          const body = (await res.clone().json()) as {
+            error?: { status?: string; message?: string; errors?: Array<{ reason?: string }> }
+          }
+          const reason = body.error?.errors?.[0]?.reason?.toLowerCase() ?? ''
+          const msg = (body.error?.message ?? '').toLowerCase()
+          const status = (body.error?.status ?? '').toLowerCase()
+          if (
+            reason === 'accessnotconfigured' ||
+            reason === 'access_not_configured' ||
+            msg.includes('has not been used') ||
+            msg.includes('disabled') ||
+            status === 'permission_denied' && msg.includes('calendar')
+          ) {
+            return 'config'
+          }
+        } catch {
+          // ignore parse errors
+        }
+        return 'auth'
+      }
+
       if (existingEventId) {
         const patchRes = await fetch(`${CALENDAR_EVENTS_URL}/${encodeURIComponent(existingEventId)}`, {
           method: 'PATCH',
@@ -270,7 +373,9 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify(event),
         })
         if (patchRes.status === 401 || patchRes.status === 403) {
-          hardAuthFail = true
+          const kind = await classifyGoogleFail(patchRes)
+          if (kind === 'config') calendarMisconfigured = true
+          else hardAuthFail = true
           break
         }
         if (!patchRes.ok) {
@@ -289,7 +394,9 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify(event),
         })
         if (insertRes.status === 401 || insertRes.status === 403) {
-          hardAuthFail = true
+          const kind = await classifyGoogleFail(insertRes)
+          if (kind === 'config') calendarMisconfigured = true
+          else hardAuthFail = true
           break
         }
         if (!insertRes.ok) {
@@ -323,6 +430,10 @@ Deno.serve(async (req: Request) => {
     } catch {
       failedCount += 1
     }
+  }
+
+  if (calendarMisconfigured) {
+    return jsonResponse({ error: 'misconfigured', code: 'misconfigured' }, 500)
   }
 
   if (hardAuthFail) {
