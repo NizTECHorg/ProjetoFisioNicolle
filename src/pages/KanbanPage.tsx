@@ -124,7 +124,11 @@ export function KanbanPage() {
       ) : null}
 
       {!isLoading && !isError ? (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="relative min-w-0 overflow-hidden">
+          <div
+            className="flex gap-4 overflow-x-auto overscroll-x-contain pb-4"
+            aria-label="Quadro com rolagem horizontal"
+          >
           {columns.length === 0 ? (
             <p className="text-sm text-muted">Nenhuma lista ainda. Crie uma acima ou execute o script supabase/board.sql.</p>
           ) : null}
@@ -151,15 +155,15 @@ export function KanbanPage() {
                 style={{ animationDelay: `${140 + index * 80}ms` }}
               >
                 <div className="mb-3 flex items-center justify-between gap-2 px-1">
-                  <h2 className="text-sm font-semibold text-ink">{column.title}</h2>
-                  <div className="flex items-center gap-1">
+                  <h2 className="min-w-0 truncate text-sm font-semibold text-ink">{column.title}</h2>
+                  <div className="flex shrink-0 items-center gap-1">
                     <span className="rounded-full bg-white px-2 py-0.5 text-[11px] text-muted">
                       {columnCards.length}
                     </span>
                     <button
                       type="button"
                       aria-label={`Excluir lista ${column.title}`}
-                      className="rounded-lg p-1 text-muted hover:text-error"
+                      className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted hover:text-error"
                       onClick={() => setColumnToDelete({ id: column.id, title: column.title })}
                     >
                       <Trash2 size={14} />
@@ -252,6 +256,11 @@ export function KanbanPage() {
               </article>
             )
           })}
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-canvas to-transparent sm:hidden"
+          />
         </div>
       ) : null}
 

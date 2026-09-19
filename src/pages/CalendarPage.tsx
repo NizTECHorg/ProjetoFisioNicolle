@@ -319,7 +319,7 @@ export function CalendarPage() {
           <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
-              className="rounded-xl p-2 text-muted hover:bg-canvas hover:text-ink"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted hover:bg-canvas hover:text-ink"
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
               aria-label="Mês anterior"
             >
@@ -342,7 +342,7 @@ export function CalendarPage() {
             </div>
             <button
               type="button"
-              className="rounded-xl p-2 text-muted hover:bg-canvas hover:text-ink"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted hover:bg-canvas hover:text-ink"
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
               aria-label="Próximo mês"
             >
@@ -350,14 +350,14 @@ export function CalendarPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wide text-muted">
+          <div className="grid grid-cols-7 gap-0.5 text-center text-[11px] font-medium uppercase tracking-wide text-muted">
             {WEEKDAYS.map((day) => (
               <div key={day} className="py-2">
                 {day}
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5">
             {cells.map((date, index) => {
               if (!date) return <div key={`empty-${index}`} className="aspect-square" />
               const isToday = sameDay(date, today)

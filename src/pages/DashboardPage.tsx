@@ -126,7 +126,7 @@ function StatCard({
   return (
     <Link
       to={to}
-      className="dash-card dash-in flex min-h-[148px] flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5 lg:min-h-[128px] lg:p-4"
+      className="dash-card dash-in flex min-h-[148px] min-w-0 flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5 lg:min-h-[128px] lg:p-4"
       style={{ animationDelay: delay }}
     >
       <p className="text-sm font-medium text-forest">{label}</p>
@@ -425,7 +425,7 @@ export function DashboardPage() {
           <div className="mt-4 grid gap-4 lg:mt-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[1.7fr_1fr] lg:grid-rows-[minmax(0,1fr)] lg:gap-3">
             <article className="dash-in flex h-full min-h-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5 lg:p-4" style={{ animationDelay: '280ms' }}>
               <div className="flex items-start justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-lg font-semibold text-ink">Atividade</h2>
                   <p className="mt-1 text-xs text-muted">
                     {isCurrentWeek
@@ -433,7 +433,7 @@ export function DashboardPage() {
                       : 'Sessões confirmadas e realizadas · passe o mouse nos pontos'}
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setWeekOffset((current) => current + 1)}
@@ -495,20 +495,20 @@ export function DashboardPage() {
 
           <article className="dash-in mt-4 shrink-0 rounded-[1.5rem] bg-accent-soft p-5 sm:p-6 lg:mt-3 lg:p-4" style={{ animationDelay: '420ms' }}>
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-4">
-              <div className="lg:w-48 lg:shrink-0">
+              <div className="min-w-0 lg:w-48 lg:shrink-0">
                 <h2 className="text-lg font-semibold text-forest">Carteira</h2>
                 <p className="mt-1 text-xs leading-5 text-forest/70">
                   Distribuição dos pacientes pelo status atual da clínica.
                 </p>
               </div>
-              <div className="grid flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 {view.statusCards.map((area) => (
-                  <div key={area.name} className="dash-card h-full rounded-2xl bg-surface px-4 py-4 lg:py-3">
+                  <div key={area.name} className="dash-card h-full min-w-0 rounded-2xl bg-surface px-4 py-4 lg:py-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-forest">
                       {area.name.slice(0, 1)}
                     </span>
-                    <p className="mt-4 text-sm font-medium text-ink lg:mt-2.5">{area.name}</p>
-                    <p className="text-xs text-muted">{area.detail}</p>
+                    <p className="mt-4 truncate text-sm font-medium text-ink lg:mt-2.5">{area.name}</p>
+                    <p className="truncate text-xs text-muted">{area.detail}</p>
                     <p className="mt-3 text-lg font-semibold text-forest lg:mt-2">{area.change}</p>
                   </div>
                 ))}
