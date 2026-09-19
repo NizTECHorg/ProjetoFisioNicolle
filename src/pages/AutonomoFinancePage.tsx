@@ -262,23 +262,13 @@ export function AutonomoFinancePage() {
                 </p>
               </article>
             ) : (
-              <DataTable
-                columns={[
-                  {
-                    key: 'name',
-                    header: 'Nome',
-                    render: (row) => <span className="text-sm font-semibold text-ink">{row.name}</span>,
-                  },
-                  {
-                    key: 'amount',
-                    header: 'Valor',
-                    render: (row) => formatCurrency(Number(row.amountBrl)),
-                  },
-                  {
-                    key: 'actions',
-                    header: 'Ações',
-                    render: (row) => (
-                      <div className="flex flex-wrap gap-2">
+              <>
+                <div className="space-y-3 md:hidden">
+                  {prices.map((row) => (
+                    <article key={row.id} className="rounded-2xl border border-line bg-surface p-4">
+                      <p className="min-w-0 truncate text-sm font-semibold text-ink">{row.name}</p>
+                      <p className="mt-1 text-sm text-muted">{formatCurrency(Number(row.amountBrl))}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
                         <Button
                           type="button"
                           variant="ghost"
@@ -296,12 +286,52 @@ export function AutonomoFinancePage() {
                           Arquivar preço
                         </Button>
                       </div>
-                    ),
-                  },
-                ]}
-                data={prices}
-                rowKey={(row) => row.id}
-              />
+                    </article>
+                  ))}
+                </div>
+                <div className="hidden md:block">
+                  <DataTable
+                    columns={[
+                      {
+                        key: 'name',
+                        header: 'Nome',
+                        render: (row) => <span className="text-sm font-semibold text-ink">{row.name}</span>,
+                      },
+                      {
+                        key: 'amount',
+                        header: 'Valor',
+                        render: (row) => formatCurrency(Number(row.amountBrl)),
+                      },
+                      {
+                        key: 'actions',
+                        header: 'Ações',
+                        render: (row) => (
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="min-h-11 min-w-11"
+                              onClick={() => openEdit(row)}
+                            >
+                              Editar preço
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="min-h-11 min-w-11 text-error"
+                              onClick={() => setPendingArchive(row)}
+                            >
+                              Arquivar preço
+                            </Button>
+                          </div>
+                        ),
+                      },
+                    ]}
+                    data={prices}
+                    rowKey={(row) => row.id}
+                  />
+                </div>
+              </>
             )}
           </section>
 

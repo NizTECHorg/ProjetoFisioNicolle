@@ -194,29 +194,70 @@ export function TeamPage() {
 
           <section className="dash-in" style={{ animationDelay: '120ms' }}>
             <h2 className="mb-4 text-xl font-semibold leading-tight text-ink">Fisioterapeutas na equipe</h2>
-            <DataTable
-              columns={[
-                {
-                  key: 'name',
-                  header: 'Nome',
-                  render: (row) => <span className="text-sm font-semibold text-ink">{row.fullName || '—'}</span>,
-                },
-                {
-                  key: 'email',
-                  header: 'E-mail',
-                  render: (row) => <span className="text-xs text-muted">{row.email || '—'}</span>,
-                },
-                {
-                  key: 'status',
-                  header: 'Status',
-                  render: () => <Badge tone="info">Na equipe</Badge>,
-                },
-              ]}
-              data={active}
-              rowKey={(row) => row.id}
-              emptyTitle="Nenhum fisioterapeuta na equipe"
-              emptyDescription="Quando você aceitar um pedido, o nome aparece aqui."
-            />
+            {active.length === 0 ? (
+              <DataTable
+                columns={[
+                  {
+                    key: 'name',
+                    header: 'Nome',
+                    render: (row) => <span className="text-sm font-semibold text-ink">{row.fullName || '—'}</span>,
+                  },
+                  {
+                    key: 'email',
+                    header: 'E-mail',
+                    render: (row) => <span className="text-xs text-muted">{row.email || '—'}</span>,
+                  },
+                  {
+                    key: 'status',
+                    header: 'Status',
+                    render: () => <Badge tone="info">Na equipe</Badge>,
+                  },
+                ]}
+                data={active}
+                rowKey={(row) => row.id}
+                emptyTitle="Nenhum fisioterapeuta na equipe"
+                emptyDescription="Quando você aceitar um pedido, o nome aparece aqui."
+              />
+            ) : (
+              <>
+                <div className="space-y-3 md:hidden">
+                  {active.map((member) => (
+                    <article key={member.id} className="rounded-2xl border border-line bg-surface p-4">
+                      <p className="min-w-0 truncate text-sm font-semibold text-ink">{member.fullName || '—'}</p>
+                      <p className="mt-0.5 min-w-0 truncate text-xs text-muted">{member.email || '—'}</p>
+                      <div className="mt-3">
+                        <Badge tone="info">Na equipe</Badge>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <div className="hidden md:block">
+                  <DataTable
+                    columns={[
+                      {
+                        key: 'name',
+                        header: 'Nome',
+                        render: (row) => <span className="text-sm font-semibold text-ink">{row.fullName || '—'}</span>,
+                      },
+                      {
+                        key: 'email',
+                        header: 'E-mail',
+                        render: (row) => <span className="text-xs text-muted">{row.email || '—'}</span>,
+                      },
+                      {
+                        key: 'status',
+                        header: 'Status',
+                        render: () => <Badge tone="info">Na equipe</Badge>,
+                      },
+                    ]}
+                    data={active}
+                    rowKey={(row) => row.id}
+                    emptyTitle="Nenhum fisioterapeuta na equipe"
+                    emptyDescription="Quando você aceitar um pedido, o nome aparece aqui."
+                  />
+                </div>
+              </>
+            )}
           </section>
         </div>
       ) : null}
