@@ -97,6 +97,22 @@ export interface UpdatePatientImageInput {
   sessionId: string | null
 }
 
+export type PatientAiReportKind = 'geral' | 'sessao'
+
+/** PDF de avaliação IA. signedUrl só no DTO (createSignedUrls), nunca coluna no DB. */
+export interface PatientAiReport {
+  id: string
+  patientId: string
+  sessionId: string | null
+  kind: PatientAiReportKind
+  storagePath: string
+  byteSize: number
+  mimeType: 'application/pdf'
+  sessionLabel: string | null
+  createdAt: string
+  signedUrl: string | null
+}
+
 export interface TherapistOption {
   id: string
   fullName: string
@@ -245,6 +261,8 @@ export interface UpdatePatientInput {
   frequency?: string
   complaint?: string
   diagnosis?: string
+  /** D-04 — grava patients.ai_summary via updatePatient. */
+  aiSummary?: string
 }
 
 export interface CreatePatientAlertInput {

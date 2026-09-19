@@ -579,6 +579,7 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
   if (input.frequency !== undefined) payload.frequency = emptyToNull(input.frequency)
   if (input.complaint !== undefined) payload.complaint = emptyToNull(input.complaint)
   if (input.diagnosis !== undefined) payload.diagnosis = emptyToNull(input.diagnosis)
+  if (input.aiSummary !== undefined) payload.ai_summary = emptyToNull(input.aiSummary)
 
   if (Object.keys(payload).length === 0) return
 

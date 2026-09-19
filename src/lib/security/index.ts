@@ -1,4 +1,5 @@
 import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 
 /**
  * Sanitiza entrada de texto removendo caracteres de controle e limitando tamanho.
@@ -358,6 +359,62 @@ export function mapGoogleCalendarError(
   }
 
   return GOOGLE_CALENDAR_COPY.exportError
+}
+
+/**
+ * Mapeia erros do Resumo IA / Edge Functions para copy em português (REQ-23.6).
+ * Nunca devolve error.message cru nem Gemini/PostgREST em inglês.
+ */
+export function mapPatientAiError(
+  payload: { status?: number; code?: string; message?: string } | null | undefined,
+): string {
+  if (!payload) {
+    return PATIENT_AI_COPY.generateError
+  }
+
+  const message = (payload.message ?? '').toLowerCase()
+  const code = (payload.code ?? '').toLowerCase()
+  const status = payload.status
+
+  if (
+    code === 'unauthorized' ||
+    code === 'forbidden' ||
+    status === 401 ||
+    status === 403 ||
+    message === 'unauthorized' ||
+    message === 'forbidden' ||
+    message.includes('permission') ||
+    message.includes('row-level security')
+  ) {
+    return PATIENT_AI_COPY.forbidden
+  }
+
+  if (code === 'misconfigured' || message.includes('misconfigured')) {
+    return PATIENT_AI_COPY.misconfigured
+  }
+
+  if (
+    code === 'ai_unavailable' ||
+    status === 503 ||
+    message.includes('ai_unavailable') ||
+    message.includes('unavailable')
+  ) {
+    return PATIENT_AI_COPY.unavailable
+  }
+
+  if (code === 'invalid_body' || message.includes('invalid_body')) {
+    return PATIENT_AI_COPY.generateError
+  }
+
+  if (
+    code === '42501' ||
+    message.includes('operation_not_permitted') ||
+    message.includes('rls')
+  ) {
+    return mapDbError({ message: payload.message, code: code || '42501' })
+  }
+
+  return PATIENT_AI_COPY.generateError
 }
 
 export function formatCurrency(value: number): string {
