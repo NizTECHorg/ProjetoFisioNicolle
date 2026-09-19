@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Agenda, Quadro, Painel mobile polish** - `133a75d` (feat)
 2. **Task 2: Equipe active cards, Finance catalog cards, auth smoke** - `8cd7960` (feat)
 
-**Plan metadata:** (this commit)
+**Plan metadata:** `69f7df8` (docs: complete plan)
 
 ## Files Created/Modified
 
