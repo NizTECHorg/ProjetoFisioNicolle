@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phase 8 (Google Agenda) em UAT — histórico preservado, ainda sem approved. Em paralelo: Phase 9 (sessão/paciente sem fisio para empresa). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Phase 8 (Google Agenda) em UAT — histórico preservado. Phase 9 (sessão/paciente sem fisio) planejada. Próximo planejamento: Phase 10 responsividade mobile 100%. REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
@@ -15,7 +15,7 @@ Completar o prontuário e o modelo de contas. Phase 8 (Google Agenda) em UAT —
 - [x] **Phase 7: Galeria de imagens na ficha do paciente** — Galeria na ficha, avulsa ou por sessão, com descrição (completed 2026-09-15)
 - [ ] **Phase 8: Integração Google Agenda** — Exportar sessões da agenda da aplicação para o Google Calendar *(UAT pendente — não approved)*
 - [ ] **Phase 9: Paciente/sessão sem fisioterapeuta (empresa)** — Empresa cria paciente e sessão sem alocar profissional
-
+- [ ] **Phase 10: Responsividade mobile 100%** — Toda a experiência clínica usável e legível em viewport estreito
 ## Phase Details
 
 ### Phase 1: Avaliação inicial
@@ -274,3 +274,19 @@ Plans:
 
 - [ ] 09-01-PLAN.md — Schema factory, canOmitSessionTherapist, nullable upsert, sessions.service null coalesce
 - [ ] 09-02-PLAN.md — PatientSessionEditorForm empresa omit + Sem profissional displays
+
+### Phase 10: Responsividade mobile 100%
+
+**Goal:** Em viewport estreito (telefone), **todas** as telas clínicas do produto são usáveis sem scroll horizontal indesejado, sem truncar ações críticas, e com hierarquia tocável — o site deixa de ser “parcialmente responsivo” e fica **100%** mobile-ready.
+**Depends on:** AppShell + rotas clínicas existentes (Phases 3–7); não bloqueia Phase 8/9
+**Requirements**: REQ-22
+**Success Criteria** (what must be TRUE):
+
+  1. Em ~360–430px de largura, shell (drawer, bottom nav, header) e páginas clínicas não exigem pan horizontal para usar o fluxo principal
+  2. Formulários, tabelas/listas, modais e abas da ficha empilham ou scrollam de forma legível no mobile
+  3. Agenda, Painel, Pacientes, Ficha, Equipe, Financeiro (autônomo) e auth passam checklist visual mobile
+  4. Desktop (≥lg) não regride: layout atual de sidebar + painel permanece
+  5. Safe-area / bottom nav não cobrem CTAs primários
+
+**Plans:** TBD
+**UI hint:** yes

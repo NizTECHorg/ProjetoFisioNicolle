@@ -14,8 +14,23 @@
 - [x] **REQ-18**: Silhueta de áreas de foco — marcar partes do corpo na ficha
 - [ ] **REQ-20**: Integração Google Agenda — exportar sessões da agenda para o Google Calendar *(UAT pendente)*
 - [ ] **REQ-21**: Empresa cria paciente e sessão sem alocar fisioterapeuta
+- [ ] **REQ-22**: Responsividade mobile 100% — experiência clínica completa em viewport estreito
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-22 — Responsividade mobile 100%
+
+**Indispensável · Artur**
+
+O produto já tem partes responsivas (AppShell, bottom nav, alguns grids). Esta fatia fecha **todas** as telas e componentes clínicos para uso pleno no celular: sem quebra de layout, sem ações inacessíveis, sem overflow horizontal no fluxo principal.
+
+### Acceptance
+
+1. Viewport ~360px: shell + páginas clínicas usáveis sem pan horizontal obrigatório.
+2. Ficha do paciente (abas, formulários longos, silhueta, galeria) funciona no mobile.
+3. Agenda, painel, listas, equipe e financeiro do autônomo têm layout mobile coerente.
+4. Modais / confirms / toasts não ficam cortados pelo bottom nav ou safe-area.
+5. Layout desktop (≥ `lg`) permanece equivalente ao atual.
 
 ## REQ-21 — Paciente/sessão sem fisioterapeuta (empresa)
 
@@ -179,3 +194,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-08 | Prior | Delivered |
 | REQ-20 | Phase 8 | In Progress (UAT pendente) |
 | REQ-21 | Phase 9 | Planned |
+| REQ-22 | Phase 10 | Planned |
