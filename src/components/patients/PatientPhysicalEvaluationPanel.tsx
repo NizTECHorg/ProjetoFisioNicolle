@@ -238,7 +238,7 @@ export function PatientPhysicalEvaluationPanel({
                           e.stopPropagation()
                           handleDeleteEvaluation(item.id)
                         }}
-                        className="rounded p-1 text-muted opacity-0 hover:bg-error/10 hover:text-error group-hover:opacity-100"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 hover:bg-error/10 hover:text-error group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100"
                       >
                         <Trash2 size={14} />
                       </button>

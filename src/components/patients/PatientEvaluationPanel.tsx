@@ -184,12 +184,12 @@ export function PatientEvaluationPanel({
                   </p>
                 </div>
                 {canWrite ? (
-                  <div className="flex gap-1">
+                  <div className="flex shrink-0 gap-1">
                     <button
                       type="button"
                       aria-label="Editar avaliação"
                       onClick={() => openEdit(selected)}
-                      className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
                     >
                       <Pencil size={14} />
                     </button>
@@ -197,7 +197,7 @@ export function PatientEvaluationPanel({
                       type="button"
                       aria-label="Excluir avaliação"
                       onClick={() => setPendingDelete(selected)}
-                      className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-error"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-error"
                     >
                       <Trash2 size={14} />
                     </button>

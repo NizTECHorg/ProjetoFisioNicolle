@@ -210,7 +210,7 @@ export function PatientAlertsPanel({
               error={form.formState.errors.tone?.message}
               {...form.register('tone')}
             />
-            <div className="flex justify-end gap-3 pt-1">
+            <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
               <Button type="button" variant="secondary" onClick={closeEditor} disabled={saving}>
                 Cancelar
               </Button>

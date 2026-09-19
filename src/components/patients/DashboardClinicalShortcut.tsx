@@ -131,7 +131,7 @@ export function DashboardClinicalShortcut() {
           ) : null}
 
           {!isLoading && !isError && writable.length > 0 ? (
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               {showSearch ? (
                 <Input
                   ref={searchInputRef}
@@ -146,14 +146,14 @@ export function DashboardClinicalShortcut() {
               {filtered.length === 0 ? (
                 <p className="text-sm text-muted">Nenhum paciente com esse nome.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   {filtered.map((patient, index) => (
                     <button
                       key={patient.id}
                       ref={index === 0 ? firstRowRef : undefined}
                       type="button"
                       className={[
-                        'flex w-full min-h-11 items-center gap-2 rounded-2xl border border-line bg-surface p-4 text-left',
+                        'flex w-full min-h-11 min-w-0 items-center gap-2 rounded-2xl border border-line bg-surface p-4 text-left',
                         'hover:bg-canvas',
                       ].join(' ')}
                       onClick={() => selectPatient(state.kind, patient)}

@@ -212,7 +212,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                       ) : null}
                     </div>
                     {canWrite ? (
-                      <div className="flex gap-1">
+                      <div className="flex shrink-0 gap-1">
                         <button
                           type="button"
                           aria-label="Editar sessão"
@@ -220,7 +220,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                             setEditing(session)
                             setEditorOpen(true)
                           }}
-                          className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-forest"
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
                         >
                           <Pencil size={14} />
                         </button>
@@ -228,7 +228,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                           type="button"
                           aria-label="Excluir sessão"
                           onClick={() => setPendingDelete(session)}
-                          className="rounded-lg p-1.5 text-muted transition hover:bg-accent-soft hover:text-error"
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-error"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -308,7 +308,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                       </p>
                     </div>
                   ) : null}
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {viewingPhotos.map((image) => (
                       <button
                         key={image.id}
