@@ -299,6 +299,16 @@ export function mapGoogleCalendarError(
   const status = error.status
 
   if (
+    code === 'insufficient_scope' ||
+    message.includes('insufficient_scope') ||
+    message.includes('insufficient permission') ||
+    message.includes('insufficientpermissions') ||
+    message.includes('authentication scopes')
+  ) {
+    return GOOGLE_CALENDAR_COPY.insufficientScope
+  }
+
+  if (
     code === 'misconfigured' ||
     message.includes('misconfigured') ||
     message.includes('invalid_client')

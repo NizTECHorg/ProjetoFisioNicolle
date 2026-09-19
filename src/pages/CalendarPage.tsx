@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CalendarClock, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -11,10 +11,10 @@ import { Select } from '@/components/ui/Select'
 import { useCalendarSessions, useCreateSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
 import {
   useDisconnectGoogleCalendar,
+  useEnsureGoogleCalendarVaulted,
   useExportGoogleCalendarMonth,
   useGoogleCalendarConnection,
   useLinkGoogleCalendar,
-  useVaultGoogleTokens,
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
 import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
@@ -56,7 +56,6 @@ export function CalendarPage() {
   const [place, setPlace] = useState('Sala 1')
   const [disconnectOpen, setDisconnectOpen] = useState(false)
   const [needsReconnect, setNeedsReconnect] = useState(false)
-  const vaultAttempted = useRef(false)
 
   const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
   const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
@@ -70,19 +69,10 @@ export function CalendarPage() {
 
   const connectionQuery = useGoogleCalendarConnection()
   const linkGoogle = useLinkGoogleCalendar()
-  const vaultTokens = useVaultGoogleTokens()
   const exportMonth = useExportGoogleCalendarMonth()
   const disconnectGoogle = useDisconnectGoogleCalendar()
 
-  useEffect(() => {
-    if (vaultAttempted.current) return
-    vaultAttempted.current = true
-    vaultTokens.mutate(undefined, {
-      onSuccess: (result) => {
-        if (result === 'vaulted') setNeedsReconnect(false)
-      },
-    })
-  }, [vaultTokens])
+  useEnsureGoogleCalendarVaulted(() => setNeedsReconnect(false))
 
   const dueCards = useMemo(() => {
     const titles = new Map((board?.columns ?? []).map((column) => [column.id, column.title]))
@@ -170,7 +160,9 @@ export function CalendarPage() {
     const withCode = error as Error & { code?: string }
     return (
       withCode.code === 'needs_reconnect' ||
-      error.message === GOOGLE_CALENDAR_COPY.tokenExpired
+      withCode.code === 'insufficient_scope' ||
+      error.message === GOOGLE_CALENDAR_COPY.tokenExpired ||
+      error.message === GOOGLE_CALENDAR_COPY.insufficientScope
     )
   }
 

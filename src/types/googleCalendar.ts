@@ -10,6 +10,7 @@ export interface GoogleCalendarConnection {
 
 export type GoogleCalendarExportErrorCode =
   | 'needs_reconnect'
+  | 'insufficient_scope'
   | 'network'
   | 'empty_month'
   | 'partial'

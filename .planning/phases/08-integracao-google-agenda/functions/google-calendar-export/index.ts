@@ -321,6 +321,7 @@ Deno.serve(async (req: Request) => {
   let failedCount = 0
   let hardAuthFail = false
   let calendarMisconfigured = false
+  let insufficientScope = false
 
   for (const row of withTime) {
     const patient = Array.isArray(row.patients) ? row.patients[0] : row.patients
@@ -338,7 +339,7 @@ Deno.serve(async (req: Request) => {
     try {
       let googleEventId: string | null = null
 
-      async function classifyGoogleFail(res: Response): Promise<'auth' | 'config' | 'other'> {
+      async function classifyGoogleFail(res: Response): Promise<'auth' | 'config' | 'scope' | 'other'> {
         if (res.status === 401) return 'auth'
         if (res.status !== 403) return 'other'
         try {
@@ -349,11 +350,19 @@ Deno.serve(async (req: Request) => {
           const msg = (body.error?.message ?? '').toLowerCase()
           const status = (body.error?.status ?? '').toLowerCase()
           if (
+            reason === 'insufficientpermissions' ||
+            msg.includes('insufficient permission') ||
+            msg.includes('authentication scopes') ||
+            msg.includes('request had insufficient')
+          ) {
+            return 'scope'
+          }
+          if (
             reason === 'accessnotconfigured' ||
             reason === 'access_not_configured' ||
             msg.includes('has not been used') ||
             msg.includes('disabled') ||
-            status === 'permission_denied' && msg.includes('calendar')
+            (status === 'permission_denied' && msg.includes('api'))
           ) {
             return 'config'
           }
@@ -375,6 +384,7 @@ Deno.serve(async (req: Request) => {
         if (patchRes.status === 401 || patchRes.status === 403) {
           const kind = await classifyGoogleFail(patchRes)
           if (kind === 'config') calendarMisconfigured = true
+          else if (kind === 'scope') insufficientScope = true
           else hardAuthFail = true
           break
         }
@@ -396,6 +406,7 @@ Deno.serve(async (req: Request) => {
         if (insertRes.status === 401 || insertRes.status === 403) {
           const kind = await classifyGoogleFail(insertRes)
           if (kind === 'config') calendarMisconfigured = true
+          else if (kind === 'scope') insufficientScope = true
           else hardAuthFail = true
           break
         }
@@ -434,6 +445,10 @@ Deno.serve(async (req: Request) => {
 
   if (calendarMisconfigured) {
     return jsonResponse({ error: 'misconfigured', code: 'misconfigured' }, 500)
+  }
+
+  if (insufficientScope) {
+    return jsonResponse({ error: 'insufficient_scope', code: 'insufficient_scope' }, 403)
   }
 
   if (hardAuthFail) {

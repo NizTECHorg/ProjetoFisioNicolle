@@ -20,6 +20,8 @@ export const GOOGLE_CALENDAR_COPY = {
   exportEmptyBody: 'Agende uma sessão na Agenda ou mude o mês visível.',
   exportError: 'Não foi possível exportar para o Google. Tente de novo ou reconecte a conta.',
   tokenExpired: 'Sua conexão com o Google expirou. Reconecte para continuar exportando.',
+  insufficientScope:
+    'O Google não liberou acesso ao Calendar. Desconecte, conecte de novo e aceite a permissão da agenda.',
   misconfigured:
     'A integração Google no servidor está incompleta. Confira GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nas Edge Functions (mesmo cliente do Auth).',
   networkError: 'Não foi possível falar com o Google. Tente de novo em instantes.',

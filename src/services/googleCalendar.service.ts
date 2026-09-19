@@ -11,7 +11,7 @@ import type {
   GoogleCalendarExportResult,
 } from '@/types/googleCalendar'
 
-const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events.owned'
+const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events'
 
 interface ConnectionRow {
   google_email: string | null
@@ -103,9 +103,14 @@ function throwMappedFunctionsError(payload: {
   const err = new Error(mapped) as Error & { code?: GoogleCalendarExportErrorCode }
   if (
     payload.code === 'needs_reconnect' ||
-    mapped === GOOGLE_CALENDAR_COPY.tokenExpired
+    payload.code === 'insufficient_scope' ||
+    mapped === GOOGLE_CALENDAR_COPY.tokenExpired ||
+    mapped === GOOGLE_CALENDAR_COPY.insufficientScope
   ) {
-    err.code = 'needs_reconnect'
+    err.code =
+      payload.code === 'insufficient_scope' || mapped === GOOGLE_CALENDAR_COPY.insufficientScope
+        ? 'insufficient_scope'
+        : 'needs_reconnect'
   }
   throw err
 }
@@ -135,6 +140,7 @@ export async function linkGoogleCalendar(): Promise<void> {
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
+        include_granted_scopes: 'true',
       },
     },
   })

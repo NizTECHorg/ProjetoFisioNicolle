@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase/client'
 import {
   GOOGLE_CALENDAR_COPY,
   type ExportMonthInput,
@@ -27,7 +29,9 @@ function isNeedsReconnect(error: unknown): boolean {
   const withCode = error as Error & { code?: string }
   return (
     withCode.code === 'needs_reconnect' ||
-    error.message === GOOGLE_CALENDAR_COPY.tokenExpired
+    withCode.code === 'insufficient_scope' ||
+    error.message === GOOGLE_CALENDAR_COPY.tokenExpired ||
+    error.message === GOOGLE_CALENDAR_COPY.insufficientScope
   )
 }
 
@@ -57,6 +61,55 @@ export function useVaultGoogleTokens() {
     },
     onError,
   })
+}
+
+/**
+ * Captures provider_refresh_token after OAuth return.
+ * Must listen to onAuthStateChange — a one-shot getSession on mount races PKCE
+ * and often skips vault while still showing a stale connection row.
+ */
+export function useEnsureGoogleCalendarVaulted(onVaulted?: () => void) {
+  const vaultTokens = useVaultGoogleTokens()
+  const vaultedRefresh = useRef<string | null>(null)
+  const mutateRef = useRef(vaultTokens.mutate)
+  mutateRef.current = vaultTokens.mutate
+
+  useEffect(() => {
+    let cancelled = false
+
+    function tryVault(providerRefreshToken: string | null | undefined) {
+      const token = providerRefreshToken?.trim()
+      if (!token || cancelled) return
+      if (vaultedRefresh.current === token) return
+      vaultedRefresh.current = token
+
+      mutateRef.current(undefined, {
+        onSuccess: (result) => {
+          if (cancelled || result !== 'vaulted') return
+          onVaulted?.()
+        },
+        onError: () => {
+          // Allow retry on next auth event if vault failed
+          if (vaultedRefresh.current === token) vaultedRefresh.current = null
+        },
+      })
+    }
+
+    void supabase.auth.getSession().then(({ data }) => {
+      tryVault(data.session?.provider_refresh_token)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      tryVault(session?.provider_refresh_token)
+    })
+
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
+  }, [onVaulted])
 }
 
 export function useExportGoogleCalendarMonth() {
