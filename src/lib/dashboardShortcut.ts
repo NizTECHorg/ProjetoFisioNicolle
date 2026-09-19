@@ -38,8 +38,11 @@ export function filterPatientsByName(
 
 /**
  * Deep-link to the ficha tab used by Ver ficha (D-03).
- * PatientPage reads aba=evolucoes | aba=avaliacao — not evolucao / avaliacoes.
+ * PatientPage reads aba=evolucoes | aba=resumo-ia | aba=avaliacao (legacy alias).
  */
-export function patientFichaPath(patientId: string, aba: 'evolucoes' | 'avaliacao'): string {
+export function patientFichaPath(
+  patientId: string,
+  aba: 'evolucoes' | 'resumo-ia' | 'avaliacao',
+): string {
   return `/pacientes/${patientId}?aba=${aba}`
 }

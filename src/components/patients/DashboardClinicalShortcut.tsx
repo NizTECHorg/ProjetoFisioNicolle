@@ -203,7 +203,7 @@ export function DashboardClinicalShortcut() {
               showInnerHeading={false}
               successAction={{
                 label: 'Ver ficha',
-                href: patientFichaPath(state.patientId, 'avaliacao'),
+                href: patientFichaPath(state.patientId, 'resumo-ia'),
               }}
               errorMessage={SAVE_ERROR}
               onCancel={closeShortcut}

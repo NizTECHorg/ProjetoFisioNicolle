@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { statusLabels, type PatientStatus } from '@/types/patient'
 
-export type PatientTab = 'resumo' | 'cadastro' | 'evolucoes' | 'avaliacao' | 'imagens'
+export type PatientTab = 'resumo' | 'cadastro' | 'evolucoes' | 'resumo-ia' | 'avaliacao' | 'imagens'
 
 type PatientProfileHeaderProps = {
   name: string
@@ -73,7 +73,7 @@ export function PatientProfileHeader({
           <p className="mt-2 min-h-5 break-words text-sm text-muted">{meta}</p>
 
           <nav
-            className="mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overscroll-x-contain border-b border-line sm:gap-6"
+            className="mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
             aria-label="Seções do paciente"
             role="tablist"
           >
@@ -122,16 +122,16 @@ export function PatientProfileHeader({
             <button
               type="button"
               role="tab"
-              aria-selected={activeTab === 'avaliacao'}
+              aria-selected={activeTab === 'resumo-ia' || activeTab === 'avaliacao'}
               className={[
                 '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
-                activeTab === 'avaliacao'
+                activeTab === 'resumo-ia' || activeTab === 'avaliacao'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',
               ].join(' ')}
-              onClick={() => onTabChange('avaliacao')}
+              onClick={() => onTabChange('resumo-ia')}
             >
-              Avaliação
+              Resumo IA
             </button>
             <button
               type="button"

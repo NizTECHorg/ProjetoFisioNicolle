@@ -23,8 +23,8 @@ import { PatientFocusAreasPanel } from '@/components/patients/PatientFocusAreasP
 import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
-import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
+import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -39,7 +39,7 @@ import {
 import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPainLog } from '@/types/patient'
 
 const shortcuts = [
-  { label: 'Avaliação', detail: 'Registro inicial', icon: ClipboardList, tab: 'avaliacao' as const },
+  { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
   { label: 'Evoluções', detail: 'Abrir aba', icon: Stethoscope, tab: 'evolucoes' as const },
   { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
   { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
@@ -142,7 +142,7 @@ function EntendaOCaso({
               type="button"
               aria-label="Editar entendimento do caso"
               onClick={() => setOpen(true)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-100 transition hover:bg-accent-soft hover:text-forest md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
             >
               <Pencil size={16} />
             </button>
@@ -422,11 +422,13 @@ export function PatientPage() {
       ? 'cadastro'
       : aba === 'evolucoes'
         ? 'evolucoes'
-        : aba === 'avaliacao'
-          ? 'avaliacao'
-          : aba === 'imagens'
-            ? 'imagens'
-            : 'resumo'
+        : aba === 'resumo-ia'
+          ? 'resumo-ia'
+          : aba === 'avaliacao'
+            ? 'avaliacao'
+            : aba === 'imagens'
+              ? 'imagens'
+              : 'resumo'
 
   const {
     data: dashboard,
@@ -453,8 +455,8 @@ export function PatientPage() {
       setSearchParams({ aba: 'evolucoes' }, { replace: true })
       return
     }
-    if (next === 'avaliacao') {
-      setSearchParams({ aba: 'avaliacao' }, { replace: true })
+    if (next === 'resumo-ia' || next === 'avaliacao') {
+      setSearchParams({ aba: 'resumo-ia' }, { replace: true })
       return
     }
     if (next === 'imagens') {
@@ -516,7 +518,7 @@ export function PatientPage() {
               className={[
                 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest',
                 tab === 'cadastro'
-                  ? 'opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100'
+                  ? 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100'
                   : 'pointer-events-none invisible',
               ].join(' ')}
             >
@@ -531,8 +533,8 @@ export function PatientPage() {
           <ResumoPanel patient={dashboard} detail={detail} canWrite={canWrite} />
         ) : tab === 'evolucoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} canWrite={canWrite} />
-        ) : tab === 'avaliacao' ? (
-          <PatientEvaluationPanel
+        ) : tab === 'resumo-ia' || tab === 'avaliacao' ? (
+          <PatientResumoIaPanel
             patientId={dashboard.id}
             patientName={dashboard.name}
             canWrite={canWrite}
