@@ -288,5 +288,12 @@ Plans:
   4. Desktop (≥lg) não regride: layout atual de sidebar + painel permanece
   5. Safe-area / bottom nav não cobrem CTAs primários
 
-**Plans:** TBD
+**Plans:** 4 plans
 **UI hint:** yes
+
+Plans:
+
+- [ ] 10-01-PLAN.md — Shell/primitives: viewport-fit, Modal/ConfirmDialog safe-area, AppShell targets, DataTable/PageHeader, UI checklist
+- [ ] 10-02-PLAN.md — Clinical pages: Agenda, Quadro, Painel, Equipe cards, Financeiro catalog cards
+- [ ] 10-03-PLAN.md — Ficha modules: tabs, silhueta, touch actions, evoluções/forms
+- [ ] 10-04-PLAN.md — Human UAT at 360/390/430 + lg smoke (blocking checkpoint)
