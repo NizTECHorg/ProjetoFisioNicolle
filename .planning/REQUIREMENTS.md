@@ -15,8 +15,24 @@
 - [ ] **REQ-20**: Integração Google Agenda — exportar sessões da agenda para o Google Calendar *(UAT pendente)*
 - [ ] **REQ-21**: Empresa cria paciente e sessão sem alocar fisioterapeuta
 - [ ] **REQ-22**: Responsividade mobile 100% — experiência clínica completa em viewport estreito
+- [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+
+## REQ-23 — Resumo IA
+
+**Indispensável · Artur**
+
+Refatorar o hub de IA na ficha: a aba passa a ser **Resumo IA**. Nela, **uma caixa de input** cobre dois modos: (1) escrever/atualizar o **Resumo do paciente** com IA usando o máximo de contexto clínico; (2) exportar PDF da avaliação (geral ou por sessão). Os PDFs ficam salvos na aba em **Avaliações salvas**.
+
+### Acceptance
+
+1. Aba **Resumo IA** na ficha (rótulo e fluxo claros; não confunde com avaliação estruturada REQ-05 se esta permanecer).
+2. Input unificado com escolha de modo: gerar resumo IA **ou** exportar PDF.
+3. Gerar resumo: agrega cadastro, clínica, evoluções por sessão, metas, áreas de foco e demais dados disponíveis; atualiza a área Resumo do paciente; pode sugerir/atualizar áreas de foco quando a IA indicar.
+4. Export: PDF geral (estado atual) ou PDF de uma sessão escolhida; lista “Avaliações salvas” com tipo (geral/sessão), data e identificação da sessão.
+5. Persistência no Supabase (metadados + arquivo); RLS alinhado a `can_write_patient` / leitura da ficha.
+6. Erros de IA/rede em português; quem só consulta não gera nem exclui.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -195,3 +211,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-20 | Phase 8 | In Progress (UAT pendente) |
 | REQ-21 | Phase 9 | Planned |
 | REQ-22 | Phase 10 | Planned |
+| REQ-23 | Phase 11 | Planned |

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phase 8 (Google Agenda) em UAT — histórico preservado. Phase 9 (sessão/paciente sem fisio) planejada. Próximo planejamento: Phase 10 responsividade mobile 100%. REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Phase 8 UAT pendente; Phase 9 planejada; Phase 10 mobile em UAT. Próximo planejamento: Phase 11 Resumo IA (gerar resumo + PDF). REQ-05 e UAT do REQ-14 ficam para depois.
 
 ## Phases
 
@@ -16,7 +16,7 @@ Completar o prontuário e o modelo de contas. Phase 8 (Google Agenda) em UAT —
 - [ ] **Phase 8: Integração Google Agenda** — Exportar sessões da agenda da aplicação para o Google Calendar *(UAT pendente — não approved)*
 - [ ] **Phase 9: Paciente/sessão sem fisioterapeuta (empresa)** — Empresa cria paciente e sessão sem alocar profissional
 - [ ] **Phase 10: Responsividade mobile 100%** — Toda a experiência clínica usável e legível em viewport estreito
-## Phase Details
+- [ ] **Phase 11: Resumo IA** — Aba Resumo IA: gerar resumo clínico com contexto completo e PDFs salvos (geral ou por sessão)## Phase Details
 
 ### Phase 1: Avaliação inicial
 
@@ -288,12 +288,28 @@ Plans:
   4. Desktop (≥lg) não regride: layout atual de sidebar + painel permanece
   5. Safe-area / bottom nav não cobrem CTAs primários
 
-**Plans:** 4 plans
+**Plans:** 3/4 plans executed
 **UI hint:** yes
 
 Plans:
 
-- [ ] 10-01-PLAN.md — Shell/primitives: viewport-fit, Modal/ConfirmDialog safe-area, AppShell targets, DataTable/PageHeader, UI checklist
-- [ ] 10-02-PLAN.md — Clinical pages: Agenda, Quadro, Painel, Equipe cards, Financeiro catalog cards
-- [ ] 10-03-PLAN.md — Ficha modules: tabs, silhueta, touch actions, evoluções/forms
+- [x] 10-01-PLAN.md — Shell/primitives: viewport-fit, Modal/ConfirmDialog safe-area, AppShell targets, DataTable/PageHeader, UI checklist
+- [x] 10-02-PLAN.md — Clinical pages: Agenda, Quadro, Painel, Equipe cards, Financeiro catalog cards
+- [x] 10-03-PLAN.md — Ficha modules: tabs, silhueta, touch actions, evoluções/forms
 - [ ] 10-04-PLAN.md — Human UAT at 360/390/430 + lg smoke (blocking checkpoint)
+
+### Phase 11: Resumo IA
+
+**Goal:** Na ficha, a aba **Resumo IA** concentra gerar (com IA) o texto de **Resumo do paciente** a partir do contexto clínico completo, e exportar PDFs (geral ou por sessão) que ficam salvos na própria aba.
+**Depends on:** Ficha + evoluções + áreas de foco + `ai_summary` (Phases 1–7); não bloqueia 8–10
+**Requirements**: REQ-23
+**Success Criteria** (what must be TRUE):
+
+  1. Aba da ficha chama-se **Resumo IA** (substitui o rótulo/papel atual de “Avaliação” como hub de IA)
+  2. Uma única caixa de input permite escolher: escrever resumo via IA **ou** exportar avaliação em PDF
+  3. Gerar resumo usa contexto máximo do paciente (cadastro, queixa, evoluções por sessão, metas, áreas de foco, etc.) e grava em Resumo do paciente (`ai_summary` / área Resumo)
+  4. Export PDF: geral (estado atual) **ou** por sessão escolhida; arquivos listados em “Avaliações salvas” com tipo, data e sessão quando aplicável
+  5. Quem não pode escrever a ficha só consulta (sem gerar/exportar/excluir)
+
+**Plans:** TBD
+**UI hint:** yes
