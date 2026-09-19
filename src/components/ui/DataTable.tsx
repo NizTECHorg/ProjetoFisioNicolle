@@ -45,8 +45,11 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-line bg-surface">
-      <div className="overflow-x-auto">
+    <div className="relative min-w-0 overflow-hidden rounded-3xl border border-line bg-surface">
+      <div
+        className="overflow-x-auto overscroll-x-contain"
+        aria-label="Tabela com rolagem horizontal"
+      >
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-line bg-canvas text-xs uppercase tracking-wide text-muted">
             <tr>
@@ -70,6 +73,10 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-surface to-transparent sm:hidden"
+      />
     </div>
   )
 }

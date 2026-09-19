@@ -15,7 +15,9 @@ export function PageHeader({ title, description, action, className = '' }: PageH
           </h1>
           {description ? <p className="mt-1.5 text-sm leading-6 text-muted">{description}</p> : null}
         </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
+        {action ? (
+          <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto sm:justify-end">{action}</div>
+        ) : null}
       </div>
     </div>
   )

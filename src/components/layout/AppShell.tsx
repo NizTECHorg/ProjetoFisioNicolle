@@ -48,7 +48,7 @@ export function AppShell() {
           <button
             type="button"
             aria-label="Fechar menu"
-            className="rounded-xl p-2 text-white/60 hover:bg-white/10 lg:hidden"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl p-2 text-white/60 hover:bg-white/10 lg:hidden"
             onClick={() => setIsMenuOpen(false)}
           >
             <X size={20} />
@@ -93,7 +93,7 @@ export function AppShell() {
               aria-label="Sair"
               title="Sair"
               onClick={() => void signOut()}
-              className="rounded-xl p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
             >
               <LogOut size={17} />
             </button>
@@ -108,7 +108,7 @@ export function AppShell() {
               <button
                 type="button"
                 aria-label="Abrir menu"
-                className="rounded-xl border border-line bg-surface p-2 text-ink/70"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-line bg-surface p-2 text-ink/70"
                 onClick={() => setIsMenuOpen(true)}
               >
                 <Menu size={20} />
@@ -135,7 +135,7 @@ export function AppShell() {
               end={path === '/painel'}
               className={({ isActive }) =>
                 [
-                  'flex min-w-[3.25rem] flex-col items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium transition-colors',
+                  'flex min-h-11 min-w-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-full px-1.5 py-1 text-[9px] font-medium transition-colors',
                   isActive ? 'text-accent' : 'text-white/50',
                 ].join(' ')
               }
