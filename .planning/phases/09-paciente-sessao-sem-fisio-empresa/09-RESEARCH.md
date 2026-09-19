@@ -411,22 +411,19 @@ where table_schema = 'public'
 -- expect YES
 ```
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should CalendarPage gain an optional therapist Select for empresa?**
+1. **Should CalendarPage gain an optional therapist Select for empresa?** — RESOLVED
    - What we know: Create already saves null; D-04 allows assign later via edit (ficha).
-   - What's unclear: Whether Agenda UX should assign at create time.
-   - Recommendation: **Leave Calendar create without therapist field** this phase (smallest diff; avoids Phase 8 churn). Assign via ficha editor.
+   - Decision: **Leave Calendar create without therapist field** this phase (smallest diff; avoids Phase 8 churn). Assign via ficha editor. Agenda Sem profissional N/A (Calendar DTO/UI has no therapist field).
 
-2. **Patient Cadastro free-text vs profile UUID**
+2. **Patient Cadastro free-text vs profile UUID** — RESOLVED
    - What we know: Patients store `therapist_name` text only — no `therapist_id` on `patients`.
-   - What's unclear: Whether empresa expected a team-member picker on patient (not only text).
-   - Recommendation: **Do not add patient.therapist_id** this phase (D-05 / scope). Keep optional text + **Sem profissional** display. Session UUID allocation remains the structured link.
+   - Decision: **Do not add patient.therapist_id** this phase (D-05 / scope). Keep optional text + **Sem profissional** display. Session UUID allocation remains the structured link.
 
-3. **`listActiveTherapists` returns all active profiles**
+3. **`listActiveTherapists` returns all active profiles** — RESOLVED
    - What we know: `.from('profiles').eq('is_active', true)` — may include empresa owners and non-team users depending on RLS/data.
-   - What's unclear: Whether empresa should only see org therapists.
-   - Recommendation: **Out of scope** unless it blocks UAT; do not expand Equipe filtering here (D-05).
+   - Decision: **Out of scope** unless it blocks UAT; do not expand Equipe filtering here (D-05).
 
 ## Environment Availability
 
