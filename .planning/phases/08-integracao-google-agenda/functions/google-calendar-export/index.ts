@@ -1,11 +1,143 @@
-import { corsHeaders, jsonResponse, optionsResponse } from '../_shared/cors.ts'
-import { refreshGoogleAccessToken } from '../_shared/googleToken.ts'
-import { mapSessionToGoogleEvent } from '../_shared/mapSessionToGoogleEvent.ts'
-import {
-  createServiceClient,
-  createUserClient,
-  requireUser,
-} from '../_shared/supabaseClients.ts'
+import { createClient, type SupabaseClient, type User } from 'npm:@supabase/supabase-js@2'
+
+const corsHeaders: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+function jsonResponse(body: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+function optionsResponse(): Response {
+  return new Response('ok', { headers: corsHeaders })
+}
+
+function createServiceClient(): SupabaseClient {
+  const url = Deno.env.get('SUPABASE_URL') ?? ''
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+function createUserClient(authHeader: string): SupabaseClient {
+  const url = Deno.env.get('SUPABASE_URL') ?? ''
+  const anon = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+  return createClient(url, anon, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+async function requireUser(
+  req: Request,
+): Promise<{ user: User; authHeader: string } | Response> {
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return jsonResponse({ error: 'unauthorized', code: 'unauthorized' }, 401)
+  }
+  const token = authHeader.slice('Bearer '.length).trim()
+  if (!token) {
+    return jsonResponse({ error: 'unauthorized', code: 'unauthorized' }, 401)
+  }
+  const userClient = createUserClient(authHeader)
+  const { data, error } = await userClient.auth.getUser(token)
+  if (error || !data.user) {
+    return jsonResponse({ error: 'unauthorized', code: 'unauthorized' }, 401)
+  }
+  return { user: data.user, authHeader }
+}
+
+interface RefreshedGoogleToken {
+  accessToken: string
+  expiresIn?: number
+}
+
+async function refreshGoogleAccessToken(
+  refreshToken: string,
+): Promise<RefreshedGoogleToken | { error: 'needs_reconnect' | 'misconfigured' }> {
+  const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
+  const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
+  if (!clientId || !clientSecret) {
+    return { error: 'misconfigured' }
+  }
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+    grant_type: 'refresh_token',
+  })
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  })
+
+  if (!res.ok) {
+    return { error: 'needs_reconnect' }
+  }
+
+  const json = (await res.json()) as { access_token?: string; expires_in?: number }
+  if (!json.access_token) {
+    return { error: 'needs_reconnect' }
+  }
+
+  return {
+    accessToken: json.access_token,
+    expiresIn: json.expires_in,
+  }
+}
+
+const DEFAULT_EVENT_DURATION_MS = 60 * 60 * 1000
+const TIME_ZONE = 'America/Sao_Paulo'
+
+interface CalendarSessionLike {
+  id: string
+  patientName: string
+  patientCode: string
+  scheduledAt: string
+  type: string
+  place: string
+  status: string
+}
+
+interface GoogleCalendarEventBody {
+  summary: string
+  location?: string
+  description: string
+  start: { dateTime: string; timeZone: string }
+  end: { dateTime: string; timeZone: string }
+}
+
+function mapSessionToGoogleEvent(session: CalendarSessionLike): GoogleCalendarEventBody {
+  const start = new Date(session.scheduledAt)
+  const end = new Date(start.getTime() + DEFAULT_EVENT_DURATION_MS)
+
+  const place = session.place.trim()
+  const location = place === '' || place === '—' ? undefined : place
+
+  const description = [
+    session.patientCode.trim() ? `Código: ${session.patientCode.trim()}` : null,
+    `Status: ${session.status}`,
+    'Origem: agenda Fisio (exportação)',
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+  return {
+    summary: `${session.patientName} · ${session.type}`,
+    ...(location !== undefined ? { location } : {}),
+    description,
+    start: { dateTime: start.toISOString(), timeZone: TIME_ZONE },
+    end: { dateTime: end.toISOString(), timeZone: TIME_ZONE },
+  }
+}
 
 const CALENDAR_EVENTS_URL =
   'https://www.googleapis.com/calendar/v3/calendars/primary/events'
@@ -70,7 +202,6 @@ Deno.serve(async (req: Request) => {
 
   const accessToken = refreshed.accessToken
 
-  // patient_sessions SELECT via caller JWT so RLS remains the authority (T-08-09 / D-07).
   const userClient = createUserClient(authHeader)
   const { data: sessionRows, error: sessionsError } = await userClient
     .from('patient_sessions')
@@ -86,7 +217,6 @@ Deno.serve(async (req: Request) => {
   const rows = (sessionRows ?? []) as SessionRow[]
   const withTime = rows.filter((row) => row.scheduled_at)
 
-  // Empty month: return counts without inventing Google calls.
   if (withTime.length === 0) {
     return new Response(JSON.stringify({ exportedCount: 0, failedCount: 0 }), {
       status: 200,
@@ -199,7 +329,6 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'needs_reconnect', code: 'needs_reconnect' }, 401)
   }
 
-  // Never return tokens.
   return new Response(JSON.stringify({ exportedCount, failedCount }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
