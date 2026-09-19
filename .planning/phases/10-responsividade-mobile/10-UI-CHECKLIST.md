@@ -1,10 +1,12 @@
 # Phase 10 — Mobile UAT Checklist
 
-Wave 0 / Wave 4 human verification matrix for REQ-22. Fill pass/fail in plan 04 — leave cells empty until then.
+Wave 4 human verification matrix for REQ-22 (plan 04). Mark `P` / `F` (or ✓ / ✗) in empty cells — do not redesign rows.
 
-**How to use:** Chrome DevTools device mode (or physical phone). Set width to each viewport column. Mark `P` / `F` (or ✓ / ✗). Note real iOS safe-area may need a phone/Simulator for non-zero `env(safe-area-inset-*)`.
+**How to use:** Chrome DevTools device mode (or physical phone). Set width to each viewport column. Prefer Chrome device mode; real iOS safe-area may need a phone/Simulator for non-zero `env(safe-area-inset-*)`.
 
-**Prerequisites:** `viewport-fit=cover` in `index.html`; Wave 1–3 patches applied.
+**Prerequisites:** `viewport-fit=cover` in `index.html`; Waves 1–3 applied. Routes allowlist only (no bakery): `/`, `/cadastro`, `/aguardando`, `/painel`, `/pacientes`, `/pacientes/:id`, `/agenda`, `/quadro`, `/equipe`, `/financeiro`.
+
+**Accounts:** autônomo for Financeiro; empresa for Equipe.
 
 ## Viewports
 
@@ -13,13 +15,13 @@ Wave 0 / Wave 4 human verification matrix for REQ-22. Fill pass/fail in plan 04 
 | 360 | 360 | Small Android / compact |
 | 390 | 390 | iPhone 12/13/14 class |
 | 430 | 430 | Large phone |
-| lg | ≥1024 (`lg`) | Desktop shell regression |
+| lg | ≥1024 (`lg`) | Desktop shell regression (D-05) |
 
-## Cross-cutting checks
+## Cross-cutting checks (REQ-22.4, D-03, D-04)
 
 | Check | 360 | 390 | 430 | lg |
 |-------|-----|-----|-----|----|
-| No page-level horizontal pan (`document`/`main` scrollWidth ≈ clientWidth) | | | | |
+| No page-level horizontal pan (`document.documentElement.scrollWidth` ≤ viewport) | | | | |
 | Primary CTAs clear of bottom nav + home indicator / safe-area | | | | N/A (no bottom nav) |
 | Toast appears above bottom nav (`bottom-24` clearance) | | | | N/A (`lg:bottom-4`) |
 | Modal bottom sheet clears safe-area; backdrop/close usable (`z-[100]` above nav) | | | | centered dialog OK |
@@ -30,36 +32,44 @@ Wave 0 / Wave 4 human verification matrix for REQ-22. Fill pass/fail in plan 04 
 
 | Route / surface | 360 | 390 | 430 | lg |
 |-----------------|-----|-----|-----|----|
-| Login (`/login`) — form usable, no page pan | | | | |
+| Login (`/` or `/login`) — form usable, no page pan | | | | |
 | Cadastro (`/cadastro`) — form usable, no page pan | | | | |
-| Aguardando aprovação — readable, no page pan | | | | |
+| Aguardando (`/aguardando`) — readable, no page pan | | | | |
 | Auth marketing pane hidden on narrow / visible at `lg` | | | | |
 
 ## Clinical routes
 
 | Route / surface | 360 | 390 | 430 | lg |
 |-----------------|-----|-----|-----|----|
-| Painel (`/painel`) | | | | |
-| Pacientes — list | | | | |
-| Pacientes — open ficha | | | | |
-| Agenda — month grid tappable | | | | |
+| Painel (`/painel`) — usable; multi-col intact at `lg` | | | | |
+| Pacientes (`/pacientes`) — list usable (cards below md where present) | | | | |
+| Pacientes — open ficha (`/pacientes/:id`) | | | | |
+| Agenda (`/agenda`) — month grid tappable; chevrons ≥ ~44px | | | | |
 | Agenda — day list | | | | |
 | Agenda — Google connection strip wraps | | | | |
-| Quadro (Kanban) — contained horizontal scroll + affordance | | | | |
-| Equipe — pending + active lists usable | | | | |
-| Financeiro — catalog / lists usable | | | | |
+| Agenda — `lg` two-column layout intact | N/A | N/A | N/A | |
+| Quadro (`/quadro`) — contained horizontal board scroll + edge affordance | | | | |
+| Quadro — list delete control tappable (~44px) | | | | |
+| Equipe (`/equipe`, empresa) — pending list usable | | | | |
+| Equipe — active therapists: cards below md / DataTable at md+ | | | | |
+| Financeiro (`/financeiro`, autônomo) — catalog cards below md / DataTable at md+ | | | | |
+| Financeiro — other lists / actions usable | | | | |
 
-## Ficha tabs
+## Ficha tabs (`/pacientes/:id`)
 
 | Surface | 360 | 390 | 430 | lg |
 |---------|-----|-----|-----|----|
-| Tab strip scroll contained; tabs tappable | | | | |
-| Resumo / shortcuts | | | | |
+| Tab strip scroll contained; tabs ≥ ~44px | | | | |
+| Identity edit control ≥ ~44px | | | | |
+| Resumo / shortcuts (no truncate clipping critical text) | | | | |
+| Resumo — `lg` multi-column grids intact | N/A | N/A | N/A | |
 | Silhueta — mark region usable | | | | |
+| Silhueta — front/back stack below `sm`; side-by-side at `sm+` | | | | |
 | Galeria — upload / lightbox | | | | |
-| Evolução — list + modal | | | | |
-| Exame físico / forms | | | | |
-| Cadastro / metas / alertas | | | | |
+| Evolução — list + modal (thumbs denser on narrow) | | | | |
+| Evolução / editors — FormActions stack on narrow; clear of nav | | | | |
+| Exame físico — forms usable; Excluir visible without hover on narrow | | | | |
+| Cadastro / metas / alertas — forms + stacked actions usable | | | | |
 
 ## Shell chrome
 

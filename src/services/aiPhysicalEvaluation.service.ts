@@ -120,11 +120,12 @@ export async function analyzePhysicalEvaluationPdf(
           }
           throw new Error(`Falha no Google Gemini: ${lastErrorMsg}`)
         }
-      } catch (err: any) {
-        if (err?.message?.includes('Google Gemini')) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : undefined
+        if (message?.includes('Google Gemini')) {
           throw err
         }
-        lastErrorMsg = err?.message ?? 'Erro na conexão com a IA'
+        lastErrorMsg = message ?? 'Erro na conexão com a IA'
       }
     }
 
