@@ -1,14 +1,23 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CalendarClock, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useCalendarSessions, useCreateSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
+import {
+  useDisconnectGoogleCalendar,
+  useExportGoogleCalendarMonth,
+  useGoogleCalendarConnection,
+  useLinkGoogleCalendar,
+  useVaultGoogleTokens,
+} from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
+import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
@@ -45,14 +54,35 @@ export function CalendarPage() {
   const [time, setTime] = useState('09:00')
   const [type, setType] = useState('Sessão')
   const [place, setPlace] = useState('Sala 1')
+  const [disconnectOpen, setDisconnectOpen] = useState(false)
+  const [needsReconnect, setNeedsReconnect] = useState(false)
+  const vaultAttempted = useRef(false)
 
   const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
   const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-  const { data: sessions = [], isLoading } = useCalendarSessions(from.toISOString(), to.toISOString())
+  const fromIso = from.toISOString()
+  const toIso = to.toISOString()
+  const { data: sessions = [], isLoading } = useCalendarSessions(fromIso, toIso)
   const { data: board } = useBoard()
   const { data: patients = [] } = usePatients()
   const create = useCreateSession()
   const updateStatus = useUpdateSessionStatus()
+
+  const connectionQuery = useGoogleCalendarConnection()
+  const linkGoogle = useLinkGoogleCalendar()
+  const vaultTokens = useVaultGoogleTokens()
+  const exportMonth = useExportGoogleCalendarMonth()
+  const disconnectGoogle = useDisconnectGoogleCalendar()
+
+  useEffect(() => {
+    if (vaultAttempted.current) return
+    vaultAttempted.current = true
+    vaultTokens.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result === 'vaulted') setNeedsReconnect(false)
+      },
+    })
+  }, [vaultTokens])
 
   const dueCards = useMemo(() => {
     const titles = new Map((board?.columns ?? []).map((column) => [column.id, column.title]))
@@ -135,6 +165,40 @@ export function CalendarPage() {
     )
   }
 
+  function isNeedsReconnectError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false
+    const withCode = error as Error & { code?: string }
+    return (
+      withCode.code === 'needs_reconnect' ||
+      error.message === GOOGLE_CALENDAR_COPY.tokenExpired
+    )
+  }
+
+  function handleExportMonth() {
+    exportMonth.mutate(
+      { fromIso, toIso },
+      {
+        onError: (error) => {
+          if (isNeedsReconnectError(error)) setNeedsReconnect(true)
+        },
+      },
+    )
+  }
+
+  function handleDisconnectConfirm() {
+    disconnectGoogle.mutate(undefined, {
+      onSuccess: () => {
+        setNeedsReconnect(false)
+        setDisconnectOpen(false)
+      },
+    })
+  }
+
+  const connection = connectionQuery.data ?? null
+  const connectionLoading = connectionQuery.isLoading
+  const connectionFailed = connectionQuery.isError
+  const isConnected = Boolean(connection) && !needsReconnect
+
   return (
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
@@ -148,6 +212,115 @@ export function CalendarPage() {
           </Button>
         }
       />
+
+      <article
+        className="dash-in mb-4 rounded-2xl border border-line bg-surface p-4 sm:p-5"
+        style={{ animationDelay: '40ms' }}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-2">
+            <h2 className="text-sm font-semibold text-ink">{GOOGLE_CALENDAR_COPY.stripHeading}</h2>
+
+            {connectionLoading && !connection && !connectionFailed ? (
+              <div className="flex justify-start py-1">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+              </div>
+            ) : null}
+
+            {connectionFailed ? (
+              <div className="rounded-2xl border border-error/20 bg-error/5 p-3 text-sm text-error">
+                {GOOGLE_CALENDAR_COPY.loadConnectionFail}
+              </div>
+            ) : null}
+
+            {needsReconnect && !connectionFailed ? (
+              <div className="rounded-2xl border border-error/20 bg-error/5 p-3 text-sm text-error">
+                {GOOGLE_CALENDAR_COPY.tokenExpired}
+              </div>
+            ) : null}
+
+            {!connectionLoading && !connectionFailed && !connection && !needsReconnect ? (
+              <p className="rounded-2xl border border-accent/30 bg-accent-soft p-3 text-sm text-forest">
+                {GOOGLE_CALENDAR_COPY.noticeDisconnected}
+              </p>
+            ) : null}
+
+            {isConnected && connection ? (
+              <>
+                <p className="text-xs text-muted">
+                  {GOOGLE_CALENDAR_COPY.connectedAs}{' '}
+                  <span className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-forest">
+                    {connection.googleEmail ?? '—'}
+                  </span>
+                </p>
+                <p className="rounded-2xl border border-accent/30 bg-accent-soft p-3 text-sm text-forest">
+                  {GOOGLE_CALENDAR_COPY.noticeConnected}
+                </p>
+                <p className="text-xs text-muted">
+                  {GOOGLE_CALENDAR_COPY.monthScopePrefix}{' '}
+                  <span className="capitalize text-ink">{monthLabel}</span>
+                </p>
+              </>
+            ) : null}
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {connectionFailed ? (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={() => void connectionQuery.refetch()}
+                  isLoading={connectionQuery.isFetching}
+                >
+                  Tentar de novo
+                </Button>
+                <Button
+                  onClick={() => linkGoogle.mutate()}
+                  isLoading={linkGoogle.isPending}
+                >
+                  {GOOGLE_CALENDAR_COPY.reconnectCta}
+                </Button>
+              </>
+            ) : null}
+
+            {!connectionFailed && needsReconnect ? (
+              <Button
+                onClick={() => linkGoogle.mutate()}
+                isLoading={linkGoogle.isPending}
+              >
+                {GOOGLE_CALENDAR_COPY.reconnectCta}
+              </Button>
+            ) : null}
+
+            {!connectionFailed && !connectionLoading && !connection && !needsReconnect ? (
+              <Button
+                onClick={() => linkGoogle.mutate()}
+                isLoading={linkGoogle.isPending}
+              >
+                {GOOGLE_CALENDAR_COPY.connectCta}
+              </Button>
+            ) : null}
+
+            {isConnected ? (
+              <>
+                <Button
+                  onClick={handleExportMonth}
+                  isLoading={exportMonth.isPending}
+                >
+                  {GOOGLE_CALENDAR_COPY.exportCta}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setDisconnectOpen(true)}
+                  disabled={disconnectGoogle.isPending}
+                >
+                  {GOOGLE_CALENDAR_COPY.disconnectCta}
+                </Button>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </article>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-4 sm:p-5" style={{ animationDelay: '80ms' }}>
@@ -383,6 +556,18 @@ export function CalendarPage() {
           </Button>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={disconnectOpen}
+        title={GOOGLE_CALENDAR_COPY.disconnectTitle}
+        description={GOOGLE_CALENDAR_COPY.disconnectDescription}
+        confirmLabel={GOOGLE_CALENDAR_COPY.disconnectConfirm}
+        cancelLabel={GOOGLE_CALENDAR_COPY.disconnectCancel}
+        tone="danger"
+        isLoading={disconnectGoogle.isPending}
+        onClose={() => setDisconnectOpen(false)}
+        onConfirm={handleDisconnectConfirm}
+      />
     </section>
   )
 }
