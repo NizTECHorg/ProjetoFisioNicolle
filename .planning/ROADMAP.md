@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phase 8 UAT pendente; Phase 9 planejada; Phase 10 mobile em UAT. Próximo planejamento: Phase 11 Resumo IA (gerar resumo + PDF). REQ-05 e UAT do REQ-14 ficam para depois.
+Completar o prontuário e o modelo de contas. Phases 8–11 em andamento/UAT. Próximo: Phase 12 aba Avaliações (ficha musculoesquelética + export PDF alinhado).
 
 ## Phases
 
@@ -17,6 +17,7 @@ Completar o prontuário e o modelo de contas. Phase 8 UAT pendente; Phase 9 plan
 - [ ] **Phase 9: Paciente/sessão sem fisioterapeuta (empresa)** — Empresa cria paciente e sessão sem alocar profissional
 - [ ] **Phase 10: Responsividade mobile 100%** — Toda a experiência clínica usável e legível em viewport estreito
 - [ ] **Phase 11: Resumo IA** — Aba Resumo IA: gerar resumo clínico com contexto completo e PDFs salvos (geral ou por sessão)
+- [ ] **Phase 12: Avaliações musculoesqueléticas** — Aba Avaliações (ficha 01–04), CRUD parcial, dashboard → nova, PDF export alinhado
 
 ## Phase Details
 
@@ -322,3 +323,24 @@ Plans:
 - [ ] 11-02-PLAN.md — Edge Function `patient-ai-summary` + client invoke + GEMINI secret deploy
 - [ ] 11-03-PLAN.md — pdf-lib gate + PDF builder + Storage reports service/hooks
 - [ ] 11-04-PLAN.md — Tab Resumo IA, unified composer, Avaliações salvas, canWrite UAT
+
+### Phase 12: Avaliações musculoesqueléticas
+
+**Goal:** A ficha tem uma aba **Avaliações** (separada de Resumo IA) onde o profissional cria e salva inúmeras avaliações no modelo da ficha musculoesquelética (referências 01–04). O dashboard escolhe o paciente e abre a aba com criar ativo. Export PDF de avaliação usa esse documento como referência.
+**Depends on:** Ficha + Phase 11 Resumo IA (desacoplar avaliação da aba IA; atualizar PDF export) + Phase 1 `patient_evaluations` brownfield
+**Requirements**: REQ-24
+**Success Criteria** (what must be TRUE):
+
+  1. Aba **Avaliações** existe na ficha e não depende da aba Resumo IA
+  2. É possível listar, criar, editar e excluir múltiplas avaliações por paciente
+  3. Formulário cobre os blocos das fichas 01–04; criação parcial (campos em branco permitidos; completar depois)
+  4. Dashboard → Avaliações → escolher paciente → abre aba Avaliações com formulário de criar aberto
+  5. PDF de exportação de avaliação (fluxo do paciente / Resumo IA) segue o layout/seções do documento de referência
+  6. Consulta-only (empresa colega) sem criar/editar/excluir; RLS permanece a parede
+
+**Plans:** TBD
+**UI hint:** yes
+
+Plans:
+
+- [ ] (planning in progress)

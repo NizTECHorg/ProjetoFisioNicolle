@@ -16,8 +16,9 @@
 - [ ] **REQ-21**: Empresa cria paciente e sessão sem alocar fisioterapeuta
 - [ ] **REQ-22**: Responsividade mobile 100% — experiência clínica completa em viewport estreito
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
+- [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
-- [ ] **REQ-05**: Registro da avaliação inicial estruturada *(adiado — retomar depois)*
+- [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
 ## REQ-23 — Resumo IA
 
@@ -33,6 +34,21 @@ Refatorar o hub de IA na ficha: a aba passa a ser **Resumo IA**. Nela, **uma cai
 4. Export: PDF geral (estado atual) ou PDF de uma sessão escolhida; lista “Avaliações salvas” com tipo (geral/sessão), data e identificação da sessão.
 5. Persistência no Supabase (metadados + arquivo); RLS alinhado a `can_write_patient` / leitura da ficha.
 6. Erros de IA/rede em português; quem só consulta não gera nem exclui.
+
+## REQ-24 — Aba Avaliações (ficha musculoesquelética)
+
+**Indispensável · Artur**
+
+Voltar **Avaliações** como **aba própria** da ficha (separada de Resumo IA). O profissional cria e salva **inúmeras** avaliações no modelo da ficha de anamnese/evolução musculoesquelética (4 páginas de referência: 01 Anamnese, 02 Sintomas, 03 Função/Segurança, 04 Avaliação e Plano). Criar é parcial como criar paciente: campos opcionais, salva e completa depois. O atalho **Avaliações** no dashboard escolhe o paciente e abre essa aba com o formulário de criar aberto. O PDF de “exportar avaliação” no Resumo IA passa a usar esse documento como referência de layout/conteúdo.
+
+### Acceptance
+
+1. Aba **Avaliações** na ficha, independente de Resumo IA (sem CRUD de avaliação embutido na aba de IA).
+2. Lista + criar/editar/excluir N avaliações por paciente; persistência Supabase + RLS `can_read/write_patient`.
+3. Formulário cobre os blocos das 4 fichas de referência (campos + design de blocos A–H); quase todos opcionais na criação (exceto o mínimo necessário, ex. data).
+4. Dashboard: botão Avaliações → escolher paciente → navega para a aba Avaliações com criar aberto.
+5. Export PDF de avaliação (fluxo Resumo IA / export paciente) usa o documento/ficha como referência visual e de seções.
+6. Empresa em consulta só lê; sem criar/editar/excluir.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -212,3 +228,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-21 | Phase 9 | Planned |
 | REQ-22 | Phase 10 | Planned |
 | REQ-23 | Phase 11 | Planned |
+| REQ-24 | Phase 12 | Planned |
