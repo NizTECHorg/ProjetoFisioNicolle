@@ -25,6 +25,7 @@ import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
 import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
+import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -417,18 +418,21 @@ export function PatientPage() {
   const openIdentityRef = useRef<(() => void) | null>(null)
 
   const aba = searchParams.get('aba')
+  const openCreateOnMount = searchParams.get('nova') === '1'
   const tab: PatientTab =
     aba === 'cadastro'
       ? 'cadastro'
       : aba === 'evolucoes'
         ? 'evolucoes'
-        : aba === 'resumo-ia'
-          ? 'resumo-ia'
-          : aba === 'avaliacao'
-            ? 'avaliacao'
-            : aba === 'imagens'
-              ? 'imagens'
-              : 'resumo'
+        : aba === 'avaliacoes'
+          ? 'avaliacoes'
+          : aba === 'resumo-ia'
+            ? 'resumo-ia'
+            : aba === 'avaliacao'
+              ? 'avaliacao'
+              : aba === 'imagens'
+                ? 'imagens'
+                : 'resumo'
 
   const {
     data: dashboard,
@@ -446,6 +450,10 @@ export function PatientPage() {
     openIdentityRef.current = open
   }, [])
 
+  const clearNovaQuery = useCallback(() => {
+    setSearchParams({ aba: 'avaliacoes' }, { replace: true })
+  }, [setSearchParams])
+
   function setTab(next: PatientTab) {
     if (next === 'cadastro') {
       setSearchParams({ aba: 'cadastro' }, { replace: true })
@@ -453,6 +461,10 @@ export function PatientPage() {
     }
     if (next === 'evolucoes') {
       setSearchParams({ aba: 'evolucoes' }, { replace: true })
+      return
+    }
+    if (next === 'avaliacoes') {
+      setSearchParams({ aba: 'avaliacoes' }, { replace: true })
       return
     }
     if (next === 'resumo-ia' || next === 'avaliacao') {
@@ -533,6 +545,14 @@ export function PatientPage() {
           <ResumoPanel patient={dashboard} detail={detail} canWrite={canWrite} />
         ) : tab === 'evolucoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} canWrite={canWrite} />
+        ) : tab === 'avaliacoes' ? (
+          <PatientEvaluationPanel
+            patientId={dashboard.id}
+            patientName={dashboard.name}
+            canWrite={canWrite}
+            openCreateOnMount={openCreateOnMount}
+            onOpenCreateConsumed={clearNovaQuery}
+          />
         ) : tab === 'resumo-ia' || tab === 'avaliacao' ? (
           <PatientResumoIaPanel
             patientId={dashboard.id}

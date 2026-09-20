@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
-import { PatientEvaluationEditorForm } from '@/components/patients/PatientEvaluationEditorForm'
 import { PatientSessionEditorForm } from '@/components/patients/PatientSessionEditorForm'
 import { useAuth } from '@/hooks/useAuth'
 import { usePatients } from '@/hooks/usePatients'
@@ -23,7 +22,7 @@ type ShortcutKind = 'evolucao' | 'avaliacao'
 type ShortcutState =
   | { step: 'closed' }
   | { step: 'picker'; kind: ShortcutKind }
-  | { step: 'editor'; kind: ShortcutKind; patientId: string; patientName: string }
+  | { step: 'editor'; kind: 'evolucao'; patientId: string; patientName: string }
 
 const SAVE_ERROR = 'Não foi possível salvar. Verifique os campos e tente de novo.'
 
@@ -64,10 +63,15 @@ export function DashboardClinicalShortcut() {
 
   function selectPatient(kind: ShortcutKind, patient: PatientListItem) {
     if (!canWritePatient(user?.id, patient.createdBy)) return
+    if (kind === 'avaliacao') {
+      closeShortcut()
+      navigate(patientFichaPath(patient.id, 'avaliacoes', { nova: true }))
+      return
+    }
     setQuery('')
     setState({
       step: 'editor',
-      kind,
+      kind: 'evolucao',
       patientId: patient.id,
       patientName: patient.name,
     })
@@ -178,38 +182,22 @@ export function DashboardClinicalShortcut() {
         <Modal
           open
           wide
-          title={state.kind === 'evolucao' ? 'Nova sessão' : 'Nova avaliação'}
+          title="Nova sessão"
           description={state.patientName}
           onClose={closeShortcut}
         >
-          {state.kind === 'evolucao' ? (
-            <PatientSessionEditorForm
-              patientId={state.patientId}
-              cancelLabel="Voltar ao dashboard"
-              submitLabel="Salvar sessão"
-              successAction={{
-                label: 'Ver ficha',
-                href: patientFichaPath(state.patientId, 'evolucoes'),
-              }}
-              errorMessage={SAVE_ERROR}
-              onCancel={closeShortcut}
-              onSuccess={closeShortcut}
-            />
-          ) : (
-            <PatientEvaluationEditorForm
-              patientId={state.patientId}
-              cancelLabel="Voltar ao dashboard"
-              submitLabel="Salvar avaliação"
-              showInnerHeading={false}
-              successAction={{
-                label: 'Ver ficha',
-                href: patientFichaPath(state.patientId, 'resumo-ia'),
-              }}
-              errorMessage={SAVE_ERROR}
-              onCancel={closeShortcut}
-              onSuccess={closeShortcut}
-            />
-          )}
+          <PatientSessionEditorForm
+            patientId={state.patientId}
+            cancelLabel="Voltar ao dashboard"
+            submitLabel="Salvar sessão"
+            successAction={{
+              label: 'Ver ficha',
+              href: patientFichaPath(state.patientId, 'evolucoes'),
+            }}
+            errorMessage={SAVE_ERROR}
+            onCancel={closeShortcut}
+            onSuccess={closeShortcut}
+          />
         </Modal>
       ) : null}
     </>

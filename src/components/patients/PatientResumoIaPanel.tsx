@@ -1,6 +1,5 @@
 import { PatientAiComposer } from '@/components/patients/PatientAiComposer'
 import { PatientAiReportsList } from '@/components/patients/PatientAiReportsList'
-import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 
 type PatientResumoIaPanelProps = {
   patientId: string
@@ -10,11 +9,10 @@ type PatientResumoIaPanelProps = {
 }
 
 /**
- * Ficha hub for REQ-23: composer + Avaliações salvas + structured eval subsection.
+ * Ficha hub for REQ-23: composer + PDF reports list (no Avaliação CRUD — D-01/D-06).
  */
 export function PatientResumoIaPanel({
   patientId,
-  patientName,
   canWrite = false,
 }: PatientResumoIaPanelProps) {
   return (
@@ -29,19 +27,6 @@ export function PatientResumoIaPanel({
       <PatientAiComposer patientId={patientId} canWrite={canWrite} />
 
       <PatientAiReportsList patientId={patientId} canWrite={canWrite} />
-
-      <details className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-        <summary className="cursor-pointer text-sm font-medium text-forest">
-          Avaliação estruturada
-        </summary>
-        <div className="mt-4">
-          <PatientEvaluationPanel
-            patientId={patientId}
-            patientName={patientName}
-            canWrite={canWrite}
-          />
-        </div>
-      </details>
     </div>
   )
 }

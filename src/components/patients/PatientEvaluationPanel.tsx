@@ -42,13 +42,19 @@ function draftFromPdf(result: PhysicalEvaluationResult): EvaluationFormData {
 type PatientEvaluationPanelProps = {
   patientId: string
   patientName?: string
+  /** Fail-closed — never default true (T-12-04). */
   canWrite?: boolean
+  /** When true (from ?nova=1), open composer once then notify parent to clear query. */
+  openCreateOnMount?: boolean
+  onOpenCreateConsumed?: () => void
 }
 
 export function PatientEvaluationPanel({
   patientId,
   patientName,
-  canWrite = true,
+  canWrite = false,
+  openCreateOnMount = false,
+  onOpenCreateConsumed,
 }: PatientEvaluationPanelProps) {
   const { data: evaluations = [], isLoading, isError } = usePatientEvaluations(patientId)
   const deleteEvaluation = useDeletePatientEvaluation(patientId)
@@ -71,6 +77,14 @@ export function PatientEvaluationPanel({
     setEditorOpen(true)
   }
 
+  useEffect(() => {
+    if (!openCreateOnMount || !canWrite) return
+    openCreate()
+    onOpenCreateConsumed?.()
+    // Open once when deep-linked; parent clears nova via replace.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional one-shot mount open
+  }, [openCreateOnMount, canWrite])
+
   function openEdit(item: PatientEvaluation) {
     setEditing(item)
     setCreateDraft(null)
@@ -87,9 +101,9 @@ export function PatientEvaluationPanel({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Avaliação</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Avaliações</p>
           <p className="mt-1 text-sm text-muted">
-            Registro clínico datado: anamnese, exame e planejamento da avaliação inicial.
+            Ficha musculoesquelética datada: anamnese, sintomas, função e plano.
           </p>
         </div>
         {canWrite && !editorOpen ? (
