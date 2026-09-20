@@ -338,9 +338,12 @@ Plans:
   5. PDF de exportação de avaliação (fluxo do paciente / Resumo IA) segue o layout/seções do documento de referência
   6. Consulta-only (empresa colega) sem criar/editar/excluir; RLS permanece a parede
 
-**Plans:** TBD
+**Plans:** 4 plans
 **UI hint:** yes
 
 Plans:
 
-- [ ] (planning in progress)
+- [ ] 12-01-PLAN.md — SQL/contracts: `ficha` jsonb + Zod ficha schema + performedOn-only create + SQL Editor apply
+- [ ] 12-02-PLAN.md — Service/hooks map `ficha` + legacy column read-compat
+- [ ] 12-03-PLAN.md — Tab Avaliações, rich multi-block form, detach Resumo IA, dashboard `?nova=1`
+- [ ] 12-04-PLAN.md — PDF from ficha document + composer select evaluation + UAT
