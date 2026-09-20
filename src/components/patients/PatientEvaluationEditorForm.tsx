@@ -127,6 +127,7 @@ export function PatientEvaluationEditorForm({
     const therapist = therapists.find((item) => item.id === values.therapistId)
     const input = {
       performedOn: values.performedOn,
+      ficha: values.ficha,
       mainComplaint: values.mainComplaint,
       anamnesis: values.anamnesis,
       history: values.history,

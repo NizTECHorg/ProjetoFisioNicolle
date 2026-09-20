@@ -306,6 +306,7 @@ export function useCreatePatientEvaluation(
 ) {
   const qc = useQueryClient()
   return useMutation({
+    // Pass UpsertPatientEvaluationInput through intact (incl. optional ficha)
     mutationFn: (input: UpsertPatientEvaluationInput) => createPatientEvaluation(patientId, input),
     onSuccess: () => {
       invalidatePatient(qc, patientId)
