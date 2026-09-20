@@ -4,30 +4,20 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { PatientEvaluationEditorForm } from '@/components/patients/PatientEvaluationEditorForm'
 import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhysicalEvaluationPanel'
+import { EvaluationFichaDetail } from '@/components/patients/evaluation/EvaluationFichaDetail'
+import { fichaHasClinicalContent } from '@/lib/evaluationFichaContent'
 import {
   useDeletePatientEvaluation,
+  usePatient,
   usePatientEvaluations,
 } from '@/hooks/usePatients'
 import { emptyEvaluationForm, type EvaluationFormData } from '@/schemas/evaluation.schema'
 import type { PatientEvaluation, PhysicalEvaluationResult } from '@/types/evaluation'
 
-const DETAIL_FIELDS: Array<{ key: keyof PatientEvaluation; label: string }> = [
-  { key: 'mainComplaint', label: 'Queixa principal' },
-  { key: 'anamnesis', label: 'Anamnese' },
-  { key: 'history', label: 'História do quadro' },
-  { key: 'pain', label: 'Dor' },
-  { key: 'limitations', label: 'Limitações' },
-  { key: 'goals', label: 'Objetivos' },
-  { key: 'physicalExam', label: 'Exame físico' },
-  { key: 'tests', label: 'Testes' },
-  { key: 'measurements', label: 'Medidas' },
-  { key: 'physioDiagnosis', label: 'Diagnóstico fisioterapêutico' },
-  { key: 'plan', label: 'Planejamento' },
-]
-
 function draftFromPdf(result: PhysicalEvaluationResult): EvaluationFormData {
+  const base = emptyEvaluationForm()
   return {
-    ...emptyEvaluationForm(),
+    ...base,
     mainComplaint: result.mainComplaint,
     anamnesis: result.summary,
     history: result.mainComplaint,
@@ -36,6 +26,44 @@ function draftFromPdf(result: PhysicalEvaluationResult): EvaluationFormData {
     physioDiagnosis: result.cinesiologicDiagnosis,
     plan: result.suggestedTreatmentPlan,
     goals: result.suggestedGoals.join('\n'),
+    ficha: {
+      ...base.ficha,
+      anamnese: {
+        ...base.ficha.anamnese,
+        queixa: {
+          ...base.ficha.anamnese.queixa,
+          oQueTrouxe: result.mainComplaint,
+        },
+        historiaAtual: {
+          ...base.ficha.anamnese.historiaAtual,
+          comoComecou: result.summary,
+        },
+      },
+      avaliacaoPlano: {
+        ...base.ficha.avaliacaoPlano,
+        inspecao: {
+          ...base.ficha.avaliacaoPlano.inspecao,
+          achados: result.postureAndMovement,
+        },
+        palpacaoTestes: {
+          ...base.ficha.avaliacaoPlano.palpacaoTestes,
+          testesClinicos: result.muscleForceAndTests,
+        },
+        sintese: {
+          ...base.ficha.avaliacaoPlano.sintese,
+          diagnosticoFisio: result.cinesiologicDiagnosis,
+        },
+        planejamento: {
+          ...base.ficha.avaliacaoPlano.planejamento,
+          criteriosProgressao: result.suggestedTreatmentPlan,
+        },
+        objetivos: {
+          ...base.ficha.avaliacaoPlano.objetivos,
+          curto1: result.suggestedGoals[0] ?? '',
+          curto2: result.suggestedGoals[1] ?? '',
+        },
+      },
+    },
   }
 }
 
@@ -57,6 +85,7 @@ export function PatientEvaluationPanel({
   onOpenCreateConsumed,
 }: PatientEvaluationPanelProps) {
   const { data: evaluations = [], isLoading, isError } = usePatientEvaluations(patientId)
+  const { data: patientDetail } = usePatient(patientId)
   const deleteEvaluation = useDeletePatientEvaluation(patientId)
 
   const [editorOpen, setEditorOpen] = useState(false)
@@ -97,13 +126,26 @@ export function PatientEvaluationPanel({
     setCreateDraft(null)
   }
 
+  const patientSnapshot = patientDetail
+    ? {
+        name: patientDetail.name,
+        birthDateRaw: patientDetail.birthDateRaw,
+        birthDate: patientDetail.birthDate,
+        profession: patientDetail.profession,
+        phone: patientDetail.phone,
+        email: patientDetail.email,
+      }
+    : patientName
+      ? { name: patientName }
+      : undefined
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Avaliações</p>
           <p className="mt-1 text-sm text-muted">
-            Ficha musculoesquelética datada: anamnese, sintomas, função e plano.
+            Registre fichas musculoesqueléticas datadas. Salve com campos em branco e complete depois.
           </p>
         </div>
         {canWrite && !editorOpen ? (
@@ -122,7 +164,7 @@ export function PatientEvaluationPanel({
 
       {isError ? (
         <article className="rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
-          Não foi possível carregar as avaliações. Confira se o script SQL do REQ-05 já foi executado no Supabase.
+          Não foi possível carregar as avaliações. Confira se o script SQL do REQ-05 e da ficha (Phase 12) já foi executado no Supabase.
         </article>
       ) : null}
 
@@ -135,6 +177,7 @@ export function PatientEvaluationPanel({
             showInnerHeading
             editing={editing}
             draft={createDraft ?? undefined}
+            patientSnapshot={patientSnapshot}
             onCancel={closeEditor}
             onSuccess={closeEditor}
           />
@@ -144,7 +187,12 @@ export function PatientEvaluationPanel({
       {!isLoading && !isError && !editorOpen && evaluations.length === 0 ? (
         <article className="rounded-2xl border border-dashed border-line bg-surface px-5 py-10 text-center">
           <ClipboardList className="mx-auto text-muted" size={22} />
-          <p className="mt-3 text-sm text-muted">Nenhuma avaliação registrada.</p>
+          <p className="mt-3 text-sm font-medium text-ink">Nenhuma avaliação ainda.</p>
+          <p className="mt-1 text-sm text-muted">
+            {canWrite
+              ? 'Crie a primeira avaliação — só a data é obrigatória.'
+              : 'Nenhuma avaliação nesta ficha.'}
+          </p>
         </article>
       ) : null}
 
@@ -153,6 +201,7 @@ export function PatientEvaluationPanel({
           <ul className="space-y-2">
             {evaluations.map((item) => {
               const active = selected?.id === item.id
+              const complete = fichaHasClinicalContent(item.ficha)
               return (
                 <li key={item.id}>
                   <button
@@ -164,16 +213,23 @@ export function PatientEvaluationPanel({
                     ].join(' ')}
                   >
                     <p className="text-sm font-semibold text-ink">{item.performedOnLabel}</p>
-                    <p className="mt-1 truncate text-xs text-muted">{item.mainComplaint || 'Sem queixa registrada'}</p>
-                    {item.isInitial ? (
-                      <span className="mt-2 inline-flex rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-forest">
-                        Inicial
+                    <p className="mt-1 truncate text-xs text-muted">
+                      {item.mainComplaint || item.ficha?.anamnese?.queixa?.oQueTrouxe || 'Sem queixa registrada'}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {item.isInitial ? (
+                        <span className="inline-flex rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-forest">
+                          Inicial
+                        </span>
+                      ) : (
+                        <span className="inline-flex rounded-full bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+                          Posterior
+                        </span>
+                      )}
+                      <span className="inline-flex rounded-full bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+                        {complete ? 'Completa' : 'Parcial'}
                       </span>
-                    ) : (
-                      <span className="mt-2 inline-flex rounded-full bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
-                        Posterior
-                      </span>
-                    )}
+                    </div>
                   </button>
                 </li>
               )
@@ -188,9 +244,12 @@ export function PatientEvaluationPanel({
                     <h3 className="text-base font-semibold text-ink">{selected.performedOnLabel}</h3>
                     {selected.isInitial ? (
                       <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-forest">
-                        Avaliação inicial
+                        Inicial
                       </span>
                     ) : null}
+                    <span className="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+                      {fichaHasClinicalContent(selected.ficha) ? 'Completa' : 'Parcial'}
+                    </span>
                   </div>
                   <p className="mt-1 text-xs text-muted">
                     {selected.therapistName ? `${selected.therapistName} · ` : ''}
@@ -219,17 +278,8 @@ export function PatientEvaluationPanel({
                 ) : null}
               </div>
 
-              <div className="mt-4 space-y-4">
-                {DETAIL_FIELDS.map((field) => {
-                  const value = selected[field.key]
-                  if (typeof value !== 'string' || !value.trim()) return null
-                  return (
-                    <div key={field.key}>
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{field.label}</p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-ink">{value}</p>
-                    </div>
-                  )
-                })}
+              <div className="mt-4">
+                <EvaluationFichaDetail ficha={selected.ficha} />
               </div>
             </article>
           ) : null}
@@ -255,8 +305,8 @@ export function PatientEvaluationPanel({
       {canWrite ? (
         <ConfirmDialog
           open={Boolean(pendingDelete)}
-          title="Excluir avaliação"
-          description="O registro clínico desta data será removido. Essa ação não pode ser desfeita."
+          title="Excluir avaliação?"
+          description="Esta avaliação será removida da ficha. Esta ação não pode ser desfeita."
           confirmLabel="Excluir"
           tone="danger"
           isLoading={deleteEvaluation.isPending}
