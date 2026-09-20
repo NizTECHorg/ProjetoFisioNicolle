@@ -10,6 +10,7 @@ type PatientResumoIaPanelProps = {
 
 /**
  * Ficha hub for REQ-23: composer + PDF reports list (no Avaliação CRUD — D-01/D-06).
+ * PDF export selects a saved evaluation ficha (D-07) via PatientAiComposer.
  */
 export function PatientResumoIaPanel({
   patientId,

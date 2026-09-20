@@ -16,7 +16,7 @@ export const PATIENT_AI_COPY = {
   deleteConfirmTitle: 'Excluir avaliação?',
   deleteConfirmBody: 'O PDF será removido da ficha. Esta ação não pode ser desfeita.',
   listEmptyHeading: 'Nenhuma avaliação salva.',
-  listEmptyBodyCanWrite: 'Exporte uma avaliação geral ou por sessão para ver aqui.',
+  listEmptyBodyCanWrite: 'Exporte uma avaliação salva ou por sessão para ver aqui.',
   listEmptyBodyReadOnly: 'Nenhuma avaliação salva nesta ficha.',
   modeResumo: 'Escrever resumo (IA)',
   modePdf: 'Exportar avaliação (PDF)',
@@ -24,6 +24,12 @@ export const PATIENT_AI_COPY = {
   ctaExport: 'Exportar PDF',
   kindGeral: 'Geral',
   kindSessao: 'Sessão',
+  pdfScopeAvaliacao: 'Avaliação salva',
+  pdfScopeSessao: 'Por sessão',
+  pdfEvalPlaceholder: 'Selecione a avaliação',
+  pdfEvalLatest: 'Mais recente',
+  pdfEvalEmpty:
+    'Nenhuma avaliação salva. Crie uma na aba Avaliações antes de exportar o PDF.',
 } as const
 
 export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024
