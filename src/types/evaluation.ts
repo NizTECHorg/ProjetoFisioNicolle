@@ -1,9 +1,14 @@
+import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
+
+export type { EvaluationFicha }
+
 export interface PatientEvaluation {
   id: string
   patientId: string
   performedOn: string
   performedOnLabel: string
   isInitial: boolean
+  ficha: EvaluationFicha
   anamnesis: string
   mainComplaint: string
   history: string
@@ -23,8 +28,9 @@ export interface PatientEvaluation {
 
 export interface UpsertPatientEvaluationInput {
   performedOn: string
+  ficha?: EvaluationFicha
   anamnesis?: string
-  mainComplaint: string
+  mainComplaint?: string
   history?: string
   pain?: string
   limitations?: string

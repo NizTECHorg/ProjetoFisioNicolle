@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -55,6 +55,7 @@ function valuesFromEvaluation(item: PatientEvaluation): EvaluationFormData {
   return {
     performedOn: item.performedOn,
     therapistId: item.therapistId ?? '',
+    ficha: item.ficha,
     mainComplaint: item.mainComplaint,
     anamnesis: item.anamnesis,
     history: item.history,
@@ -110,7 +111,7 @@ export function PatientEvaluationEditorForm({
   )
 
   const form = useForm<EvaluationFormData>({
-    resolver: zodResolver(evaluationFormSchema),
+    resolver: zodResolver(evaluationFormSchema) as Resolver<EvaluationFormData>,
     defaultValues: emptyEvaluationForm(),
   })
 

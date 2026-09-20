@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import type { PatientEvaluation, UpsertPatientEvaluationInput } from '@/types/evaluation'
 
 type EvaluationRow = {
@@ -49,6 +50,7 @@ function mapEvaluation(row: EvaluationRow, isInitial: boolean): PatientEvaluatio
     performedOn: row.performed_on,
     performedOnLabel: formatDateLabel(row.performed_on),
     isInitial,
+    ficha: emptyEvaluationFicha(),
     anamnesis: row.anamnesis ?? '',
     mainComplaint: row.main_complaint ?? '',
     history: row.history ?? '',
@@ -88,7 +90,7 @@ function toRow(input: UpsertPatientEvaluationInput) {
   return {
     performed_on: input.performedOn,
     anamnesis: emptyToNull(input.anamnesis),
-    main_complaint: input.mainComplaint.trim(),
+    main_complaint: emptyToNull(input.mainComplaint),
     history: emptyToNull(input.history),
     pain: emptyToNull(input.pain),
     limitations: emptyToNull(input.limitations),
