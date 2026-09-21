@@ -71,7 +71,7 @@ Each task was committed atomically:
 1. **Task 1: Dual-column blocks + Mobilidade/Força tables** - `d089edc` (feat)
 2. **Task 2: EVA scale + SVG body map** - `2a6ff49` (feat)
 
-**Plan metadata:** (docs commit after this SUMMARY)
+**Plan metadata:** `c32c082` (docs: complete plan)
 
 ## Files Created/Modified
 
