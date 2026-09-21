@@ -9,7 +9,7 @@ import {
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
-import { FOCUS_REGIONS } from '@/lib/focusRegions'
+import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/lib/focusRegions'
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import type { PatientGoal, PatientFocusArea, SessionEvolution } from '@/types/patient'
 
@@ -136,6 +136,40 @@ const BODY_MAP_GLYPH: Record<string, string> = {
   O: 'O',
   arrow: '^',
   star: '*',
+}
+
+/** Hand-tuned centroids in FOCUS_REGIONS viewBox 0 0 140 240 (SVG Y down). */
+const BODY_MAP_CENTROIDS: Record<FocusRegionKey, { x: number; y: number }> = {
+  'front.head': { x: 70, y: 24 },
+  'front.neck': { x: 70, y: 46 },
+  'front.shoulder_l': { x: 96, y: 61 },
+  'front.shoulder_r': { x: 44, y: 61 },
+  'front.chest': { x: 70, y: 78 },
+  'front.abdomen': { x: 70, y: 108 },
+  'front.arm_l': { x: 108, y: 100 },
+  'front.arm_r': { x: 32, y: 100 },
+  'front.hip': { x: 70, y: 138 },
+  'front.thigh_l': { x: 84, y: 168 },
+  'front.thigh_r': { x: 56, y: 168 },
+  'front.knee_l': { x: 84, y: 192 },
+  'front.knee_r': { x: 56, y: 192 },
+  'front.leg_l': { x: 84, y: 218 },
+  'front.leg_r': { x: 56, y: 218 },
+  'back.neck': { x: 70, y: 46 },
+  'back.shoulder_l': { x: 96, y: 61 },
+  'back.shoulder_r': { x: 44, y: 61 },
+  'back.upper': { x: 70, y: 82 },
+  'back.lumbar': { x: 70, y: 112 },
+  'back.glute_l': { x: 84, y: 142 },
+  'back.glute_r': { x: 56, y: 142 },
+  'back.arm_l': { x: 108, y: 100 },
+  'back.arm_r': { x: 32, y: 100 },
+  'back.thigh_l': { x: 84, y: 172 },
+  'back.thigh_r': { x: 56, y: 172 },
+  'back.knee_l': { x: 84, y: 196 },
+  'back.knee_r': { x: 56, y: 196 },
+  'back.leg_l': { x: 84, y: 220 },
+  'back.leg_r': { x: 56, y: 220 },
 }
 
 /**
@@ -1316,6 +1350,182 @@ function drawDataTable(
 }
 
 /**
+ * EVA 0–10 circle scale (REQ-26.5 / D-04.7). Only when at least one value filled.
+ * Does not reuse drawEvaBadge (geral PDF).
+ */
+function drawEvaScale(
+  ctx: DrawContext,
+  values: { agora?: number; melhor?: number; pior?: number },
+): void {
+  const filled: number[] = []
+  for (const v of [values.agora, values.melhor, values.pior]) {
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      filled.push(Math.max(0, Math.min(10, Math.round(v))))
+    }
+  }
+  if (filled.length === 0) return
+
+  const active = new Set(filled)
+  const scaleH = 28
+  ensureSpace(ctx, scaleH + 8)
+
+  const x0 = ctx.contentX + 8
+  const yLine = ctx.y - 6
+  const step = (ctx.contentW - 16) / 10
+
+  ctx.page.drawLine({
+    start: { x: x0, y: yLine },
+    end: { x: x0 + step * 10, y: yLine },
+    thickness: 0.7,
+    color: COLORS.border,
+  })
+
+  for (let i = 0; i <= 10; i++) {
+    const cx = x0 + step * i
+    const isActive = active.has(i)
+    ctx.page.drawCircle({
+      x: cx,
+      y: yLine,
+      size: 3.5,
+      borderColor: COLORS.navy,
+      borderWidth: 0.8,
+      color: isActive ? COLORS.navy : COLORS.white,
+    })
+    const label = String(i)
+    const lw = ctx.font.widthOfTextAtSize(label, 7)
+    ctx.page.drawText(label, {
+      x: cx - lw / 2,
+      y: yLine - 12,
+      size: 7,
+      font: ctx.font,
+      color: COLORS.muted,
+    })
+  }
+
+  ctx.y -= scaleH
+}
+
+type BodyMapMarkInput = { regionKey: string; symbol?: string }
+
+/**
+ * Anterior/posterior silhouettes via drawSvgPath on FOCUS_REGIONS (REQ-26.5 / D-04.8).
+ * Legend uses BODY_MAP_GLYPH ASCII only (^ / * — never ★/↑).
+ */
+function drawBodyMap(ctx: DrawContext, marks: BodyMapMarkInput[]): void {
+  if (marks.length === 0) return
+
+  const markByKey = new Map<string, BodyMapMarkInput>()
+  for (const m of marks) {
+    if (FOCUS_REGIONS.some((r) => r.key === m.regionKey)) {
+      markByKey.set(m.regionKey, m)
+    }
+  }
+  if (markByKey.size === 0) return
+
+  const mapHeight = 150
+  const scale = mapHeight / 240
+  const mapWidth = 140 * scale
+  const gap = 18
+  const pairW = mapWidth * 2 + gap
+  const legendH = 36
+  const totalH = mapHeight + legendH + 16
+
+  ensureSpace(ctx, totalH)
+
+  const originY = ctx.y // PDF top of viewBox after drawSvgPath Y-flip
+  let originX = ctx.contentX
+  if (pairW < ctx.contentW) {
+    originX = ctx.contentX + (ctx.contentW - pairW) / 2
+  }
+
+  const drawView = (view: 'front' | 'back', ox: number) => {
+    const regions = listFocusRegionsByView(view)
+    for (const region of regions) {
+      const marked = markByKey.has(region.key)
+      ctx.page.drawSvgPath(region.path, {
+        x: ox,
+        y: originY,
+        scale,
+        color: marked ? COLORS.accentSoft : COLORS.white,
+        borderColor: COLORS.navy,
+        borderWidth: 0.55,
+      })
+    }
+    for (const region of regions) {
+      const mark = markByKey.get(region.key)
+      if (!mark) continue
+      const centroid = BODY_MAP_CENTROIDS[region.key as FocusRegionKey]
+      if (!centroid) continue
+      const glyph = mark.symbol ? BODY_MAP_GLYPH[mark.symbol] ?? '' : 'X'
+      if (!glyph) continue
+      const safe = toWinAnsiSafe(glyph)
+      const gw = ctx.bold.widthOfTextAtSize(safe, 8)
+      const px = ox + centroid.x * scale - gw / 2
+      const py = originY - centroid.y * scale - 3
+      ctx.page.drawText(safe, {
+        x: px,
+        y: py,
+        size: 8,
+        font: ctx.bold,
+        color: COLORS.danger,
+      })
+    }
+    const caption = view === 'front' ? 'Anterior' : 'Posterior'
+    const cw = ctx.font.widthOfTextAtSize(caption, SIZE.meta)
+    ctx.page.drawText(caption, {
+      x: ox + (mapWidth - cw) / 2,
+      y: originY - mapHeight - 10,
+      size: SIZE.meta,
+      font: ctx.font,
+      color: COLORS.muted,
+    })
+  }
+
+  drawView('front', originX)
+  drawView('back', originX + mapWidth + gap)
+
+  ctx.y = originY - mapHeight - 18
+
+  // ASCII legend only (^ / * — never ★/↑)
+  const legendItems = [
+    `X = dor / sintoma`,
+    `//// = area`,
+    `O = irradiacao`,
+    `^ = irradiacao dir.`,
+    `* = ponto principal`,
+  ]
+  ensureSpace(ctx, 28)
+  ctx.page.drawText(toWinAnsiSafe('Legenda:'), {
+    x: ctx.contentX,
+    y: ctx.y,
+    size: SIZE.label,
+    font: ctx.bold,
+    color: COLORS.navy,
+  })
+  ctx.y -= 12
+  let lx = ctx.contentX
+  const legendSize = 7
+  for (const item of legendItems) {
+    const safe = toWinAnsiSafe(item)
+    const w = ctx.font.widthOfTextAtSize(safe, legendSize)
+    if (lx + w > ctx.contentX + ctx.contentW) {
+      ctx.y -= 10
+      lx = ctx.contentX
+      ensureSpace(ctx, 12)
+    }
+    ctx.page.drawText(safe, {
+      x: lx,
+      y: ctx.y,
+      size: legendSize,
+      font: ctx.font,
+      color: COLORS.muted,
+    })
+    lx += w + 12
+  }
+  ctx.y -= 14
+}
+
+/**
  * Renders EvaluationFicha pages 01–04; omits empty/unselected blocks (D-02/D-03/D-05/D-07).
  */
 function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
@@ -1562,7 +1772,7 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
 
     if (show02A) {
       drawFichaBlockFrame(ctx, 'A', 'Mapa corporal', () => {
-        drawBulletList(ctx, markLines)
+        drawBodyMap(ctx, marks)
       })
     }
     if (show02B) {
@@ -1572,6 +1782,11 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     }
     if (show02C) {
       drawFichaBlockFrame(ctx, 'C', 'Intensidade (0-10)', () => {
+        drawEvaScale(ctx, {
+          agora: sintomas?.intensidade?.agora,
+          melhor: sintomas?.intensidade?.melhor,
+          pior: sintomas?.intensidade?.pior,
+        })
         drawOptionalField(ctx, 'Agora', sintomas?.intensidade?.agora)
         drawOptionalField(ctx, 'Melhor', sintomas?.intensidade?.melhor)
         drawOptionalField(ctx, 'Pior', sintomas?.intensidade?.pior)
