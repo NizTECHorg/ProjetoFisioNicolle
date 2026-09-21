@@ -1061,6 +1061,260 @@ function drawFichaBlockFrame(
   ctx.y -= BLOCK_GAP
 }
 
+type SideBySideBlock = {
+  letter: string
+  title: string
+  bodyDraw: () => void
+  danger?: boolean
+}
+
+/**
+ * Dual-column lettered blocks (REQ-26.4). Stacks to full-width frames when
+ * estimated height won't fit without a mid-column page break (Pattern 3).
+ */
+function drawSideBySideBlocks(
+  ctx: DrawContext,
+  left: SideBySideBlock,
+  right: SideBySideBlock,
+  estimateHeight = 160,
+): void {
+  ensureSpace(ctx, Math.min(estimateHeight, 220))
+
+  // Stack fallback: dual would page-break mid-column — never orphan one column
+  if (ctx.y - MARGIN_BOTTOM < estimateHeight) {
+    drawFichaBlockFrame(ctx, left.letter, left.title, left.bodyDraw, { danger: left.danger })
+    drawFichaBlockFrame(ctx, right.letter, right.title, right.bodyDraw, { danger: right.danger })
+    return
+  }
+
+  const colGap = 10
+  const colOuterW = (CONTENT_WIDTH - colGap) / 2
+  const pageAtStart = ctx.pageIndex
+  const yStart = ctx.y
+  const savedX = ctx.contentX
+  const savedW = ctx.contentW
+
+  const drawHalf = (side: SideBySideBlock, boxX: number): number => {
+    const badgeFill = side.danger ? COLORS.danger : badgeColorForLetter(side.letter)
+    const boxTop = yStart
+
+    ctx.page.drawRectangle({
+      x: boxX + 4,
+      y: boxTop - BADGE,
+      width: BADGE,
+      height: BADGE,
+      color: badgeFill,
+    })
+    const letterSafe = toWinAnsiSafe(side.letter.slice(0, 2))
+    const lw = ctx.bold.widthOfTextAtSize(letterSafe, 9)
+    ctx.page.drawText(letterSafe, {
+      x: boxX + 4 + (BADGE - lw) / 2,
+      y: boxTop - BADGE + 4,
+      size: 9,
+      font: ctx.bold,
+      color: COLORS.white,
+    })
+
+    const headerMaxW = colOuterW - BADGE - 16
+    let header = toWinAnsiSafe(`BLOCO ${side.letter} — ${side.title}`.toUpperCase())
+    while (
+      header.length > 8 &&
+      ctx.bold.widthOfTextAtSize(header, SIZE.section - 1) > headerMaxW
+    ) {
+      header = `${header.slice(0, -4)}...`
+    }
+    ctx.page.drawText(header, {
+      x: boxX + 4 + BADGE + 5,
+      y: boxTop - BADGE + 4,
+      size: SIZE.section - 1,
+      font: ctx.bold,
+      color: badgeFill,
+    })
+
+    ctx.page.drawLine({
+      start: { x: boxX + 4 + BADGE + 5, y: boxTop - BADGE - 2 },
+      end: { x: boxX + colOuterW - 4, y: boxTop - BADGE - 2 },
+      thickness: 0.5,
+      color: COLORS.border,
+    })
+
+    ctx.contentX = boxX + 8
+    ctx.contentW = colOuterW - 16
+    ctx.y = boxTop - BADGE - BLOCK_PAD - 2
+    side.bodyDraw()
+    ctx.y -= BLOCK_PAD / 2
+    return ctx.y
+  }
+
+  const leftY = drawHalf(left, MARGIN_X)
+  if (ctx.pageIndex !== pageAtStart) {
+    // Left spilled mid-body — stack right full-width (fallback path)
+    ctx.contentX = savedX
+    ctx.contentW = savedW
+    drawFichaBlockFrame(ctx, right.letter, right.title, right.bodyDraw, { danger: right.danger })
+    return
+  }
+
+  ctx.y = yStart
+  const rightY = drawHalf(right, MARGIN_X + colOuterW + colGap)
+
+  ctx.contentX = savedX
+  ctx.contentW = savedW
+  ctx.y = Math.min(leftY, rightY)
+
+  if (ctx.pageIndex === pageAtStart) {
+    const boxBottom = ctx.y
+    const boxHeight = yStart - boxBottom
+    if (boxHeight > 8) {
+      ctx.page.drawRectangle({
+        x: MARGIN_X,
+        y: boxBottom,
+        width: colOuterW,
+        height: boxHeight,
+        borderColor: left.danger ? COLORS.danger : COLORS.border,
+        borderWidth: 1.1,
+      })
+      ctx.page.drawRectangle({
+        x: MARGIN_X + colOuterW + colGap,
+        y: boxBottom,
+        width: colOuterW,
+        height: boxHeight,
+        borderColor: right.danger ? COLORS.danger : COLORS.border,
+        borderWidth: 1.1,
+      })
+    }
+  }
+
+  ctx.y -= BLOCK_GAP
+}
+
+type DataTableColumn = { label: string; widthFrac: number }
+
+/** Shaded-header clinical table with hairline grid (REQ-26.5). Skips empty rows. */
+function drawDataTable(
+  ctx: DrawContext,
+  columns: DataTableColumn[],
+  rows: Array<Array<string | null | undefined>>,
+): void {
+  const data = rows
+    .map((r) => r.map((c) => (typeof c === 'string' ? c.trim() : '')))
+    .filter((r) => r.some((c) => c.length > 0))
+  if (data.length === 0 || columns.length === 0) return
+
+  const padX = 3
+  const padY = 3
+  const fontSize = SIZE.meta
+  const lineH = 10
+  const headerH = 15
+  const widths = columns.map((c) => c.widthFrac * ctx.contentW)
+
+  const measureRowH = (cells: string[]) => {
+    let maxLines = 1
+    for (let i = 0; i < columns.length; i++) {
+      const w = Math.max(8, (widths[i] ?? 40) - padX * 2)
+      const text = cells[i]?.trim() ? cells[i]! : '—'
+      const lines = wrapLines(ctx.font, text, fontSize, w)
+      maxLines = Math.max(maxLines, lines.length)
+    }
+    return padY * 2 + maxLines * lineH
+  }
+
+  ensureSpace(ctx, headerH + 4)
+  const headerTop = ctx.y
+  const headerBottom = headerTop - headerH
+  ctx.page.drawRectangle({
+    x: ctx.contentX,
+    y: headerBottom,
+    width: ctx.contentW,
+    height: headerH,
+    color: COLORS.accentSoft,
+  })
+
+  let hx = ctx.contentX
+  for (let i = 0; i < columns.length; i++) {
+    const col = columns[i]!
+    const cw = widths[i]!
+    ctx.page.drawText(toWinAnsiSafe(col.label), {
+      x: hx + padX,
+      y: headerBottom + 4,
+      size: fontSize,
+      font: ctx.bold,
+      color: COLORS.navy,
+    })
+    if (i > 0) {
+      ctx.page.drawLine({
+        start: { x: hx, y: headerBottom },
+        end: { x: hx, y: headerTop },
+        thickness: 0.4,
+        color: COLORS.border,
+      })
+    }
+    hx += cw
+  }
+  ctx.page.drawLine({
+    start: { x: ctx.contentX, y: headerBottom },
+    end: { x: ctx.contentX + ctx.contentW, y: headerBottom },
+    thickness: 0.6,
+    color: COLORS.border,
+  })
+  // Outer header border
+  ctx.page.drawRectangle({
+    x: ctx.contentX,
+    y: headerBottom,
+    width: ctx.contentW,
+    height: headerH,
+    borderColor: COLORS.border,
+    borderWidth: 0.6,
+  })
+  ctx.y = headerBottom
+
+  for (const cells of data) {
+    const rowH = measureRowH(cells)
+    ensureSpace(ctx, rowH + 2)
+    const rowTop = ctx.y
+    const rowBottom = rowTop - rowH
+
+    ctx.page.drawRectangle({
+      x: ctx.contentX,
+      y: rowBottom,
+      width: ctx.contentW,
+      height: rowH,
+      color: COLORS.white,
+      borderColor: COLORS.line,
+      borderWidth: 0.5,
+    })
+
+    let cx = ctx.contentX
+    for (let i = 0; i < columns.length; i++) {
+      const cw = widths[i]!
+      const cellText = cells[i]?.trim() ? cells[i]! : '—'
+      const lines = wrapLines(ctx.font, cellText, fontSize, Math.max(8, cw - padX * 2))
+      let ty = rowTop - padY - fontSize
+      for (const line of lines) {
+        ctx.page.drawText(line, {
+          x: cx + padX,
+          y: ty,
+          size: fontSize,
+          font: ctx.font,
+          color: COLORS.ink,
+        })
+        ty -= lineH
+      }
+      if (i > 0) {
+        ctx.page.drawLine({
+          start: { x: cx, y: rowBottom },
+          end: { x: cx, y: rowTop },
+          thickness: 0.4,
+          color: COLORS.line,
+        })
+      }
+      cx += cw
+    }
+    ctx.y = rowBottom
+  }
+  ctx.y -= 8
+}
+
 /**
  * Renders EvaluationFicha pages 01–04; omits empty/unselected blocks (D-02/D-03/D-05/D-07).
  */
@@ -1344,17 +1598,47 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
         )
       })
     }
-    if (show02E) {
-      drawFichaBlockFrame(ctx, 'E', 'O que piora', () => {
-        drawOptionalBullets(ctx, 'Fatores', pioraItems)
-        drawOptionalField(ctx, 'Detalhe', sintomas?.piora?.detalhe)
-      })
-    }
-    if (show02F) {
-      drawFichaBlockFrame(ctx, 'F', 'O que melhora', () => {
-        drawOptionalBullets(ctx, 'Fatores', melhoraItems)
-        drawOptionalField(ctx, 'Detalhe', sintomas?.melhora?.detalhe)
-      })
+    if (show02E && show02F) {
+      const dualEst =
+        BADGE +
+        56 +
+        Math.max(pioraItems.length, melhoraItems.length) * 16 +
+        (textFilled(sintomas?.piora?.detalhe) || textFilled(sintomas?.melhora?.detalhe)
+          ? 48
+          : 0)
+      drawSideBySideBlocks(
+        ctx,
+        {
+          letter: 'E',
+          title: 'O que piora',
+          bodyDraw: () => {
+            drawOptionalBullets(ctx, 'Fatores', pioraItems)
+            drawOptionalField(ctx, 'Detalhe', sintomas?.piora?.detalhe)
+          },
+        },
+        {
+          letter: 'F',
+          title: 'O que melhora',
+          bodyDraw: () => {
+            drawOptionalBullets(ctx, 'Fatores', melhoraItems)
+            drawOptionalField(ctx, 'Detalhe', sintomas?.melhora?.detalhe)
+          },
+        },
+        Math.max(140, dualEst),
+      )
+    } else {
+      if (show02E) {
+        drawFichaBlockFrame(ctx, 'E', 'O que piora', () => {
+          drawOptionalBullets(ctx, 'Fatores', pioraItems)
+          drawOptionalField(ctx, 'Detalhe', sintomas?.piora?.detalhe)
+        })
+      }
+      if (show02F) {
+        drawFichaBlockFrame(ctx, 'F', 'O que melhora', () => {
+          drawOptionalBullets(ctx, 'Fatores', melhoraItems)
+          drawOptionalField(ctx, 'Detalhe', sintomas?.melhora?.detalhe)
+        })
+      }
     }
     if (show02G) {
       drawFichaBlockFrame(ctx, 'G', 'Irritabilidade / resposta', () => {
@@ -1682,30 +1966,44 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     if (show04B) {
       drawFichaBlockFrame(ctx, 'B', 'Mobilidade', () => {
         drawOptionalBullets(ctx, 'Modo', mobFlags)
-        for (const row of mobRows) {
-          const parts = [
+        drawDataTable(
+          ctx,
+          [
+            { label: 'Movimento', widthFrac: 0.28 },
+            { label: 'Direito', widthFrac: 0.16 },
+            { label: 'Esquerdo', widthFrac: 0.16 },
+            { label: 'Dor/Sintoma', widthFrac: 0.18 },
+            { label: 'Observacao', widthFrac: 0.22 },
+          ],
+          mobRows.map((row) => [
             row.movimento,
-            row.direito ? `D: ${row.direito}` : null,
-            row.esquerdo ? `E: ${row.esquerdo}` : null,
-            row.dor ? `Dor: ${row.dor}` : null,
-            row.observacao ? `Obs: ${row.observacao}` : null,
-          ].filter((p): p is string => Boolean(p && String(p).trim()))
-          if (parts.length > 0) drawParagraph(ctx, parts.join(' · '))
-        }
+            row.direito,
+            row.esquerdo,
+            row.dor,
+            row.observacao,
+          ]),
+        )
       })
     }
     if (show04C) {
       drawFichaBlockFrame(ctx, 'C', 'Força', () => {
-        for (const row of forcaRows) {
-          const parts = [
+        drawDataTable(
+          ctx,
+          [
+            { label: 'Movimento/Grupo', widthFrac: 0.28 },
+            { label: 'Direito', widthFrac: 0.16 },
+            { label: 'Esquerdo', widthFrac: 0.16 },
+            { label: 'Dor', widthFrac: 0.18 },
+            { label: 'Observacao', widthFrac: 0.22 },
+          ],
+          forcaRows.map((row) => [
             row.grupo,
-            row.direito ? `D: ${row.direito}` : null,
-            row.esquerdo ? `E: ${row.esquerdo}` : null,
-            row.dor ? `Dor: ${row.dor}` : null,
-            row.observacao ? `Obs: ${row.observacao}` : null,
-          ].filter((p): p is string => Boolean(p && String(p).trim()))
-          if (parts.length > 0) drawParagraph(ctx, parts.join(' · '))
-        }
+            row.direito,
+            row.esquerdo,
+            row.dor,
+            row.observacao,
+          ]),
+        )
       })
     }
     if (show04D) {
@@ -1723,22 +2021,50 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
         drawOptionalField(ctx, 'Resultado inicial', plano?.palpacaoTestes?.resultadoInicial)
       })
     }
-    if (show04F) {
-      drawFichaBlockFrame(ctx, 'F', 'Síntese dos principais achados', () => {
-        drawOptionalField(ctx, 'Problema 1', plano?.sintese?.problema1)
-        drawOptionalField(ctx, 'Problema 2', plano?.sintese?.problema2)
-        drawOptionalField(ctx, 'Problema 3', plano?.sintese?.problema3)
-        drawOptionalField(ctx, 'Diagnóstico fisioterapêutico', plano?.sintese?.diagnosticoFisio)
-        drawOptionalField(ctx, 'Prognóstico', plano?.sintese?.prognostico)
-      })
-    }
-    if (show04G) {
-      drawFichaBlockFrame(ctx, 'G', 'Objetivos', () => {
-        drawOptionalField(ctx, 'Curto prazo 1', plano?.objetivos?.curto1)
-        drawOptionalField(ctx, 'Curto prazo 2', plano?.objetivos?.curto2)
-        drawOptionalField(ctx, 'Médio/longo 1', plano?.objetivos?.medioLongo1)
-        drawOptionalField(ctx, 'Médio/longo 2', plano?.objetivos?.medioLongo2)
-      })
+    if (show04F && show04G) {
+      drawSideBySideBlocks(
+        ctx,
+        {
+          letter: 'F',
+          title: 'Síntese dos principais achados',
+          bodyDraw: () => {
+            drawOptionalField(ctx, 'Problema 1', plano?.sintese?.problema1)
+            drawOptionalField(ctx, 'Problema 2', plano?.sintese?.problema2)
+            drawOptionalField(ctx, 'Problema 3', plano?.sintese?.problema3)
+            drawOptionalField(ctx, 'Diagnóstico fisioterapêutico', plano?.sintese?.diagnosticoFisio)
+            drawOptionalField(ctx, 'Prognóstico', plano?.sintese?.prognostico)
+          },
+        },
+        {
+          letter: 'G',
+          title: 'Objetivos',
+          bodyDraw: () => {
+            drawOptionalField(ctx, 'Curto prazo 1', plano?.objetivos?.curto1)
+            drawOptionalField(ctx, 'Curto prazo 2', plano?.objetivos?.curto2)
+            drawOptionalField(ctx, 'Médio/longo 1', plano?.objetivos?.medioLongo1)
+            drawOptionalField(ctx, 'Médio/longo 2', plano?.objetivos?.medioLongo2)
+          },
+        },
+        220,
+      )
+    } else {
+      if (show04F) {
+        drawFichaBlockFrame(ctx, 'F', 'Síntese dos principais achados', () => {
+          drawOptionalField(ctx, 'Problema 1', plano?.sintese?.problema1)
+          drawOptionalField(ctx, 'Problema 2', plano?.sintese?.problema2)
+          drawOptionalField(ctx, 'Problema 3', plano?.sintese?.problema3)
+          drawOptionalField(ctx, 'Diagnóstico fisioterapêutico', plano?.sintese?.diagnosticoFisio)
+          drawOptionalField(ctx, 'Prognóstico', plano?.sintese?.prognostico)
+        })
+      }
+      if (show04G) {
+        drawFichaBlockFrame(ctx, 'G', 'Objetivos', () => {
+          drawOptionalField(ctx, 'Curto prazo 1', plano?.objetivos?.curto1)
+          drawOptionalField(ctx, 'Curto prazo 2', plano?.objetivos?.curto2)
+          drawOptionalField(ctx, 'Médio/longo 1', plano?.objetivos?.medioLongo1)
+          drawOptionalField(ctx, 'Médio/longo 2', plano?.objetivos?.medioLongo2)
+        })
+      }
     }
     if (show04H) {
       drawFichaBlockFrame(ctx, 'H', 'Planejamento', () => {
