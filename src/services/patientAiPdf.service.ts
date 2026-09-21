@@ -209,6 +209,8 @@ type DrawContext = {
   page: PDFPage
   font: PDFFont
   bold: PDFFont
+  /** Serif chapter titles (StandardFonts.TimesRomanBold — no fontkit). */
+  timesBold: PDFFont
   logo: PDFImage
   y: number
   pageIndex: number
@@ -231,7 +233,7 @@ function drawFooter(ctx: DrawContext) {
   })
   const left =
     ctx.footerKind === 'ficha'
-      ? `${String(ctx.pageIndex).padStart(2, '0')} | Ficha de Anamnese e Evolucao Musculoesqueletica`
+      ? `${String(ctx.pageIndex).padStart(2, '0')} | Ficha de Anamnese e Evolução Musculoesquelética`
       : 'FLUXO · Documento clínico'
   ctx.page.drawText(toWinAnsiSafe(left), {
     x: MARGIN_X,
@@ -254,9 +256,49 @@ function drawFooter(ctx: DrawContext) {
 }
 
 function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
+  // Ficha kinds: slim strip so chapter title (drawPageBanner) is the hero — D-03
+  if (ctx.footerKind === 'ficha') {
+    const bandHeight = opts.isFirstPage ? 36 : 28
+    const logoH = 18
+    const logoAspect = ctx.logo.width / ctx.logo.height
+    const logoW = logoH * logoAspect
+    const logoY = PAGE_HEIGHT - bandHeight + (bandHeight - logoH) / 2
+
+    ctx.page.drawImage(ctx.logo, {
+      x: MARGIN_X,
+      y: logoY,
+      width: logoW,
+      height: logoH,
+    })
+
+    ctx.page.drawRectangle({
+      x: 0,
+      y: PAGE_HEIGHT - bandHeight - 1.5,
+      width: PAGE_WIDTH,
+      height: 1.5,
+      color: COLORS.border,
+    })
+
+    if (!opts.isFirstPage) {
+      const cont = toWinAnsiSafe(`${ctx.docTitle} (cont.)`)
+      const contW = ctx.font.widthOfTextAtSize(cont, SIZE.meta)
+      ctx.page.drawText(cont, {
+        x: PAGE_WIDTH - MARGIN_X - contW,
+        y: PAGE_HEIGHT - bandHeight / 2 - 3,
+        size: SIZE.meta,
+        font: ctx.font,
+        color: COLORS.muted,
+      })
+    }
+
+    drawFooter(ctx)
+    ctx.y = PAGE_HEIGHT - bandHeight - 16
+    return
+  }
+
   const bandHeight = opts.isFirstPage ? 92 : 56
 
-  // Soft top band
+  // Soft top band (geral / sessao only)
   ctx.page.drawRectangle({
     x: 0,
     y: PAGE_HEIGHT - bandHeight,
@@ -807,45 +849,44 @@ function drawOptionalBullets(ctx: DrawContext, title: string, items: string[]): 
   return true
 }
 
-/** Centered chapter title like "01 — ANAMNESE INICIAL" (ref style). */
+/** Centered chapter title like "01 — ANAMNESE INICIAL" (TimesRomanBold + diamond — D-03). */
 function drawPageBanner(ctx: DrawContext, title: string) {
-  ensureSpace(ctx, 36)
+  ensureSpace(ctx, 40)
   const safe = toWinAnsiSafe(title.toUpperCase())
-  const size = SIZE.chapter
-  const tw = ctx.bold.widthOfTextAtSize(safe, size)
+  const size = 15
+  const tw = ctx.timesBold.widthOfTextAtSize(safe, size)
   const cx = PAGE_WIDTH / 2
 
-  // Decorative rule with center diamond
+  // Decorative rule with center diamond (SVG path — rotated square look)
   const ruleY = ctx.y + 4
   ctx.page.drawLine({
     start: { x: MARGIN_X + 40, y: ruleY },
-    end: { x: cx - 8, y: ruleY },
+    end: { x: cx - 10, y: ruleY },
     thickness: 0.6,
     color: COLORS.border,
   })
   ctx.page.drawLine({
-    start: { x: cx + 8, y: ruleY },
+    start: { x: cx + 10, y: ruleY },
     end: { x: PAGE_WIDTH - MARGIN_X - 40, y: ruleY },
     thickness: 0.6,
     color: COLORS.border,
   })
-  ctx.page.drawRectangle({
-    x: cx - 2.5,
-    y: ruleY - 2.5,
-    width: 5,
-    height: 5,
+  // Diamond: unit path centered at (cx, ruleY); drawSvgPath flips Y with positive scale
+  ctx.page.drawSvgPath('M 0 -3.2 L 3.2 0 L 0 3.2 L -3.2 0 Z', {
+    x: cx,
+    y: ruleY,
     color: COLORS.navy,
   })
 
-  ctx.y -= 14
+  ctx.y -= 16
   ctx.page.drawText(safe, {
     x: cx - tw / 2,
     y: ctx.y,
     size,
-    font: ctx.bold,
+    font: ctx.timesBold,
     color: COLORS.navy,
   })
-  ctx.y -= 18
+  ctx.y -= 20
 }
 
 function enumLabel(value: string | undefined, map: Record<string, string>): string | undefined {
@@ -865,7 +906,7 @@ const BLOCK_INNER = 12
 
 function badgeColorForLetter(letter: string): RGB {
   const sageLetters = new Set(['B', 'D', 'F', 'H'])
-  if (letter === 'E' || letter.toUpperCase().includes('TRIAG')) return COLORS.danger
+  // Danger only via drawFichaBlockFrame opts.danger (Triagem 03.E) — never letter E alone
   return sageLetters.has(letter.toUpperCase()) ? COLORS.sage : COLORS.navy
 }
 
@@ -1764,6 +1805,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
   const doc = await PDFDocument.create()
   const font = await doc.embedFont(StandardFonts.Helvetica)
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)
+  const timesBold = await doc.embedFont(StandardFonts.TimesRomanBold)
 
   const logoBytes = await fetch(logoUrl).then((r) => {
     if (!r.ok) throw new Error('Não foi possível carregar a logo FLUXO.')
@@ -1781,6 +1823,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
     page,
     font,
     bold,
+    timesBold,
     logo,
     y: PAGE_HEIGHT,
     pageIndex: 1,
