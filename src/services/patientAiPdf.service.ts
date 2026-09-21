@@ -90,10 +90,40 @@ export interface PatientAiAvaliacaoPdfInput {
   selectedFieldIds?: ReadonlySet<PdfFieldId>
 }
 
+/** Evolução multi-sessão + síntese IA (D-04) — sem Gemini no builder. */
+export interface PatientAiEvolucaoPdfInput {
+  kind: 'evolucao'
+  name: string
+  code: string
+  sessionLabel: string
+  sessions: Array<{
+    id: string
+    dateLabel: string
+    timeLabel?: string
+    evolution: Pick<
+      SessionEvolution,
+      | 'patientState'
+      | 'changesSinceLast'
+      | 'conducts'
+      | 'treatmentResponse'
+      | 'incidents'
+      | 'nextPlan'
+    > | null
+  }>
+  synthesis: {
+    sintese: string
+    tendencias?: string
+    condutasAgregadas?: string
+    alertas?: string
+  }
+  selectedFieldIds?: ReadonlySet<PdfFieldId>
+}
+
 export type BuildPatientAiReportPdfInput =
   | PatientAiGeralPdfInput
   | PatientAiSessaoPdfInput
   | PatientAiAvaliacaoPdfInput
+  | PatientAiEvolucaoPdfInput
 
 const BODY_MAP_GLYPH: Record<string, string> = {
   X: 'X',
@@ -1391,15 +1421,106 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   }
 }
 
+const EVO_SOAP_FIELDS: Array<{
+  key:
+    | 'patientState'
+    | 'changesSinceLast'
+    | 'conducts'
+    | 'treatmentResponse'
+    | 'incidents'
+    | 'nextPlan'
+  idSuffix: string
+  label: string
+}> = [
+  { key: 'patientState', idSuffix: 'patientState', label: 'Estado do paciente' },
+  { key: 'changesSinceLast', idSuffix: 'changesSinceLast', label: 'Mudanças desde a última' },
+  { key: 'conducts', idSuffix: 'conducts', label: 'Condutas' },
+  { key: 'treatmentResponse', idSuffix: 'treatmentResponse', label: 'Resposta ao tratamento' },
+  { key: 'incidents', idSuffix: 'incidents', label: 'Intercorrências' },
+  { key: 'nextPlan', idSuffix: 'nextPlan', label: 'Plano seguinte' },
+]
+
+/**
+ * Multi-session evolução PDF (D-04/D-05): SOAP leaves + AI sections when selected ∩ filled.
+ * Never invents clinical or AI text — empty/unselected omitted (REQ-25.6).
+ */
+function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
+  drawPatientCard(ctx)
+  drawOptionalField(ctx, 'Sessões', input.sessionLabel)
+
+  const selected = input.selectedFieldIds
+  let anyContent = false
+
+  for (const session of input.sessions) {
+    const evo = session.evolution
+    if (!evo) continue
+
+    const fields = EVO_SOAP_FIELDS.filter((field) => {
+      const value = evo[field.key]
+      if (!textFilled(value)) return false
+      const id = `evo.session.${session.id}.${field.idSuffix}`
+      return isFieldSelected(selected, id)
+    })
+
+    if (fields.length === 0) continue
+
+    anyContent = true
+    const when =
+      [session.dateLabel, session.timeLabel].filter(Boolean).join(' · ') || session.dateLabel
+    drawPageBanner(ctx, when || `Sessão ${session.id}`)
+
+    for (const field of fields) {
+      drawOptionalField(ctx, field.label, evo[field.key])
+    }
+  }
+
+  const aiBlocks: Array<{
+    id: PdfFieldId
+    letter: string
+    title: string
+    value: string | undefined
+  }> = [
+    { id: 'evo.ai.sintese', letter: 'A', title: 'Síntese clínica', value: input.synthesis.sintese },
+    { id: 'evo.ai.tendencias', letter: 'B', title: 'Tendências', value: input.synthesis.tendencias },
+    {
+      id: 'evo.ai.condutasAgregadas',
+      letter: 'C',
+      title: 'Condutas agregadas',
+      value: input.synthesis.condutasAgregadas,
+    },
+    { id: 'evo.ai.alertas', letter: 'D', title: 'Alertas', value: input.synthesis.alertas },
+  ]
+
+  const aiToDraw = aiBlocks.filter(
+    (block) => textFilled(block.value) && isFieldSelected(selected, block.id),
+  )
+
+  if (aiToDraw.length > 0) {
+    anyContent = true
+    drawPageBanner(ctx, 'Síntese IA')
+    for (const block of aiToDraw) {
+      const text = block.value as string
+      drawFichaBlockFrame(ctx, block.letter, block.title, () => {
+        drawParagraph(ctx, text)
+      })
+    }
+  }
+
+  if (!anyContent) {
+    drawParagraph(ctx, 'Nenhum campo selecionado para exportar.', { color: COLORS.muted })
+  }
+}
+
 function docTitleFor(input: BuildPatientAiReportPdfInput): string {
   if (input.kind === 'geral') return 'Avaliação geral'
   if (input.kind === 'sessao') return 'Avaliação por sessão'
+  if (input.kind === 'evolucao') return 'Evolução clínica'
   const named = input.evaluationTitle?.trim()
   return named || 'Avaliação musculoesquelética'
 }
 
 /**
- * Builds deterministic PDF bytes for kind geral | sessao | avaliacao (D-05, D-07).
+ * Builds deterministic PDF bytes for kind geral | sessao | avaliacao | evolucao (D-05, D-07).
  * Brand layout: FLUXO logo + accent/forest palette — no Gemini.
  */
 export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInput): Promise<Blob> {
@@ -1437,6 +1558,8 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
     drawGeral(ctx, input)
   } else if (input.kind === 'sessao') {
     drawSessao(ctx, input)
+  } else if (input.kind === 'evolucao') {
+    drawEvolucao(ctx, input)
   } else {
     drawAvaliacao(ctx, input)
   }
