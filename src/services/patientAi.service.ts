@@ -3,7 +3,11 @@ import { mapPatientAiError } from '@/lib/security'
 import { getFocusRegion } from '@/lib/focusRegions'
 import { focusRegionKeySchema } from '@/schemas/patient.schema'
 import {
+  evolucaoSynthesisSchema,
+  patientAiEvolucaoInvokeSchema,
   patientAiSummaryInvokeSchema,
+  type EvolucaoSynthesis,
+  type PatientAiEvolucaoInvokeInput,
   type PatientAiSummaryInvokeInput,
 } from '@/schemas/patientAi.schema'
 import { updatePatient } from '@/services/patients.service'
@@ -175,4 +179,48 @@ export async function generatePatientAiSummary(
   await applyAiFocusRegionKeys(parsed.patientId, focusRegionKeys)
 
   return summary
+}
+
+/**
+ * Invokes patient-ai-summary with mode evolucao (multi-session synthesis).
+ * Does NOT update patients.ai_summary or focus regions — PDF-only (D-04 / REQ-25.6).
+ */
+export async function generateEvolucaoSynthesis(
+  input: PatientAiEvolucaoInvokeInput,
+): Promise<EvolucaoSynthesis> {
+  const parsed = patientAiEvolucaoInvokeSchema.parse(input)
+
+  const { data, error } = await supabase.functions.invoke('patient-ai-summary', {
+    body: {
+      patientId: parsed.patientId,
+      mode: 'evolucao',
+      sessionIds: parsed.sessionIds,
+      userHint: parsed.userHint,
+    },
+  })
+
+  if (error) {
+    const payload = await readFunctionsErrorPayload(error, data)
+    throwMappedFunctionsError(payload)
+  }
+
+  const body = data as Record<string, unknown> | null
+  if (body && (body.code || body.error) && typeof body.sintese !== 'string') {
+    throwMappedFunctionsError({
+      code: typeof body.code === 'string' ? body.code : undefined,
+      message:
+        typeof body.message === 'string'
+          ? body.message
+          : typeof body.error === 'string'
+            ? body.error
+            : undefined,
+    })
+  }
+
+  const synthesis = evolucaoSynthesisSchema.safeParse(body)
+  if (!synthesis.success) {
+    throwMappedFunctionsError({ code: 'ai_unavailable' })
+  }
+
+  return synthesis.data
 }

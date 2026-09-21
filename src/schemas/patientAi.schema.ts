@@ -60,6 +60,42 @@ export const patientAiSummaryInvokeSchema = z.object({
 
 export type PatientAiSummaryInvokeInput = z.infer<typeof patientAiSummaryInvokeSchema>
 
+/** Evolução multi-sessão invoke (D-04) — cap 12 sessions. */
+export const patientAiEvolucaoInvokeSchema = z.object({
+  patientId: z.string().uuid(),
+  sessionIds: z.array(z.string().uuid()).min(1).max(12),
+  userHint: z
+    .string()
+    .trim()
+    .max(2000)
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+})
+
+export type PatientAiEvolucaoInvokeInput = z.infer<typeof patientAiEvolucaoInvokeSchema>
+
+/** Structured Evolução synthesis from EF mode evolucao — sintese required. */
+export const evolucaoSynthesisSchema = z.object({
+  sintese: z.string().trim().min(1),
+  tendencias: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+  condutasAgregadas: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+  alertas: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+})
+
+export type EvolucaoSynthesis = z.infer<typeof evolucaoSynthesisSchema>
+
 export const patientAiReportKindSchema = z.enum([
   'geral',
   'sessao',
