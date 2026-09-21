@@ -7,6 +7,8 @@ export interface PatientEvaluation {
   patientId: string
   performedOn: string
   performedOnLabel: string
+  /** Nome livre da avaliação (de ficha.titulo). */
+  title: string
   isInitial: boolean
   ficha: EvaluationFicha
   anamnesis: string

@@ -160,12 +160,14 @@ function resolveEvaluationFicha(row: EvaluationRow): EvaluationFicha {
 function mapEvaluation(row: EvaluationRow, isInitial: boolean): PatientEvaluation {
   const ficha = resolveEvaluationFicha(row)
   const seededComplaint = ficha.anamnese?.queixa?.oQueTrouxe?.trim() || ''
+  const title = ficha.titulo?.trim() || ''
 
   return {
     id: row.id,
     patientId: row.patient_id,
     performedOn: row.performed_on,
     performedOnLabel: formatDateLabel(row.performed_on),
+    title,
     isInitial,
     ficha,
     anamnesis: row.anamnesis ?? '',
@@ -205,7 +207,11 @@ async function resolveAuthor() {
 
 function toRow(input: UpsertPatientEvaluationInput) {
   const parsed = evaluationFichaSchema.safeParse(input.ficha ?? {})
-  if (!parsed.success) throw new Error('Ficha de avaliação inválida.')
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    const path = issue?.path?.length ? issue.path.join('.') : 'ficha'
+    throw new Error(issue?.message ? `${path}: ${issue.message}` : 'Ficha de avaliação inválida.')
+  }
   const ficha = parsed.data
 
   const mirroredComplaint =
