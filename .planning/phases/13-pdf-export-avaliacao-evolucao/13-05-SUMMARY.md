@@ -49,14 +49,14 @@ completed: 2026-09-21
 
 # Phase 13 Plan 05: EF Evolução + Composer Wire Summary
 
-**Edge Function mode `evolucao` + SPA `generateEvolucaoSynthesis` → field-picker → PDF `kind: evolucao`; hosted redeploy still pending (Task 3 blocking).**
+**Edge Function mode `evolucao` + SPA `generateEvolucaoSynthesis` → field-picker → PDF `kind: evolucao`; hosted redeploy confirmed (user: deployed 2026-09-21).**
 
 ## Performance
 
-- **Duration:** 4 min
+- **Duration:** ~4 min (+ human redeploy)
 - **Started:** 2026-09-21T12:58:54Z
-- **Completed:** 2026-09-21T13:03:01Z
-- **Tasks:** 2/3 complete (Task 3 blocking human redeploy)
+- **Completed:** 2026-09-21T13:19:00Z (Task 3 deployed)
+- **Tasks:** 3/3 complete
 - **Files modified:** 4 tracked (+ local `/supabase/` deploy copy)
 
 ## Accomplishments
@@ -69,7 +69,7 @@ completed: 2026-09-21
 
 1. **Task 1: EF mode evolucao + client generateEvolucaoSynthesis** - `94bb31f` (feat)
 2. **Task 2: Wire Evolução multi-session export in composer** - `ba17010` (feat)
-3. **Task 3: [BLOCKING] Redeploy patient-ai-summary** - pending human action
+3. **Task 3: [BLOCKING] Redeploy patient-ai-summary** - deployed (user confirmed 2026-09-21)
 
 ## Files Created/Modified
 
