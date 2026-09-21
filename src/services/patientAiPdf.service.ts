@@ -2297,11 +2297,18 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       })
     }
     if (show04ID) {
+      // D-04.10: dual-column underline fields (Fisioterapeuta|CREFITO, Data|Assinatura)
       drawFichaBlockFrame(ctx, 'ID', 'Identificação profissional', () => {
-        drawOptionalField(ctx, 'Fisioterapeuta', plano?.profissional?.fisioterapeuta)
-        drawOptionalField(ctx, 'CREFITO', plano?.profissional?.crefito)
-        drawOptionalField(ctx, 'Data', plano?.profissional?.data)
-        drawOptionalField(ctx, 'Assinatura', plano?.profissional?.assinatura)
+        drawTwoColumnFields(ctx, [
+          ['Fisioterapeuta', plano?.profissional?.fisioterapeuta],
+          ['CREFITO', plano?.profissional?.crefito],
+          ['Data', plano?.profissional?.data],
+          ['Assinatura', plano?.profissional?.assinatura],
+        ])
+        // Blank Assinatura underline when value empty but ID block is shown (ref signature line)
+        if (!textFilled(plano?.profissional?.assinatura)) {
+          drawLabeledValue(ctx, 'Assinatura', '')
+        }
       })
     }
   }
