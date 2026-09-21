@@ -370,22 +370,19 @@ This app uses **email+password signup with Confirm email**, not magic-link login
 
 **If wrong:** Planner should add a human checkpoint to confirm Auth “Confirm email” toggle and operator mailbox type before SMTP task execution.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which operator mailbox will be used at execution?**
+1. **Which operator mailbox will be used at execution?** — RESOLVED
    - What we know: D-02 allows Artur’s personal email or another he indicates.
-   - What's unclear: Gmail vs Workspace vs other.
-   - Recommendation: Execution checkpoint — pick Gmail App Password path first; Brevo if blocked.
+   - Resolution: Gmail App Password path first; Brevo as fallback if Gmail is blocked. Human confirms the live mailbox choice at plan 15-02 checkpoint.
 
-2. **Is Confirm email currently ON in the live project?**
+2. **Is Confirm email currently ON in the live project?** — RESOLVED
    - What we know: App handles `needsEmailConfirmation: !session` and duplicate empty identities.
-   - What's unclear: Live Dashboard toggle (A1).
-   - Recommendation: First UAT/preflight step — read Auth settings; do not disable confirm under pressure (auth-smtp abuse guidance).
+   - Resolution: Preflight in runbook + plan 15-02 how-to-verify reads Auth settings first; keep Confirm email ON (do not enable autoconfirm).
 
-3. **Production + local origins for Redirect URLs?**
+3. **Production + local origins for Redirect URLs?** — RESOLVED
    - What we know: `emailRedirectTo` uses `window.location.origin`.
-   - What's unclear: Exact deployed hostname(s).
-   - Recommendation: Runbook table filled during execution with real URLs.
+   - Resolution: Runbook origin table filled at Dashboard apply time with real prod + local URLs; keep app `emailRedirectTo` as origin `/` (unchanged).
 
 ## Environment Availability
 
