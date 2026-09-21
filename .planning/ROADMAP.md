@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phases 8–13 em andamento. Próximo: Phase 14 PDF ficha visual polish.
+Completar o prontuário e o modelo de contas. Phases 8–14 em andamento. Próximo foco opcional: Phase 15 e-mail Fluxo de confirmação.
 
 ## Phases
 
@@ -20,6 +20,7 @@ Completar o prontuário e o modelo de contas. Phases 8–13 em andamento. Próxi
 - [ ] **Phase 12: Avaliações musculoesqueléticas** — Aba Avaliações (ficha 01–04), CRUD parcial, dashboard → nova, PDF export alinhado
 - [ ] **Phase 13: PDF Avaliação / Evolução** — Seções de export, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
+- [ ] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase
 
 ## Phase Details
 
@@ -424,3 +425,23 @@ Plans:
 - [ ] 14-04-PLAN.md — Visual UAT vs refs 01–04 (blocking)
 
 **UI hint:** yes
+
+### Phase 15: E-mail Fluxo de confirmação de conta
+
+**Goal**: O e-mail de autorização/confirmação na criação de conta é personalizado da Fluxo (marca + copy), enviado por um e-mail próprio do operador por enquanto — sem depender do remetente/template genérico do Supabase.
+**Depends on**: Phase 3 (cadastro + confirm email já existem)
+**Requirements**: REQ-27
+**Success Criteria** (what must be TRUE):
+
+  1. Cadastro dispara e-mail de confirmação com marca/copy Fluxo
+  2. Remetente é endereço próprio do operador (SMTP custom no Supabase)
+  3. Link de confirmação completa o fluxo de conta existente
+  4. Runbook no repo documenta SMTP + templates no Dashboard
+  5. Reset de senha (se ativo) segue a mesma marca; convites de equipe fora
+
+**Plans**: TBD
+**UI hint:** no
+
+Plans:
+
+- (a planejar)

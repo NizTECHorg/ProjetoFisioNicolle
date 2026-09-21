@@ -19,6 +19,7 @@
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
+- [ ] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -81,6 +82,20 @@ O PDF exportado de Avaliação (e Evolução) deve ficar visualmente alinhado à
 4. Layouts multi-coluna onde a ref exige (ex.: Piora|Melhora; Síntese|Objetivos quando ambos selecionados).
 5. Tabelas Mobilidade/Força com cabeçalho sombreado; escala EVA 0–10 visível; mapa corporal com silhuetas + legendas quando selecionado.
 6. Evolução usa o mesmo sistema visual; sem inventar conteúdo; só campos selecionados.
+
+## REQ-27 — E-mail de confirmação de conta (marca Fluxo)
+
+**Indispensável · Artur**
+
+O e-mail que autoriza a criação de conta (confirmação de cadastro) deixa de ser o template genérico do Supabase e passa a ser um e-mail personalizado da Fluxo, enviado por um endereço próprio do operador (provisório).
+
+### Acceptance
+
+1. Ao cadastrar, o destinatário recebe e-mail de confirmação com identidade visual/copy da Fluxo (não “Supabase Auth” genérico).
+2. O remetente é um e-mail próprio do operador (SMTP custom), configurável sem redeploy do app.
+3. O link de confirmação abre o app e completa o fluxo de conta já existente (autônomo / empresa / fisioterapeuta).
+4. Documentação operacional no repo: o que configurar no Supabase Dashboard (SMTP + templates) e variáveis/segredos necessários.
+5. Recuperação de senha (se permanecer ativa) usa o mesmo sistema de marca; convites de equipe fora do escopo.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -263,3 +278,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-24 | Phase 12 | Planned |
 | REQ-25 | Phase 13 | Planned |
 | REQ-26 | Phase 14 | Planned |
+| REQ-27 | Phase 15 | Planned |
