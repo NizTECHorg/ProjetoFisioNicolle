@@ -10,6 +10,7 @@ import {
 import logoUrl from '@/assets/brand/logo.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { FOCUS_REGIONS } from '@/lib/focusRegions'
+import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import type { PatientGoal, PatientFocusArea, SessionEvolution } from '@/types/patient'
 
 /** A4 */
@@ -81,8 +82,12 @@ export interface PatientAiAvaliacaoPdfInput {
   name: string
   code: string
   performedOnLabel: string
+  /** Nome livre da avaliação (opcional). */
+  evaluationTitle?: string | null
   therapistName?: string | null
   ficha: EvaluationFicha
+  /** When set, only these filled block ids render (D-02/D-03). Omitted = all filled. */
+  selectedFieldIds?: ReadonlySet<PdfFieldId>
 }
 
 export type BuildPatientAiReportPdfInput =
@@ -628,15 +633,81 @@ function enumLabel(value: string | undefined, map: Record<string, string>): stri
   return map[value] ?? value
 }
 
+/** Omitted set = all filled blocks (back-compat). */
+function isFieldSelected(selected: ReadonlySet<PdfFieldId> | undefined, id: PdfFieldId): boolean {
+  return selected === undefined || selected.has(id)
+}
+
+const BLOCK_HEADER_H = 24
+const BLOCK_PAD = 8
+const BLOCK_GAP = 12
+
 /**
- * Renders EvaluationFicha pages 01–04; omits empty blocks/fields (D-07).
+ * Lettered ficha block chrome (D-05): accentSoft header + thin accent border.
+ * pdf-lib has no borderRadius — straight rectangles only.
+ */
+function drawFichaBlockFrame(
+  ctx: DrawContext,
+  letter: string,
+  title: string,
+  bodyDraw: () => void,
+): void {
+  ensureSpace(ctx, BLOCK_HEADER_H + 40)
+
+  const pageAtStart = ctx.pageIndex
+  const boxTop = ctx.y
+
+  ctx.page.drawRectangle({
+    x: MARGIN_X,
+    y: boxTop - BLOCK_HEADER_H,
+    width: CONTENT_WIDTH,
+    height: BLOCK_HEADER_H,
+    color: COLORS.accentSoft,
+  })
+
+  const headerLabel = toWinAnsiSafe(`${letter} · ${title}`)
+  ctx.page.drawText(headerLabel, {
+    x: MARGIN_X + BLOCK_PAD,
+    y: boxTop - BLOCK_HEADER_H + 8,
+    size: SIZE.section,
+    font: ctx.bold,
+    color: COLORS.forest,
+  })
+
+  ctx.y = boxTop - BLOCK_HEADER_H - BLOCK_PAD
+  bodyDraw()
+  ctx.y -= BLOCK_PAD
+
+  // Full border only when the block stayed on one page
+  if (ctx.pageIndex === pageAtStart) {
+    const boxBottom = ctx.y
+    const boxHeight = boxTop - boxBottom
+    if (boxHeight > 0) {
+      ctx.page.drawRectangle({
+        x: MARGIN_X,
+        y: boxBottom,
+        width: CONTENT_WIDTH,
+        height: boxHeight,
+        borderColor: COLORS.accent,
+        borderWidth: 1,
+      })
+    }
+  }
+
+  ctx.y -= BLOCK_GAP
+}
+
+/**
+ * Renders EvaluationFicha pages 01–04; omits empty/unselected blocks (D-02/D-03/D-05/D-07).
  */
 function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   drawPatientCard(ctx)
+  drawOptionalField(ctx, 'Nome da avaliação', input.evaluationTitle ?? undefined)
   drawOptionalField(ctx, 'Data da avaliação', input.performedOnLabel)
   drawOptionalField(ctx, 'Fisioterapeuta', input.therapistName ?? undefined)
 
   const ficha = input.ficha
+  const selected = input.selectedFieldIds
   let anyContent = false
 
   // —— 01 Anamnese ——
@@ -729,44 +800,55 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   })
   const hasPregresso = pregressoItems.length > 0 || textFilled(pregresso?.observacoes)
 
-  if (hasId || hasQueixa || hasHistoria || hasTratamentos || hasPregresso) {
+  const show01A = hasId && isFieldSelected(selected, '01.A')
+  const show01B = hasQueixa && isFieldSelected(selected, '01.B')
+  const show01C = hasHistoria && isFieldSelected(selected, '01.C')
+  const show01D = hasTratamentos && isFieldSelected(selected, '01.D')
+  const show01E = hasPregresso && isFieldSelected(selected, '01.E')
+
+  if (show01A || show01B || show01C || show01D || show01E) {
     anyContent = true
     drawPageBanner(ctx, '01 · Anamnese inicial')
 
-    if (hasId) {
-      drawSectionTitle(ctx, 'A · Identificação')
-      for (const [label, value] of idFields) drawOptionalField(ctx, label, value)
+    if (show01A) {
+      drawFichaBlockFrame(ctx, 'A', 'Identificação', () => {
+        for (const [label, value] of idFields) drawOptionalField(ctx, label, value)
+      })
     }
-    if (hasQueixa) {
-      drawSectionTitle(ctx, 'B · Queixa principal')
-      drawOptionalField(ctx, 'O que trouxe', queixa?.oQueTrouxe)
-      drawOptionalField(ctx, 'Região', queixa?.regiao)
-      drawOptionalBullets(ctx, 'Lado', ladoItems)
-      drawOptionalField(ctx, 'Há quanto tempo', queixa?.haQuantoTempo)
+    if (show01B) {
+      drawFichaBlockFrame(ctx, 'B', 'Queixa principal', () => {
+        drawOptionalField(ctx, 'O que trouxe', queixa?.oQueTrouxe)
+        drawOptionalField(ctx, 'Região', queixa?.regiao)
+        drawOptionalBullets(ctx, 'Lado', ladoItems)
+        drawOptionalField(ctx, 'Há quanto tempo', queixa?.haQuantoTempo)
+      })
     }
-    if (hasHistoria) {
-      drawSectionTitle(ctx, 'C · História atual')
-      drawOptionalBullets(ctx, 'Início', inicioItems)
-      drawOptionalField(ctx, 'Data aproximada', historia?.dataAproxInicio)
-      drawOptionalField(ctx, 'Como começou', historia?.comoComecou)
-      drawOptionalBullets(ctx, 'Evolução', evolucaoItems)
-      drawOptionalField(
-        ctx,
-        'Já aconteceu antes',
-        enumLabel(historia?.jaAconteceuAntes, { nao: 'Não', sim: 'Sim' }),
-      )
-      drawOptionalField(ctx, 'Detalhe (já aconteceu)', historia?.jaAconteceuDetalhe)
+    if (show01C) {
+      drawFichaBlockFrame(ctx, 'C', 'História atual', () => {
+        drawOptionalBullets(ctx, 'Início', inicioItems)
+        drawOptionalField(ctx, 'Data aproximada', historia?.dataAproxInicio)
+        drawOptionalField(ctx, 'Como começou', historia?.comoComecou)
+        drawOptionalBullets(ctx, 'Evolução', evolucaoItems)
+        drawOptionalField(
+          ctx,
+          'Já aconteceu antes',
+          enumLabel(historia?.jaAconteceuAntes, { nao: 'Não', sim: 'Sim' }),
+        )
+        drawOptionalField(ctx, 'Detalhe (já aconteceu)', historia?.jaAconteceuDetalhe)
+      })
     }
-    if (hasTratamentos) {
-      drawSectionTitle(ctx, 'D · Tratamentos e investigações')
-      drawOptionalBullets(ctx, 'Tratamentos', tratamentoItems)
-      drawOptionalBullets(ctx, 'Exames', exameItems)
-      drawOptionalField(ctx, 'Achados', tratamentos?.achados)
+    if (show01D) {
+      drawFichaBlockFrame(ctx, 'D', 'Tratamentos e investigações', () => {
+        drawOptionalBullets(ctx, 'Tratamentos', tratamentoItems)
+        drawOptionalBullets(ctx, 'Exames', exameItems)
+        drawOptionalField(ctx, 'Achados', tratamentos?.achados)
+      })
     }
-    if (hasPregresso) {
-      drawSectionTitle(ctx, 'E · Histórico pregresso')
-      drawOptionalBullets(ctx, 'Histórico', pregressoItems)
-      drawOptionalField(ctx, 'Observações', pregresso?.observacoes)
+    if (show01E) {
+      drawFichaBlockFrame(ctx, 'E', 'Histórico pregresso', () => {
+        drawOptionalBullets(ctx, 'Histórico', pregressoItems)
+        drawOptionalField(ctx, 'Observações', pregresso?.observacoes)
+      })
     }
   }
 
@@ -842,82 +924,92 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     Boolean(sintomas?.irritabilidade?.esforcoProvocar) ||
     Boolean(sintomas?.irritabilidade?.tempoVoltar)
 
-  if (
-    markLines.length > 0 ||
-    caracteristicaItems.length > 0 ||
-    hasIntensidade ||
-    has24h ||
-    hasPiora ||
-    hasMelhora ||
-    hasIrrit
-  ) {
+  const show02A = markLines.length > 0 && isFieldSelected(selected, '02.A')
+  const show02B = caracteristicaItems.length > 0 && isFieldSelected(selected, '02.B')
+  const show02C = hasIntensidade && isFieldSelected(selected, '02.C')
+  const show02D = has24h && isFieldSelected(selected, '02.D')
+  const show02E = hasPiora && isFieldSelected(selected, '02.E')
+  const show02F = hasMelhora && isFieldSelected(selected, '02.F')
+  const show02G = hasIrrit && isFieldSelected(selected, '02.G')
+
+  if (show02A || show02B || show02C || show02D || show02E || show02F || show02G) {
     anyContent = true
     drawPageBanner(ctx, '02 · Comportamento dos sintomas')
 
-    if (markLines.length > 0) {
-      drawSectionTitle(ctx, 'A · Mapa corporal')
-      drawBulletList(ctx, markLines)
+    if (show02A) {
+      drawFichaBlockFrame(ctx, 'A', 'Mapa corporal', () => {
+        drawBulletList(ctx, markLines)
+      })
     }
-    drawOptionalBullets(ctx, 'B · Característica predominante', caracteristicaItems)
-    if (hasIntensidade) {
-      drawSectionTitle(ctx, 'C · Intensidade (0-10)')
-      drawOptionalField(ctx, 'Agora', sintomas?.intensidade?.agora)
-      drawOptionalField(ctx, 'Melhor', sintomas?.intensidade?.melhor)
-      drawOptionalField(ctx, 'Pior', sintomas?.intensidade?.pior)
+    if (show02B) {
+      drawFichaBlockFrame(ctx, 'B', 'Característica predominante', () => {
+        drawBulletList(ctx, caracteristicaItems)
+      })
     }
-    if (has24h) {
-      drawSectionTitle(ctx, 'D · Comportamento em 24 horas')
-      drawOptionalField(
-        ctx,
-        'Manhã',
-        enumLabel(sintomas?.comportamento24h?.manha, periodoMap),
-      )
-      drawOptionalField(ctx, 'Dia', enumLabel(sintomas?.comportamento24h?.dia, periodoMap))
-      drawOptionalField(ctx, 'Noite', enumLabel(sintomas?.comportamento24h?.noite, periodoMap))
-      drawOptionalField(
-        ctx,
-        'Interfere no sono',
-        enumLabel(sintomas?.comportamento24h?.interfereSono, { nao: 'Não', sim: 'Sim' }),
-      )
-      drawOptionalField(
-        ctx,
-        'Acorda por sintomas',
-        enumLabel(sintomas?.comportamento24h?.acordaPorSintomas, { nao: 'Não', sim: 'Sim' }),
-      )
+    if (show02C) {
+      drawFichaBlockFrame(ctx, 'C', 'Intensidade (0-10)', () => {
+        drawOptionalField(ctx, 'Agora', sintomas?.intensidade?.agora)
+        drawOptionalField(ctx, 'Melhor', sintomas?.intensidade?.melhor)
+        drawOptionalField(ctx, 'Pior', sintomas?.intensidade?.pior)
+      })
     }
-    if (hasPiora) {
-      drawSectionTitle(ctx, 'E · O que piora')
-      drawOptionalBullets(ctx, 'Fatores', pioraItems)
-      drawOptionalField(ctx, 'Detalhe', sintomas?.piora?.detalhe)
+    if (show02D) {
+      drawFichaBlockFrame(ctx, 'D', 'Comportamento em 24 horas', () => {
+        drawOptionalField(
+          ctx,
+          'Manhã',
+          enumLabel(sintomas?.comportamento24h?.manha, periodoMap),
+        )
+        drawOptionalField(ctx, 'Dia', enumLabel(sintomas?.comportamento24h?.dia, periodoMap))
+        drawOptionalField(ctx, 'Noite', enumLabel(sintomas?.comportamento24h?.noite, periodoMap))
+        drawOptionalField(
+          ctx,
+          'Interfere no sono',
+          enumLabel(sintomas?.comportamento24h?.interfereSono, { nao: 'Não', sim: 'Sim' }),
+        )
+        drawOptionalField(
+          ctx,
+          'Acorda por sintomas',
+          enumLabel(sintomas?.comportamento24h?.acordaPorSintomas, { nao: 'Não', sim: 'Sim' }),
+        )
+      })
     }
-    if (hasMelhora) {
-      drawSectionTitle(ctx, 'F · O que melhora')
-      drawOptionalBullets(ctx, 'Fatores', melhoraItems)
-      drawOptionalField(ctx, 'Detalhe', sintomas?.melhora?.detalhe)
+    if (show02E) {
+      drawFichaBlockFrame(ctx, 'E', 'O que piora', () => {
+        drawOptionalBullets(ctx, 'Fatores', pioraItems)
+        drawOptionalField(ctx, 'Detalhe', sintomas?.piora?.detalhe)
+      })
     }
-    if (hasIrrit) {
-      drawSectionTitle(ctx, 'G · Irritabilidade / resposta')
-      drawOptionalField(
-        ctx,
-        'Esforço para provocar',
-        enumLabel(sintomas?.irritabilidade?.esforcoProvocar, {
-          pouco: 'Pouco',
-          moderado: 'Moderado',
-          muito: 'Muito',
-          variavel: 'Variável',
-        }),
-      )
-      drawOptionalField(
-        ctx,
-        'Tempo para voltar',
-        enumLabel(sintomas?.irritabilidade?.tempoVoltar, {
-          minutos: 'Minutos',
-          horas: 'Horas',
-          ateDiaSeguinte: 'Até o dia seguinte',
-          maisDe24h: 'Mais de 24 h',
-          variavel: 'Variável',
-        }),
-      )
+    if (show02F) {
+      drawFichaBlockFrame(ctx, 'F', 'O que melhora', () => {
+        drawOptionalBullets(ctx, 'Fatores', melhoraItems)
+        drawOptionalField(ctx, 'Detalhe', sintomas?.melhora?.detalhe)
+      })
+    }
+    if (show02G) {
+      drawFichaBlockFrame(ctx, 'G', 'Irritabilidade / resposta', () => {
+        drawOptionalField(
+          ctx,
+          'Esforço para provocar',
+          enumLabel(sintomas?.irritabilidade?.esforcoProvocar, {
+            pouco: 'Pouco',
+            moderado: 'Moderado',
+            muito: 'Muito',
+            variavel: 'Variável',
+          }),
+        )
+        drawOptionalField(
+          ctx,
+          'Tempo para voltar',
+          enumLabel(sintomas?.irritabilidade?.tempoVoltar, {
+            minutos: 'Minutos',
+            horas: 'Horas',
+            ateDiaSeguinte: 'Até o dia seguinte',
+            maisDe24h: 'Mais de 24 h',
+            variavel: 'Variável',
+          }),
+        )
+      })
     }
   }
 
@@ -1025,51 +1117,64 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     textFilled(funcao?.medicacoes?.alergias) ||
     textFilled(funcao?.medicacoes?.outrasInfo)
 
-  if (hasLimit || hasAtividades || hasRotina || hasExpect || hasTriagem || hasMeds) {
+  const show03A = hasLimit && isFieldSelected(selected, '03.A')
+  const show03B = hasAtividades && isFieldSelected(selected, '03.B')
+  const show03C = hasRotina && isFieldSelected(selected, '03.C')
+  const show03D = hasExpect && isFieldSelected(selected, '03.D')
+  const show03E = hasTriagem && isFieldSelected(selected, '03.E')
+  const show03F = hasMeds && isFieldSelected(selected, '03.F')
+
+  if (show03A || show03B || show03C || show03D || show03E || show03F) {
     anyContent = true
     drawPageBanner(ctx, '03 · Função, contexto e segurança')
 
-    if (hasLimit) {
-      drawSectionTitle(ctx, 'A · Principal limitação funcional')
-      drawOptionalField(ctx, 'Item 1', funcao?.limitacaoFuncional?.item1)
-      drawOptionalField(ctx, 'Item 2', funcao?.limitacaoFuncional?.item2)
-      drawOptionalField(ctx, 'Item 3', funcao?.limitacaoFuncional?.item3)
+    if (show03A) {
+      drawFichaBlockFrame(ctx, 'A', 'Principal limitação funcional', () => {
+        drawOptionalField(ctx, 'Item 1', funcao?.limitacaoFuncional?.item1)
+        drawOptionalField(ctx, 'Item 2', funcao?.limitacaoFuncional?.item2)
+        drawOptionalField(ctx, 'Item 3', funcao?.limitacaoFuncional?.item3)
+      })
     }
-    if (hasAtividades) {
-      drawSectionTitle(ctx, 'B · Atividades afetadas')
-      drawOptionalBullets(ctx, 'Atividades', atividadeItems)
-      drawOptionalField(ctx, 'Capacidade atual', funcao?.atividadesAfetadas?.capacidadeAtual)
-      drawOptionalField(ctx, 'Atividade', funcao?.atividadesAfetadas?.atividade)
-      drawOptionalField(ctx, 'Consigo por', funcao?.atividadesAfetadas?.consigoPor)
-      drawOptionalField(ctx, 'Antes conseguia por', funcao?.atividadesAfetadas?.antesConseguiaPor)
+    if (show03B) {
+      drawFichaBlockFrame(ctx, 'B', 'Atividades afetadas', () => {
+        drawOptionalBullets(ctx, 'Atividades', atividadeItems)
+        drawOptionalField(ctx, 'Capacidade atual', funcao?.atividadesAfetadas?.capacidadeAtual)
+        drawOptionalField(ctx, 'Atividade', funcao?.atividadesAfetadas?.atividade)
+        drawOptionalField(ctx, 'Consigo por', funcao?.atividadesAfetadas?.consigoPor)
+        drawOptionalField(ctx, 'Antes conseguia por', funcao?.atividadesAfetadas?.antesConseguiaPor)
+      })
     }
-    if (hasRotina) {
-      drawSectionTitle(ctx, 'C · Rotina e demanda')
-      drawOptionalBullets(ctx, 'Trabalho', trabalhoItems)
-      drawOptionalField(ctx, 'Horas/dia', funcao?.rotina?.horasDia)
-      drawOptionalField(
-        ctx,
-        'Pratica atividade física',
-        enumLabel(funcao?.rotina?.praticaAtividadeFisica, { nao: 'Não', sim: 'Sim' }),
-      )
-      drawOptionalField(ctx, 'Qual / frequência', funcao?.rotina?.atividadeQualFreq)
+    if (show03C) {
+      drawFichaBlockFrame(ctx, 'C', 'Rotina e demanda', () => {
+        drawOptionalBullets(ctx, 'Trabalho', trabalhoItems)
+        drawOptionalField(ctx, 'Horas/dia', funcao?.rotina?.horasDia)
+        drawOptionalField(
+          ctx,
+          'Pratica atividade física',
+          enumLabel(funcao?.rotina?.praticaAtividadeFisica, { nao: 'Não', sim: 'Sim' }),
+        )
+        drawOptionalField(ctx, 'Qual / frequência', funcao?.rotina?.atividadeQualFreq)
+      })
     }
-    if (hasExpect) {
-      drawSectionTitle(ctx, 'D · Expectativas e objetivos')
-      drawOptionalField(ctx, 'Boa melhora', funcao?.expectativas?.boaMelhora)
-      drawOptionalBullets(ctx, 'Objetivos principais', objetivoItems)
+    if (show03D) {
+      drawFichaBlockFrame(ctx, 'D', 'Expectativas e objetivos', () => {
+        drawOptionalField(ctx, 'Boa melhora', funcao?.expectativas?.boaMelhora)
+        drawOptionalBullets(ctx, 'Objetivos principais', objetivoItems)
+      })
     }
-    if (hasTriagem) {
-      drawSectionTitle(ctx, 'E · Triagem de segurança')
-      drawOptionalBullets(ctx, 'Sinais de alerta', redFlagItems)
-      drawOptionalBullets(ctx, 'Conduta', condutaItems)
-      drawOptionalField(ctx, 'Observações', funcao?.triagemSeguranca?.observacoes)
+    if (show03E) {
+      drawFichaBlockFrame(ctx, 'E', 'Triagem de segurança', () => {
+        drawOptionalBullets(ctx, 'Sinais de alerta', redFlagItems)
+        drawOptionalBullets(ctx, 'Conduta', condutaItems)
+        drawOptionalField(ctx, 'Observações', funcao?.triagemSeguranca?.observacoes)
+      })
     }
-    if (hasMeds) {
-      drawSectionTitle(ctx, 'F · Medicações / outras informações')
-      drawOptionalField(ctx, 'Medicamentos', funcao?.medicacoes?.medicamentos)
-      drawOptionalField(ctx, 'Alergias', funcao?.medicacoes?.alergias)
-      drawOptionalField(ctx, 'Outras informações', funcao?.medicacoes?.outrasInfo)
+    if (show03F) {
+      drawFichaBlockFrame(ctx, 'F', 'Medicações / outras informações', () => {
+        drawOptionalField(ctx, 'Medicamentos', funcao?.medicacoes?.medicamentos)
+        drawOptionalField(ctx, 'Alergias', funcao?.medicacoes?.alergias)
+        drawOptionalField(ctx, 'Outras informações', funcao?.medicacoes?.outrasInfo)
+      })
     }
   }
 
@@ -1165,100 +1270,119 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     textFilled(plano?.profissional?.data) ||
     textFilled(plano?.profissional?.assinatura)
 
+  const show04A = hasInspecao && isFieldSelected(selected, '04.A')
+  const show04B = hasMob && isFieldSelected(selected, '04.B')
+  const show04C = forcaRows.length > 0 && isFieldSelected(selected, '04.C')
+  const show04D = hasNeuro && isFieldSelected(selected, '04.D')
+  const show04E = hasPalp && isFieldSelected(selected, '04.E')
+  const show04F = hasSintese && isFieldSelected(selected, '04.F')
+  const show04G = hasObj && isFieldSelected(selected, '04.G')
+  const show04H = hasPlan && isFieldSelected(selected, '04.H')
+  const show04ID = hasProf && isFieldSelected(selected, '04.ID')
+
   if (
-    hasInspecao ||
-    hasMob ||
-    forcaRows.length > 0 ||
-    hasNeuro ||
-    hasPalp ||
-    hasSintese ||
-    hasObj ||
-    hasPlan ||
-    hasProf
+    show04A ||
+    show04B ||
+    show04C ||
+    show04D ||
+    show04E ||
+    show04F ||
+    show04G ||
+    show04H ||
+    show04ID
   ) {
     anyContent = true
     drawPageBanner(ctx, '04 · Avaliação e plano')
 
-    if (hasInspecao) {
-      drawSectionTitle(ctx, 'A · Inspeção / observação')
-      drawOptionalBullets(ctx, 'Achados observados', inspecaoItems)
-      drawOptionalField(ctx, 'Achados', plano?.inspecao?.achados)
+    if (show04A) {
+      drawFichaBlockFrame(ctx, 'A', 'Inspeção / observação', () => {
+        drawOptionalBullets(ctx, 'Achados observados', inspecaoItems)
+        drawOptionalField(ctx, 'Achados', plano?.inspecao?.achados)
+      })
     }
-    if (hasMob) {
-      drawSectionTitle(ctx, 'B · Mobilidade')
-      drawOptionalBullets(ctx, 'Modo', mobFlags)
-      for (const row of mobRows) {
-        const parts = [
-          row.movimento,
-          row.direito ? `D: ${row.direito}` : null,
-          row.esquerdo ? `E: ${row.esquerdo}` : null,
-          row.dor ? `Dor: ${row.dor}` : null,
-          row.observacao ? `Obs: ${row.observacao}` : null,
-        ].filter((p): p is string => Boolean(p && String(p).trim()))
-        if (parts.length > 0) drawParagraph(ctx, parts.join(' · '))
-      }
+    if (show04B) {
+      drawFichaBlockFrame(ctx, 'B', 'Mobilidade', () => {
+        drawOptionalBullets(ctx, 'Modo', mobFlags)
+        for (const row of mobRows) {
+          const parts = [
+            row.movimento,
+            row.direito ? `D: ${row.direito}` : null,
+            row.esquerdo ? `E: ${row.esquerdo}` : null,
+            row.dor ? `Dor: ${row.dor}` : null,
+            row.observacao ? `Obs: ${row.observacao}` : null,
+          ].filter((p): p is string => Boolean(p && String(p).trim()))
+          if (parts.length > 0) drawParagraph(ctx, parts.join(' · '))
+        }
+      })
     }
-    if (forcaRows.length > 0) {
-      drawSectionTitle(ctx, 'C · Força')
-      for (const row of forcaRows) {
-        const parts = [
-          row.grupo,
-          row.direito ? `D: ${row.direito}` : null,
-          row.esquerdo ? `E: ${row.esquerdo}` : null,
-          row.dor ? `Dor: ${row.dor}` : null,
-          row.observacao ? `Obs: ${row.observacao}` : null,
-        ].filter((p): p is string => Boolean(p && String(p).trim()))
-        if (parts.length > 0) drawParagraph(ctx, parts.join(' · '))
-      }
+    if (show04C) {
+      drawFichaBlockFrame(ctx, 'C', 'Força', () => {
+        for (const row of forcaRows) {
+          const parts = [
+            row.grupo,
+            row.direito ? `D: ${row.direito}` : null,
+            row.esquerdo ? `E: ${row.esquerdo}` : null,
+            row.dor ? `Dor: ${row.dor}` : null,
+            row.observacao ? `Obs: ${row.observacao}` : null,
+          ].filter((p): p is string => Boolean(p && String(p).trim()))
+          if (parts.length > 0) drawParagraph(ctx, parts.join(' · '))
+        }
+      })
     }
-    if (hasNeuro) {
-      drawSectionTitle(ctx, 'D · Avaliação neurológica')
-      drawOptionalBullets(ctx, 'Itens', neuroItems)
-      drawOptionalField(ctx, 'Achados', plano?.neurologico?.achados)
+    if (show04D) {
+      drawFichaBlockFrame(ctx, 'D', 'Avaliação neurológica', () => {
+        drawOptionalBullets(ctx, 'Itens', neuroItems)
+        drawOptionalField(ctx, 'Achados', plano?.neurologico?.achados)
+      })
     }
-    if (hasPalp) {
-      drawSectionTitle(ctx, 'E · Palpação / testes / função')
-      drawOptionalField(ctx, 'Palpação', plano?.palpacaoTestes?.palpacao)
-      drawOptionalField(ctx, 'Testes clínicos', plano?.palpacaoTestes?.testesClinicos)
-      drawOptionalField(ctx, 'Resultados', plano?.palpacaoTestes?.resultados)
-      drawOptionalField(ctx, 'Teste funcional', plano?.palpacaoTestes?.testeFuncional)
-      drawOptionalField(ctx, 'Resultado inicial', plano?.palpacaoTestes?.resultadoInicial)
+    if (show04E) {
+      drawFichaBlockFrame(ctx, 'E', 'Palpação / testes / função', () => {
+        drawOptionalField(ctx, 'Palpação', plano?.palpacaoTestes?.palpacao)
+        drawOptionalField(ctx, 'Testes clínicos', plano?.palpacaoTestes?.testesClinicos)
+        drawOptionalField(ctx, 'Resultados', plano?.palpacaoTestes?.resultados)
+        drawOptionalField(ctx, 'Teste funcional', plano?.palpacaoTestes?.testeFuncional)
+        drawOptionalField(ctx, 'Resultado inicial', plano?.palpacaoTestes?.resultadoInicial)
+      })
     }
-    if (hasSintese) {
-      drawSectionTitle(ctx, 'F · Síntese dos principais achados')
-      drawOptionalField(ctx, 'Problema 1', plano?.sintese?.problema1)
-      drawOptionalField(ctx, 'Problema 2', plano?.sintese?.problema2)
-      drawOptionalField(ctx, 'Problema 3', plano?.sintese?.problema3)
-      drawOptionalField(ctx, 'Diagnóstico fisioterapêutico', plano?.sintese?.diagnosticoFisio)
-      drawOptionalField(ctx, 'Prognóstico', plano?.sintese?.prognostico)
+    if (show04F) {
+      drawFichaBlockFrame(ctx, 'F', 'Síntese dos principais achados', () => {
+        drawOptionalField(ctx, 'Problema 1', plano?.sintese?.problema1)
+        drawOptionalField(ctx, 'Problema 2', plano?.sintese?.problema2)
+        drawOptionalField(ctx, 'Problema 3', plano?.sintese?.problema3)
+        drawOptionalField(ctx, 'Diagnóstico fisioterapêutico', plano?.sintese?.diagnosticoFisio)
+        drawOptionalField(ctx, 'Prognóstico', plano?.sintese?.prognostico)
+      })
     }
-    if (hasObj) {
-      drawSectionTitle(ctx, 'G · Objetivos')
-      drawOptionalField(ctx, 'Curto prazo 1', plano?.objetivos?.curto1)
-      drawOptionalField(ctx, 'Curto prazo 2', plano?.objetivos?.curto2)
-      drawOptionalField(ctx, 'Médio/longo 1', plano?.objetivos?.medioLongo1)
-      drawOptionalField(ctx, 'Médio/longo 2', plano?.objetivos?.medioLongo2)
+    if (show04G) {
+      drawFichaBlockFrame(ctx, 'G', 'Objetivos', () => {
+        drawOptionalField(ctx, 'Curto prazo 1', plano?.objetivos?.curto1)
+        drawOptionalField(ctx, 'Curto prazo 2', plano?.objetivos?.curto2)
+        drawOptionalField(ctx, 'Médio/longo 1', plano?.objetivos?.medioLongo1)
+        drawOptionalField(ctx, 'Médio/longo 2', plano?.objetivos?.medioLongo2)
+      })
     }
-    if (hasPlan) {
-      drawSectionTitle(ctx, 'H · Planejamento')
-      drawOptionalBullets(ctx, 'Condutas', planItems)
-      drawOptionalField(ctx, 'Frequência', plano?.planejamento?.frequencia)
-      drawOptionalField(ctx, 'Qtd. atendimentos', plano?.planejamento?.qtdAtendimentos)
-      drawOptionalField(ctx, 'Critérios de progressão', plano?.planejamento?.criteriosProgressao)
-      drawOptionalField(ctx, 'Critérios de reavaliação', plano?.planejamento?.criteriosReavaliacao)
-      drawOptionalField(
-        ctx,
-        'Encaminhamento',
-        enumLabel(plano?.planejamento?.encaminhamento, { nao: 'Não', sim: 'Sim' }),
-      )
-      drawOptionalField(ctx, 'Encaminhamento — detalhe', plano?.planejamento?.encaminhamentoDetalhe)
+    if (show04H) {
+      drawFichaBlockFrame(ctx, 'H', 'Planejamento', () => {
+        drawOptionalBullets(ctx, 'Condutas', planItems)
+        drawOptionalField(ctx, 'Frequência', plano?.planejamento?.frequencia)
+        drawOptionalField(ctx, 'Qtd. atendimentos', plano?.planejamento?.qtdAtendimentos)
+        drawOptionalField(ctx, 'Critérios de progressão', plano?.planejamento?.criteriosProgressao)
+        drawOptionalField(ctx, 'Critérios de reavaliação', plano?.planejamento?.criteriosReavaliacao)
+        drawOptionalField(
+          ctx,
+          'Encaminhamento',
+          enumLabel(plano?.planejamento?.encaminhamento, { nao: 'Não', sim: 'Sim' }),
+        )
+        drawOptionalField(ctx, 'Encaminhamento — detalhe', plano?.planejamento?.encaminhamentoDetalhe)
+      })
     }
-    if (hasProf) {
-      drawSectionTitle(ctx, 'ID · Identificação profissional')
-      drawOptionalField(ctx, 'Fisioterapeuta', plano?.profissional?.fisioterapeuta)
-      drawOptionalField(ctx, 'CREFITO', plano?.profissional?.crefito)
-      drawOptionalField(ctx, 'Data', plano?.profissional?.data)
-      drawOptionalField(ctx, 'Assinatura', plano?.profissional?.assinatura)
+    if (show04ID) {
+      drawFichaBlockFrame(ctx, 'ID', 'Identificação profissional', () => {
+        drawOptionalField(ctx, 'Fisioterapeuta', plano?.profissional?.fisioterapeuta)
+        drawOptionalField(ctx, 'CREFITO', plano?.profissional?.crefito)
+        drawOptionalField(ctx, 'Data', plano?.profissional?.data)
+        drawOptionalField(ctx, 'Assinatura', plano?.profissional?.assinatura)
+      })
     }
   }
 
@@ -1267,10 +1391,11 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   }
 }
 
-function docTitleFor(kind: BuildPatientAiReportPdfInput['kind']): string {
-  if (kind === 'geral') return 'Avaliação geral'
-  if (kind === 'sessao') return 'Avaliação por sessão'
-  return 'Avaliação musculoesquelética'
+function docTitleFor(input: BuildPatientAiReportPdfInput): string {
+  if (input.kind === 'geral') return 'Avaliação geral'
+  if (input.kind === 'sessao') return 'Avaliação por sessão'
+  const named = input.evaluationTitle?.trim()
+  return named || 'Avaliação musculoesquelética'
 }
 
 /**
@@ -1290,7 +1415,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
 
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
   const generatedAt = formatGeneratedAt()
-  const docTitle = docTitleFor(input.kind)
+  const docTitle = docTitleFor(input)
   const patientLine = `${input.name}  ·  ${input.code}`
 
   const ctx: DrawContext = {
