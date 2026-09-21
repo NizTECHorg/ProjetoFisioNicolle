@@ -10,7 +10,7 @@ export const PATIENT_AI_COPY = {
     'A função patient-ai-summary ainda não está no projeto. Faça o deploy no Dashboard e defina GEMINI_API_KEY.',
   misconfigured:
     'A IA no servidor está incompleta. Confira o deploy de patient-ai-summary e o secret GEMINI_API_KEY.',
-  exportSuccess: 'Avaliação exportada',
+  exportSuccess: 'PDF exportado',
   exportError: 'Não foi possível exportar o PDF. Tente de novo.',
   deleteSuccess: 'Avaliação excluída',
   deleteConfirmTitle: 'Excluir avaliação?',
@@ -26,12 +26,24 @@ export const PATIENT_AI_COPY = {
   kindSessao: 'Sessão',
   kindAvaliacao: 'Avaliação',
   kindEvolucao: 'Evolução',
-  pdfScopeAvaliacao: 'Avaliação salva',
+  pdfScopeAvaliacao: 'Avaliação',
+  pdfScopeEvolucao: 'Evolução',
+  /** @deprecated Prefer pdfScopeEvolucao — kept for legacy sessao UI until removed. */
   pdfScopeSessao: 'Por sessão',
   pdfEvalPlaceholder: 'Selecione a avaliação',
   pdfEvalLatest: 'Mais recente',
   pdfEvalEmpty:
     'Nenhuma avaliação salva. Crie uma na aba Avaliações antes de exportar o PDF.',
+  sessionsLabel: 'Sessões',
+  sessionsHint: 'Selecione uma ou mais sessões',
+  pickerTitle: 'Campos no PDF',
+  pickerHelper: 'Só campos preenchidos. Desmarque o que o cliente não deve ver.',
+  pickerSelectAll: 'Marcar todos',
+  pickerClearSensitive: 'Desmarcar sensíveis',
+  pickerConfirm: 'Continuar / Exportar PDF',
+  pickerBack: 'Voltar',
+  needFields: 'Selecione ao menos um campo.',
+  needSessions: 'Selecione ao menos uma sessão.',
 } as const
 
 export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024
