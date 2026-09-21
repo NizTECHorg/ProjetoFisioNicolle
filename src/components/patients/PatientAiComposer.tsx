@@ -13,19 +13,26 @@ import {
 import { useCreatePatientAiReport } from '@/hooks/usePatientAiReports'
 import {
   buildEvaluationFilledCatalog,
+  buildEvolucaoFilledCatalog,
   type PdfFieldItem,
 } from '@/lib/pdfFieldCatalog'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
-import { generatePatientAiSummary } from '@/services/patientAi.service'
+import type { EvolucaoSynthesis } from '@/schemas/patientAi.schema'
+import {
+  generateEvolucaoSynthesis,
+  generatePatientAiSummary,
+} from '@/services/patientAi.service'
 import { buildPatientAiReportPdf } from '@/services/patientAiPdf.service'
 import { toast } from '@/stores/toast.store'
 import type { PatientEvaluation } from '@/types/evaluation'
+import type { PatientSessionRecord } from '@/types/patient'
 
 type ComposerMode = 'resumo' | 'pdf'
 /** PDF mode scopes — Avaliação | Evolução (D-01). */
 type PdfExportScope = 'avaliacao' | 'evolucao'
 
 const LATEST_EVAL_VALUE = 'latest'
+const MAX_EVOLUCAO_SESSIONS = 12
 
 type PatientAiComposerProps = {
   patientId: string
@@ -34,14 +41,25 @@ type PatientAiComposerProps = {
 }
 
 type PendingAvaliacaoExport = {
+  kind: 'avaliacao'
   evaluation: PatientEvaluation
   items: PdfFieldItem[]
 }
 
+type PendingEvolucaoExport = {
+  kind: 'evolucao'
+  sessions: PatientSessionRecord[]
+  synthesis: EvolucaoSynthesis
+  sessionLabel: string
+  items: PdfFieldItem[]
+}
+
+type PendingExport = PendingAvaliacaoExport | PendingEvolucaoExport
+
 /**
  * Unified dual-mode composer (D-02): Escrever resumo (IA) | Exportar avaliação (PDF).
  * PDF Avaliação binds to saved EvaluationFicha + field-picker (D-03).
- * Evolução multi-select UI shell — export wiring in Plan 05.
+ * Evolução: multi-select → EF synthesis → picker → PDF kind evolucao (D-04).
  * Hidden when !canWrite (REQ-25.5).
  */
 export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComposerProps) {
@@ -61,7 +79,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerSelectedIds, setPickerSelectedIds] = useState<Set<string>>(() => new Set())
-  const [pendingAvaliacao, setPendingAvaliacao] = useState<PendingAvaliacaoExport | null>(null)
+  const [pendingExport, setPendingExport] = useState<PendingExport | null>(null)
 
   const sessionsForPicker = useMemo(() => {
     const withEvo: typeof sessions = []
@@ -89,8 +107,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
   function toggleSession(id: string) {
     setSelectedSessionIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else if (next.size >= MAX_EVOLUCAO_SESSIONS) {
+        toast(`Selecione no máximo ${MAX_EVOLUCAO_SESSIONS} sessões.`, 'error')
+        return prev
+      } else {
+        next.add(id)
+      }
       return next
     })
     setScopeError(null)
@@ -98,8 +122,20 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
   function closePicker() {
     setPickerOpen(false)
-    setPendingAvaliacao(null)
+    setPendingExport(null)
     setPickerSelectedIds(new Set())
+  }
+
+  function buildEvolucaoSessionLabel(selected: PatientSessionRecord[]): string {
+    const count = selected.length
+    const countLabel = count === 1 ? '1 sessão' : `${count} sessões`
+    if (count === 0) return countLabel
+    const sorted = [...selected].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+    const first = sorted[0]?.dateLabel
+    const last = sorted[sorted.length - 1]?.dateLabel
+    if (first && last && first !== last) return `${countLabel} · ${first}–${last}`
+    if (first) return `${countLabel} · ${first}`
+    return countLabel
   }
 
   async function handleGenerate() {
@@ -124,7 +160,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     }
   }
 
-  function handleExport() {
+  async function handleExport() {
     if (busy || !detail) return
 
     if (pdfScope === 'evolucao') {
@@ -132,7 +168,66 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         toast(PATIENT_AI_COPY.needSessions, 'error')
         return
       }
-      // Plan 05 wires EF → picker → PDF kind evolucao
+
+      const selected = sessions
+        .filter((session) => selectedSessionIds.has(session.id))
+        .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+        .slice(0, MAX_EVOLUCAO_SESSIONS)
+
+      if (selected.length === 0) {
+        toast(PATIENT_AI_COPY.needSessions, 'error')
+        return
+      }
+
+      setGenerating(true)
+      try {
+        const synthesis = await generateEvolucaoSynthesis({
+          patientId,
+          sessionIds: selected.map((session) => session.id),
+        })
+
+        const items = buildEvolucaoFilledCatalog(
+          selected.map((session) => ({
+            id: session.id,
+            dateLabel: session.dateLabel,
+            evolution: session.evolution
+              ? {
+                  patientState: session.evolution.patientState,
+                  changesSinceLast: session.evolution.changesSinceLast,
+                  conducts: session.evolution.conducts,
+                  treatmentResponse: session.evolution.treatmentResponse,
+                  incidents: session.evolution.incidents,
+                  nextPlan: session.evolution.nextPlan,
+                }
+              : null,
+          })),
+          synthesis,
+        )
+
+        if (items.length === 0) {
+          toast(PATIENT_AI_COPY.needFields, 'error')
+          return
+        }
+
+        const sessionLabel = buildEvolucaoSessionLabel(selected)
+        setPendingExport({
+          kind: 'evolucao',
+          sessions: selected,
+          synthesis,
+          sessionLabel,
+          items,
+        })
+        setPickerSelectedIds(new Set(items.map((item) => item.id)))
+        setPickerOpen(true)
+      } catch (error) {
+        // REQ-25.6 — abort without invented PDF upload
+        toast(
+          error instanceof Error ? error.message : PATIENT_AI_COPY.unavailable,
+          'error',
+        )
+      } finally {
+        setGenerating(false)
+      }
       return
     }
 
@@ -158,35 +253,76 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
       return
     }
 
-    setPendingAvaliacao({ evaluation: selected, items })
+    setPendingExport({ kind: 'avaliacao', evaluation: selected, items })
     setPickerSelectedIds(new Set(items.map((item) => item.id)))
     setPickerOpen(true)
   }
 
   async function handlePickerConfirm() {
-    if (!detail || !pendingAvaliacao || createReport.isPending) return
+    if (!detail || !pendingExport || createReport.isPending) return
     if (pickerSelectedIds.size === 0) {
       toast(PATIENT_AI_COPY.needFields, 'error')
       return
     }
 
-    const { evaluation } = pendingAvaliacao
     try {
+      if (pendingExport.kind === 'avaliacao') {
+        const { evaluation } = pendingExport
+        const blob = await buildPatientAiReportPdf({
+          kind: 'avaliacao',
+          name: detail.name,
+          code: detail.code,
+          performedOnLabel: evaluation.performedOnLabel,
+          therapistName: evaluation.therapistName,
+          ficha: evaluation.ficha,
+          selectedFieldIds: pickerSelectedIds,
+        })
+
+        createReport.mutate(
+          {
+            kind: 'avaliacao',
+            sessionId: null,
+            sessionLabel: null,
+            blob,
+          },
+          {
+            onSuccess: () => {
+              closePicker()
+            },
+          },
+        )
+        return
+      }
+
       const blob = await buildPatientAiReportPdf({
-        kind: 'avaliacao',
+        kind: 'evolucao',
         name: detail.name,
         code: detail.code,
-        performedOnLabel: evaluation.performedOnLabel,
-        therapistName: evaluation.therapistName,
-        ficha: evaluation.ficha,
+        sessionLabel: pendingExport.sessionLabel,
+        sessions: pendingExport.sessions.map((session) => ({
+          id: session.id,
+          dateLabel: session.dateLabel,
+          timeLabel: session.timeLabel,
+          evolution: session.evolution
+            ? {
+                patientState: session.evolution.patientState,
+                changesSinceLast: session.evolution.changesSinceLast,
+                conducts: session.evolution.conducts,
+                treatmentResponse: session.evolution.treatmentResponse,
+                incidents: session.evolution.incidents,
+                nextPlan: session.evolution.nextPlan,
+              }
+            : null,
+        })),
+        synthesis: pendingExport.synthesis,
         selectedFieldIds: pickerSelectedIds,
       })
 
       createReport.mutate(
         {
-          kind: 'avaliacao',
+          kind: 'evolucao',
           sessionId: null,
-          sessionLabel: null,
+          sessionLabel: pendingExport.sessionLabel,
           blob,
         },
         {
@@ -207,7 +343,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     busy ||
     !detail ||
     (pdfScope === 'avaliacao' && !hasEvaluations) ||
-    pdfScope === 'evolucao'
+    (pdfScope === 'evolucao' && sessionsForPicker.length === 0)
 
   const scopeButtonClass = (active: boolean) =>
     [
@@ -346,9 +482,9 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
           <Button
             type="button"
             className="w-full sm:w-auto"
-            isLoading={createReport.isPending && !pickerOpen}
+            isLoading={generating || (createReport.isPending && !pickerOpen)}
             disabled={exportDisabled}
-            onClick={() => handleExport()}
+            onClick={() => void handleExport()}
           >
             {PATIENT_AI_COPY.ctaExport}
           </Button>
@@ -357,7 +493,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
       <PatientAiFieldPicker
         open={pickerOpen}
-        items={pendingAvaliacao?.items ?? []}
+        items={pendingExport?.items ?? []}
         selectedIds={pickerSelectedIds}
         onChange={setPickerSelectedIds}
         onBack={closePicker}
