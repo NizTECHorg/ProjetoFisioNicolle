@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phases 8–12 em andamento. Próximo: Phase 13 PDF export Avaliação/Evolução (field-picker + multi-sessão).
+Completar o prontuário e o modelo de contas. Phases 8–13 em andamento. Próximo: Phase 14 PDF ficha visual polish.
 
 ## Phases
 
@@ -19,6 +19,7 @@ Completar o prontuário e o modelo de contas. Phases 8–12 em andamento. Próxi
 - [ ] **Phase 11: Resumo IA** — Aba Resumo IA: gerar resumo clínico com contexto completo e PDFs salvos (geral ou por sessão)
 - [ ] **Phase 12: Avaliações musculoesqueléticas** — Aba Avaliações (ficha 01–04), CRUD parcial, dashboard → nova, PDF export alinhado
 - [ ] **Phase 13: PDF Avaliação / Evolução** — Seções de export, field-picker, multi-sessão + IA, estilo ficha
+- [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
 
 ## Phase Details
 
@@ -386,5 +387,29 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [ ] 13-06-PLAN.md — UAT REQ-25 (picker, multi-session IA, empresa read-only)
+
+**UI hint:** yes
+
+### Phase 14: PDF ficha visual polish
+
+**Goal**: O PDF exportado de Avaliação/Evolução fica bonito, denso e legível — visualmente alinhado às fichas de referência 01–04 (blocos, tipografia, grids, tabelas, mapa corporal, EVA, callouts), sem regredir o picker nem inventar dados.
+**Depends on**: Phase 13 (export seletivo + kinds + draw paths)
+**Requirements**: REQ-26
+**Success Criteria** (what must be TRUE):
+
+  1. Capítulos centrados no estilo `01 — ANAMNESE INICIAL` (02–04 equivalentes)
+  2. Blocos lettered com badge + borda; navy/sage; triagem vermelha
+  3. Underlines / caixas / checkbox grids no lugar de listas esparsas
+  4. Multi-coluna onde a ref exige; tabelas Mobilidade/Força com header sombreado
+  5. Escala EVA 0–10 e mapa corporal (silhuetas + legendas) quando selecionados
+  6. Evolução compartilha o mesmo sistema visual; só conteúdo selecionado
+
+**Plans**: 4 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — TimesRoman banners, slim header, badge colors, callouts, checkbox grids
+- [ ] 14-02-PLAN.md — Dual-column blocks, Mobilidade/Força tables, EVA scale, SVG body map
+- [ ] 14-03-PLAN.md — Evolução shared ficha chrome + ID profissional density
+- [ ] 14-04-PLAN.md — Visual UAT vs refs 01–04 (blocking)
 
 **UI hint:** yes

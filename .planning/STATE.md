@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_13_planned
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-09-21T03:08:58.118Z"
+status: phase_14_planned
+stopped_at: Planned 14-01…14-04
+last_updated: "2026-09-21T14:05:00.000Z"
 progress:
-  total_phases: 13
+  total_phases: 14
   completed_phases: 6
-  total_plans: 51
+  total_plans: 55
   completed_plans: 39
-  percent: 46
+  percent: 44
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 13 — PDF export Avaliação / Evolução (planned)
+**Current focus:** Phase 14 — PDF ficha visual polish (planned)
 
 ## Current Position
 
-Phase: 13 (pdf-export-avaliacao-evolucao) — PLANNED
-Plan: 0 of 6
+Phase: 14 (pdf-ficha-visual-polish) — PLANNED
+Plan: 0 of 4
 
-- Status: 6 plans created (13-01…13-06); next `/gsd-execute-phase 13`
-- Progress: CONTEXT + RESEARCH + UI-SPEC + VALIDATION ready; Wave 0 SQL/catalog in plans
+- Status: 4 plans created (14-01…14-04); next `/gsd-execute-phase 14`
+- Progress: CONTEXT + RESEARCH + UI-SPEC + VALIDATION + PLANs ready; stay pdf-lib; visual UAT is the gate
 
-**Progress:** Phase 13 planned — execute next
+**Progress:** Phase 14 planned — execute next
 
 ## Accumulated Context
 
