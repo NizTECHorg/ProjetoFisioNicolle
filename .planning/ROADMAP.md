@@ -366,11 +366,25 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 13-01-PLAN.md — SQL kinds avaliacao/evolucao + client Zod/list badges + SQL Editor apply
 - [ ] 13-02-PLAN.md — pdfFieldCatalog filled blocks (~27) + evolução SOAP/AI ids
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 13-03-PLAN.md — Selective pdf-lib block chrome + drawEvolucao
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 13-04-PLAN.md — Field-picker Modal + composer Avaliação|Evolução + Avaliação export
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 13-05-PLAN.md — EF mode evolucao + Evolução multi-session wire + EF redeploy
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 13-06-PLAN.md — UAT REQ-25 (picker, multi-session IA, empresa read-only)
 
 **UI hint:** yes

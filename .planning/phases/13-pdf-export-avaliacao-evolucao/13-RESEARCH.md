@@ -517,21 +517,24 @@ Mudar:
 
 **If empty:** N/A — assumptions listed for planner/discuss confirmation on A1–A2.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Shape exato das seções IA no PDF de evolução**  
-   - What we know: D-04 pede agregação; picker inclui trechos IA.  
-   - What's unclear: quantas seções nomeadas.  
+1. **Shape exato das seções IA no PDF de evolução**
+   - What we know: D-04 pede agregação; picker inclui trechos IA.
+   - What's unclear: quantas seções nomeadas.
    - Recommendation: 3 blocos — Síntese / Tendências / Condutas agregadas (+ Alertas opcional).
+   - **RESOLVED:** Locked in plans 13-02/03/05 — EF returns `{ sintese, tendencias?, condutasAgregadas?, alertas? }`; catalog ids `evo.ai.sintese|tendencias|condutasAgregadas|alertas`; PDF draws those blocks only when selected and non-empty.
 
-2. **Migrar rows `geral` antigas que são fichas Phase 12?**  
-   - What we know: novos exports usam `avaliacao`.  
-   - What's unclear: backfill.  
+2. **Migrar rows `geral` antigas que são fichas Phase 12?**
+   - What we know: novos exports usam `avaliacao`.
+   - What's unclear: backfill.
    - Recommendation: **não migrar** nesta fase; só labels legados.
+   - **RESOLVED:** Plan 13-01 — no backfill; legacy `geral`/`sessao` remain readable with existing badges; new exports use `avaliacao`/`evolucao`.
 
-3. **Manter PDF single-session sem IA como atalho?**  
-   - Deferred by D-01 (Evolução substitui Por sessão).  
+3. **Manter PDF single-session sem IA como atalho?**
+   - Deferred by D-01 (Evolução substitui Por sessão).
    - Recommendation: não; multi+IA cobre N=1.
+   - **RESOLVED:** Plans 13-04/05 — Evolução always goes through EF synthesis (N≥1); no local SOAP-only Evolução shortcut.
 
 ## Environment Availability
 

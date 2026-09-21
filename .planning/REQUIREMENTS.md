@@ -17,6 +17,7 @@
 - [ ] **REQ-22**: Responsividade mobile 100% — experiência clínica completa em viewport estreito
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
+- [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -49,6 +50,21 @@ Voltar **Avaliações** como **aba própria** da ficha (separada de Resumo IA). 
 4. Dashboard: botão Avaliações → escolher paciente → navega para a aba Avaliações com criar aberto.
 5. Export PDF de avaliação (fluxo Resumo IA / export paciente) usa o documento/ficha como referência visual e de seções.
 6. Empresa em consulta só lê; sem criar/editar/excluir.
+
+## REQ-25 — PDF export Avaliação / Evolução (field-picker)
+
+**Indispensável · Artur**
+
+No Resumo IA, o export PDF passa a ter duas seções: **Avaliação** e **Evolução**. Em ambos, o profissional seleciona quais campos preenchidos entram no PDF (todos marcados por padrão; desmarca o que o cliente não deve ver). Evolução permite várias sessões; a IA agrega os dados. O PDF segue o estilo visual das fichas de referência, só com campos selecionados.
+
+### Acceptance
+
+1. Composer PDF com seções **Avaliação** | **Evolução** (substitui “Avaliação salva” / “Por sessão”).
+2. Field-picker: só campos preenchidos; todos selected por default; desmarcar exclui do PDF.
+3. Avaliação: escolhe avaliação salva + picker + PDF estilo ficha (blocos).
+4. Evolução: multi-select de sessões; IA avalia/agrega dados dessas sessões; picker + PDF.
+5. PDFs salvos na lista do Resumo IA; consulta-only sem exportar.
+6. Visual alinhado às refs (blocos A–…); sem dados inventados.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -229,3 +245,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-22 | Phase 10 | Planned |
 | REQ-23 | Phase 11 | Planned |
 | REQ-24 | Phase 12 | Planned |
+| REQ-25 | Phase 13 | Planned |
