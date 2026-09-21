@@ -407,9 +407,20 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 14-01-PLAN.md — TimesRoman banners, slim header, badge colors, callouts, checkbox grids
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 14-02-PLAN.md — Dual-column blocks, Mobilidade/Força tables, EVA scale, SVG body map
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 14-03-PLAN.md — Evolução shared ficha chrome + ID profissional density
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 14-04-PLAN.md — Visual UAT vs refs 01–04 (blocking)
 
 **UI hint:** yes

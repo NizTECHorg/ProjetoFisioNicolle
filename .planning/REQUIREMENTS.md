@@ -18,6 +18,7 @@
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
+- [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -65,6 +66,21 @@ No Resumo IA, o export PDF passa a ter duas seções: **Avaliação** e **Evolu�
 4. Evolução: multi-select de sessões; IA avalia/agrega dados dessas sessões; picker + PDF.
 5. PDFs salvos na lista do Resumo IA; consulta-only sem exportar.
 6. Visual alinhado às refs (blocos A–…); sem dados inventados.
+
+## REQ-26 — PDF ficha visual polish
+
+**Indispensável · Artur**
+
+O PDF exportado de Avaliação (e Evolução) deve ficar visualmente alinhado às fichas de referência 01–04: blocos lettered, tipografia hierárquica, grids de checkbox, caixas de texto, tabelas, escala EVA, mapa corporal e callouts — sem regredir o field-picker nem inventar dados.
+
+### Acceptance
+
+1. Capítulos com título centrado no estilo `01 — ANAMNESE INICIAL` (e equivalentes 02–04).
+2. Blocos com badge lettered + borda + padding; navy/sage alternados; triagem em vermelho.
+3. Campos curtos com underline; textos longos em caixa; multi-selects como checkbox grid.
+4. Layouts multi-coluna onde a ref exige (ex.: Piora|Melhora; Síntese|Objetivos quando ambos selecionados).
+5. Tabelas Mobilidade/Força com cabeçalho sombreado; escala EVA 0–10 visível; mapa corporal com silhuetas + legendas quando selecionado.
+6. Evolução usa o mesmo sistema visual; sem inventar conteúdo; só campos selecionados.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -246,3 +262,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-23 | Phase 11 | Planned |
 | REQ-24 | Phase 12 | Planned |
 | REQ-25 | Phase 13 | Planned |
+| REQ-26 | Phase 14 | Planned |

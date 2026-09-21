@@ -442,20 +442,23 @@ const cols = [
 | A4 | Straight borders OK for first UAT pass | Discretion | May need rounded SVG path polish in same phase |
 | A5 | Evolução SOAP should wrap each session in `drawFichaBlockFrame` + slim header | D-05 | Extra pages — still better than plain fields |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Blank unchecked options in export?**
    - What we know: D-01 says only selected/filled content; refs show full blank forms.
    - What's unclear: Whether UAT expects empty checkbox rows for unfilled options.
    - Recommendation: Do **not** invent empties; densify filled content. If UAT insists, add opt-in later — out of Phase 14 default.
+   - **RESOLVED:** No blank unchecked grids; filled/selected only (D-01 / REQ-26).
 
 2. **Centroid table ownership**
    - What we know: Paths exist; centroids do not.
    - Recommendation: Static map in PDF service (Claude discretion); do not change `focusRegions.ts` API unless needed.
+   - **RESOLVED:** Centroids/static glyph placement live in PDF service only; do not change `focusRegions.ts` public API.
 
 3. **Callout icon stickers**
    - What we know: Deferred exact icons; text banners required.
    - Recommendation: Soft fill + bold title line; optional simple `drawCircle` + “i” text — no PNG icon pack.
+   - **RESOLVED:** Text/soft-fill callouts (+ optional circle “i”); no icon PNG pack this phase.
 
 ## Environment Availability
 
