@@ -2321,20 +2321,62 @@ const EVO_SOAP_FIELDS: Array<{
     | 'nextPlan'
   idSuffix: string
   label: string
+  /** SOAP letter for lettered ficha chrome (D-05). */
+  soapLetter: 'S' | 'O' | 'A' | 'P'
+  soapTitle: string
 }> = [
-  { key: 'patientState', idSuffix: 'patientState', label: 'Estado do paciente' },
-  { key: 'changesSinceLast', idSuffix: 'changesSinceLast', label: 'Mudanças desde a última' },
-  { key: 'conducts', idSuffix: 'conducts', label: 'Condutas' },
-  { key: 'treatmentResponse', idSuffix: 'treatmentResponse', label: 'Resposta ao tratamento' },
-  { key: 'incidents', idSuffix: 'incidents', label: 'Intercorrências' },
-  { key: 'nextPlan', idSuffix: 'nextPlan', label: 'Plano seguinte' },
+  {
+    key: 'patientState',
+    idSuffix: 'patientState',
+    label: 'Estado do paciente',
+    soapLetter: 'S',
+    soapTitle: 'Subjetivo',
+  },
+  {
+    key: 'changesSinceLast',
+    idSuffix: 'changesSinceLast',
+    label: 'Mudanças desde a última',
+    soapLetter: 'S',
+    soapTitle: 'Subjetivo',
+  },
+  {
+    key: 'treatmentResponse',
+    idSuffix: 'treatmentResponse',
+    label: 'Resposta ao tratamento',
+    soapLetter: 'O',
+    soapTitle: 'Objetivo',
+  },
+  {
+    key: 'incidents',
+    idSuffix: 'incidents',
+    label: 'Intercorrências',
+    soapLetter: 'O',
+    soapTitle: 'Objetivo',
+  },
+  {
+    key: 'conducts',
+    idSuffix: 'conducts',
+    label: 'Condutas',
+    soapLetter: 'A',
+    soapTitle: 'Avaliação',
+  },
+  {
+    key: 'nextPlan',
+    idSuffix: 'nextPlan',
+    label: 'Plano seguinte',
+    soapLetter: 'P',
+    soapTitle: 'Plano',
+  },
 ]
+
+const EVO_SOAP_LETTER_ORDER: Array<'S' | 'O' | 'A' | 'P'> = ['S', 'O', 'A', 'P']
 
 /**
  * Multi-session evolução PDF (D-04/D-05): SOAP leaves + AI sections when selected ∩ filled.
- * Never invents clinical or AI text — empty/unselected omitted (REQ-25.6).
+ * Never invents clinical or AI text — empty/unselected omitted (REQ-25.6 / REQ-26.6).
  */
 function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
+  ctx.footerKind = 'ficha'
   drawPatientCard(ctx)
   drawOptionalField(ctx, 'Sessões', input.sessionLabel)
 
@@ -2359,8 +2401,15 @@ function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
       [session.dateLabel, session.timeLabel].filter(Boolean).join(' · ') || session.dateLabel
     drawPageBanner(ctx, when || `Sessão ${session.id}`)
 
-    for (const field of fields) {
-      drawOptionalField(ctx, field.label, evo[field.key])
+    for (const letter of EVO_SOAP_LETTER_ORDER) {
+      const group = fields.filter((f) => f.soapLetter === letter)
+      if (group.length === 0) continue
+      const title = group[0]!.soapTitle
+      drawFichaBlockFrame(ctx, letter, title, () => {
+        for (const field of group) {
+          drawOptionalField(ctx, field.label, evo[field.key])
+        }
+      })
     }
   }
 
@@ -2369,6 +2418,7 @@ function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
     letter: string
     title: string
     value: string | undefined
+    caution?: boolean
   }> = [
     { id: 'evo.ai.sintese', letter: 'A', title: 'Síntese clínica', value: input.synthesis.sintese },
     { id: 'evo.ai.tendencias', letter: 'B', title: 'Tendências', value: input.synthesis.tendencias },
@@ -2378,7 +2428,13 @@ function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
       title: 'Condutas agregadas',
       value: input.synthesis.condutasAgregadas,
     },
-    { id: 'evo.ai.alertas', letter: 'D', title: 'Alertas', value: input.synthesis.alertas },
+    {
+      id: 'evo.ai.alertas',
+      letter: 'D',
+      title: 'Alertas',
+      value: input.synthesis.alertas,
+      caution: true,
+    },
   ]
 
   const aiToDraw = aiBlocks.filter(
@@ -2390,9 +2446,26 @@ function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
     drawPageBanner(ctx, 'Síntese IA')
     for (const block of aiToDraw) {
       const text = block.value as string
-      drawFichaBlockFrame(ctx, block.letter, block.title, () => {
-        drawParagraph(ctx, text)
-      })
+      if (block.caution) {
+        // Caution callout only — never invent alert copy (T-14-07)
+        drawFichaBlockFrame(
+          ctx,
+          block.letter,
+          block.title,
+          () => {
+            drawCalloutBanner(ctx, 'caution', text)
+          },
+          { danger: true },
+        )
+      } else {
+        drawFichaBlockFrame(ctx, block.letter, block.title, () => {
+          if (text.length > 90 || text.includes('\n')) {
+            drawNoteBox(ctx, block.title, text)
+          } else {
+            drawParagraph(ctx, text)
+          }
+        })
+      }
     }
   }
 
