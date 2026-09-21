@@ -675,3 +675,83 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
 
   return items
 }
+
+const SOAP_FIELDS: Array<{
+  key: keyof SessionEvolutionLike
+  idSuffix: string
+  label: string
+  sensitive?: boolean
+}> = [
+  { key: 'patientState', idSuffix: 'patientState', label: 'Estado do paciente' },
+  { key: 'changesSinceLast', idSuffix: 'changesSinceLast', label: 'Mudanças desde a última' },
+  { key: 'conducts', idSuffix: 'conducts', label: 'Condutas' },
+  { key: 'treatmentResponse', idSuffix: 'treatmentResponse', label: 'Resposta ao tratamento' },
+  { key: 'incidents', idSuffix: 'incidents', label: 'Intercorrências', sensitive: true },
+  { key: 'nextPlan', idSuffix: 'nextPlan', label: 'Plano seguinte' },
+]
+
+const AI_SECTIONS: Array<{
+  key: 'sintese' | 'tendencias' | 'condutasAgregadas' | 'alertas'
+  id: PdfFieldId
+  label: string
+}> = [
+  { key: 'sintese', id: 'evo.ai.sintese', label: 'Síntese clínica' },
+  { key: 'tendencias', id: 'evo.ai.tendencias', label: 'Tendências' },
+  { key: 'condutasAgregadas', id: 'evo.ai.condutasAgregadas', label: 'Condutas agregadas' },
+  { key: 'alertas', id: 'evo.ai.alertas', label: 'Alertas' },
+]
+
+/**
+ * Pure filled catalog for evolução PDF (D-04): per-session SOAP leaves + AI section slots.
+ * Does not invent AI text — only includes aiSections strings that are non-empty.
+ */
+export function buildEvolucaoFilledCatalog(
+  sessions: Array<{ id: string; dateLabel: string; evolution: SessionEvolutionLike | null | undefined }>,
+  aiSections?: Partial<{
+    sintese: string
+    tendencias: string
+    condutasAgregadas: string
+    alertas: string
+  }>,
+): PdfFieldItem[] {
+  const items: PdfFieldItem[] = []
+
+  for (const session of sessions) {
+    const evo = session.evolution
+    if (!evo) continue
+    const groupLabel = `Evolução · ${session.dateLabel || session.id}`
+
+    for (const field of SOAP_FIELDS) {
+      const value = evo[field.key]
+      if (!textFilled(value)) continue
+      items.push({
+        id: `evo.session.${session.id}.${field.idSuffix}`,
+        label: field.label,
+        groupLabel,
+        preview: previewFrom(value),
+        ...(field.sensitive ? { sensitive: true } : {}),
+      })
+    }
+  }
+
+  if (aiSections) {
+    const aiGroup = 'Evolução · Síntese IA'
+    for (const section of AI_SECTIONS) {
+      const value = aiSections[section.key]
+      if (!textFilled(value)) continue
+      items.push({
+        id: section.id,
+        label: section.label,
+        groupLabel: aiGroup,
+        preview: previewFrom(value),
+      })
+    }
+  }
+
+  return items
+}
+
+/** Ids flagged sensitive — for “Desmarcar sensíveis” in the field picker. */
+export function listSensitiveIds(items: readonly PdfFieldItem[]): PdfFieldId[] {
+  return items.filter((item) => item.sensitive).map((item) => item.id)
+}
