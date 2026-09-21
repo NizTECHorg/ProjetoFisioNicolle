@@ -42,6 +42,23 @@ function downloadReport(report: PatientAiReport) {
   anchor.remove()
 }
 
+function kindBadgeLabel(kind: PatientAiReport['kind']) {
+  switch (kind) {
+    case 'avaliacao':
+      return PATIENT_AI_COPY.kindAvaliacao
+    case 'evolucao':
+      return PATIENT_AI_COPY.kindEvolucao
+    case 'geral':
+      return PATIENT_AI_COPY.kindGeral
+    case 'sessao':
+      return PATIENT_AI_COPY.kindSessao
+  }
+}
+
+function showsSessionLabel(kind: PatientAiReport['kind']) {
+  return kind === 'sessao' || kind === 'evolucao' || kind === 'avaliacao'
+}
+
 /**
  * Avaliações salvas list (D-05): kind, date, sessionLabel, Abrir/Baixar, Excluir when canWrite.
  */
@@ -93,13 +110,11 @@ export function PatientAiReportsList({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex rounded-full bg-accent-soft px-2.5 py-0.5 text-[11px] font-medium text-forest">
-                    {report.kind === 'geral'
-                      ? PATIENT_AI_COPY.kindGeral
-                      : PATIENT_AI_COPY.kindSessao}
+                    {kindBadgeLabel(report.kind)}
                   </span>
                   <p className="text-sm font-semibold text-ink">{formatReportDate(report.createdAt)}</p>
                 </div>
-                {report.kind === 'sessao' && report.sessionLabel ? (
+                {showsSessionLabel(report.kind) && report.sessionLabel ? (
                   <p className="mt-1 truncate text-xs text-muted">{report.sessionLabel}</p>
                 ) : null}
               </div>

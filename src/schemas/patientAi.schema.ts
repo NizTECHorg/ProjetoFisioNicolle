@@ -16,7 +16,7 @@ export const PATIENT_AI_COPY = {
   deleteConfirmTitle: 'Excluir avaliação?',
   deleteConfirmBody: 'O PDF será removido da ficha. Esta ação não pode ser desfeita.',
   listEmptyHeading: 'Nenhuma avaliação salva.',
-  listEmptyBodyCanWrite: 'Exporte uma avaliação salva ou por sessão para ver aqui.',
+  listEmptyBodyCanWrite: 'Exporte uma Avaliação ou Evolução para ver aqui.',
   listEmptyBodyReadOnly: 'Nenhuma avaliação salva nesta ficha.',
   modeResumo: 'Escrever resumo (IA)',
   modePdf: 'Exportar avaliação (PDF)',
@@ -24,6 +24,8 @@ export const PATIENT_AI_COPY = {
   ctaExport: 'Exportar PDF',
   kindGeral: 'Geral',
   kindSessao: 'Sessão',
+  kindAvaliacao: 'Avaliação',
+  kindEvolucao: 'Evolução',
   pdfScopeAvaliacao: 'Avaliação salva',
   pdfScopeSessao: 'Por sessão',
   pdfEvalPlaceholder: 'Selecione a avaliação',
@@ -46,9 +48,16 @@ export const patientAiSummaryInvokeSchema = z.object({
 
 export type PatientAiSummaryInvokeInput = z.infer<typeof patientAiSummaryInvokeSchema>
 
-export const patientAiReportKindSchema = z.enum(['geral', 'sessao'])
+export const patientAiReportKindSchema = z.enum([
+  'geral',
+  'sessao',
+  'avaliacao',
+  'evolucao',
+])
 
 export type PatientAiReportKindInput = z.infer<typeof patientAiReportKindSchema>
+
+const SESSIONLESS_KINDS = new Set(['geral', 'avaliacao', 'evolucao'])
 
 export const patientAiReportUploadSchema = z
   .object({
@@ -62,10 +71,10 @@ export const patientAiReportUploadSchema = z
     sessionId: z.string().uuid().nullable(),
   })
   .superRefine((data, ctx) => {
-    if (data.kind === 'geral' && data.sessionId !== null) {
+    if (SESSIONLESS_KINDS.has(data.kind) && data.sessionId !== null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Avaliação geral não deve ter sessão.',
+        message: 'Este tipo de avaliação não deve ter sessão.',
         path: ['sessionId'],
       })
     }

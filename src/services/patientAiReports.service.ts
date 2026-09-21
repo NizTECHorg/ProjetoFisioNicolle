@@ -162,7 +162,11 @@ export async function createPatientAiReport(
   const sessionLabel =
     meta.kind === 'sessao'
       ? sanitizeText(input.sessionLabel?.trim() || 'Sessão', 120)
-      : null
+      : meta.kind === 'evolucao'
+        ? sanitizeText(input.sessionLabel?.trim() || 'Evolução', 120)
+        : meta.kind === 'avaliacao' && input.sessionLabel?.trim()
+          ? sanitizeText(input.sessionLabel.trim(), 120)
+          : null
 
   const { error: uploadError } = await supabase.storage.from(REPORT_BUCKET).upload(path, input.blob, {
     contentType: 'application/pdf',

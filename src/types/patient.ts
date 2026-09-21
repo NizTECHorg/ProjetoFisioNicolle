@@ -97,7 +97,7 @@ export interface UpdatePatientImageInput {
   sessionId: string | null
 }
 
-export type PatientAiReportKind = 'geral' | 'sessao'
+export type PatientAiReportKind = 'geral' | 'sessao' | 'avaliacao' | 'evolucao'
 
 /** PDF de avaliação IA. signedUrl só no DTO (createSignedUrls), nunca coluna no DB. */
 export interface PatientAiReport {
