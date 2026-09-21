@@ -98,10 +98,13 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
   const evaluationOptions = [
     { value: LATEST_EVAL_VALUE, label: PATIENT_AI_COPY.pdfEvalLatest },
-    ...evaluations.map((evaluation) => ({
-      value: evaluation.id,
-      label: `${evaluation.performedOnLabel}${evaluation.isInitial ? ' · Inicial' : ''}`,
-    })),
+    ...evaluations.map((evaluation) => {
+      const name = evaluation.title?.trim() || evaluation.ficha?.titulo?.trim() || ''
+      const datePart = evaluation.performedOnLabel
+      const initial = evaluation.isInitial ? ' · Inicial' : ''
+      const label = name ? `${name} · ${datePart}${initial}` : `${datePart}${initial}`
+      return { value: evaluation.id, label }
+    }),
   ]
 
   function toggleSession(id: string) {
@@ -268,21 +271,28 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     try {
       if (pendingExport.kind === 'avaliacao') {
         const { evaluation } = pendingExport
+        const evaluationTitle =
+          evaluation.title?.trim() || evaluation.ficha?.titulo?.trim() || null
         const blob = await buildPatientAiReportPdf({
           kind: 'avaliacao',
           name: detail.name,
           code: detail.code,
           performedOnLabel: evaluation.performedOnLabel,
+          evaluationTitle,
           therapistName: evaluation.therapistName,
           ficha: evaluation.ficha,
           selectedFieldIds: pickerSelectedIds,
         })
 
+        const sessionLabel = evaluationTitle
+          ? `${evaluationTitle} · ${evaluation.performedOnLabel}`
+          : evaluation.performedOnLabel
+
         createReport.mutate(
           {
             kind: 'avaliacao',
             sessionId: null,
-            sessionLabel: null,
+            sessionLabel,
             blob,
           },
           {

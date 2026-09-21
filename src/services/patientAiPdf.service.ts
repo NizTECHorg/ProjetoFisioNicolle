@@ -20,31 +20,36 @@ const MARGIN_X = 48
 const MARGIN_BOTTOM = 52
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2
 
-/** Brand tokens (src/index.css) */
+/** Brand + ficha-ref tokens (navy / sage / soft border — D-05) */
 const COLORS = {
   forest: rgb(0x0b / 255, 0x1d / 255, 0x36 / 255),
+  navy: rgb(0x1a / 255, 0x36 / 255, 0x5d / 255),
+  sage: rgb(0x5f / 255, 0x7f / 255, 0x6b / 255),
   accent: rgb(0x2f / 255, 0x7d / 255, 0xff / 255),
   accentSoft: rgb(0xe7 / 255, 0xf0 / 255, 0xfb / 255),
+  border: rgb(0xb8 / 255, 0xc9 / 255, 0xde / 255),
   canvas: rgb(0xf3 / 255, 0xf5 / 255, 0xf8 / 255),
   ink: rgb(0x10 / 255, 0x20 / 255, 0x38 / 255),
   muted: rgb(0x5a / 255, 0x6b / 255, 0x80 / 255),
   line: rgb(0xe1 / 255, 0xe8 / 255, 0xf0 / 255),
   white: rgb(1, 1, 1),
+  danger: rgb(0xb9 / 255, 0x3c / 255, 0x3c / 255),
 } as const
 
 const SIZE = {
-  title: 18,
-  section: 10,
-  body: 10,
-  meta: 9,
+  title: 16,
+  chapter: 14,
+  section: 9,
+  body: 9.5,
+  meta: 8.5,
   footer: 8,
   label: 8,
 } as const
 
 const LINE = {
-  body: 14,
-  meta: 12,
-  section: 14,
+  body: 13,
+  meta: 11,
+  section: 13,
 } as const
 
 /** Snapshot clínico para PDF geral (sem Gemini — A5). */
@@ -210,6 +215,10 @@ type DrawContext = {
   docTitle: string
   patientLine: string
   generatedAt: string
+  /** Left inset for body content (inside ficha blocks). */
+  contentX: number
+  contentW: number
+  footerKind: 'fluxo' | 'ficha'
 }
 
 function drawFooter(ctx: DrawContext) {
@@ -217,25 +226,31 @@ function drawFooter(ctx: DrawContext) {
   ctx.page.drawLine({
     start: { x: MARGIN_X, y: footerY + 14 },
     end: { x: PAGE_WIDTH - MARGIN_X, y: footerY + 14 },
-    thickness: 0.6,
-    color: COLORS.line,
+    thickness: 0.5,
+    color: COLORS.border,
   })
-  ctx.page.drawText(toWinAnsiSafe('FLUXO · Documento clínico'), {
+  const left =
+    ctx.footerKind === 'ficha'
+      ? `${String(ctx.pageIndex).padStart(2, '0')} | Ficha de Anamnese e Evolucao Musculoesqueletica`
+      : 'FLUXO · Documento clínico'
+  ctx.page.drawText(toWinAnsiSafe(left), {
     x: MARGIN_X,
     y: footerY,
     size: SIZE.footer,
     font: ctx.font,
     color: COLORS.muted,
   })
-  const pageLabel = `Pág. ${ctx.pageIndex}`
-  const pageW = ctx.font.widthOfTextAtSize(pageLabel, SIZE.footer)
-  ctx.page.drawText(pageLabel, {
-    x: PAGE_WIDTH - MARGIN_X - pageW,
-    y: footerY,
-    size: SIZE.footer,
-    font: ctx.font,
-    color: COLORS.muted,
-  })
+  if (ctx.footerKind !== 'ficha') {
+    const pageLabel = `Pág. ${ctx.pageIndex}`
+    const pageW = ctx.font.widthOfTextAtSize(pageLabel, SIZE.footer)
+    ctx.page.drawText(pageLabel, {
+      x: PAGE_WIDTH - MARGIN_X - pageW,
+      y: footerY,
+      size: SIZE.footer,
+      font: ctx.font,
+      color: COLORS.muted,
+    })
+  }
 }
 
 function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
@@ -390,13 +405,13 @@ function drawParagraph(
   const color = opts?.color ?? COLORS.ink
   const font = opts?.bold ? ctx.bold : ctx.font
   const lineH = size + 4
-  const lines = wrapLines(font, text, size, CONTENT_WIDTH)
+  const lines = wrapLines(font, text, size, ctx.contentW)
 
   for (const line of lines) {
     ensureSpace(ctx, lineH)
     if (line) {
       ctx.page.drawText(line, {
-        x: MARGIN_X,
+        x: ctx.contentX,
         y: ctx.y,
         size,
         font,
@@ -405,62 +420,202 @@ function drawParagraph(
     }
     ctx.y -= lineH
   }
-  ctx.y -= 6
+  ctx.y -= 4
 }
 
 function drawField(ctx: DrawContext, label: string, value: string) {
-  drawSectionTitle(ctx, label)
-  drawParagraph(ctx, value || '—')
+  drawLabeledValue(ctx, label, value || '—')
 }
 
-function drawChipRow(ctx: DrawContext, items: string[]) {
-  if (items.length === 0) {
-    drawParagraph(ctx, '—', { color: COLORS.muted })
-    return
+/** Compact ficha field: "Label:" + value + underline (ref style). */
+function drawLabeledValue(ctx: DrawContext, label: string, value: string) {
+  const size = SIZE.body
+  const lineH = LINE.body
+  const labelText = toWinAnsiSafe(`${label}:`)
+  const labelW = ctx.bold.widthOfTextAtSize(labelText, SIZE.label)
+  const gap = 6
+  const valueMax = Math.max(40, ctx.contentW - labelW - gap)
+  const valueLines = wrapLines(ctx.font, value, size, valueMax)
+
+  ensureSpace(ctx, Math.max(lineH, valueLines.length * lineH) + 4)
+
+  ctx.page.drawText(labelText, {
+    x: ctx.contentX,
+    y: ctx.y,
+    size: SIZE.label,
+    font: ctx.bold,
+    color: COLORS.navy,
+  })
+
+  let vy = ctx.y
+  for (let i = 0; i < valueLines.length; i++) {
+    const line = valueLines[i] ?? ''
+    if (i > 0) {
+      vy -= lineH
+      ensureSpace(ctx, lineH)
+    }
+    ctx.page.drawText(line, {
+      x: ctx.contentX + labelW + gap,
+      y: vy,
+      size,
+      font: ctx.font,
+      color: COLORS.ink,
+    })
   }
 
-  const padX = 10
-  const padY = 5
-  const gap = 8
-  const chipH = SIZE.meta + padY * 2
-  let x = MARGIN_X
+  const underlineY = vy - 3
+  ctx.page.drawLine({
+    start: { x: ctx.contentX + labelW + gap, y: underlineY },
+    end: { x: ctx.contentX + ctx.contentW, y: underlineY },
+    thickness: 0.5,
+    color: COLORS.border,
+  })
+
+  ctx.y = underlineY - 8
+}
+
+/** Long answer in a soft bordered box (ref text areas). */
+function drawNoteBox(ctx: DrawContext, label: string, value: string) {
+  const size = SIZE.body
+  const pad = 6
+  const lines = wrapLines(ctx.font, value, size, ctx.contentW - pad * 2)
+  const boxH = pad * 2 + lines.length * LINE.body + 14
+
+  ensureSpace(ctx, boxH + 4)
+
+  ctx.page.drawText(toWinAnsiSafe(`${label}:`), {
+    x: ctx.contentX,
+    y: ctx.y,
+    size: SIZE.label,
+    font: ctx.bold,
+    color: COLORS.navy,
+  })
+  ctx.y -= 12
+
+  const boxTop = ctx.y + 4
+  const boxBottom = boxTop - (pad * 2 + lines.length * LINE.body)
+
+  ctx.page.drawRectangle({
+    x: ctx.contentX,
+    y: boxBottom,
+    width: ctx.contentW,
+    height: boxTop - boxBottom,
+    borderColor: COLORS.border,
+    borderWidth: 0.8,
+    color: COLORS.white,
+  })
+
+  let ty = boxTop - pad - SIZE.body
+  for (const line of lines) {
+    ctx.page.drawText(line, {
+      x: ctx.contentX + pad,
+      y: ty,
+      size,
+      font: ctx.font,
+      color: COLORS.ink,
+    })
+    ty -= LINE.body
+  }
+
+  ctx.y = boxBottom - 8
+}
+
+/** Two-column compact fields (ref identification layout). */
+function drawTwoColumnFields(
+  ctx: DrawContext,
+  fields: Array<[string, string | undefined]>,
+): void {
+  const filled = fields.filter(([, v]) => textFilled(v)) as Array<[string, string]>
+  if (filled.length === 0) return
+
+  const colGap = 14
+  const colW = (ctx.contentW - colGap) / 2
+  const savedX = ctx.contentX
+  const savedW = ctx.contentW
+
+  for (let i = 0; i < filled.length; i += 2) {
+    const left = filled[i]
+    if (!left) continue
+    const right = filled[i + 1]
+    const yStart = ctx.y
+
+    ctx.contentX = savedX
+    ctx.contentW = colW
+    drawLabeledValue(ctx, left[0], left[1])
+    const yAfterLeft = ctx.y
+
+    if (right) {
+      ctx.y = yStart
+      ctx.contentX = savedX + colW + colGap
+      ctx.contentW = colW
+      drawLabeledValue(ctx, right[0], right[1])
+      ctx.y = Math.min(yAfterLeft, ctx.y)
+    } else {
+      ctx.y = yAfterLeft
+    }
+  }
+
+  ctx.contentX = savedX
+  ctx.contentW = savedW
+}
+
+function drawCheckboxRow(ctx: DrawContext, items: string[]) {
+  if (items.length === 0) return
+
+  const size = SIZE.meta
+  const gapX = 10
+  const gapY = 6
+  const box = 8
+  let x = ctx.contentX
   let rowY = ctx.y
 
-  ensureSpace(ctx, chipH + 8)
+  ensureSpace(ctx, box + 10)
 
   for (const raw of items) {
     const label = toWinAnsiSafe(raw)
-    const textW = ctx.font.widthOfTextAtSize(label, SIZE.meta)
-    const chipW = textW + padX * 2
+    const textW = ctx.font.widthOfTextAtSize(label, size)
+    const cellW = box + 4 + textW
 
-    if (x + chipW > MARGIN_X + CONTENT_WIDTH) {
-      rowY -= chipH + gap
-      x = MARGIN_X
+    if (x + cellW > ctx.contentX + ctx.contentW) {
+      rowY -= box + gapY
+      x = ctx.contentX
       ctx.y = rowY
-      ensureSpace(ctx, chipH + 8)
+      ensureSpace(ctx, box + 10)
       rowY = ctx.y
     }
 
     ctx.page.drawRectangle({
       x,
-      y: rowY - chipH + 4,
-      width: chipW,
-      height: chipH,
-      color: COLORS.accentSoft,
-      borderColor: COLORS.line,
-      borderWidth: 0.6,
+      y: rowY - 1,
+      width: box,
+      height: box,
+      borderColor: COLORS.navy,
+      borderWidth: 0.9,
+      color: COLORS.white,
+    })
+    // Check mark as filled inset
+    ctx.page.drawRectangle({
+      x: x + 1.5,
+      y: rowY + 0.5,
+      width: box - 3,
+      height: box - 3,
+      color: COLORS.navy,
     })
     ctx.page.drawText(label, {
-      x: x + padX,
-      y: rowY - chipH + 4 + padY,
-      size: SIZE.meta,
+      x: x + box + 4,
+      y: rowY,
+      size,
       font: ctx.font,
-      color: COLORS.forest,
+      color: COLORS.ink,
     })
-    x += chipW + gap
+    x += cellW + gapX
   }
 
-  ctx.y = rowY - chipH - 10
+  ctx.y = rowY - box - 8
+}
+
+function drawChipRow(ctx: DrawContext, items: string[]) {
+  drawCheckboxRow(ctx, items)
 }
 
 function drawEvaBadge(ctx: DrawContext, eva: number) {
@@ -511,13 +666,13 @@ function drawBulletList(ctx: DrawContext, items: string[]) {
   for (const item of items) {
     const bullet = '-  '
     const bulletW = ctx.font.widthOfTextAtSize(bullet, SIZE.body)
-    const lines = wrapLines(ctx.font, item, SIZE.body, CONTENT_WIDTH - bulletW)
+    const lines = wrapLines(ctx.font, item, SIZE.body, ctx.contentW - bulletW)
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       ensureSpace(ctx, LINE.body)
       if (i === 0) {
         ctx.page.drawText(bullet, {
-          x: MARGIN_X,
+          x: ctx.contentX,
           y: ctx.y,
           size: SIZE.body,
           font: ctx.font,
@@ -526,7 +681,7 @@ function drawBulletList(ctx: DrawContext, items: string[]) {
       }
       if (line) {
         ctx.page.drawText(line, {
-          x: MARGIN_X + bulletW,
+          x: ctx.contentX + bulletW,
           y: ctx.y,
           size: SIZE.body,
           font: ctx.font,
@@ -628,34 +783,69 @@ function drawOptionalField(
 ): boolean {
   if (value === null || value === undefined) return false
   if (typeof value === 'string' && !value.trim()) return false
-  drawField(ctx, label, String(value))
+  const text = String(value)
+  if (text.length > 90 || text.includes('\n')) {
+    drawNoteBox(ctx, label, text)
+  } else {
+    drawLabeledValue(ctx, label, text)
+  }
   return true
 }
 
 function drawOptionalBullets(ctx: DrawContext, title: string, items: string[]): boolean {
   if (items.length === 0) return false
-  drawSectionTitle(ctx, title)
-  drawBulletList(ctx, items)
+  ensureSpace(ctx, 18)
+  ctx.page.drawText(toWinAnsiSafe(`${title}:`), {
+    x: ctx.contentX,
+    y: ctx.y,
+    size: SIZE.label,
+    font: ctx.bold,
+    color: COLORS.navy,
+  })
+  ctx.y -= 12
+  drawCheckboxRow(ctx, items)
   return true
 }
 
+/** Centered chapter title like "01 — ANAMNESE INICIAL" (ref style). */
 function drawPageBanner(ctx: DrawContext, title: string) {
-  ensureSpace(ctx, 28)
-  ctx.page.drawText(toWinAnsiSafe(title.toUpperCase()), {
-    x: MARGIN_X,
-    y: ctx.y,
-    size: 11,
-    font: ctx.bold,
-    color: COLORS.forest,
-  })
-  ctx.y -= 6
+  ensureSpace(ctx, 36)
+  const safe = toWinAnsiSafe(title.toUpperCase())
+  const size = SIZE.chapter
+  const tw = ctx.bold.widthOfTextAtSize(safe, size)
+  const cx = PAGE_WIDTH / 2
+
+  // Decorative rule with center diamond
+  const ruleY = ctx.y + 4
   ctx.page.drawLine({
-    start: { x: MARGIN_X, y: ctx.y },
-    end: { x: MARGIN_X + CONTENT_WIDTH, y: ctx.y },
-    thickness: 0.8,
-    color: COLORS.line,
+    start: { x: MARGIN_X + 40, y: ruleY },
+    end: { x: cx - 8, y: ruleY },
+    thickness: 0.6,
+    color: COLORS.border,
   })
-  ctx.y -= 16
+  ctx.page.drawLine({
+    start: { x: cx + 8, y: ruleY },
+    end: { x: PAGE_WIDTH - MARGIN_X - 40, y: ruleY },
+    thickness: 0.6,
+    color: COLORS.border,
+  })
+  ctx.page.drawRectangle({
+    x: cx - 2.5,
+    y: ruleY - 2.5,
+    width: 5,
+    height: 5,
+    color: COLORS.navy,
+  })
+
+  ctx.y -= 14
+  ctx.page.drawText(safe, {
+    x: cx - tw / 2,
+    y: ctx.y,
+    size,
+    font: ctx.bold,
+    color: COLORS.navy,
+  })
+  ctx.y -= 18
 }
 
 function enumLabel(value: string | undefined, map: Record<string, string>): string | undefined {
@@ -668,12 +858,19 @@ function isFieldSelected(selected: ReadonlySet<PdfFieldId> | undefined, id: PdfF
   return selected === undefined || selected.has(id)
 }
 
-const BLOCK_HEADER_H = 24
-const BLOCK_PAD = 8
-const BLOCK_GAP = 12
+const BADGE = 16
+const BLOCK_PAD = 10
+const BLOCK_GAP = 14
+const BLOCK_INNER = 12
+
+function badgeColorForLetter(letter: string): RGB {
+  const sageLetters = new Set(['B', 'D', 'F', 'H'])
+  if (letter === 'E' || letter.toUpperCase().includes('TRIAG')) return COLORS.danger
+  return sageLetters.has(letter.toUpperCase()) ? COLORS.sage : COLORS.navy
+}
 
 /**
- * Lettered ficha block chrome (D-05): accentSoft header + thin accent border.
+ * Lettered ficha block chrome (D-05): badge square + BLOCO X — TITLE + border.
  * pdf-lib has no borderRadius — straight rectangles only.
  */
 function drawFichaBlockFrame(
@@ -681,45 +878,73 @@ function drawFichaBlockFrame(
   letter: string,
   title: string,
   bodyDraw: () => void,
+  opts?: { danger?: boolean },
 ): void {
-  ensureSpace(ctx, BLOCK_HEADER_H + 40)
+  ensureSpace(ctx, BADGE + 48)
 
   const pageAtStart = ctx.pageIndex
   const boxTop = ctx.y
+  const badgeFill = opts?.danger ? COLORS.danger : badgeColorForLetter(letter)
+  const borderCol = opts?.danger ? COLORS.danger : COLORS.border
 
+  // Badge square
   ctx.page.drawRectangle({
-    x: MARGIN_X,
-    y: boxTop - BLOCK_HEADER_H,
-    width: CONTENT_WIDTH,
-    height: BLOCK_HEADER_H,
-    color: COLORS.accentSoft,
+    x: MARGIN_X + BLOCK_PAD,
+    y: boxTop - BADGE,
+    width: BADGE,
+    height: BADGE,
+    color: badgeFill,
+  })
+  const letterSafe = toWinAnsiSafe(letter.slice(0, 2))
+  const lw = ctx.bold.widthOfTextAtSize(letterSafe, 10)
+  ctx.page.drawText(letterSafe, {
+    x: MARGIN_X + BLOCK_PAD + (BADGE - lw) / 2,
+    y: boxTop - BADGE + 4,
+    size: 10,
+    font: ctx.bold,
+    color: COLORS.white,
   })
 
-  const headerLabel = toWinAnsiSafe(`${letter} · ${title}`)
-  ctx.page.drawText(headerLabel, {
-    x: MARGIN_X + BLOCK_PAD,
-    y: boxTop - BLOCK_HEADER_H + 8,
+  const header = toWinAnsiSafe(`BLOCO ${letter} — ${title}`.toUpperCase())
+  ctx.page.drawText(header, {
+    x: MARGIN_X + BLOCK_PAD + BADGE + 8,
+    y: boxTop - BADGE + 4,
     size: SIZE.section,
     font: ctx.bold,
-    color: COLORS.forest,
+    color: badgeFill,
   })
 
-  ctx.y = boxTop - BLOCK_HEADER_H - BLOCK_PAD
-  bodyDraw()
-  ctx.y -= BLOCK_PAD
+  // Header rule under title
+  ctx.page.drawLine({
+    start: { x: MARGIN_X + BLOCK_PAD + BADGE + 8, y: boxTop - BADGE - 2 },
+    end: { x: PAGE_WIDTH - MARGIN_X - BLOCK_PAD, y: boxTop - BADGE - 2 },
+    thickness: 0.5,
+    color: COLORS.border,
+  })
 
-  // Full border only when the block stayed on one page
+  const prevX = ctx.contentX
+  const prevW = ctx.contentW
+  ctx.contentX = MARGIN_X + BLOCK_INNER
+  ctx.contentW = CONTENT_WIDTH - BLOCK_INNER * 2
+  ctx.y = boxTop - BADGE - BLOCK_PAD - 4
+
+  bodyDraw()
+  ctx.y -= BLOCK_PAD / 2
+
+  ctx.contentX = prevX
+  ctx.contentW = prevW
+
   if (ctx.pageIndex === pageAtStart) {
     const boxBottom = ctx.y
     const boxHeight = boxTop - boxBottom
-    if (boxHeight > 0) {
+    if (boxHeight > 8) {
       ctx.page.drawRectangle({
         x: MARGIN_X,
         y: boxBottom,
         width: CONTENT_WIDTH,
         height: boxHeight,
-        borderColor: COLORS.accent,
-        borderWidth: 1,
+        borderColor: borderCol,
+        borderWidth: 1.1,
       })
     }
   }
@@ -731,10 +956,16 @@ function drawFichaBlockFrame(
  * Renders EvaluationFicha pages 01–04; omits empty/unselected blocks (D-02/D-03/D-05/D-07).
  */
 function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
+  ctx.footerKind = 'ficha'
   drawPatientCard(ctx)
-  drawOptionalField(ctx, 'Nome da avaliação', input.evaluationTitle ?? undefined)
-  drawOptionalField(ctx, 'Data da avaliação', input.performedOnLabel)
-  drawOptionalField(ctx, 'Fisioterapeuta', input.therapistName ?? undefined)
+
+  const metaFields: Array<[string, string | undefined]> = [
+    ['Nome da avaliação', input.evaluationTitle ?? undefined],
+    ['Data da avaliação', input.performedOnLabel],
+    ['Fisioterapeuta', input.therapistName ?? undefined],
+  ]
+  drawTwoColumnFields(ctx, metaFields)
+  ctx.y -= 4
 
   const ficha = input.ficha
   const selected = input.selectedFieldIds
@@ -838,17 +1069,17 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
 
   if (show01A || show01B || show01C || show01D || show01E) {
     anyContent = true
-    drawPageBanner(ctx, '01 · Anamnese inicial')
+    drawPageBanner(ctx, '01 — Anamnese inicial')
 
     if (show01A) {
       drawFichaBlockFrame(ctx, 'A', 'Identificação', () => {
-        for (const [label, value] of idFields) drawOptionalField(ctx, label, value)
+        drawTwoColumnFields(ctx, idFields)
       })
     }
     if (show01B) {
       drawFichaBlockFrame(ctx, 'B', 'Queixa principal', () => {
-        drawOptionalField(ctx, 'O que trouxe', queixa?.oQueTrouxe)
-        drawOptionalField(ctx, 'Região', queixa?.regiao)
+        drawOptionalField(ctx, 'O que trouxe você à fisioterapia', queixa?.oQueTrouxe)
+        drawOptionalField(ctx, 'Principal região', queixa?.regiao)
         drawOptionalBullets(ctx, 'Lado', ladoItems)
         drawOptionalField(ctx, 'Há quanto tempo', queixa?.haQuantoTempo)
       })
@@ -856,27 +1087,27 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     if (show01C) {
       drawFichaBlockFrame(ctx, 'C', 'História atual', () => {
         drawOptionalBullets(ctx, 'Início', inicioItems)
-        drawOptionalField(ctx, 'Data aproximada', historia?.dataAproxInicio)
-        drawOptionalField(ctx, 'Como começou', historia?.comoComecou)
-        drawOptionalBullets(ctx, 'Evolução', evolucaoItems)
+        drawOptionalField(ctx, 'Data aproximada de início', historia?.dataAproxInicio)
+        drawOptionalField(ctx, 'Descreva como começou', historia?.comoComecou)
+        drawOptionalBullets(ctx, 'Evolução desde o início', evolucaoItems)
         drawOptionalField(
           ctx,
           'Já aconteceu antes',
           enumLabel(historia?.jaAconteceuAntes, { nao: 'Não', sim: 'Sim' }),
         )
-        drawOptionalField(ctx, 'Detalhe (já aconteceu)', historia?.jaAconteceuDetalhe)
+        drawOptionalField(ctx, 'Se sim, quando/como', historia?.jaAconteceuDetalhe)
       })
     }
     if (show01D) {
-      drawFichaBlockFrame(ctx, 'D', 'Tratamentos e investigações', () => {
+      drawFichaBlockFrame(ctx, 'D', 'Tratamentos e investigações anteriores', () => {
         drawOptionalBullets(ctx, 'Tratamentos', tratamentoItems)
-        drawOptionalBullets(ctx, 'Exames', exameItems)
-        drawOptionalField(ctx, 'Achados', tratamentos?.achados)
+        drawOptionalBullets(ctx, 'Exames complementares', exameItems)
+        drawOptionalField(ctx, 'Achados / informações relevantes', tratamentos?.achados)
       })
     }
     if (show01E) {
-      drawFichaBlockFrame(ctx, 'E', 'Histórico pregresso', () => {
-        drawOptionalBullets(ctx, 'Histórico', pregressoItems)
+      drawFichaBlockFrame(ctx, 'E', 'Histórico pregresso resumido', () => {
+        drawOptionalBullets(ctx, 'Condições', pregressoItems)
         drawOptionalField(ctx, 'Observações', pregresso?.observacoes)
       })
     }
@@ -964,7 +1195,7 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
 
   if (show02A || show02B || show02C || show02D || show02E || show02F || show02G) {
     anyContent = true
-    drawPageBanner(ctx, '02 · Comportamento dos sintomas')
+    drawPageBanner(ctx, '02 — Entenda o comportamento dos sintomas')
 
     if (show02A) {
       drawFichaBlockFrame(ctx, 'A', 'Mapa corporal', () => {
@@ -1156,7 +1387,7 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
 
   if (show03A || show03B || show03C || show03D || show03E || show03F) {
     anyContent = true
-    drawPageBanner(ctx, '03 · Função, contexto e segurança')
+    drawPageBanner(ctx, '03 — Função, contexto e segurança')
 
     if (show03A) {
       drawFichaBlockFrame(ctx, 'A', 'Principal limitação funcional', () => {
@@ -1193,11 +1424,17 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       })
     }
     if (show03E) {
-      drawFichaBlockFrame(ctx, 'E', 'Triagem de segurança', () => {
-        drawOptionalBullets(ctx, 'Sinais de alerta', redFlagItems)
-        drawOptionalBullets(ctx, 'Conduta', condutaItems)
-        drawOptionalField(ctx, 'Observações', funcao?.triagemSeguranca?.observacoes)
-      })
+      drawFichaBlockFrame(
+        ctx,
+        'E',
+        'Triagem de segurança',
+        () => {
+          drawOptionalBullets(ctx, 'Sinais de alerta', redFlagItems)
+          drawOptionalBullets(ctx, 'Conduta', condutaItems)
+          drawOptionalField(ctx, 'Observações', funcao?.triagemSeguranca?.observacoes)
+        },
+        { danger: true },
+      )
     }
     if (show03F) {
       drawFichaBlockFrame(ctx, 'F', 'Medicações / outras informações', () => {
@@ -1322,7 +1559,7 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     show04ID
   ) {
     anyContent = true
-    drawPageBanner(ctx, '04 · Avaliação e plano')
+    drawPageBanner(ctx, '04 — Avaliação e plano fisioterapêutico')
 
     if (show04A) {
       drawFichaBlockFrame(ctx, 'A', 'Inspeção / observação', () => {
@@ -1550,6 +1787,9 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
     docTitle,
     patientLine,
     generatedAt,
+    contentX: MARGIN_X,
+    contentW: CONTENT_WIDTH,
+    footerKind: input.kind === 'avaliacao' || input.kind === 'evolucao' ? 'ficha' : 'fluxo',
   }
 
   drawHeaderBand(ctx, { isFirstPage: true })
@@ -1559,6 +1799,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
   } else if (input.kind === 'sessao') {
     drawSessao(ctx, input)
   } else if (input.kind === 'evolucao') {
+    ctx.footerKind = 'ficha'
     drawEvolucao(ctx, input)
   } else {
     drawAvaliacao(ctx, input)
