@@ -8,7 +8,7 @@ requires:
   - phase: 11-resumo-ia
     provides: patient_ai_reports table, kind CHECK geral|sessao, INSERT policy
 provides:
-  - Idempotent SQL extending kinds to avaliacao|evolucao (pending hosted apply)
+  - Idempotent SQL extending kinds to avaliacao|evolucao (hosted SQL Editor applied 2026-09-21)
   - Client Zod/types/list badges for four kinds
   - Upload XOR matching CHECK (sessionless kinds ⇒ session_id null)
 affects:
@@ -48,14 +48,14 @@ completed: 2026-09-21
 
 # Phase 13 Plan 01: SQL kinds + Zod/list badges Summary
 
-**Idempotent SQL + client Zod/types extend `patient_ai_reports` kinds to `avaliacao`/`evolucao` with honest list badges; hosted SQL Editor apply still pending.**
+**Idempotent SQL + client Zod/types extend `patient_ai_reports` kinds to `avaliacao`/`evolucao` with honest list badges; hosted SQL Editor apply confirmed Success.**
 
 ## Performance
 
-- **Duration:** ~2 min
+- **Duration:** ~2 min (+ human SQL apply)
 - **Started:** 2026-09-21T03:15:18Z
-- **Completed:** 2026-09-21T03:16:44Z
-- **Tasks:** 2/3 auto complete; Task 3 blocking human SQL
+- **Completed:** 2026-09-21T12:54:00Z (Task 3 Success)
+- **Tasks:** 3/3 complete
 - **Files modified:** 6 (5 tracked + supabase twin on disk)
 
 ## Accomplishments
@@ -68,7 +68,7 @@ completed: 2026-09-21
 
 1. **Task 1: Write idempotent SQL for kinds avaliacao/evolucao** - `5f2ce00` (feat)
 2. **Task 2: Client kinds, upload XOR, list badges, sessionLabel** - `4f7c943` (feat)
-3. **Task 3: Apply kinds SQL in SQL Editor** - pending-SQL (blocking human)
+3. **Task 3: Apply kinds SQL in SQL Editor** - Success (user confirmed 2026-09-21)
 
 **Plan metadata:** (docs commit after SUMMARY)
 
