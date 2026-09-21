@@ -68,7 +68,7 @@ Each task was committed atomically:
 1. **Task 1: Write docs/ops auth-email SMTP runbook** - `2ecd428` (docs)
 2. **Task 2: Write paste-ready Confirm and Reset HTML templates** - `45e6e1f` (docs)
 
-**Plan metadata:** `bcaf07a`+ (docs: SUMMARY; STATE/ROADMAP in close-out commit)
+**Plan metadata:** `bcaf07a` (SUMMARY); `d947aa0` (STATE/ROADMAP/REQUIREMENTS)
 
 ## Files Created/Modified
 
