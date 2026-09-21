@@ -37,7 +37,7 @@ patterns-established:
   - "Auth e-mail ops: placeholders only in git; real SMTP pass only in Dashboard"
   - "Auth HTML: bare href={{ .ConfirmationURL }}; web-safe fonts; single CTA"
 
-requirements-completed: [REQ-27]
+requirements-completed: []  # REQ-27 phase-level; 15-01 delivers REQ-27.4 docs only — full mark after 15-02 UAT
 
 duration: 2min
 completed: 2026-09-21
@@ -68,7 +68,7 @@ Each task was committed atomically:
 1. **Task 1: Write docs/ops auth-email SMTP runbook** - `2ecd428` (docs)
 2. **Task 2: Write paste-ready Confirm and Reset HTML templates** - `45e6e1f` (docs)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `bcaf07a`+ (docs: SUMMARY; STATE/ROADMAP in close-out commit)
 
 ## Files Created/Modified
 

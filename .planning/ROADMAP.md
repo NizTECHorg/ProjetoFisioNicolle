@@ -444,6 +444,6 @@ Plans:
 
 Plans:
 
-- [ ] 15-01-PLAN.md — Runbook + paste-ready Confirm/Reset Fluxo HTML templates
+- [x] 15-01-PLAN.md — Runbook + paste-ready Confirm/Reset Fluxo HTML templates
 - [ ] 15-02-PLAN.md — Human Dashboard apply (Custom SMTP + templates + UAT)
 - [ ] 15-03-PLAN.md — Optional RegisterPage Fluxo copy + validation wire

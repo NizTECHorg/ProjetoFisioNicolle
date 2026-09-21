@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase_15_planned
-stopped_at: Planned 15-01…15-03 (email Fluxo confirmação)
-last_updated: "2026-09-21T23:15:00.000Z"
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-09-21T23:28:35.726Z"
 progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 58
-  completed_plans: 44
-  percent: 43
+  completed_plans: 48
+  percent: 83
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 15 — E-mail Fluxo de confirmação de conta (planned)
+**Current focus:** Phase 15 — email-fluxo-confirmacao-conta
 
 ## Current Position
 
-Phase: 15 (email-fluxo-confirmacao-conta) — PLANNED
-Plan: 0 of 3
+Phase: 15 (email-fluxo-confirmacao-conta) — EXECUTING
+Plan: 2 of 3
 
-- Status: 3 plans created (15-01…15-03); next `/gsd-execute-phase 15`
-- Progress: CONTEXT + RESEARCH + PATTERNS + VALIDATION + PLANs ready; Dashboard SMTP human gate in 15-02
+- Status: 15-01 complete (runbook + templates); next 15-02 Dashboard SMTP human gate
+- Progress: docs/ops runbook + Confirm/Reset HTML shipped; apply SMTP/templates in 15-02
 
-**Progress:** Phase 15 planned — execute next (Phase 14 still pending execution if not started)
+**Progress:** [████████░░] 83%
 
 ## Accumulated Context
 
@@ -128,6 +128,7 @@ Plan: 0 of 3
 - [Phase 08]: SQL Editor only for Google Calendar schema; never supabase db push — Supabase CLI not installed; /supabase/ gitignored; same dual-path as Phase 5/7
 - [Phase 08]: google_calendar_secrets REVOKE ALL from authenticated with no GRANT — REQ-20.3 / T-08-04 — tokens only via Edge Function service_role
 - [Phase 08]: session_links PK (user_id, session_id); no google_event_id on patient_sessions — D-09 / Pitfall 5 — per-user event links for idempotent re-export
+- [Phase 15]: Runbook under docs/ops/; Gmail SMTP default, Brevo fallback; Invite out of scope
 
 ### Pending user action
 
@@ -146,8 +147,8 @@ Plan: 0 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-18T22:30:20.256Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-09-21T23:28:11.815Z
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -174,3 +175,4 @@ Resume file: None
 | Phase 07-galeria-de-imagens-na-ficha-do-paciente P05 | 5min | 2 tasks | 1 files |
 | Phase 08 P01 | 5min | 2 tasks | 4 files |
 | Phase 08 P02 | 6min | 2 tasks | 2 files |
+| Phase 15 P01 | 2min | 2 tasks | 3 files |

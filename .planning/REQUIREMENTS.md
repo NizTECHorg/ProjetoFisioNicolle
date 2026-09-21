@@ -278,4 +278,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-24 | Phase 12 | Planned |
 | REQ-25 | Phase 13 | Planned |
 | REQ-26 | Phase 14 | Planned |
-| REQ-27 | Phase 15 | Planned |
+| REQ-27 | Phase 15 | In Progress (15-01 runbook+templates; SMTP UAT in 15-02) |
