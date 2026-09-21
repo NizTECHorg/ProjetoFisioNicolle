@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-09-19T12:28:39.407Z"
+status: phase_13_planned
+stopped_at: null
+last_updated: "2026-09-21T03:00:00.000Z"
 progress:
   total_phases: 10
   completed_phases: 6
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 8 — Integração Google Agenda
+**Current focus:** Phase 13 — PDF export Avaliação / Evolução (planned)
 
 ## Current Position
 
-Phase: 8 (Integração Google Agenda) — EXECUTING
-Plan: 5 of 5
+Phase: 13 (pdf-export-avaliacao-evolucao) — PLANNED
+Plan: 0 of 6
 
-- Status: 08-02 shipped — next 08-03 Edge Functions vault/export/disconnect
-- Progress: Google Calendar SQL (connections/secrets/links) applied in SQL Editor; secrets wall in place
+- Status: 6 plans created (13-01…13-06); next `/gsd-execute-phase 13`
+- Progress: CONTEXT + RESEARCH + UI-SPEC + VALIDATION ready; Wave 0 SQL/catalog in plans
 
-**Progress:** [█████████░] 90%
+**Progress:** Phase 13 planned — execute next
 
 ## Accumulated Context
 

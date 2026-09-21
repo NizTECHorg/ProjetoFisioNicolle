@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phases 8–11 em andamento/UAT. Próximo: Phase 12 aba Avaliações (ficha musculoesquelética + export PDF alinhado).
+Completar o prontuário e o modelo de contas. Phases 8–12 em andamento. Próximo: Phase 13 PDF export Avaliação/Evolução (field-picker + multi-sessão).
 
 ## Phases
 
@@ -18,6 +18,7 @@ Completar o prontuário e o modelo de contas. Phases 8–11 em andamento/UAT. Pr
 - [ ] **Phase 10: Responsividade mobile 100%** — Toda a experiência clínica usável e legível em viewport estreito
 - [ ] **Phase 11: Resumo IA** — Aba Resumo IA: gerar resumo clínico com contexto completo e PDFs salvos (geral ou por sessão)
 - [ ] **Phase 12: Avaliações musculoesqueléticas** — Aba Avaliações (ficha 01–04), CRUD parcial, dashboard → nova, PDF export alinhado
+- [ ] **Phase 13: PDF Avaliação / Evolução** — Seções de export, field-picker, multi-sessão + IA, estilo ficha
 
 ## Phase Details
 
@@ -347,3 +348,29 @@ Plans:
 - [ ] 12-02-PLAN.md — Service/hooks map `ficha` + legacy column read-compat
 - [ ] 12-03-PLAN.md — Tab Avaliações, rich multi-block form, detach Resumo IA, dashboard `?nova=1`
 - [ ] 12-04-PLAN.md — PDF from ficha document + composer select evaluation + UAT
+
+### Phase 13: PDF Avaliação / Evolução
+
+**Goal**: No Resumo IA, o export PDF tem seções **Avaliação** e **Evolução**; o profissional escolhe quais campos preenchidos entram no PDF (todos on por padrão); Evolução agrega várias sessões via IA; o PDF segue o estilo das fichas de referência só com campos selecionados.
+**Depends on**: Phase 11 (Resumo IA composer/PDF), Phase 12 (ficha avaliação)
+**Requirements**: REQ-25
+**Success Criteria** (what must be TRUE):
+
+  1. Composer PDF mostra seções **Avaliação** | **Evolução** (não mais “Avaliação salva” / “Por sessão” como escopos principais)
+  2. Field-picker lista só campos preenchidos; todos selecionados por padrão; desmarcar exclui do PDF
+  3. Avaliação: escolhe uma avaliação + picker → PDF estilo ficha (blocos) só com selecionados
+  4. Evolução: multi-select de sessões; IA agrega dados dessas sessões; picker + PDF
+  5. PDFs aparecem na lista do Resumo IA; empresa em consulta não exporta
+  6. Visual alinhado às refs em `refs/` (blocos rotulados); sem inventar dados
+
+**Plans**: 6 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — SQL kinds avaliacao/evolucao + client Zod/list badges + SQL Editor apply
+- [ ] 13-02-PLAN.md — pdfFieldCatalog filled blocks (~27) + evolução SOAP/AI ids
+- [ ] 13-03-PLAN.md — Selective pdf-lib block chrome + drawEvolucao
+- [ ] 13-04-PLAN.md — Field-picker Modal + composer Avaliação|Evolução + Avaliação export
+- [ ] 13-05-PLAN.md — EF mode evolucao + Evolução multi-session wire + EF redeploy
+- [ ] 13-06-PLAN.md — UAT REQ-25 (picker, multi-session IA, empresa read-only)
+
+**UI hint:** yes
