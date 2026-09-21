@@ -849,6 +849,74 @@ function drawOptionalBullets(ctx: DrawContext, title: string, items: string[]): 
   return true
 }
 
+/**
+ * Soft info / caution callout (D-04.9). Never invents clinical text — caller passes filled notes only.
+ */
+function drawCalloutBanner(ctx: DrawContext, kind: 'info' | 'caution', text: string): void {
+  const trimmed = text.trim()
+  if (!trimmed) return
+
+  const pad = 8
+  const iconR = 6
+  const iconGap = 8
+  const textX = ctx.contentX + pad + iconR * 2 + iconGap
+  const textMaxW = Math.max(40, ctx.contentW - pad * 2 - iconR * 2 - iconGap)
+  const lines = wrapLines(ctx.font, trimmed, SIZE.body, textMaxW)
+  const contentH = Math.max(iconR * 2, lines.length * LINE.body)
+  const boxH = pad * 2 + contentH
+
+  ensureSpace(ctx, boxH + 6)
+
+  const fill = kind === 'caution' ? rgb(0xfd / 255, 0xee / 255, 0xee / 255) : COLORS.accentSoft
+  const border = kind === 'caution' ? COLORS.danger : COLORS.border
+  const ink = kind === 'caution' ? COLORS.danger : COLORS.navy
+  const boxBottom = ctx.y - boxH + 4
+
+  ctx.page.drawRectangle({
+    x: ctx.contentX,
+    y: boxBottom,
+    width: ctx.contentW,
+    height: boxH,
+    color: fill,
+    borderColor: border,
+    borderWidth: 0.9,
+  })
+
+  const iconCx = ctx.contentX + pad + iconR
+  const iconCy = boxBottom + boxH - pad - iconR
+  ctx.page.drawCircle({
+    x: iconCx,
+    y: iconCy,
+    size: iconR,
+    borderColor: ink,
+    borderWidth: 1,
+    color: COLORS.white,
+  })
+  const iLabel = kind === 'caution' ? '!' : 'i'
+  const iW = ctx.bold.widthOfTextAtSize(iLabel, 8)
+  ctx.page.drawText(iLabel, {
+    x: iconCx - iW / 2,
+    y: iconCy - 3,
+    size: 8,
+    font: ctx.bold,
+    color: ink,
+  })
+
+  let ty = boxBottom + boxH - pad - SIZE.body + 2
+  for (const line of lines) {
+    ctx.page.drawText(line, {
+      x: textX,
+      y: ty,
+      size: SIZE.body,
+      font: ctx.font,
+      color: COLORS.ink,
+    })
+    ty -= LINE.body
+  }
+
+  ctx.y = boxBottom - 8
+}
+
 /** Centered chapter title like "01 — ANAMNESE INICIAL" (TimesRomanBold + diamond — D-03). */
 function drawPageBanner(ctx: DrawContext, title: string) {
   ensureSpace(ctx, 40)
@@ -1245,7 +1313,7 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     }
     if (show02B) {
       drawFichaBlockFrame(ctx, 'B', 'Característica predominante', () => {
-        drawBulletList(ctx, caracteristicaItems)
+        drawOptionalBullets(ctx, 'Característica', caracteristicaItems)
       })
     }
     if (show02C) {
@@ -1472,7 +1540,10 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
         () => {
           drawOptionalBullets(ctx, 'Sinais de alerta', redFlagItems)
           drawOptionalBullets(ctx, 'Conduta', condutaItems)
-          drawOptionalField(ctx, 'Observações', funcao?.triagemSeguranca?.observacoes)
+          const observacoes = funcao?.triagemSeguranca?.observacoes
+          if (textFilled(observacoes)) {
+            drawCalloutBanner(ctx, 'caution', String(observacoes))
+          }
         },
         { danger: true },
       )
