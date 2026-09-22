@@ -192,7 +192,7 @@ export function DashboardClinicalShortcut() {
             submitLabel="Salvar sessão"
             successAction={{
               label: 'Ver ficha',
-              href: patientFichaPath(state.patientId, 'evolucoes'),
+              href: patientFichaPath(state.patientId, 'secoes'),
             }}
             errorMessage={SAVE_ERROR}
             onCancel={closeShortcut}

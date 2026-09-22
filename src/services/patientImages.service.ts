@@ -45,7 +45,12 @@ function mappedErrorMessage(error: unknown) {
 function mimeToExt(mime: PatientImageMime) {
   if (mime === 'image/jpeg') return 'jpg'
   if (mime === 'image/png') return 'png'
+  if (mime === 'application/pdf') return 'pdf'
   return 'webp'
+}
+
+function isRasterImageMime(mime: PatientImageMime) {
+  return mime === 'image/jpeg' || mime === 'image/png' || mime === 'image/webp'
 }
 
 function mapImageRow(row: ImageRow, signedUrl: string | null, thumbUrl: string | null): PatientImage {
@@ -64,9 +69,19 @@ function mapImageRow(row: ImageRow, signedUrl: string | null, thumbUrl: string |
   }
 }
 
+function resolveUploadMime(file: File): string {
+  if (file.type) return file.type
+  const name = file.name.toLowerCase()
+  if (name.endsWith('.pdf')) return 'application/pdf'
+  if (name.endsWith('.png')) return 'image/png'
+  if (name.endsWith('.webp')) return 'image/webp'
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg'
+  return file.type
+}
+
 function parseUploadInput(file: File, input: { sessionId: string | null; description: string }) {
   const parsed = imageUploadSchema.safeParse({
-    mimeType: file.type,
+    mimeType: resolveUploadMime(file),
     byteSize: file.size,
     sessionId: input.sessionId,
     description: input.description,
@@ -161,6 +176,7 @@ export async function listPatientImages(patientId: string): Promise<PatientImage
   const thumbUrls = signedUrlByPath(thumbSigned)
   const transformed = await Promise.all(
     rows.map(async (row) => {
+      if (!isRasterImageMime(row.mime_type)) return null
       const storedThumb = thumbUrls.get(thumbStoragePath(row.storage_path)) ?? null
       if (storedThumb) return storedThumb
       return signedTransformUrl(row.storage_path)
@@ -171,7 +187,9 @@ export async function listPatientImages(patientId: string): Promise<PatientImage
     mapImageRow(
       row,
       urls.get(row.storage_path) ?? null,
-      transformed[index] ?? urls.get(row.storage_path) ?? null,
+      isRasterImageMime(row.mime_type)
+        ? (transformed[index] ?? urls.get(row.storage_path) ?? null)
+        : null,
     ),
   )
 }
@@ -204,14 +222,16 @@ export async function uploadPatientImage(
   })
   throwIfStorageError(uploadError)
 
-  try {
-    const thumb = await compressImageForThumb(file)
-    await supabase.storage.from(IMAGE_BUCKET).upload(thumbStoragePath(path), thumb, {
-      contentType: 'image/jpeg',
-      upsert: false,
-    })
-  } catch {
-    // Miniatura é acelerador de grid. A foto original segue.
+  if (isRasterImageMime(parsed.mimeType)) {
+    try {
+      const thumb = await compressImageForThumb(file)
+      await supabase.storage.from(IMAGE_BUCKET).upload(thumbStoragePath(path), thumb, {
+        contentType: 'image/jpeg',
+        upsert: false,
+      })
+    } catch {
+      // Miniatura é acelerador de grid. A foto original segue.
+    }
   }
 
   const row = await insertImageRow(patientId, imageId, path, parsed)
@@ -228,7 +248,7 @@ export async function uploadPatientImages(
 
   for (const file of files) {
     const parsed = imageUploadSchema.safeParse({
-      mimeType: file.type,
+      mimeType: resolveUploadMime(file),
       byteSize: file.size,
       sessionId: input.sessionId,
       description: input.description,

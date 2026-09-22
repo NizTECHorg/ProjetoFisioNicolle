@@ -60,7 +60,7 @@ export interface SessionEvolution {
   createdByName: string | null
 }
 
-/** Sessão na aba Evoluções (com profissional e evolução quando houver). */
+/** Sessão na aba Seções (com profissional e evolução quando houver). */
 export interface PatientSessionRecord {
   id: string
   patientId: string
@@ -75,7 +75,7 @@ export interface PatientSessionRecord {
   evolution: SessionEvolution | null
 }
 
-export type PatientImageMime = 'image/jpeg' | 'image/png' | 'image/webp'
+export type PatientImageMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'application/pdf'
 
 /** Foto da galeria. signedUrl só no DTO (createSignedUrls). sessionRemoved é D-07. */
 export interface PatientImage {

@@ -9,6 +9,7 @@ import { Select } from '@/components/ui/Select'
 import { registerSchema, type RegisterFormData } from '@/schemas/auth.schema'
 import { signUpWithEmail } from '@/services/auth.service'
 import { lookupOrganizationByCode } from '@/services/team.service'
+import { toast } from '@/stores/toast.store'
 
 const ACCOUNT_TYPE_OPTIONS = [
   { value: '', label: 'Selecione o tipo' },
@@ -18,8 +19,7 @@ const ACCOUNT_TYPE_OPTIONS = [
 ]
 
 export function RegisterPage() {
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [accountCreated, setAccountCreated] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -45,36 +45,36 @@ export function RegisterPage() {
   const accountTypeField = register('accountType')
 
   async function onSubmit(data: RegisterFormData) {
-    setServerError(null)
-    setSuccessMessage(null)
-
     try {
       if (data.accountType === 'fisioterapeuta') {
         const exists = await lookupOrganizationByCode(data.joinCode ?? '')
         if (!exists) {
-          setServerError(
+          toast(
             'Código da empresa não encontrado. Confira com o responsável e tente de novo.',
+            'error',
           )
           return
         }
       }
 
       const { needsEmailConfirmation } = await signUpWithEmail(data)
+      setAccountCreated(true)
 
       if (data.accountType === 'fisioterapeuta') {
-        setSuccessMessage('Cadastro concluído. Aguarde a empresa aceitar seu pedido.')
+        toast('Cadastro concluído. Aguarde a empresa aceitar seu pedido.', 'success')
         return
       }
 
       if (needsEmailConfirmation) {
-        setSuccessMessage(
-          'Conta criada! Verifique seu e-mail para confirmar o cadastro antes de entrar.',
+        toast(
+          'Conta criada! Verifique seu e-mail (e a pasta de spam) para confirmar antes de entrar.',
+          'success',
         )
       } else {
-        setSuccessMessage('Conta criada com sucesso! Você já pode entrar.')
+        toast('Conta criada com sucesso! Você já pode entrar.', 'success')
       }
     } catch (error) {
-      setServerError(error instanceof Error ? error.message : 'Erro ao criar conta.')
+      toast(error instanceof Error ? error.message : 'Erro ao criar conta.', 'error')
     }
   }
 
@@ -92,24 +92,6 @@ export function RegisterPage() {
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate autoComplete="off">
-        {serverError && (
-          <div
-            role="alert"
-            className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
-          >
-            {serverError}
-          </div>
-        )}
-
-        {successMessage && (
-          <div
-            role="status"
-            className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
-          >
-            {successMessage}
-          </div>
-        )}
-
         <Input
           label="Nome completo"
           type="text"
@@ -184,7 +166,7 @@ export function RegisterPage() {
           {showPassword ? 'Ocultar senhas' : 'Mostrar senhas'}
         </button>
 
-        <Button type="submit" fullWidth isLoading={isSubmitting} disabled={!!successMessage}>
+        <Button type="submit" fullWidth isLoading={isSubmitting} disabled={accountCreated}>
           Criar conta
         </Button>
       </form>

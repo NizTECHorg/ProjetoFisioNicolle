@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -126,8 +126,9 @@ export function PatientEvaluationPanel({
     setCreateDraft(null)
   }
 
-  const patientSnapshot = patientDetail
-    ? {
+  const patientSnapshot = useMemo(() => {
+    if (patientDetail) {
+      return {
         name: patientDetail.name,
         birthDateRaw: patientDetail.birthDateRaw,
         birthDate: patientDetail.birthDate,
@@ -135,9 +136,10 @@ export function PatientEvaluationPanel({
         phone: patientDetail.phone,
         email: patientDetail.email,
       }
-    : patientName
-      ? { name: patientName }
-      : undefined
+    }
+    if (patientName) return { name: patientName }
+    return undefined
+  }, [patientDetail, patientName])
 
   return (
     <div className="space-y-6">
@@ -171,6 +173,7 @@ export function PatientEvaluationPanel({
       {!isLoading && !isError && canWrite && editorOpen ? (
         <div className="rounded-2xl border border-line bg-surface p-5">
           <PatientEvaluationEditorForm
+            key={editing?.id ?? (createDraft ? 'draft' : 'create')}
             patientId={patientId}
             cancelLabel="Cancelar"
             submitLabel="Salvar"
@@ -212,9 +215,16 @@ export function PatientEvaluationPanel({
                       active ? 'border-forest bg-surface ring-1 ring-forest' : 'border-line bg-surface/70 hover:bg-surface',
                     ].join(' ')}
                   >
-                    <p className="text-sm font-semibold text-ink">{item.performedOnLabel}</p>
+                    <p className="text-sm font-semibold text-ink">
+                      {item.title || item.performedOnLabel}
+                    </p>
                     <p className="mt-1 truncate text-xs text-muted">
-                      {item.mainComplaint || item.ficha?.anamnese?.queixa?.oQueTrouxe || 'Sem queixa registrada'}
+                      {[
+                        item.title ? item.performedOnLabel : null,
+                        item.mainComplaint || item.ficha?.anamnese?.queixa?.oQueTrouxe || null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ') || 'Sem queixa registrada'}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {item.isInitial ? (
@@ -241,7 +251,9 @@ export function PatientEvaluationPanel({
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold text-ink">{selected.performedOnLabel}</h3>
+                    <h3 className="text-base font-semibold text-ink">
+                      {selected.title || selected.performedOnLabel}
+                    </h3>
                     {selected.isInitial ? (
                       <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-forest">
                         Inicial
@@ -252,6 +264,7 @@ export function PatientEvaluationPanel({
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-muted">
+                    {selected.title ? `${selected.performedOnLabel} · ` : ''}
                     {selected.therapistName ? `${selected.therapistName} · ` : ''}
                     registro vinculado a esta data
                   </p>

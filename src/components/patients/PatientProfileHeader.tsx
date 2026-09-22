@@ -7,7 +7,7 @@ import { statusLabels, type PatientStatus } from '@/types/patient'
 export type PatientTab =
   | 'resumo'
   | 'cadastro'
-  | 'evolucoes'
+  | 'secoes'
   | 'avaliacoes'
   | 'resumo-ia'
   | 'avaliacao'
@@ -115,16 +115,16 @@ export function PatientProfileHeader({
             <button
               type="button"
               role="tab"
-              aria-selected={activeTab === 'evolucoes'}
+              aria-selected={activeTab === 'secoes'}
               className={[
                 '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
-                activeTab === 'evolucoes'
+                activeTab === 'secoes'
                   ? 'border-forest text-forest'
                   : 'border-transparent text-muted hover:border-line hover:text-ink',
               ].join(' ')}
-              onClick={() => onTabChange('evolucoes')}
+              onClick={() => onTabChange('secoes')}
             >
-              Evoluções
+              Seções
             </button>
             <button
               type="button"

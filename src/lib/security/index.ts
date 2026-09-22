@@ -94,6 +94,17 @@ export function mapAuthError(error: { message?: string; status?: number }): stri
     return 'Erro de conexão. Verifique sua internet e tente novamente.'
   }
 
+  // Custom SMTP misconfig: GoTrue often returns 500 when confirmation mail cannot be sent.
+  if (
+    error.status === 500 ||
+    message.includes('error sending') ||
+    message.includes('confirmation email') ||
+    message.includes('smtp') ||
+    message.includes('mail')
+  ) {
+    return 'Não foi possível enviar o e-mail de confirmação. Confira o SMTP no painel (host, usuário e senha de app) e tente de novo.'
+  }
+
   return 'Ocorreu um erro. Tente novamente mais tarde.'
 }
 
@@ -256,7 +267,7 @@ export function mapStorageError(error: {
     message.includes('too large') ||
     message.includes('maximum allowed size')
   ) {
-    return 'A imagem deve ter no máximo 8 MB.'
+    return 'O arquivo deve ter no máximo 8 MB.'
   }
 
   if (
@@ -267,7 +278,7 @@ export function mapStorageError(error: {
     message.includes('invalid content type') ||
     message.includes('content-type')
   ) {
-    return 'Envie JPEG, PNG ou WebP. Fotos do iPhone: escolha a opção mais compatível.'
+    return 'Envie JPEG, PNG, WebP ou PDF. Fotos do iPhone: escolha a opção mais compatível.'
   }
 
   if (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Image, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { FileText, Image, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { SignedPhoto } from '@/components/patients/SignedPhoto'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -32,9 +32,29 @@ type PatientImagesPanelProps = {
 
 type GalleryFilter = 'todas' | 'avulsas' | string
 
-const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp'
+const GALLERY_ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf,.pdf'
+const CAMERA_ACCEPT = 'image/jpeg,image/png,image/webp'
 const NARROW_MEDIA = '(max-width: 767px)'
 const emptyMeta: ImageMetadataFormData = { description: '', sessionId: '' }
+
+function isPdfFile(file: File) {
+  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+}
+
+function isPdfImage(image: PatientImage) {
+  return image.mimeType === 'application/pdf'
+}
+
+function resolveFileMime(file: File) {
+  if (file.type) return file.type
+  if (file.name.toLowerCase().endsWith('.pdf')) return 'application/pdf'
+  if (file.name.toLowerCase().endsWith('.png')) return 'image/png'
+  if (file.name.toLowerCase().endsWith('.webp')) return 'image/webp'
+  if (file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg')) {
+    return 'image/jpeg'
+  }
+  return file.type
+}
 
 function tileAllocation(image: PatientImage, sessions: PatientSessionRecord[]) {
   if (!image.sessionId) return 'Avulsa'
@@ -50,7 +70,8 @@ function lightboxAllocation(image: PatientImage, sessions: PatientSessionRecord[
 
 function imageAlt(image: PatientImage) {
   const description = image.description.trim()
-  return description || 'Imagem do paciente'
+  if (description) return description
+  return isPdfImage(image) ? 'PDF do paciente' : 'Imagem do paciente'
 }
 
 function filterImages(images: PatientImage[], filter: GalleryFilter) {
@@ -72,7 +93,7 @@ function canShareImageFiles() {
 
 function fileNameFromStoragePath(storagePath: string) {
   const segment = storagePath.split('/').pop()
-  return segment && segment.length > 0 ? segment : 'imagem.jpg'
+  return segment && segment.length > 0 ? segment : 'arquivo'
 }
 
 function useNarrowViewport() {
@@ -112,8 +133,11 @@ function EmptyWell({ heading, body }: { heading: string; body?: string }) {
 
 function LoteThumbItem({ file, onRemove }: { file: File; onRemove: () => void }) {
   const [url, setUrl] = useState<string | null>(null)
+  const pdf = isPdfFile(file)
 
   useEffect(() => {
+    if (pdf) return
+
     const originalUrl = URL.createObjectURL(file)
     setUrl(originalUrl)
     let compressedUrl: string | null = null
@@ -137,12 +161,17 @@ function LoteThumbItem({ file, onRemove }: { file: File; onRemove: () => void })
       URL.revokeObjectURL(originalUrl)
       if (compressedUrl) URL.revokeObjectURL(compressedUrl)
     }
-  }, [file])
+  }, [file, pdf])
 
   return (
     <li className="relative">
       <div className="aspect-square overflow-hidden rounded-xl border border-line bg-canvas">
-        {url ? (
+        {pdf ? (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-accent-soft px-2 text-accent">
+            <FileText size={22} />
+            <span className="line-clamp-2 text-center text-[10px] font-medium text-forest">PDF</span>
+          </div>
+        ) : url ? (
           <img src={url} alt="" className="block h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
@@ -231,14 +260,14 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
   const openImage = images.find((image) => image.id === openId) ?? null
   const unfilteredEmpty = images.length === 0
   const emptyHeading = unfilteredEmpty
-    ? 'Nenhuma imagem nesta ficha.'
+    ? 'Nenhum arquivo nesta ficha.'
     : filter === 'avulsas'
-      ? 'Nenhuma imagem avulsa.'
-      : 'Nenhuma imagem nesta sessão.'
+      ? 'Nenhum arquivo avulso.'
+      : 'Nenhum arquivo nesta sessão.'
   const emptyBody = canWrite
     ? unfilteredEmpty
-      ? 'Toque em Adicionar imagem para enviar uma foto avulsa ou ligada a uma sessão.'
-      : 'Altere o filtro ou toque em Adicionar imagem.'
+      ? 'Toque em Adicionar para enviar foto ou PDF avulso ou ligado a uma sessão.'
+      : 'Altere o filtro ou toque em Adicionar.'
     : undefined
 
   const sessionOptions = [
@@ -271,7 +300,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
     setLote((current) => {
       const merged = [...current, ...incoming]
       if (merged.length <= MAX_BATCH_FILES) return merged
-      toast('Envie no máximo 10 fotos por vez.', 'error')
+      toast('Envie no máximo 10 arquivos por vez.', 'error')
       return merged.slice(0, MAX_BATCH_FILES)
     })
   }
@@ -297,7 +326,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
     const valids: File[] = []
     for (const file of lote) {
       const parsed = imageUploadSchema.safeParse({
-        mimeType: file.type,
+        mimeType: resolveFileMime(file),
         byteSize: file.size,
         sessionId,
         description: values.description,
@@ -365,12 +394,12 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Imagens</p>
-            <p className="mt-1 text-sm text-muted">Fotos avulsas ou ligadas a uma sessão.</p>
+            <p className="mt-1 text-sm text-muted">Fotos ou PDFs avulsos ou ligados a uma sessão.</p>
           </div>
           {canWrite ? (
             <Button type="button" onClick={openUpload}>
               <Plus size={16} />
-              Adicionar imagem
+              Adicionar
             </Button>
           ) : null}
         </div>
@@ -426,7 +455,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
           </div>
         ) : isError ? (
           <article className="rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
-            Não foi possível carregar as imagens. Tente de novo em instantes.
+            Não foi possível carregar os arquivos. Tente de novo em instantes.
           </article>
         ) : filtered.length === 0 ? (
           <EmptyWell heading={emptyHeading} body={emptyBody} />
@@ -435,6 +464,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
             {filtered.map((image) => {
               const description = image.description.trim()
               const open = openId === image.id
+              const pdf = isPdfImage(image)
               return (
                 <article key={image.id} className="group relative">
                   <button
@@ -448,11 +478,20 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                         open ? 'ring-2 ring-accent ring-offset-2' : '',
                       ].join(' ')}
                     >
-                      <SignedPhoto
-                        src={image.thumbUrl ?? image.signedUrl}
-                        fallbackSrc={image.signedUrl}
-                        alt={imageAlt(image)}
-                      />
+                      {pdf ? (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-accent-soft text-accent">
+                          <FileText size={32} />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-forest">
+                            PDF
+                          </span>
+                        </div>
+                      ) : (
+                        <SignedPhoto
+                          src={image.thumbUrl ?? image.signedUrl}
+                          fallbackSrc={image.signedUrl}
+                          alt={imageAlt(image)}
+                        />
+                      )}
                     </div>
                     <p
                       className={[
@@ -460,7 +499,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                         description ? 'text-ink' : 'text-muted',
                       ].join(' ')}
                     >
-                      {description || 'Sem descrição.'}
+                      {description || (pdf ? 'PDF sem descrição.' : 'Sem descrição.')}
                     </p>
                     <p className="mt-1 text-xs text-muted">{tileAllocation(image, sessions)}</p>
                   </button>
@@ -468,7 +507,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                     <div className="absolute right-1 top-1 flex opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                       <button
                         type="button"
-                        aria-label="Editar imagem"
+                        aria-label={pdf ? 'Editar PDF' : 'Editar imagem'}
                         onClick={() => setEditing(image)}
                         className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-surface/90 text-muted hover:text-forest"
                       >
@@ -476,7 +515,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                       </button>
                       <button
                         type="button"
-                        aria-label="Excluir imagem"
+                        aria-label={pdf ? 'Excluir PDF' : 'Excluir imagem'}
                         onClick={() => setPendingDelete(image)}
                         className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-surface/90 text-muted hover:text-error"
                       >
@@ -493,13 +532,40 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
 
       <Modal
         open={Boolean(openImage)}
-        title="Imagem"
+        title={openImage && isPdfImage(openImage) ? 'PDF' : 'Imagem'}
         onClose={() => setOpenId(null)}
         wide
       >
         {openImage ? (
           <div>
-            <SignedPhoto src={openImage.signedUrl} alt={imageAlt(openImage)} contain />
+            {isPdfImage(openImage) ? (
+              <div className="space-y-3">
+                {openImage.signedUrl ? (
+                  <iframe
+                    title={imageAlt(openImage)}
+                    src={openImage.signedUrl}
+                    className="h-[min(70vh,32rem)] w-full rounded-xl border border-line bg-canvas"
+                  />
+                ) : (
+                  <div className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-accent-soft text-accent">
+                    <FileText size={40} />
+                    <p className="text-sm text-forest">Não foi possível carregar o PDF.</p>
+                  </div>
+                )}
+                {openImage.signedUrl ? (
+                  <a
+                    href={openImage.signedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex text-sm font-medium text-accent underline-offset-2 hover:underline"
+                  >
+                    Abrir em nova aba
+                  </a>
+                ) : null}
+              </div>
+            ) : (
+              <SignedPhoto src={openImage.signedUrl} alt={imageAlt(openImage)} contain />
+            )}
             <p className="mt-4 text-sm text-ink">
               {openImage.description.trim() || 'Sem descrição.'}
             </p>
@@ -512,10 +578,12 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                   </Button>
                 ) : null}
                 <Button type="button" variant="secondary" onClick={() => setEditing(openImage)}>
-                  Editar imagem
+                  {isPdfImage(openImage) ? 'Editar PDF' : 'Editar imagem'}
                 </Button>
                 <Button type="button" variant="ghost" onClick={() => setPendingDelete(openImage)}>
-                  <span className="text-error">Excluir imagem</span>
+                  <span className="text-error">
+                    {isPdfImage(openImage) ? 'Excluir PDF' : 'Excluir imagem'}
+                  </span>
                 </Button>
               </div>
             ) : null}
@@ -526,8 +594,8 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
       {canWrite ? (
         <Modal
           open={uploadOpen}
-          title="Adicionar imagem"
-          description="JPEG, PNG ou WebP. Avulsa ou de uma sessão."
+          title="Adicionar arquivo"
+          description="JPEG, PNG, WebP ou PDF. Avulso ou de uma sessão."
           onClose={closeUpload}
         >
           <form className="space-y-4" onSubmit={uploadForm.handleSubmit(onUploadSubmit)}>
@@ -550,7 +618,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
               <input
                 ref={galleryInputRef}
                 type="file"
-                accept={IMAGE_ACCEPT}
+                accept={GALLERY_ACCEPT}
                 multiple
                 className="hidden"
                 onChange={onGalleryChange}
@@ -559,13 +627,13 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                 <input
                   ref={cameraInputRef}
                   type="file"
-                  accept={IMAGE_ACCEPT}
+                  accept={CAMERA_ACCEPT}
                   capture="environment"
                   className="hidden"
                   onChange={onCameraChange}
                 />
               ) : null}
-              <p className="text-xs text-muted">JPEG, PNG ou WebP · até 8 MB</p>
+              <p className="text-xs text-muted">JPEG, PNG, WebP ou PDF · até 8 MB</p>
               {fileError ? (
                 <p role="alert" className="text-xs text-error">
                   {fileError}
@@ -601,7 +669,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                 Voltar
               </Button>
               <Button type="submit" isLoading={uploadImages.isPending}>
-                Adicionar imagem
+                Adicionar
               </Button>
             </div>
           </form>
@@ -611,7 +679,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
       {canWrite ? (
         <Modal
           open={Boolean(editing)}
-          title="Editar imagem"
+          title={editing && isPdfImage(editing) ? 'Editar PDF' : 'Editar imagem'}
           description="Altere a descrição ou a sessão."
           onClose={closeEdit}
         >
@@ -644,9 +712,13 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
       {canWrite ? (
         <ConfirmDialog
           open={Boolean(pendingDelete)}
-          title="Excluir imagem"
-          description="A imagem será removida desta ficha."
-          confirmLabel="Excluir imagem"
+          title={pendingDelete && isPdfImage(pendingDelete) ? 'Excluir PDF' : 'Excluir imagem'}
+          description={
+            pendingDelete && isPdfImage(pendingDelete)
+              ? 'O PDF será removido desta ficha.'
+              : 'A imagem será removida desta ficha.'
+          }
+          confirmLabel={pendingDelete && isPdfImage(pendingDelete) ? 'Excluir PDF' : 'Excluir imagem'}
           cancelLabel="Voltar"
           tone="danger"
           isLoading={deleteImage.isPending}

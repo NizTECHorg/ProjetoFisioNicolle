@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { env } from '@/config/env'
 import {
   checkRateLimit,
   formatRetryAfter,
@@ -115,7 +116,7 @@ export async function signUpWithEmail(
             ? normalizeJoinCode(parsed.joinCode ?? '')
             : null,
       },
-      emailRedirectTo: `${window.location.origin}/`,
+      emailRedirectTo: `${env.appUrl}/`,
     },
   })
 

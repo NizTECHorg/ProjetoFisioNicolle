@@ -41,7 +41,7 @@ import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPain
 
 const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
-  { label: 'Evoluções', detail: 'Abrir aba', icon: Stethoscope, tab: 'evolucoes' as const },
+  { label: 'Seções', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
   { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
   { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
   { label: 'Documentos', detail: 'Em breve', icon: FileText, path: 'documentos' },
@@ -422,8 +422,8 @@ export function PatientPage() {
   const tab: PatientTab =
     aba === 'cadastro'
       ? 'cadastro'
-      : aba === 'evolucoes'
-        ? 'evolucoes'
+      : aba === 'secoes' || aba === 'evolucoes'
+        ? 'secoes'
         : aba === 'avaliacoes'
           ? 'avaliacoes'
           : aba === 'resumo-ia'
@@ -433,6 +433,14 @@ export function PatientPage() {
               : aba === 'imagens'
                 ? 'imagens'
                 : 'resumo'
+
+  // Normalize legacy ?aba=evolucoes → ?aba=secoes
+  useEffect(() => {
+    if (aba !== 'evolucoes') return
+    const next = new URLSearchParams(searchParams)
+    next.set('aba', 'secoes')
+    setSearchParams(next, { replace: true })
+  }, [aba, searchParams, setSearchParams])
 
   const {
     data: dashboard,
@@ -459,8 +467,8 @@ export function PatientPage() {
       setSearchParams({ aba: 'cadastro' }, { replace: true })
       return
     }
-    if (next === 'evolucoes') {
-      setSearchParams({ aba: 'evolucoes' }, { replace: true })
+    if (next === 'secoes') {
+      setSearchParams({ aba: 'secoes' }, { replace: true })
       return
     }
     if (next === 'avaliacoes') {
@@ -543,7 +551,7 @@ export function PatientPage() {
       <div className="mt-5 sm:mt-6">
         {tab === 'resumo' ? (
           <ResumoPanel patient={dashboard} detail={detail} canWrite={canWrite} />
-        ) : tab === 'evolucoes' ? (
+        ) : tab === 'secoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} canWrite={canWrite} />
         ) : tab === 'avaliacoes' ? (
           <PatientEvaluationPanel

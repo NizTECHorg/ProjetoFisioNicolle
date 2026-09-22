@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { GuestRoute, ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppShell } from '@/components/layout/AppShell'
+import { AuthConfirmPage } from '@/pages/auth/AuthConfirmPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { WaitingApprovalPage } from '@/pages/auth/WaitingApprovalPage'
@@ -23,6 +24,8 @@ export function AppRoutes() {
         <Route path="/cadastro" element={<RegisterPage />} />
       </Route>
 
+      {/* Público: verifyOtp por token_hash (confirm / recovery) — fora do GuestRoute */}
+      <Route path="/auth/confirm" element={<AuthConfirmPage />} />
       <Route path="/aguardando" element={<WaitingApprovalPage />} />
 
       <Route element={<ProtectedRoute />}>

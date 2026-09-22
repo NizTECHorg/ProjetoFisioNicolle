@@ -12,8 +12,8 @@ const MODULE_TITLES: Record<string, string> = {
 export function PatientModuleStubPage() {
   const { id, module } = useParams()
 
-  if (module === 'evolucoes' && id) {
-    return <Navigate to={`/pacientes/${id}?aba=evolucoes`} replace />
+  if ((module === 'secoes' || module === 'evolucoes') && id) {
+    return <Navigate to={`/pacientes/${id}?aba=secoes`} replace />
   }
 
   const title = (module && MODULE_TITLES[module]) || 'Módulo'

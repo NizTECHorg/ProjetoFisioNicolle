@@ -71,30 +71,32 @@
 
 1. Open **Authentication → Email Templates**.
 2. **Confirm sign up** (required):
-   - Subject: `Confirme sua conta na Fluxo`
-   - Body: paste the full HTML from  
-     `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html`
-   - Keep the Go variable exactly as `{{ .ConfirmationURL }}` (casing matters). Do not append query params.
-3. **Reset password** (same brand if recovery stays enabled):
-   - Subject: `Redefina sua senha na Fluxo`
-   - Body: paste from  
-     `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html`
-   - Same `{{ .ConfirmationURL }}` variable (Auth Recovery uses that name).
-4. **Invite User:** out of scope (D-05). Leave the default; do not document or paste invite HTML here.
-5. Save each template after paste.
+   - Subject: `Confirme sua conta Fluxo`
+   - Body: paste `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html`
+   - The CTA **must** be:
+     `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
+     Do **not** use only `{{ .ConfirmationURL }}` with PKCE — that fails when the user opens the mail in another browser/device than the one used to sign up.
+3. **Reset password** (if recovery stays enabled):
+   - Subject: `Redefina sua senha Fluxo`
+   - Body: paste `templates/reset-password.html`
+   - CTA: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
+4. **Invite User:** leave untouched.
+5. Save. SPA route `/auth/confirm` runs `supabase.auth.verifyOtp({ token_hash, type })`.
+
+**Inbox vs spam:** Personal Gmail SMTP often lands in spam. Ask recipients to mark “Não é spam”; later Brevo / domain SPF-DKIM.
 
 ---
 
 ## 4. Site URL / Redirect URLs
 
-The SPA sets `emailRedirectTo` to `${window.location.origin}/` (see `src/services/auth.service.ts`). Allow-list must match.
-
-1. Open **Authentication → URL Configuration**.
-2. **Site URL:** production origin of the Fluxo SPA (e.g. `https://<your-prod-host>`).
-3. **Redirect URLs** — include at least:
-   - Production: `https://<your-prod-host>/` (and bare origin if your host requires both)
-   - Local Vite: `http://localhost:5173/` (and `http://localhost:5173` if needed)
-4. Confirm the confirm-link redirect lands on the SPA origin with `/` so PKCE + `detectSessionInUrl` can finish the session. No custom `/auth/confirm` route is required.
+1. **Authentication → URL Configuration**
+2. **Site URL:** `https://fluxofisio.vercel.app` (no trailing path)
+3. **Redirect URLs** include:
+   - `https://fluxofisio.vercel.app`
+   - `https://fluxofisio.vercel.app/**`
+   - `https://fluxofisio.vercel.app/auth/confirm`
+   - Local (optional): `http://localhost:5173/**`
+4. After changing templates/Site URL, send a **new** signup e-mail (old links keep the old href).
 
 ---
 
@@ -147,12 +149,38 @@ When all required rows pass, Phase 15 UAT for REQ-27 can proceed to verify-work.
 
 ---
 
+## 9. Troubleshooting — signup returns HTTP 500
+
+If **Criar conta** fails with `500` right after enabling Custom SMTP, Auth could not send the confirmation e-mail. The account create call fails when mail delivery fails.
+
+**Immediate restore (unblocks signup):**
+
+1. Dashboard → Authentication → SMTP → **disable Custom SMTP** (or clear bad Host/User/Pass) → Save.
+2. Retry signup. Default Supabase mail should work again (may land in spam; From won’t be Fluxo yet).
+
+**Then fix SMTP before re-enabling:**
+
+| Check | Correct value |
+|-------|----------------|
+| Host | Exact `smtp.gmail.com` — **not** the placeholder `your.smtp.host.com` |
+| Port | Prefer `587`; `465` also OK |
+| Username | Same as Sender email (`arturtenca1@gmail.com`) |
+| Password | Google **App Password** (16 chars). Not the normal Gmail password. Paste without spaces. |
+| Sender email | Must equal the Gmail account that owns the App Password |
+| 2FA | Required on the Google account before App Passwords appear |
+
+Also open **Logs → Auth** in the Dashboard after a failed signup — look for SMTP / “error sending confirmation email”.
+
+Do **not** leave Custom SMTP ON with incomplete Host/Username/Password: that breaks every new registration.
+
+---
+
 ## Template file map
 
 | Dashboard template | Repo file | Recommended subject |
 |--------------------|-----------|---------------------|
-| Confirm sign up | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html` | Confirme sua conta na Fluxo |
-| Reset password | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html` | Redefina sua senha na Fluxo |
+| Confirm sign up | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html` | Confirme sua conta Fluxo |
+| Reset password | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html` | Redefina sua senha Fluxo |
 
 ## References
 

@@ -8,11 +8,11 @@ import { Input } from '@/components/ui/Input'
 import { loginSchema, type LoginFormData } from '@/schemas/auth.schema'
 import { safeRedirectPath } from '@/lib/security'
 import { signInWithEmail } from '@/services/auth.service'
+import { toast } from '@/stores/toast.store'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
   const from = safeRedirectPath(
@@ -32,13 +32,11 @@ export function LoginPage() {
   })
 
   async function onSubmit(data: LoginFormData) {
-    setServerError(null)
-
     try {
       await signInWithEmail(data)
       navigate(from, { replace: true })
     } catch (error) {
-      setServerError(error instanceof Error ? error.message : 'Erro ao entrar.')
+      toast(error instanceof Error ? error.message : 'Erro ao entrar.', 'error')
     }
   }
 
@@ -56,15 +54,6 @@ export function LoginPage() {
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate autoComplete="off">
-        {serverError && (
-          <div
-            role="alert"
-            className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
-          >
-            {serverError}
-          </div>
-        )}
-
         <Input
           label="E-mail"
           type="email"

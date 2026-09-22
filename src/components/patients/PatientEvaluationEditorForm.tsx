@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/Button'
@@ -16,6 +16,7 @@ import {
   type EvaluationFormData,
 } from '@/schemas/evaluation.schema'
 import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
+import { toast } from '@/stores/toast.store'
 import type { ToastAction } from '@/stores/toast.store'
 import type { PatientEvaluation } from '@/types/evaluation'
 
@@ -127,20 +128,55 @@ export function PatientEvaluationEditorForm({
   const form = useForm<EvaluationFormData>({
     resolver: zodResolver(evaluationFormSchema) as Resolver<EvaluationFormData>,
     defaultValues: emptyEvaluationForm(),
+    shouldUnregister: false,
   })
 
+  const editingId = editing?.id ?? null
+  const initializedForKey = useRef<string | null>(null)
+  const editorKey = editingId ?? `create:${draft ? 'draft' : 'blank'}`
+
+  // Reset only when switching create/edit/draft — NOT when patientSnapshot object identity changes
+  // (parent rebuilds snapshot every render and was wiping typed fields before save).
   useEffect(() => {
+    if (initializedForKey.current === editorKey) return
+    initializedForKey.current = editorKey
+
     if (editing) {
       form.reset(valuesFromEvaluation(editing))
       return
     }
     const base = draft ?? emptyEvaluationForm()
     form.reset(prefillIdentification(base, patientSnapshot))
-  }, [draft, editing, form, patientSnapshot])
+  }, [draft, editing, editorKey, form, patientSnapshot])
+
+  // Late-arriving patient snapshot: prefill identity only while form still pristine.
+  useEffect(() => {
+    if (editing || !patientSnapshot) return
+    if (form.formState.isDirty) return
+    const current = form.getValues()
+    const id = current.ficha?.anamnese?.identificacao
+    const alreadyNamed = Boolean(id?.nomeCompleto?.trim())
+    if (alreadyNamed) return
+    form.reset(prefillIdentification(current, patientSnapshot))
+  }, [editing, form, patientSnapshot])
+
+  function firstErrorMessage(errors: unknown, prefix = ''): string | null {
+    if (!errors || typeof errors !== 'object') return null
+    const record = errors as Record<string, { message?: string } | Record<string, unknown>>
+    for (const [key, value] of Object.entries(record)) {
+      if (!value || typeof value !== 'object') continue
+      if (typeof (value as { message?: string }).message === 'string') {
+        return (value as { message: string }).message
+      }
+      const nested = firstErrorMessage(value, prefix ? `${prefix}.${key}` : key)
+      if (nested) return nested
+    }
+    return null
+  }
 
   function onSubmit(values: EvaluationFormData) {
     const therapist = therapists.find((item) => item.id === values.therapistId)
-    const ficha = values.ficha
+    const ficha = values.ficha ?? emptyEvaluationFicha()
     const input = {
       performedOn: values.performedOn,
       ficha,
@@ -167,11 +203,18 @@ export function PatientEvaluationEditorForm({
     createEvaluation.mutate(input, { onSuccess })
   }
 
+  function onInvalid() {
+    const message =
+      firstErrorMessage(form.formState.errors) ??
+      'Revise os campos da ficha e tente salvar de novo.'
+    toast(message, 'error')
+  }
+
   const saving = createEvaluation.isPending || updateEvaluation.isPending
   const performedOnValid = /^\d{4}-\d{2}-\d{2}$/.test(form.watch('performedOn') ?? '')
 
   return (
-    <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+    <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit, onInvalid)}>
       {showInnerHeading ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -186,6 +229,11 @@ export function PatientEvaluationEditorForm({
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <Input
+          label="Nome da avaliação"
+          placeholder="Ex.: Avaliação inicial, Reavaliação 30 dias…"
+          {...form.register('ficha.titulo')}
+        />
         <Input
           label="Data da avaliação"
           type="date"

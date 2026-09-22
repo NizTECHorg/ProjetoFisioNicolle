@@ -38,12 +38,13 @@ export function filterPatientsByName(
 
 /**
  * Deep-link to the ficha tab used by Ver ficha (D-03).
- * PatientPage reads aba=evolucoes | aba=avaliacoes | aba=resumo-ia | aba=avaliacao (legacy alias).
+ * PatientPage reads aba=secoes | aba=avaliacoes | aba=resumo-ia | aba=avaliacao (legacy alias).
+ * Legacy `aba=evolucoes` still opens the Seções tab.
  * Pass `{ nova: true }` to open the create composer once (`nova=1`).
  */
 export function patientFichaPath(
   patientId: string,
-  aba: 'evolucoes' | 'resumo-ia' | 'avaliacao' | 'avaliacoes',
+  aba: 'secoes' | 'resumo-ia' | 'avaliacao' | 'avaliacoes',
   opts?: { nova?: boolean },
 ): string {
   const params = new URLSearchParams({ aba })

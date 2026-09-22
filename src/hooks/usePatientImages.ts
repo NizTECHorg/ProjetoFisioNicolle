@@ -36,8 +36,8 @@ export function useUploadPatientImages(patientId: string) {
     }) => uploadPatientImages(patientId, files, { sessionId, description }),
     onSuccess: (data) => {
       invalidatePatient(qc, patientId)
-      if (data.length === 1) toast('Imagem adicionada', 'success')
-      if (data.length > 1) toast('Imagens adicionadas', 'success')
+      if (data.length === 1) toast('Arquivo adicionado', 'success')
+      if (data.length > 1) toast('Arquivos adicionados', 'success')
     },
     onError,
   })
@@ -63,7 +63,7 @@ export function useDeletePatientImage(patientId: string) {
       deletePatientImage(patientId, image),
     onSuccess: () => {
       invalidatePatient(qc, patientId)
-      toast('Imagem excluída', 'success')
+      toast('Arquivo excluído', 'success')
     },
     onError,
   })
