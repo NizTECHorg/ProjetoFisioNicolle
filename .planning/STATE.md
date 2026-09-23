@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase_15_planned
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-09-23T22:56:26.869Z"
+stopped_at: Completed 15-03-PLAN.md
+last_updated: "2026-09-23T23:01:38.518Z"
 progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 59
-  completed_plans: 49
+  completed_plans: 50
   percent: 40
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 15 (email-fluxo-confirmacao-conta) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
-- Status: 15-02 complete (production redirect + implicit flow); next 15-03 ConfirmationURL templates
-- Progress: emailRedirectTo pinned to production; spent-link copy shipped; templates and Dashboard UAT remain
+- Status: 15-03 complete (bare ConfirmationURL templates + production runbook); next 15-04 Dashboard apply and new cadastro UAT
+- Progress: templates and runbook name https://fluxofisio.vercel.app; live Dashboard paste and UAT remain
 
-**Progress:** [████████░░] 83%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -132,6 +132,9 @@ Plan: 2 of 4
 - [Phase 15]: emailRedirectTo origin is https://fluxofisio.vercel.app unless VITE_APP_URL is https and non-local — D-07 bug 1: localhost and http overrides are rejected on purpose
 - [Phase 15]: flowType stays implicit so GoTrue verify confirms without a PKCE code verifier — D-07 bug 2: PKCE rolled confirmation back when the mail opened on another device
 - [Phase 15]: Spent confirm links tell the user to enter with e-mail and senha — otp_expired and access_denied are an already-used link, not a dead error
+- [Phase 15]: Confirm and reset CTAs are a bare ConfirmationURL, including a visible fallback line, so GoTrue verifies before any redirect — GoTrue confirms on /auth/v1/verify before the redirect, so the href must not be built from the Dashboard Site URL
+- [Phase 15]: Site URL is https://fluxofisio.vercel.app and the allow-list is only that origin, the wildcard, and /auth/confirm — An unlisted redirect_to falls back to the Site URL; local entries would keep bug 1 alive
+- [Phase 15]: Links mailed before this fix stay invalid; the operator must run a new cadastro — D-07: old confirm messages keep the broken href and must not be reused for UAT
 
 ### Pending user action
 
@@ -150,8 +153,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-23T22:56:26.849Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-09-23T23:01:11.504Z
+Stopped at: Completed 15-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -180,3 +183,4 @@ Resume file: None
 | Phase 08 P02 | 6min | 2 tasks | 2 files |
 | Phase 15 P01 | 2min | 2 tasks | 3 files |
 | Phase 15 P02 | 3min | 2 tasks | 4 files |
+| Phase 15 P03 | 3min | 2 tasks | 3 files |

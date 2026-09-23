@@ -440,7 +440,7 @@ Plans:
   5. Runbook no repo documenta SMTP + templates + URL configuration no Dashboard
   6. Reset de senha (se ativo) segue a mesma marca; convites de equipe fora
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 **UI hint:** no
 
 Plans:
@@ -449,7 +449,7 @@ Plans:
 
 - [x] 15-01-PLAN.md — Runbook + paste-ready Confirm/Reset Fluxo HTML templates
 - [x] 15-02-PLAN.md — Origem de produção fixa no emailRedirectTo + fluxo implícito travado
-- [ ] 15-03-PLAN.md — Templates com ConfirmationURL puro + runbook corrigido (Site URL, Vercel, UAT)
+- [x] 15-03-PLAN.md — Templates com ConfirmationURL puro + runbook corrigido (Site URL, Vercel, UAT)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
