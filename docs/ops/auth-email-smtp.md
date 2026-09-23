@@ -153,13 +153,13 @@ Never commit App Passwords, Brevo SMTP keys, or Management API tokens. Templates
 
 | ID | Check | Pass | Fail | Notes |
 |----|--------|:----:|:----:|-------|
-| REQ-27.1 | CTA host in the received message is the Supabase project domain; the landing URL is `https://fluxofisio.vercel.app/auth/confirm`; the link contains no localhost | | | |
-| REQ-27.2 | Clicking from a phone, or from a browser other than the one used to sign up, lands on the Fluxo confirm screen | | | |
-| REQ-27.3 | Dashboard → Authentication → Users shows the new account with its confirmation timestamp filled | | | |
-| REQ-27.4 | Signing out and signing in with that e-mail and password succeeds | | | |
-| REQ-27.5 | The message shows the Fluxo brand and the operator From address (`Fluxo` + `<OPERATOR_EMAIL>`) | | | |
-| REQ-27.6 | Reset password template is Fluxo-branded; **Invite User** is untouched | | | |
-| REQ-27.7 | No SMTP secret appears in git (placeholders only, including `<APP_PASSWORD>`) | | | |
+| REQ-27.1 | CTA host in the received message is the Supabase project domain; the landing URL is `https://fluxofisio.vercel.app/auth/confirm`; the link contains no localhost | Pass | | Operador respondeu `approved` em 2026-09-23. Não informou timestamp, aparelho nem o resultado separado do login. |
+| REQ-27.2 | Clicking from a phone, or from a browser other than the one used to sign up, lands on the Fluxo confirm screen | Pass | | Operador respondeu `approved` em 2026-09-23. Não informou timestamp, aparelho nem o resultado separado do login. |
+| REQ-27.3 | Dashboard → Authentication → Users shows the new account with its confirmation timestamp filled | Pass | | Operador respondeu `approved` em 2026-09-23. Não informou o timestamp exibido. |
+| REQ-27.4 | Signing out and signing in with that e-mail and password succeeds | Pass | | Operador respondeu `approved` em 2026-09-23. Não descreveu o login em separado. |
+| REQ-27.5 | The message shows the Fluxo brand and the operator From address (`Fluxo` + `<OPERATOR_EMAIL>`) | Pass | | Operador respondeu `approved` em 2026-09-23. E-mail registrado só como `<OPERATOR_EMAIL>`. |
+| REQ-27.6 | Reset password template is Fluxo-branded; **Invite User** is untouched | Pass | | Operador respondeu `approved` em 2026-09-23. |
+| REQ-27.7 | No SMTP secret appears in git (placeholders only, including `<APP_PASSWORD>`) | Pass | | Operador respondeu `approved` em 2026-09-23. Nenhuma senha foi enviada na resposta. |
 
 When all required rows pass, Phase 15 UAT for REQ-27 can proceed to verify-work.
 

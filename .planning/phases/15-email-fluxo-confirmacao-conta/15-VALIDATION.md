@@ -1,8 +1,8 @@
 ---
 phase: 15
 slug: email-fluxo-confirmacao-conta
-status: draft
-nyquist_compliant: false
+status: recorded
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-09-21
 ---
@@ -40,9 +40,13 @@ Do **not** install Vitest/Playwright for this phase — SMTP/templates are Dashb
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 15-01-* | 01 | 1 | REQ-27.4 | T-15-01 | No secrets in runbook | doc | file exists under `docs/ops/` | ❌ | ⬜ pending |
-| 15-02-* | 02 | 2 | REQ-27.1–3,5 | T-15-02 | SMTP creds Dashboard-only | manual UAT | register → inbox → confirm link | ❌ | ⬜ pending |
-| 15-03-* | 03 | 3 | REQ-27 | — | Optional RegisterPage copy only | typecheck | `npm run typecheck` | ✅ | ⬜ pending |
+| 15-02-01 | 02 | 1 | REQ-27 | T-15-41 | Production origin only | grep + typecheck | `grep PRODUCTION_APP_URL` + `npm run typecheck` | ✅ | ✅ green |
+| 15-02-02 | 02 | 1 | REQ-27 | T-15-44 | Implicit confirm, no PKCE verifier | lint + typecheck | `grep flowType: 'implicit'` + `npm run lint && npm run typecheck` | ✅ | ✅ green |
+| 15-03-01 | 03 | 1 | REQ-27 | T-15-40 | Bare ConfirmationURL CTA | grep | template gate `TEMPLATES_OK` | ✅ | ✅ green |
+| 15-03-02 | 03 | 1 | REQ-27 | T-15-43 | Runbook without secrets or SiteURL CTA | grep | runbook gate `RUNBOOK_OK` | ✅ | ✅ green |
+| 15-04-01 | 04 | 2 | REQ-27 | T-15-41 | Deploy gate, no source edits | lint + build | `npm run lint && npm run build` | ✅ | ✅ green |
+| 15-04-02 | 04 | 2 | REQ-27 | T-15-40 | Live cadastro human gate | manual | runbook section 8 | ✅ | ✅ green |
+| 15-04-03 | 04 | 2 | REQ-27 | T-15-43 | UAT recorded from the operator reply | lint + typecheck | `npm run lint && npm run typecheck` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -60,10 +64,8 @@ Existing infrastructure covers lint/typecheck. No new test framework.
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Confirm email shows Fluxo brand/copy | REQ-27.1 | Dashboard template + real SMTP | Register with real inbox; check From + body |
-| From is operator address | REQ-27.2 | SMTP Dashboard config | Inspect From header; change SMTP without redeploy |
-| Confirm link completes account flow | REQ-27.3 | Live Auth + PKCE | Click link → session → account-type paths |
-| Reset password branded | REQ-27.5 | Dashboard template | Trigger reset if enabled; Invite User untouched |
+| Confirm link host, landing URL, second device, timestamp, password sign-in, From, Invite User | REQ-27.1–27.6 | Live Dashboard + inbox | `docs/ops/auth-email-smtp.md` section 8 |
+| No SMTP secret in git | REQ-27.7 | Operator checks the working tree | Placeholders only, including `<APP_PASSWORD>` |
 
 ---
 
@@ -74,6 +76,6 @@ Existing infrastructure covers lint/typecheck. No new test framework.
 - [x] Wave 0: no Vitest install required
 - [x] No watch-mode flags
 - [x] Feedback latency < 60s for typecheck
-- [ ] `nyquist_compliant: true` set after plans map tasks (planner/checker)
+- [x] `nyquist_compliant: true` set after plans 02–04 mapped automated commands and the UAT rows were marked from the operator reply
 
-**Approval:** pending
+**Approval:** operator replied `approved` on 2026-09-23 without a confirmation timestamp, click device, or a separate sign-in sentence
