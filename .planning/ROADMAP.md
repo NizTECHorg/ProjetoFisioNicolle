@@ -21,6 +21,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 13: PDF Avaliação / Evolução** — Seções de export, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
 - [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
+- [ ] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG
 
 ## Phase Details
 
@@ -454,3 +455,13 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 15-04-PLAN.md — Deploy + Dashboard apply + UAT do cadastro novo (gate humano)
+
+### Phase 16: Foto do paciente
+
+**Goal:** Na ficha e nas listas, a foto do paciente aceita PNG ou JPEG: o hover mostra um ícone de câmera e o clique abre a escolha do arquivo. Sem foto, continuam as iniciais.
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 16 to break down)
