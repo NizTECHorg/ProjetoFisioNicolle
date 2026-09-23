@@ -435,15 +435,17 @@ Plans:
 
   1. Cadastro dispara e-mail de confirmação com marca/copy Fluxo
   2. Remetente é endereço próprio do operador (SMTP custom no Supabase)
-  3. Link de confirmação completa o fluxo de conta existente
-  4. Runbook no repo documenta SMTP + templates no Dashboard
-  5. Reset de senha (se ativo) segue a mesma marca; convites de equipe fora
+  3. Link de confirmação abre https://fluxofisio.vercel.app (nunca localhost) e confirma a conta
+  4. Depois do clique, o usuário entra com e-mail e senha (email_confirmed_at preenchido)
+  5. Runbook no repo documenta SMTP + templates + URL configuration no Dashboard
+  6. Reset de senha (se ativo) segue a mesma marca; convites de equipe fora
 
-**Plans**: 3 plans
+**Plans**: 4 plans
 **UI hint:** no
 
 Plans:
 
 - [x] 15-01-PLAN.md — Runbook + paste-ready Confirm/Reset Fluxo HTML templates
-- [ ] 15-02-PLAN.md — Human Dashboard apply (Custom SMTP + templates + UAT)
-- [ ] 15-03-PLAN.md — Optional RegisterPage Fluxo copy + validation wire
+- [ ] 15-02-PLAN.md — Origem de produção fixa no emailRedirectTo + fluxo implícito travado
+- [ ] 15-03-PLAN.md — Templates com ConfirmationURL puro + runbook corrigido (Site URL, Vercel, UAT)
+- [ ] 15-04-PLAN.md — Deploy + Dashboard apply + UAT do cadastro novo (gate humano)

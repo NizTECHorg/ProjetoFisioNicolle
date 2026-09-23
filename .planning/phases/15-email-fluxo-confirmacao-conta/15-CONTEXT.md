@@ -36,6 +36,14 @@ Alterar código da SPA só se necessário para: copy pós-cadastro alinhada ao n
 ### D-06 — Documentação operacional entregue no repo
 Runbook em `.planning/` ou `docs/` (escolha do planner): passos Dashboard (SMTP host/port/user/pass, From name “Fluxo”, From email), variáveis de template (`{{ .ConfirmationURL }}` etc.), checklist de teste de cadastro real.
 
+### D-07 — Replanejamento 2026-09-23 (do zero): dois bugs bloqueiam o app
+O fluxo que já confirmava a conta quebrou depois da personalização. Refazer o plano do zero. Não continuar o desenho que produz estes dois erros:
+
+1. **O link do e-mail ainda abre localhost.** O destino obrigatório é `https://fluxofisio.vercel.app` (e `/auth/confirm` só se o clique confirmar a conta nesse host). Proibido `window.location.origin`, `localhost` e `127.0.0.1` em `emailRedirectTo`, Site URL documentada e href do template.
+2. **O clique não autentica a conta nova.** Depois do botão, `email_confirmed_at` tem de ficar preenchido e o usuário tem de conseguir entrar com e-mail e senha. O plano anterior (PKCE + `ConfirmationURL`, ou `token_hash` que não confirma) não pode ser repetido se esse foi o motivo da falha. O comportamento que funcionava antes da customização é o critério: clicar no e-mail autoriza a conta.
+
+E-mails já enviados no fluxo quebrado ficam inválidos. O plano deve exigir um cadastro novo depois da correção.
+
 ### Claude's Discretion
 - Provedor SMTP concreto (Gmail App Password vs Resend vs outro) — research recomenda; execução usa o que o operador tiver
 - Layout HTML do template (simples, tipografia clara, CTA único; sem overdesign)
