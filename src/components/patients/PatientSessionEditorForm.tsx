@@ -157,7 +157,7 @@ export function PatientSessionEditorForm({
       scheduledAt: defaultScheduledLocal(),
       sessionType: 'Sessão',
       place: '',
-      therapistId: therapists[0]?.id ?? '',
+      therapistId: '',
       patientState: '',
       changesSinceLast: '',
       conducts: '',
@@ -170,18 +170,13 @@ export function PatientSessionEditorForm({
 
   function onSubmit(values: SessionFormData) {
     const therapist = therapists.find((item) => item.id === values.therapistId)
-    if (!therapist) {
-      form.setError('therapistId', { message: 'Selecione o profissional' })
-      return
-    }
-
     const input = {
       mode: values.mode,
       scheduledAt: fromDatetimeLocalValue(values.scheduledAt),
       sessionType: values.sessionType,
       place: values.place,
-      therapistId: therapist.id,
-      therapistName: therapist.fullName,
+      therapistId: therapist?.id ?? null,
+      therapistName: therapist?.fullName ?? '',
       patientState: values.patientState,
       changesSinceLast: values.changesSinceLast,
       conducts: values.conducts,
@@ -255,13 +250,14 @@ export function PatientSessionEditorForm({
         </button>
       </div>
 
+      <Input
+        label="Data e horário"
+        type="datetime-local"
+        error={form.formState.errors.scheduledAt?.message}
+        {...form.register('scheduledAt')}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input
-          label="Data e horário"
-          type="datetime-local"
-          error={form.formState.errors.scheduledAt?.message}
-          {...form.register('scheduledAt')}
-        />
         <Select
           label="Profissional"
           options={therapistOptions}
@@ -279,6 +275,9 @@ export function PatientSessionEditorForm({
           {...form.register('place')}
         />
       </div>
+      <p className="text-sm text-muted">
+        Esses campos são opcionais. Dá para salvar só com a data e completar o restante depois.
+      </p>
 
       {showFinance ? (
         <div className="space-y-4">
@@ -343,50 +342,49 @@ export function PatientSessionEditorForm({
         </div>
       ) : null}
 
-      {mode === 'realizada' ? (
-        <div className="space-y-4 border-t border-line pt-4">
-          <Textarea
-            label="Estado do paciente"
-            rows={3}
-            error={form.formState.errors.patientState?.message}
-            {...form.register('patientState')}
-          />
-          <Textarea
-            label="Condutas realizadas"
-            rows={3}
-            error={form.formState.errors.conducts?.message}
-            {...form.register('conducts')}
-          />
-          <Textarea
-            label="Mudanças desde a última sessão"
-            rows={2}
-            error={form.formState.errors.changesSinceLast?.message}
-            {...form.register('changesSinceLast')}
-          />
-          <Textarea
-            label="Resposta ao tratamento"
-            rows={2}
-            error={form.formState.errors.treatmentResponse?.message}
-            {...form.register('treatmentResponse')}
-          />
-          <Textarea
-            label="Intercorrências"
-            rows={2}
-            error={form.formState.errors.incidents?.message}
-            {...form.register('incidents')}
-          />
-          <Textarea
-            label="Planejamento"
-            rows={2}
-            error={form.formState.errors.nextPlan?.message}
-            {...form.register('nextPlan')}
-          />
-        </div>
-      ) : (
+      <div className="space-y-4 border-t border-line pt-4">
         <p className="text-sm text-muted">
-          Esta sessão ficará agendada e aparecerá na Agenda.
+          {mode === 'realizada'
+            ? 'A evolução é opcional. A sessão realizada entra na Agenda e na atividade do dashboard mesmo sem estes textos.'
+            : 'A evolução é opcional. A sessão agendada entra na Agenda e na atividade do dashboard mesmo sem estes textos.'}
         </p>
-      )}
+        <Textarea
+          label="Estado do paciente"
+          rows={3}
+          error={form.formState.errors.patientState?.message}
+          {...form.register('patientState')}
+        />
+        <Textarea
+          label="Condutas realizadas"
+          rows={3}
+          error={form.formState.errors.conducts?.message}
+          {...form.register('conducts')}
+        />
+        <Textarea
+          label="Mudanças desde a última sessão"
+          rows={2}
+          error={form.formState.errors.changesSinceLast?.message}
+          {...form.register('changesSinceLast')}
+        />
+        <Textarea
+          label="Resposta ao tratamento"
+          rows={2}
+          error={form.formState.errors.treatmentResponse?.message}
+          {...form.register('treatmentResponse')}
+        />
+        <Textarea
+          label="Intercorrências"
+          rows={2}
+          error={form.formState.errors.incidents?.message}
+          {...form.register('incidents')}
+        />
+        <Textarea
+          label="Planejamento"
+          rows={2}
+          error={form.formState.errors.nextPlan?.message}
+          {...form.register('nextPlan')}
+        />
+      </div>
 
       <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>

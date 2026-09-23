@@ -2508,7 +2508,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
   const generatedAt = formatGeneratedAt()
   const docTitle = docTitleFor(input)
-  const patientLine = `${input.name}  ·  ${input.code}`
+  const patientLine = input.name
 
   const ctx: DrawContext = {
     doc,

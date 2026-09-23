@@ -74,6 +74,16 @@ export function mapAuthError(error: { message?: string; status?: number }): stri
   }
 
   if (
+    message.includes('email link is invalid') ||
+    message.includes('otp has expired') ||
+    message.includes('token has expired') ||
+    message.includes('otp expired') ||
+    (message.includes('invalid') && message.includes('expired'))
+  ) {
+    return 'Este link de confirmação expirou ou já foi usado. Cadastre-se de novo para receber outro e-mail.'
+  }
+
+  if (
     message.includes('user already registered') ||
     message.includes('already been registered') ||
     message.includes('email address has already been registered') ||

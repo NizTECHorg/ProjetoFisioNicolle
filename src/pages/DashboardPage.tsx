@@ -63,9 +63,8 @@ function countsAsMonthSession(status: SessionStatus) {
   return status !== 'cancelada'
 }
 
-function countsInActivity(status: SessionStatus, isCurrentWeek: boolean) {
-  if (isCurrentWeek) return status === 'confirmada'
-  return status === 'confirmada' || status === 'realizada'
+function countsInActivity(status: SessionStatus) {
+  return status === 'agendada' || status === 'confirmada' || status === 'realizada'
 }
 
 function monthDelta(current: number, previous: number) {
@@ -288,7 +287,7 @@ export function DashboardPage() {
       const date = addDays(ranges.weekStart, index)
       const value = sessions.filter(
         (session) =>
-          sameDay(new Date(session.scheduledAt), date) && countsInActivity(session.status, isCurrentWeek),
+          sameDay(new Date(session.scheduledAt), date) && countsInActivity(session.status),
       ).length
       return { day, value }
     })
@@ -331,7 +330,7 @@ export function DashboardPage() {
       upcoming,
       statusCards,
     }
-  }, [isCurrentWeek, patients, ranges, sessions])
+  }, [patients, ranges, sessions])
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col lg:min-h-0 lg:flex-1">
@@ -428,9 +427,7 @@ export function DashboardPage() {
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold text-ink">Atividade</h2>
                   <p className="mt-1 text-xs text-muted">
-                    {isCurrentWeek
-                      ? 'Sessões confirmadas da semana · passe o mouse nos pontos'
-                      : 'Sessões confirmadas e realizadas · passe o mouse nos pontos'}
+                    Sessões agendadas, confirmadas e realizadas · passe o mouse nos pontos
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">

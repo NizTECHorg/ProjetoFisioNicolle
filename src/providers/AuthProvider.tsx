@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
+import { confirmFromInitialUrl, initialUrlHasAuthCallback } from '@/lib/auth/confirmCallback'
 import { fetchProfile, signOut as authSignOut } from '@/services/auth.service'
 import { fetchMembership } from '@/services/team.service'
 import { isPendingTherapist } from '@/lib/accountAccess'
@@ -21,11 +22,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true
 
-    void supabase.auth.getSession().then(({ data }) => {
+    void (async () => {
+      if (initialUrlHasAuthCallback()) {
+        await confirmFromInitialUrl()
+      }
+      const { data } = await supabase.auth.getSession()
       if (!mounted) return
       setSession(data.session)
       setSessionLoaded(true)
-    })
+    })()
 
     // IMPORTANTE: este callback precisa ser síncrono. Fazer await de consultas
     // ao banco aqui causa deadlock no lock interno de auth do supabase-js

@@ -60,7 +60,7 @@ export interface SessionEvolution {
   createdByName: string | null
 }
 
-/** Sessão na aba Seções (com profissional e evolução quando houver). */
+/** Sessão na aba Sessões (com profissional e evolução quando houver). */
 export interface PatientSessionRecord {
   id: string
   patientId: string
@@ -125,7 +125,7 @@ export interface UpsertPatientSessionInput {
   scheduledAt: string
   sessionType?: string
   place?: string
-  therapistId: string
+  therapistId: string | null
   therapistName: string
   patientState?: string
   changesSinceLast?: string

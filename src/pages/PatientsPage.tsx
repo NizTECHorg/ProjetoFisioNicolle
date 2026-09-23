@@ -161,7 +161,6 @@ export function PatientsPage() {
                             {fichaDe ? (
                               <span className="block text-xs text-muted">{fichaDe}</span>
                             ) : null}
-                            <span className="block text-xs text-muted">{patient.code}</span>
                           </span>
                         </div>
                       </td>

@@ -56,11 +56,6 @@ export const createPatientSchema = z.object({
 
 export const updatePatientSchema = createPatientSchema.extend({
   status: patientStatusSchema,
-  code: z
-    .string()
-    .trim()
-    .min(3, 'Código muito curto')
-    .max(20, 'Código muito longo'),
 })
 
 export const identityPatientSchema = z.object({
@@ -72,11 +67,6 @@ export const identityPatientSchema = z.object({
   phone: optionalText(30),
   email: optionalEmail,
   birthDate: optionalDate,
-  code: z
-    .string()
-    .trim()
-    .min(3, 'Código muito curto')
-    .max(20, 'Código muito longo'),
   status: patientStatusSchema,
 })
 
@@ -168,7 +158,7 @@ export const sessionFormSchema = z
     scheduledAt: z.string().trim().min(1, 'Informe data e horário'),
     sessionType: optionalText(80),
     place: optionalText(80),
-    therapistId: z.string().uuid('Selecione o profissional'),
+    therapistId: z.string(),
     patientState: optionalText(4000),
     changesSinceLast: optionalText(4000),
     conducts: optionalText(4000),
@@ -180,22 +170,6 @@ export const sessionFormSchema = z
     isPaid: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    if (data.mode === 'realizada') {
-      if (!data.patientState.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Informe o estado do paciente',
-          path: ['patientState'],
-        })
-      }
-      if (!data.conducts.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Informe as condutas realizadas',
-          path: ['conducts'],
-        })
-      }
-    }
     const hasCatalog = Boolean(data.priceId)
     const hasAdHoc = data.adHocAmount.trim() !== ''
     if (hasCatalog && hasAdHoc) {

@@ -1,70 +1,48 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import type { EmailOtpType } from '@supabase/supabase-js'
+import { Link, useNavigate } from 'react-router-dom'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { Button } from '@/components/ui/Button'
-import { supabase } from '@/lib/supabase/client'
-import { mapAuthError } from '@/lib/security'
+import { confirmFromInitialUrl } from '@/lib/auth/confirmCallback'
 import { toast } from '@/stores/toast.store'
 
-const OTP_TYPES = new Set<EmailOtpType>([
-  'signup',
-  'invite',
-  'magiclink',
-  'recovery',
-  'email_change',
-  'email',
-])
-
-function parseOtpType(value: string | null): EmailOtpType | null {
-  if (!value) return null
-  return OTP_TYPES.has(value as EmailOtpType) ? (value as EmailOtpType) : null
-}
-
 /**
- * Confirma e-mail / recovery via token_hash (não depende do PKCE do browser do cadastro).
- * Link do template: /auth/confirm?token_hash={{ .TokenHash }}&type=email
+ * Confirma e-mail / recovery.
+ * Link do template: /auth/confirm?token_hash={{ .TokenHash }}&type=signup
+ * O redirect do Supabase (fluxo implícito) também cai aqui com o hash da sessão.
  */
 export function AuthConfirmPage() {
-  const [params] = useSearchParams()
   const navigate = useNavigate()
   const [status, setStatus] = useState<'working' | 'ok' | 'error'>('working')
   const [message, setMessage] = useState('Confirmando seu e-mail…')
 
   useEffect(() => {
-    const token_hash = params.get('token_hash')
-    const type = parseOtpType(params.get('type'))
-
-    if (!token_hash || !type) {
-      setStatus('error')
-      setMessage(
-        'Link inválido ou incompleto. Solicite um novo e-mail de confirmação ou entre com sua senha.',
-      )
-      return
-    }
-
     let cancelled = false
 
-    void supabase.auth.verifyOtp({ token_hash, type }).then(({ error }) => {
+    void confirmFromInitialUrl().then((result) => {
       if (cancelled) return
-      if (error) {
-        setStatus('error')
-        setMessage(mapAuthError(error))
-        toast(mapAuthError(error), 'error')
+      if (result.ok) {
+        setStatus('ok')
+        setMessage('E-mail confirmado. Você já pode entrar na Fluxo.')
+        toast('E-mail confirmado com sucesso.', 'success')
+        window.setTimeout(() => {
+          if (!cancelled) navigate('/', { replace: true })
+        }, 900)
         return
       }
-      setStatus('ok')
-      setMessage('E-mail confirmado. Você já pode entrar na Fluxo.')
-      toast('E-mail confirmado com sucesso.', 'success')
-      window.setTimeout(() => {
-        navigate('/', { replace: true })
-      }, 1200)
+      if ('ignored' in result) {
+        setStatus('error')
+        setMessage('Link inválido ou incompleto. Cadastre-se de novo para receber outro e-mail.')
+        return
+      }
+      setStatus('error')
+      setMessage(result.message)
+      toast(result.message, 'error')
     })
 
     return () => {
       cancelled = true
     }
-  }, [params, navigate])
+  }, [navigate])
 
   return (
     <AuthLayout title="Confirmar e-mail" subtitle="Validando o link enviado para sua caixa de entrada">

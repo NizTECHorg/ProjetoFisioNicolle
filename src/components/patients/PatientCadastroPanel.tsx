@@ -134,7 +134,6 @@ export function PatientCadastroPanel({
         phone: dash(patient.phone),
         email: dash(patient.email),
         birthDate: patient.birthDateRaw ?? '',
-        code: patient.code,
         status: patient.status,
       })
     }
@@ -221,7 +220,6 @@ export function PatientCadastroPanel({
               phone: values.phone,
               email: values.email,
               birthDate: values.birthDate,
-              code: values.code,
               status: values.status,
             }),
           )}
@@ -249,11 +247,6 @@ export function PatientCadastroPanel({
               type="date"
               error={identityForm.formState.errors.birthDate?.message}
               {...identityForm.register('birthDate')}
-            />
-            <Input
-              label="Código"
-              error={identityForm.formState.errors.code?.message}
-              {...identityForm.register('code')}
             />
           </div>
           <Select

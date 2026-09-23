@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -9,6 +9,7 @@ import {
   Dumbbell,
   FileText,
   Pencil,
+  Plus,
   RefreshCw,
   Sparkles,
   Stethoscope,
@@ -33,6 +34,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { useAuth } from '@/hooks/useAuth'
 import { usePatient, usePatientDashboard, useUpdatePatient } from '@/hooks/usePatients'
 import { canWritePatient } from '@/lib/accountAccess'
+import { patientFichaPath } from '@/lib/dashboardShortcut'
 import {
   caseUnderstandingSchema,
   type CaseUnderstandingFormData,
@@ -41,7 +43,7 @@ import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPain
 
 const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
-  { label: 'Seções', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
+  { label: 'Sessões', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
   { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
   { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
   { label: 'Documentos', detail: 'Em breve', icon: FileText, path: 'documentos' },
@@ -413,6 +415,7 @@ function ResumoPanel({
 
 export function PatientPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { user, profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const openIdentityRef = useRef<(() => void) | null>(null)
@@ -506,7 +509,7 @@ export function PatientPage() {
     return <Navigate to="/pacientes" replace />
   }
 
-  const meta = `${dashboard.code} · ${dashboard.phone}`
+  const meta = dashboard.phone?.trim() && dashboard.phone !== '—' ? dashboard.phone : ''
   const canWrite = canWritePatient(user?.id, detail?.createdBy ?? dashboard.createdBy)
   const showConsultBanner = profile?.accountType === 'empresa' && !canWrite
 
@@ -526,21 +529,26 @@ export function PatientPage() {
         meta={meta}
         activeTab={tab}
         onTabChange={setTab}
+        topRightAction={
+          canWrite && tab === 'resumo' ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="!bg-white !px-4 !py-2.5 shadow-sm"
+              onClick={() => navigate(patientFichaPath(dashboard.id, 'avaliacoes', { nova: true }))}
+            >
+              <Plus size={16} />
+              Nova avaliação
+            </Button>
+          ) : undefined
+        }
         identityAction={
-          canWrite ? (
+          canWrite && tab === 'cadastro' ? (
             <button
               type="button"
               aria-label="Editar dados iniciais"
-              aria-hidden={tab !== 'cadastro'}
-              tabIndex={tab === 'cadastro' ? 0 : -1}
-              disabled={tab !== 'cadastro'}
               onClick={() => openIdentityRef.current?.()}
-              className={[
-                'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest',
-                tab === 'cadastro'
-                  ? 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100'
-                  : 'pointer-events-none invisible',
-              ].join(' ')}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
             >
               <Pencil size={16} />
             </button>

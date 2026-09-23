@@ -13,8 +13,9 @@ export interface GoogleCalendarEventBody {
 }
 
 /**
- * D-08 allow-list only: patient name, code, type, place, and status.
+ * D-08 allow-list only: patient name, type, place, and status.
  * Clinical note fields are never included in the Google event body.
+ * Patient code is not shown in product UI and is omitted from export.
  */
 export function mapSessionToGoogleEvent(session: CalendarSession): GoogleCalendarEventBody {
   const start = new Date(session.scheduledAt)
@@ -23,13 +24,7 @@ export function mapSessionToGoogleEvent(session: CalendarSession): GoogleCalenda
   const place = session.place.trim()
   const location = place === '' || place === '—' ? undefined : place
 
-  const description = [
-    session.patientCode.trim() ? `Código: ${session.patientCode.trim()}` : null,
-    `Status: ${session.status}`,
-    'Origem: agenda Fisio (exportação)',
-  ]
-    .filter(Boolean)
-    .join('\n')
+  const description = [`Status: ${session.status}`, 'Origem: agenda Fisio (exportação)'].join('\n')
 
   return {
     summary: `${session.patientName} · ${session.type}`,

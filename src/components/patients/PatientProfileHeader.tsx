@@ -22,6 +22,8 @@ type PatientProfileHeaderProps = {
   activeTab: PatientTab
   onTabChange: (tab: PatientTab) => void
   identityAction?: ReactNode
+  /** Ação no topo à direita (ex.: Nova avaliação no Resumo). */
+  topRightAction?: ReactNode
 }
 
 export function PatientProfileHeader({
@@ -33,6 +35,7 @@ export function PatientProfileHeader({
   activeTab,
   onTabChange,
   identityAction,
+  topRightAction,
 }: PatientProfileHeaderProps) {
   return (
     <>
@@ -64,16 +67,15 @@ export function PatientProfileHeader({
         />
 
         <div className="min-w-0">
-          <div className="relative flex min-h-11 flex-wrap items-center gap-2 pr-12 sm:gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{name}</h1>
-            <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
-              {statusLabels[status]}
-            </span>
-            {/* Fora do fluxo — o nome não muda de lugar entre abas */}
-            {identityAction ? (
-              <span className="absolute right-0 top-0 inline-flex min-h-11 min-w-11 items-center justify-center">
-                {identityAction}
+          <div className="flex min-h-11 items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{name}</h1>
+              <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
+                {statusLabels[status]}
               </span>
+            </div>
+            {topRightAction ?? identityAction ? (
+              <div className="shrink-0 self-start">{topRightAction ?? identityAction}</div>
             ) : null}
           </div>
 
@@ -81,7 +83,7 @@ export function PatientProfileHeader({
 
           <nav
             className="mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
-            aria-label="Seções do paciente"
+            aria-label="Sessões do paciente"
             role="tablist"
           >
             <button
@@ -124,7 +126,7 @@ export function PatientProfileHeader({
               ].join(' ')}
               onClick={() => onTabChange('secoes')}
             >
-              Seções
+              Sessões
             </button>
             <button
               type="button"

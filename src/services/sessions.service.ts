@@ -62,6 +62,17 @@ function emptyToNull(value: string | undefined) {
   return trimmed === '' ? null : trimmed
 }
 
+function hasEvolutionContent(input: UpsertPatientSessionInput) {
+  return [
+    input.patientState,
+    input.changesSinceLast,
+    input.conducts,
+    input.treatmentResponse,
+    input.incidents,
+    input.nextPlan,
+  ].some((value) => (value?.trim() ?? '') !== '')
+}
+
 function formatDateLabel(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -174,8 +185,8 @@ export async function createPatientSession(
       session_type: emptyToNull(input.sessionType) ?? 'Sessão',
       place: emptyToNull(input.place),
       status,
-      therapist_id: input.therapistId,
-      therapist_name: input.therapistName,
+      therapist_id: input.therapistId || null,
+      therapist_name: emptyToNull(input.therapistName),
       created_by: author.userId,
     })
     .select('id')
@@ -184,14 +195,14 @@ export async function createPatientSession(
   throwIfError(error)
   const sessionId = (data as { id: string }).id
 
-  if (input.mode !== 'realizada') return { id: sessionId }
+  if (!hasEvolutionContent(input)) return { id: sessionId }
 
   const { error: evoError } = await supabase.from('patient_session_evolutions').insert({
     session_id: sessionId,
     patient_id: patientId,
-    patient_state: input.patientState!.trim(),
+    patient_state: input.patientState?.trim() ?? '',
     changes_since_last: emptyToNull(input.changesSinceLast),
-    conducts: input.conducts!.trim(),
+    conducts: input.conducts?.trim() ?? '',
     treatment_response: emptyToNull(input.treatmentResponse),
     incidents: emptyToNull(input.incidents),
     next_plan: emptyToNull(input.nextPlan),
@@ -218,15 +229,15 @@ export async function updatePatientSession(
       session_type: emptyToNull(input.sessionType) ?? 'Sessão',
       place: emptyToNull(input.place),
       status,
-      therapist_id: input.therapistId,
-      therapist_name: input.therapistName,
+      therapist_id: input.therapistId || null,
+      therapist_name: emptyToNull(input.therapistName),
     })
     .eq('id', sessionId)
     .eq('patient_id', patientId)
 
   throwIfError(error)
 
-  if (input.mode === 'agendar') {
+  if (!hasEvolutionContent(input)) {
     if (existingEvolutionId) {
       const { error: delError } = await supabase
         .from('patient_session_evolutions')
@@ -238,9 +249,9 @@ export async function updatePatientSession(
   }
 
   const payload = {
-    patient_state: input.patientState!.trim(),
+    patient_state: input.patientState?.trim() ?? '',
     changes_since_last: emptyToNull(input.changesSinceLast),
-    conducts: input.conducts!.trim(),
+    conducts: input.conducts?.trim() ?? '',
     treatment_response: emptyToNull(input.treatmentResponse),
     incidents: emptyToNull(input.incidents),
     next_plan: emptyToNull(input.nextPlan),

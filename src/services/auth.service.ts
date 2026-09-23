@@ -116,7 +116,7 @@ export async function signUpWithEmail(
             ? normalizeJoinCode(parsed.joinCode ?? '')
             : null,
       },
-      emailRedirectTo: `${env.appUrl}/`,
+      emailRedirectTo: `${env.appUrl}/auth/confirm`,
     },
   })
 
