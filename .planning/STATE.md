@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase_15_planned
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-09-23T22:46:42.811Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-09-23T22:56:26.869Z"
 progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 59
-  completed_plans: 48
+  completed_plans: 49
   percent: 40
 ---
 
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 15 (email-fluxo-confirmacao-conta) — EXECUTING
-Plan: 2 of 3
+Plan: 2 of 4
 
-- Status: 15-01 complete (runbook + templates); next 15-02 Dashboard SMTP human gate
-- Progress: docs/ops runbook + Confirm/Reset HTML shipped; apply SMTP/templates in 15-02
+- Status: 15-02 complete (production redirect + implicit flow); next 15-03 ConfirmationURL templates
+- Progress: emailRedirectTo pinned to production; spent-link copy shipped; templates and Dashboard UAT remain
 
 **Progress:** [████████░░] 83%
 
@@ -129,6 +129,9 @@ Plan: 2 of 3
 - [Phase 08]: google_calendar_secrets REVOKE ALL from authenticated with no GRANT — REQ-20.3 / T-08-04 — tokens only via Edge Function service_role
 - [Phase 08]: session_links PK (user_id, session_id); no google_event_id on patient_sessions — D-09 / Pitfall 5 — per-user event links for idempotent re-export
 - [Phase 15]: Runbook under docs/ops/; Gmail SMTP default, Brevo fallback; Invite out of scope
+- [Phase 15]: emailRedirectTo origin is https://fluxofisio.vercel.app unless VITE_APP_URL is https and non-local — D-07 bug 1: localhost and http overrides are rejected on purpose
+- [Phase 15]: flowType stays implicit so GoTrue verify confirms without a PKCE code verifier — D-07 bug 2: PKCE rolled confirmation back when the mail opened on another device
+- [Phase 15]: Spent confirm links tell the user to enter with e-mail and senha — otp_expired and access_denied are an already-used link, not a dead error
 
 ### Pending user action
 
@@ -147,8 +150,8 @@ Plan: 2 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-21T23:28:11.815Z
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-09-23T22:56:26.849Z
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -176,3 +179,4 @@ Resume file: None
 | Phase 08 P01 | 5min | 2 tasks | 4 files |
 | Phase 08 P02 | 6min | 2 tasks | 2 files |
 | Phase 15 P01 | 2min | 2 tasks | 3 files |
+| Phase 15 P02 | 3min | 2 tasks | 4 files |
