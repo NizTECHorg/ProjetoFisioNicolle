@@ -13,7 +13,7 @@ const OTP_TYPES = new Set<EmailOtpType>([
 
 export type ConfirmCallbackResult =
   | { ok: true }
-  | { ok: false; message: string }
+  | { ok: false; message: string; consumed?: true }
   | { ok: false; ignored: true }
 
 type AuthParams = {
@@ -22,6 +22,7 @@ type AuthParams = {
   code: string | null
   accessToken: string | null
   errorDescription: string | null
+  errorCode: string | null
 }
 
 const initialHref = typeof window !== 'undefined' ? window.location.href : ''
@@ -35,7 +36,14 @@ function parseHref(href: string): AuthParams {
   try {
     url = new URL(href)
   } catch {
-    return { tokenHash: null, type: null, code: null, accessToken: null, errorDescription: null }
+    return {
+      tokenHash: null,
+      type: null,
+      code: null,
+      accessToken: null,
+      errorDescription: null,
+      errorCode: null,
+    }
   }
 
   const search = url.searchParams
@@ -49,6 +57,7 @@ function parseHref(href: string): AuthParams {
     code: readParam(search, 'code') || readParam(hash, 'code'),
     accessToken: readParam(hash, 'access_token'),
     errorDescription: readParam(search, 'error_description') || readParam(hash, 'error_description'),
+    errorCode: readParam(search, 'error_code') || readParam(hash, 'error_code'),
   }
 }
 
@@ -56,17 +65,36 @@ const initialParams = parseHref(initialHref)
 
 export function initialUrlHasAuthCallback() {
   return Boolean(
-    initialParams.tokenHash || initialParams.code || initialParams.accessToken || initialParams.errorDescription,
+    initialParams.tokenHash ||
+      initialParams.code ||
+      initialParams.accessToken ||
+      initialParams.errorDescription ||
+      initialParams.errorCode,
   )
 }
 
 function typesToTry(hint: EmailOtpType | null): EmailOtpType[] {
-  const ordered: EmailOtpType[] = []
-  if (hint) ordered.push(hint)
-  for (const fallback of ['signup', 'email', 'magiclink', 'invite'] as const) {
-    if (!ordered.includes(fallback)) ordered.push(fallback)
+  if (hint) return [hint]
+  return ['signup', 'email', 'magiclink', 'invite']
+}
+
+function isConsumedErrorCode(code: string | null): boolean {
+  const normalized = code?.toLowerCase() ?? ''
+  return normalized === 'otp_expired' || normalized === 'access_denied'
+}
+
+function linkErrorIndicatesConsumed(message: string | undefined): boolean {
+  const text = message?.toLowerCase() ?? ''
+  if (text.includes('expired') || text.includes('otp_expired')) return true
+  return text.includes('already') && text.includes('used')
+}
+
+function consumedFailure(message: string | undefined): ConfirmCallbackResult {
+  return {
+    ok: false,
+    consumed: true,
+    message: mapAuthError({ message: message ?? 'Email link is invalid or has expired' }),
   }
-  return ordered
 }
 
 function canTryAnotherType(error: { message?: string; status?: number }) {
@@ -84,6 +112,10 @@ async function verifyTokenHash(tokenHash: string, hint: EmailOtpType | null): Pr
     if (!error) return { ok: true }
     lastError = error
     if (!canTryAnotherType(error)) break
+  }
+
+  if (linkErrorIndicatesConsumed(lastError?.message)) {
+    return consumedFailure(lastError?.message)
   }
 
   return {
@@ -115,6 +147,10 @@ async function runConfirm(): Promise<ConfirmCallbackResult> {
     return verifyTokenHash(initialParams.tokenHash, initialParams.type)
   }
 
+  if (isConsumedErrorCode(initialParams.errorCode)) {
+    return consumedFailure(initialParams.errorDescription ?? undefined)
+  }
+
   if (await sessionExists()) {
     if (initialParams.accessToken || initialParams.code) return { ok: true }
     return { ok: false, ignored: true }
@@ -127,6 +163,9 @@ async function runConfirm(): Promise<ConfirmCallbackResult> {
   }
 
   if (initialParams.errorDescription) {
+    if (linkErrorIndicatesConsumed(initialParams.errorDescription)) {
+      return consumedFailure(initialParams.errorDescription)
+    }
     return { ok: false, message: mapAuthError({ message: initialParams.errorDescription }) }
   }
 

@@ -23,8 +23,9 @@ export function getSupabase(): SupabaseClient<AnyDatabase> {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        // Implícito: o link do e-mail confirma a conta em qualquer navegador.
-        // No PKCE o Supabase desfaz a confirmação quando o code verifier não está nesse aparelho.
+        // O CTA do e-mail bate em GoTrue /auth/v1/verify, que precisa confirmar a conta
+        // e emitir a sessão em qualquer aparelho. PKCE exigiria o code verifier guardado
+        // no navegador que iniciou o cadastro; sem ele o GoTrue desfaz a confirmação.
         flowType: 'implicit',
       },
       global: {

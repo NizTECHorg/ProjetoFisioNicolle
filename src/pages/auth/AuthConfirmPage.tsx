@@ -34,6 +34,13 @@ export function AuthConfirmPage() {
         setMessage('Link inválido ou incompleto. Cadastre-se de novo para receber outro e-mail.')
         return
       }
+      if (result.consumed) {
+        setStatus('error')
+        setMessage(
+          'Este link já foi usado ou expirou. A conta pode já estar confirmada. Tente entrar com e-mail e senha. Se o login for recusado, faça um novo cadastro.',
+        )
+        return
+      }
       setStatus('error')
       setMessage(result.message)
       toast(result.message, 'error')
