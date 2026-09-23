@@ -2,7 +2,7 @@
 
 ## Overview
 
-Completar o prontuário e o modelo de contas. Phases 8–14 em andamento. Próximo foco opcional: Phase 15 e-mail Fluxo de confirmação.
+Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23. Phases 8–14 seguem em andamento.
 
 ## Phases
 
@@ -20,7 +20,7 @@ Completar o prontuário e o modelo de contas. Phases 8–14 em andamento. Próxi
 - [ ] **Phase 12: Avaliações musculoesqueléticas** — Aba Avaliações (ficha 01–04), CRUD parcial, dashboard → nova, PDF export alinhado
 - [ ] **Phase 13: PDF Avaliação / Evolução** — Seções de export, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
-- [ ] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase
+- [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
 
 ## Phase Details
 
@@ -440,7 +440,7 @@ Plans:
   5. Runbook no repo documenta SMTP + templates + URL configuration no Dashboard
   6. Reset de senha (se ativo) segue a mesma marca; convites de equipe fora
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 **UI hint:** no
 
 Plans:
@@ -453,4 +453,4 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 15-04-PLAN.md — Deploy + Dashboard apply + UAT do cadastro novo (gate humano)
+- [x] 15-04-PLAN.md — Deploy + Dashboard apply + UAT do cadastro novo (gate humano)

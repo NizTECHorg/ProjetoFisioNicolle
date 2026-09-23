@@ -19,7 +19,7 @@
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
-- [ ] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
+- [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -278,4 +278,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-24 | Phase 12 | Planned |
 | REQ-25 | Phase 13 | Planned |
 | REQ-26 | Phase 14 | Planned |
-| REQ-27 | Phase 15 | In Progress (15-01 runbook+templates; SMTP UAT in 15-02) |
+| REQ-27 | Phase 15 | Complete |

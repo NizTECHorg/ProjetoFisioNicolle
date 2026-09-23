@@ -22,6 +22,7 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 - ✓ REQ-15 — Tipos de conta e equipe — Validated in Phase 3
 - ✓ REQ-16 — Atalhos no dashboard — Validated in Phase 4: Nova evolução / Nova avaliação no `/painel`, picker de pacientes graváveis, overlay reusa os editores da ficha
 - ✓ REQ-17 — Financeiro do autônomo — Validated in Phase 5: catálogo nome+R$, XOR avulso + Pago, snapshot, totais RPC mês/ano/sempre; só `autonomo`
+- ✓ REQ-27 — E-mail de confirmação Fluxo — Validated in Phase 15: origem de produção, fluxo implícito, CTA ConfirmationURL, UAT aprovado em 2026-09-23
 
 ### Active
 
@@ -72,4 +73,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-14 — Phase 6 added (REQ-18 silhueta de áreas de foco)*
+*Last updated: 2026-09-23 — Phase 15 complete (REQ-27 e-mail Fluxo de confirmação)*
