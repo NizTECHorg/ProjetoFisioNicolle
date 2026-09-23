@@ -445,7 +445,12 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [x] 15-01-PLAN.md — Runbook + paste-ready Confirm/Reset Fluxo HTML templates
 - [ ] 15-02-PLAN.md — Origem de produção fixa no emailRedirectTo + fluxo implícito travado
 - [ ] 15-03-PLAN.md — Templates com ConfirmationURL puro + runbook corrigido (Site URL, Vercel, UAT)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 15-04-PLAN.md — Deploy + Dashboard apply + UAT do cadastro novo (gate humano)
