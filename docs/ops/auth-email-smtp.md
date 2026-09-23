@@ -73,15 +73,15 @@
 2. **Confirm sign up** (required):
    - Subject: `Confirme sua conta Fluxo`
    - Body: paste `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html`
-   - The CTA **must** be:
-     `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
-     Do **not** use only `{{ .ConfirmationURL }}` with PKCE — that fails when the user opens the mail in another browser/device than the one used to sign up.
+   - The CTA **must** be the bare Go variable `{{ .ConfirmationURL }}` and nothing else. Do not append a path or a query string. Go templates are case-sensitive: the name is `ConfirmationURL`.
 3. **Reset password** (if recovery stays enabled):
    - Subject: `Redefina sua senha Fluxo`
-   - Body: paste `templates/reset-password.html`
-   - CTA: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
+   - Body: paste `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html`
+   - Same rule: the CTA is the bare `{{ .ConfirmationURL }}`. GoTrue supplies the recovery type itself. Do not hand-write a type query parameter.
 4. **Invite User:** leave untouched.
-5. Save. SPA route `/auth/confirm` runs `supabase.auth.verifyOtp({ token_hash, type })`.
+5. Save. GoTrue renders `{{ .ConfirmationURL }}` as this project's `/auth/v1/verify` URL. It fills the confirmation timestamp while serving that request, then redirects to `https://fluxofisio.vercel.app/auth/confirm` when that address is on the allow-list.
+
+**Why the previous CTA failed.** The link host came from the Dashboard Site URL, which still pointed at a dev origin, so the message opened a local address. The token was redeemed in the SPA, so the account was confirmed only if that page actually loaded on the device that opened the mail. A bare `{{ .ConfirmationURL }}` is verified by GoTrue before any redirect, so the account can be used with e-mail and password even when the SPA never loads.
 
 **Inbox vs spam:** Personal Gmail SMTP often lands in spam. Ask recipients to mark “Não é spam”; later Brevo / domain SPF-DKIM.
 
@@ -90,13 +90,24 @@
 ## 4. Site URL / Redirect URLs
 
 1. **Authentication → URL Configuration**
-2. **Site URL:** `https://fluxofisio.vercel.app` (no trailing path)
-3. **Redirect URLs** include:
+2. **Site URL:** `https://fluxofisio.vercel.app` (no trailing path). This is the only allowed Site URL.
+3. **Redirect URLs** allow-list is exactly these three entries:
    - `https://fluxofisio.vercel.app`
    - `https://fluxofisio.vercel.app/**`
    - `https://fluxofisio.vercel.app/auth/confirm`
-   - Local (optional): `http://localhost:5173/**`
-4. After changing templates/Site URL, send a **new** signup e-mail (old links keep the old href).
+4. Remove every allow-list entry whose host is localhost or 127.0.0.1. The app now always sends the production origin. An origin that is not on the allow-list makes GoTrue fall back to the Site URL instead of leaking the redirect to a dev host. Do not add a local origin back.
+
+---
+
+## SPA build variable (Vercel)
+
+Plan 15-02 pins `emailRedirectTo` to `https://fluxofisio.vercel.app/auth/confirm`. The production build has to carry that value.
+
+1. Open **Vercel → Project → Settings → Environment Variables**.
+2. Delete `VITE_APP_URL` unless its value is exactly `https://fluxofisio.vercel.app`.
+3. Redeploy so the build that sends `emailRedirectTo` includes the plan 15-02 fix.
+4. Leave `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` untouched.
+5. No SMTP variable belongs in Vercel. SMTP credentials stay only in the Supabase Dashboard (section 6).
 
 ---
 
@@ -127,23 +138,28 @@ Never commit App Passwords, Brevo SMTP keys, or Management API tokens. Templates
 4. **Mail fails?** Check **Authentication → Logs** (or Auth logs) first before blaming the SPA.
 5. **Gmail:** Sender email must equal SMTP user; use App Password, not the account password.
 6. **Redirect mismatch:** if Site URL / Redirect URLs omit the SPA origin, the confirm link will not return to Fluxo correctly.
+7. **Confirm link opens localhost.** Symptom: the message opens a dev host instead of Fluxo in production. Cause: the Dashboard Site URL, the Redirect URLs allow-list, or the Vercel `VITE_APP_URL` build variable still names a dev host. Fix: set Site URL to `https://fluxofisio.vercel.app`, keep only the three production allow-list entries in section 4, remove every localhost or 127.0.0.1 entry, delete `VITE_APP_URL` unless it is exactly that production origin, and redeploy.
+8. **Click does not confirm the account.** Symptom: after the button, Authentication → Users still has an empty confirmation timestamp, and sign-in with e-mail and password fails. Cause: the previous template redeemed the token in the SPA, and a PKCE code verifier stored on the signup device is missing when the mail is opened on a phone or another browser. Fix: paste the bare `{{ .ConfirmationURL }}` templates so GoTrue confirms on `/auth/v1/verify` before the redirect. The SPA client stays on implicit flow (plan 15-02).
+9. **Links mailed before this fix are dead.** After the Site URL, the allow-list, the templates, and the Vercel redeploy, run a brand-new cadastro with a fresh e-mail address. Do not retest with an old message — those links stay invalid.
+10. **A mail scanner may consume the link before the human clicks.** In that case the account is already confirmed. The user should simply sign in with e-mail and senha.
 
 ---
 
 ## 8. UAT checklist (REQ-27)
 
-**Prerequisites:** Custom SMTP ON, Confirm signup + Reset templates pasted, Confirm email ON, Redirect URLs include prod + local origins.
+**Prerequisites:** Custom SMTP ON, Confirm signup and Reset password templates pasted with a bare `{{ .ConfirmationURL }}` CTA, Confirm email ON, Site URL `https://fluxofisio.vercel.app`, Redirect URLs exactly the three production entries in section 4, and `VITE_APP_URL` deleted or set to that same origin with a redeploy.
 
-**How to use:** Run a real signup to a non-team inbox. Mark Pass/Fail. Dashboard paste/apply is completed in plan 15-02; this table is the acceptance gate.
+**How to use:** Run a brand-new cadastro to a non-team inbox. Do not reuse a message sent before this fix. Mark Pass/Fail/Notes. This table is the acceptance gate for the replan.
 
 | ID | Check | Pass | Fail | Notes |
 |----|--------|:----:|:----:|-------|
-| REQ-27.1 | Confirm e-mail body/copy shows Fluxo brand (not generic “Supabase Auth”) | | | |
-| REQ-27.2 | From display is `Fluxo` + operator address (`<OPERATOR_EMAIL>`) via Custom SMTP | | | |
-| REQ-27.3 | Confirm link → session established → account-type flow (autônomo / empresa / fisioterapeuta) works as today | | | |
-| REQ-27.4 | This runbook documents SMTP + templates + secrets boundary; no real secrets in git | | | |
-| REQ-27.5 | Reset password template is Fluxo-branded if recovery is used; **Invite User** template left untouched | | | |
-| Extra | No `VITE_SMTP_*` or SMTP password in committed env files | | | |
+| REQ-27.1 | CTA host in the received message is the Supabase project domain; the landing URL is `https://fluxofisio.vercel.app/auth/confirm`; the link contains no localhost | | | |
+| REQ-27.2 | Clicking from a phone, or from a browser other than the one used to sign up, lands on the Fluxo confirm screen | | | |
+| REQ-27.3 | Dashboard → Authentication → Users shows the new account with its confirmation timestamp filled | | | |
+| REQ-27.4 | Signing out and signing in with that e-mail and password succeeds | | | |
+| REQ-27.5 | The message shows the Fluxo brand and the operator From address (`Fluxo` + `<OPERATOR_EMAIL>`) | | | |
+| REQ-27.6 | Reset password template is Fluxo-branded; **Invite User** is untouched | | | |
+| REQ-27.7 | No SMTP secret appears in git (placeholders only, including `<APP_PASSWORD>`) | | | |
 
 When all required rows pass, Phase 15 UAT for REQ-27 can proceed to verify-work.
 
