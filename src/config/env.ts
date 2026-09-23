@@ -1,8 +1,8 @@
 const SUPABASE_URL = String(import.meta.env.VITE_SUPABASE_URL ?? '').trim()
 const SUPABASE_ANON_KEY = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim()
 
-/** Public SPA origin for Auth email links (confirm / reset). Never use localhost here. */
-const DEFAULT_APP_URL = 'https://fluxofisio.vercel.app'
+/** The only origin allowed in emailRedirectTo. localhost / 127.0.0.1 overrides are rejected on purpose. */
+const PRODUCTION_APP_URL = 'https://fluxofisio.vercel.app'
 
 export function isEnvConfigured(): boolean {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false
@@ -16,17 +16,27 @@ export function isEnvConfigured(): boolean {
   }
 }
 
-function resolveAppUrl(): string {
-  const configured = String(import.meta.env.VITE_APP_URL ?? '').trim().replace(/\/$/, '')
-  if (configured) {
-    try {
-      const url = new URL(configured)
-      if (url.protocol === 'https:' || url.protocol === 'http:') return url.origin
-    } catch {
-      /* fall through */
-    }
+function isRejectedAuthRedirectHost(hostname: string): boolean {
+  const host = hostname.toLowerCase()
+  if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {
+    return true
   }
-  return DEFAULT_APP_URL
+  return host.endsWith('.local')
+}
+
+function resolveAppUrl(): string {
+  const configured = String(import.meta.env.VITE_APP_URL ?? '').trim()
+  if (!configured) return PRODUCTION_APP_URL
+
+  try {
+    const url = new URL(configured)
+    if (url.protocol === 'https:' && !isRejectedAuthRedirectHost(url.hostname)) {
+      return url.origin
+    }
+  } catch {
+    /* fall through */
+  }
+  return PRODUCTION_APP_URL
 }
 
 export const env = {
