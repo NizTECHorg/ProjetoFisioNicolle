@@ -2,7 +2,7 @@
 phase: 16
 slug: foto-do-paciente
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-09-23
 ---
@@ -38,11 +38,18 @@ created: 2026-09-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| D-01 | TBD | TBD | D-01 | — | No photo keeps initials and photo_tone | manual | `npm run typecheck` | ❌ | ⬜ pending |
-| D-02 | TBD | TBD | D-02 | — | Camera only on an editable avatar | manual | `npm run lint` | ❌ | ⬜ pending |
-| D-03 | TBD | TBD | D-03 | — | Click opens the picker and does not navigate the list | manual | `npm run typecheck` | ❌ | ⬜ pending |
-| D-04 | TBD | TBD | D-04 | V5 | PNG and JPEG only; gallery MIME unchanged | manual | `npm run typecheck` | ❌ | ⬜ pending |
-| RLS | TBD | TBD | — | V4 | Write only with can_write_patient; signed URL for readers | manual | SQL Editor | ❌ | ⬜ pending |
+| 16-01-T1 | 16-01 | 1 | D-04 | T-16-01, T-16-02, T-16-03 | Private bucket patient-avatars, jpeg/png only, photo_path CHECK, no UPDATE policy | sql script | `npm run lint && npm run typecheck` | ✅ script planned | ⬜ pending |
+| 16-01-T2 | 16-01 | 1 | D-04 | T-16-03 | patientPhotoSchema is PNG/JPEG only; gallery schema still allows WebP and PDF | static | `npm run lint && npm run typecheck` | ✅ schema file | ⬜ pending |
+| 16-02-T1 | 16-02 | 1 | D-04 | T-16-04, T-16-05 | Magic-byte sniff and 8 MiB cap before decode; PNG stays PNG | static | `npm run lint && npm run typecheck` | ✅ crop file planned | ⬜ pending |
+| 16-02-T2 | 16-02 | 1 | D-01 | T-16-06 | photoUrl renders object-cover; onError and null keep initials on photo_tone | static | `npm run lint && npm run typecheck` | ✅ PatientAvatar | ⬜ pending |
+| 16-03-T1 | 16-03 | 2 | D-04 | T-16-07, T-16-08, T-16-09 | New path, upsert false, mapDbError, sign 3600s, no gallery row | static | `npm run lint && npm run typecheck` | ✅ service planned | ⬜ pending |
+| 16-03-T2 | 16-03 | 2 | D-01 | T-16-07 | photoUrl on patient DTOs; mutations skip the images query | static | `npm run lint && npm run typecheck` | ✅ hooks | ⬜ pending |
+| 16-04-T1 | 16-04 | 3 | D-01 | T-16-07 | Patient selects include photo_path and map photoUrl | static | `npm run lint && npm run typecheck` | ✅ patients.service | ⬜ pending |
+| 16-04-T2 | 16-04 | 3 | D-01 | T-16-07 | Calendar and board embeds include photo_path and photoUrl | static | `npm run lint && npm run typecheck` | ✅ calendar and board | ⬜ pending |
+| 16-05-T1 | 16-05 | 4 | D-02, D-03, D-04 | T-16-04, T-16-08 | Camera overlay, PNG/JPEG accept, sr-only input, Voltar on confirm | static | `npm run lint && npm run typecheck` | ✅ control planned | ⬜ pending |
+| 16-05-T2 | 16-05 | 4 | D-02, D-03 | T-16-11, T-16-12 | Edit on ficha and list only; list click does not navigate; consulta has no control | static | `npm run lint && npm run typecheck` | ✅ header and list | ⬜ pending |
+| 16-06-T1 | 16-06 | 4 | D-01 | T-16-12 | Kanban and calendar display photoUrl and do not mount the picker | static | `npm run lint && npm run typecheck` | ✅ pages | ⬜ pending |
+| 16-06-T2 | 16-06 | 4 | D-01 | T-16-12 | Dashboard and shortcut display photoUrl and do not mount the picker | static | `npm run lint && npm run typecheck` | ✅ pages | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -80,7 +87,7 @@ Human SQL Editor checks, recorded at verification:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags

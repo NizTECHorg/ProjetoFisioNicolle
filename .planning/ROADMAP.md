@@ -461,7 +461,24 @@ Plans:
 **Goal:** Na ficha e nas listas, a foto do paciente aceita PNG ou JPEG: o hover mostra um ícone de câmera e o clique abre a escolha do arquivo. Sem foto, continuam as iniciais.
 **Requirements**: TBD
 **Depends on:** Phase 7
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 16 to break down)
+
+**Wave 1**
+
+- [ ] 16-01-PLAN.md — Bucket patient-avatars, patients.photo_path, and PNG/JPEG schema
+- [ ] 16-02-PLAN.md — Center-crop gate and PatientAvatar photoUrl
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 16-03-PLAN.md — Upload, remove, signed URLs, and photo mutations
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 16-04-PLAN.md — Select photo_path and sign photoUrl on patient, calendar, and board reads
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 16-05-PLAN.md — Camera and file picker on the ficha and the patient list
+- [ ] 16-06-PLAN.md — Display the same photo on quadro, agenda, painel, and the shortcut
