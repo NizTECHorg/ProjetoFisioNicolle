@@ -1,5 +1,5 @@
 <!-- Confirm sign up | Subject: Confirme sua conta Fluxo -->
-<!-- Site URL no Dashboard deve ser https://fluxofisio.vercel.app -->
+<!-- The CTA must stay a bare {{ .ConfirmationURL }}. GoTrue verifies the account before any redirect. -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,11 +11,12 @@
   <p style="margin:0 0 12px;font-weight:700;color:#0b1d36;">Fluxo</p>
   <p style="margin:0 0 16px;">Confirme seu e-mail para ativar sua conta no prontuário clínico Fluxo.</p>
   <p style="margin:0 0 20px;">
-    <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup"
+    <a href="{{ .ConfirmationURL }}"
        style="display:inline-block;background:#0b1d36;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;">
       Confirmar e-mail
     </a>
   </p>
+  <p style="margin:0 0 20px;color:#5a6b80;font-size:13px;">Se o botão não aparecer, copie e cole este endereço no navegador:<br />{{ .ConfirmationURL }}</p>
   <p style="margin:0;color:#5a6b80;font-size:13px;">Se você não criou esta conta, ignore este e-mail.</p>
 </body>
 </html>
