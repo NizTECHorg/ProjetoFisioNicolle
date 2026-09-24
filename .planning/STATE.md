@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 17 planned — ready to execute
-last_updated: "2026-09-24T02:07:15.366Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-09-24T02:17:43.502Z"
 progress:
   total_phases: 17
   completed_phases: 8
   total_plans: 68
-  completed_plans: 57
+  completed_plans: 58
   percent: 47
 ---
 
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 17
-Plan: 0 of 3
+Phase: 17 (Isolamento de dados por conta) — EXECUTING
+Plan: 2 of 3
 
 - Status: Ready to execute
-- Progress: 0/3 plans
+- Progress: 1/3 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -149,12 +149,16 @@ Plan: 0 of 3
 - [Phase 16]: Writable list rows keep the file control outside the link — Desktop stopPropagation on click and keydown so the picker does not open the ficha
 - [Phase 16]: Calendar due cards copy photoUrl onto the view object so the sm avatar can show the signed URL — The day-view memo only copied photoTone, so the due-card avatar could not receive the signed URL.
 - [Phase 16]: Quadro, agenda, painel, and the shortcut stay display-only; upload remains on the ficha and the list — A camera or file input on a draggable card or shortcut button would bypass the write surfaces from plan 16-05.
+- [Phase 17]: SQL Editor is the apply path for account isolation; do not run supabase db push — Hosted Editor is the only apply path; the script is not applied from the repo
+- [Phase 17]: Board personal branch is organization_id null plus owner_id = auth.uid(); company branch uses viewer_org_id() and does not rewrite can_read_patient — D-05 null org is not a shared bucket; D-06 keeps the phase 3 ficha model
+- [Phase 17]: patients_select drops the null created_by branch and keeps created_by = auth.uid() for INSERT RETURNING — can_read_patient is STABLE and cannot see the new row
 
 ### Pending user action
 
 - (adiado) Executar `supabase/patients-req05-evaluations.sql` no SQL Editor
 - (adiado) Re-executar `supabase/patients-req14-goals.sql` se ainda não rodou a versão com em_andamento/concluido
 - Paste `.planning/phases/16-foto-do-paciente/sql/16-patient-photo.sql` in the Supabase SQL Editor once. Do not use supabase db push.
+- Paste `.planning/phases/17-isolamento-de-dados-por-conta/sql/17-account-isolation.sql` in the Supabase SQL Editor once. Do not use supabase db push. If board counts are above zero, uncomment only the owner backfill first.
 
 ### Roadmap Evolution
 
@@ -170,8 +174,8 @@ Plan: 0 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-24T02:07:15.366Z
-Stopped at: Phase 17 planned — ready to execute
+Last session: 2026-09-24T02:17:43.485Z
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -207,3 +211,4 @@ Resume file: None
 | Phase 16 P04 | 2min | 2 tasks | 3 files |
 | Phase 16 P05 | 4min | 2 tasks | 4 files |
 | Phase 16 P06 | 2min | 2 tasks | 4 files |
+| Phase 17 P01 | 5min | 2 tasks | 1 files |
