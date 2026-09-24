@@ -379,3 +379,71 @@ create policy board_cards_delete
       )
     )
   );
+
+-- ---------------------------------------------------------------------------
+-- 6. patients_select: sai o terceiro OR. O ramo created_by = auth.uid() fica,
+-- porque o INSERT ... RETURNING precisa dele. can_read_patient nao e reescrito.
+-- Comentario, nao executa: select count(*) from public.patients where created_by isnull;
+-- Se a contagem for maior que zero, o operador atribui um created_by conhecido
+-- ou aceita que essas linhas sumam. Nao usar a condicao de um unico profile.
+-- ---------------------------------------------------------------------------
+drop policy if exists patients_select on public.patients;
+
+create policy patients_select
+  on public.patients
+  for select
+  to authenticated
+  using (
+    (
+      created_by = (select auth.uid())
+      and not exists (
+        select 1
+        from public.organization_memberships m
+        where m.profile_id = (select auth.uid())
+          and m.status in ('pending', 'rejected')
+      )
+    )
+    or (select private.can_read_patient(id))
+  );
+
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------
+-- Prova no SQL Editor, so depois do Success, e sempre comentada.
+-- Nenhum begin/rollback abaixo pode ser colado sem o traco, senao desfaz o script.
+-- ---------------------------------------------------------------------------
+-- begin;
+-- set local role authenticated;
+-- set local request.jwt.claim.sub = 'uuid-do-autonomo-B';
+-- select id from public.board_cards where id = 'uuid-do-card-de-A';
+-- select id from public.board_columns where id = 'uuid-da-coluna-de-A';
+-- select id from public.patients where id = 'uuid-do-paciente-de-A';
+-- select id from public.patient_sessions where patient_id = 'uuid-do-paciente-de-A';
+-- select id from public.patient_session_evolutions where patient_id = 'uuid-do-paciente-de-A';
+-- insert into public.board_cards (column_id, title)
+-- values ('uuid-da-coluna-de-A', 'prova');
+-- esperado: 42501
+-- rollback;
+--
+-- Segundo bloco: sub do dono da empresa ainda ve o paciente do fisioterapeuta ativo.
+-- Sub de outro autonomo devolve 0 linhas.
+-- Insert de patients com created_by igual ao uid e RETURNING sucede.
+-- begin;
+-- set local role authenticated;
+-- set local request.jwt.claim.sub = 'uuid-do-dono-da-empresa';
+-- select id from public.patients where id = 'uuid-do-paciente-do-fisioterapeuta';
+-- esperado: 1 linha
+-- set local request.jwt.claim.sub = 'uuid-do-autonomo-B';
+-- select id from public.patients where id = 'uuid-do-paciente-de-A';
+-- select id from public.board_cards where id = 'uuid-do-card-de-A';
+-- select id from public.patient_sessions where patient_id = 'uuid-do-paciente-de-A';
+-- select id from public.patient_session_evolutions where patient_id = 'uuid-do-paciente-de-A';
+-- esperado: 0 linhas
+-- insert into public.patients (full_name, created_by)
+-- values ('Prova', (select auth.uid()))
+-- returning id;
+-- rollback;
+--
+-- Terceiro bloco: a prova no papel padrao do Editor nao vale,
+-- porque esse papel ignora RLS.
+
