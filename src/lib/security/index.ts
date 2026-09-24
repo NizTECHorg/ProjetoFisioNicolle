@@ -62,8 +62,25 @@ export function safeRedirectPath(path: unknown, fallback = '/painel'): string {
 /**
  * Mapeia erros do Supabase Auth para mensagens seguras (sem vazar detalhes internos).
  */
-export function mapAuthError(error: { message?: string; status?: number }): string {
+export function mapAuthError(error: {
+  message?: string
+  status?: number
+  code?: string
+}): string {
   const message = error.message?.toLowerCase() ?? ''
+  const code = error.code ?? ''
+
+  if (code === 'current_password_invalid' || code === 'current_password_required') {
+    return 'Senha atual incorreta.'
+  }
+
+  if (code === 'same_password') {
+    return 'A nova senha deve ser diferente da atual.'
+  }
+
+  if (code === 'over_request_rate_limit') {
+    return 'Muitas tentativas. Aguarde e tente novamente mais tarde.'
+  }
 
   if (message.includes('invalid login credentials')) {
     return 'E-mail ou senha incorretos.'
