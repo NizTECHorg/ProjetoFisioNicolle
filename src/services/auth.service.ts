@@ -4,12 +4,20 @@ import {
   checkRateLimit,
   formatRetryAfter,
   mapAuthError,
+  mapDbError,
   resetRateLimit,
   sanitizeEmail,
   sanitizeText,
 } from '@/lib/security'
 import { isRejectedAccount, normalizeJoinCode } from '@/lib/accountAccess'
-import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '@/schemas/auth.schema'
+import {
+  accountNameSchema,
+  changePasswordSchema,
+  loginSchema,
+  registerSchema,
+  type LoginFormData,
+  type RegisterFormData,
+} from '@/schemas/auth.schema'
 import { fetchMembership } from '@/services/team.service'
 import type { AccountType, ClinicProfile } from '@/types/account'
 
@@ -156,4 +164,41 @@ export async function fetchProfile(userId: string): Promise<ClinicProfile | null
   }
 
   return mapClinicProfile(data as ProfileRow)
+}
+
+export async function updateOwnName(userId: string, fullName: string): Promise<void> {
+  const parsedName = accountNameSchema.parse(fullName)
+
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({ full_name: parsedName })
+    .eq('id', userId)
+
+  if (updateError) {
+    throw new Error(mapDbError(updateError))
+  }
+
+  const { error: metadataError } = await supabase.auth.updateUser({
+    data: { full_name: parsedName },
+  })
+
+  if (metadataError) {
+    throw new Error(mapAuthError(metadataError))
+  }
+}
+
+export async function changePassword(
+  email: string,
+  input: { currentPassword: string; newPassword: string; confirmPassword: string },
+): Promise<void> {
+  const parsed = changePasswordSchema(email).parse(input)
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.newPassword,
+    current_password: parsed.currentPassword,
+  })
+
+  if (error) {
+    throw new Error(mapAuthError(error))
+  }
 }
