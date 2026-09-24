@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-09-24T13:52:14.167Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-09-24T13:59:24.084Z"
 progress:
   total_phases: 18
   completed_phases: 9
   total_plans: 74
-  completed_plans: 60
+  completed_plans: 61
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 18 (Minha conta) — ready to execute
-Plan: 0 of 6
+Plan: 1 of 6
 
 - Status: Ready to execute
-- Progress: 0/6 plans
+- Progress: 1/6 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [████████░░] 82%
 
 ## Accumulated Context
 
@@ -157,6 +157,9 @@ Plan: 0 of 6
 - [Phase 17]: createColumn and createCard send owner_id from supabase.auth.getUser and omit organization_id; stamp_board_column_scope remains the authority (D-03, D-05) — The insert must satisfy WITH CHECK; the trigger still overwrites owner and organization
 - [Phase 17]: listBoard and listDueCards do not filter by owner in the client; RLS returns zero rows for the other autonomo (D-01, D-05) — A client owner predicate would hide rows the policies already withhold
 - [Phase 17]: Empty board copy is exactly Nenhuma lista ainda. and does not mention supabase/board.sql (D-04) — The missing seed script would push a shared board and reopen the leak
+- [Phase 18]: SQL Editor is the apply path for account-avatars; do not run supabase db push — Hosted Editor is the only apply path; the script is not applied from the repo
+- [Phase 18]: profiles.avatar_url stores a UUID path or null; a legacy value aborts the script instead of being nulled — Pitfall 5: ADD CONSTRAINT must not hide an http URL by mass-nulling the column
+- [Phase 18]: authenticated UPDATE on profiles is limited to full_name and avatar_url — Pitfall 4 / T-18-01: profiles_update_own stays; service_role and the owner are not revoked
 
 ### Pending user action
 
@@ -164,6 +167,7 @@ Plan: 0 of 6
 - (adiado) Re-executar `supabase/patients-req14-goals.sql` se ainda não rodou a versão com em_andamento/concluido
 - Paste `.planning/phases/16-foto-do-paciente/sql/16-patient-photo.sql` in the Supabase SQL Editor once. Do not use supabase db push.
 - Paste `.planning/phases/17-isolamento-de-dados-por-conta/sql/17-account-isolation.sql` in the Supabase SQL Editor once. Do not use supabase db push. If board counts are above zero, uncomment only the owner backfill first.
+- Paste `.planning/phases/18-minha-conta/sql/18-account.sql` in the Supabase SQL Editor once. Do not use supabase db push. If the DO block aborts on a legacy avatar_url, inspect the row and do not null it in bulk.
 
 ### Roadmap Evolution
 
@@ -180,8 +184,8 @@ Plan: 0 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T02:28:09.224Z
-Stopped at: Completed 17-03-PLAN.md
+Last session: 2026-09-24T13:59:24.060Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -220,3 +224,4 @@ Resume file: None
 | Phase 17 P01 | 5min | 2 tasks | 1 files |
 | Phase 17 P02 | 3min | 2 tasks | 2 files |
 | Phase 17 P03 | 3min | 2 tasks | 2 files |
+| Phase 18 P01 | 4min | 2 tasks | 1 files |
