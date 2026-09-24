@@ -461,7 +461,7 @@ Plans:
 **Goal:** Na ficha e nas listas, a foto do paciente aceita PNG ou JPEG: o hover mostra um ícone de câmera e o clique abre a escolha do arquivo. Sem foto, continuam as iniciais.
 **Requirements**: TBD
 **Depends on:** Phase 7
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 
@@ -480,5 +480,5 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 16-05-PLAN.md — Camera and file picker on the ficha and the patient list
+- [x] 16-05-PLAN.md — Camera and file picker on the ficha and the patient list
 - [ ] 16-06-PLAN.md — Display the same photo on quadro, agenda, painel, and the shortcut

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 16-04-PLAN.md
-last_updated: "2026-09-24T00:46:22.308Z"
+stopped_at: Completed 16-05-PLAN.md
+last_updated: "2026-09-24T00:51:15.777Z"
 progress:
   total_phases: 16
   completed_phases: 7
   total_plans: 65
-  completed_plans: 55
+  completed_plans: 56
   percent: 44
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 16
-Plan: 5 of 6
+Plan: 6 of 6
 
 - Status: Ready to execute
 - Progress: plans 16-01 through 16-06 verified
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -145,6 +145,8 @@ Plan: 5 of 6
 - [Phase 16]: Patient mappers set photoUrl null until plan 16-04 signs photo_path — This plan exposes the field; signing stays in the read services
 - [Phase 16]: photoUrl comes only from signPatientPhotoUrls and is never written back to Postgres — The signed URL expires in 3600 seconds and must not be stored on patients
 - [Phase 16]: A missing photo_path leaves photoUrl null and keeps the existing photoTone — Initials stay when there is no stored path; photoTone mapping is unchanged
+- [Phase 16]: Remover foto is PatientPhotoRemoveButton after the status pill — The avatar cell always passes showRemove false so the circle stays a label only
+- [Phase 16]: Writable list rows keep the file control outside the link — Desktop stopPropagation on click and keydown so the picker does not open the ficha
 
 ### Pending user action
 
@@ -165,8 +167,8 @@ Plan: 5 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T00:46:14.504Z
-Stopped at: Completed 16-04-PLAN.md
+Last session: 2026-09-24T00:51:15.761Z
+Stopped at: Completed 16-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -200,3 +202,4 @@ Resume file: None
 | Phase 16 P02 | 2min | 2 tasks | 2 files |
 | Phase 16 P03 | 3min | 2 tasks | 4 files |
 | Phase 16 P04 | 2min | 2 tasks | 3 files |
+| Phase 16 P05 | 4min | 2 tasks | 4 files |
