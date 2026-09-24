@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,11 +9,44 @@ import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
+import { filterPatientsByName } from '@/lib/dashboardShortcut'
 import { useAuth } from '@/hooks/useAuth'
 import { canWritePatient } from '@/lib/accountAccess'
 import { useCreatePatient, usePatients } from '@/hooks/usePatients'
 import { createPatientSchema, type CreatePatientFormData } from '@/schemas/patient.schema'
 import { statusLabels, type PatientListItem } from '@/types/patient'
+
+type PatientSort = 'recent' | 'name' | 'next'
+
+const SORT_OPTIONS: Array<{ value: PatientSort; label: string }> = [
+  { value: 'recent', label: 'Paciente mais recente' },
+  { value: 'name', label: 'Ordem alfabética' },
+  { value: 'next', label: 'Sessão mais próxima' },
+]
+
+function nearestSessionTime(patient: PatientListItem) {
+  const iso = patient.nextSession?.scheduledAt
+  if (!iso) return Number.POSITIVE_INFINITY
+  const time = new Date(iso).getTime()
+  if (!Number.isFinite(time) || time < Date.now()) return Number.POSITIVE_INFINITY
+  return time
+}
+
+function sortPatients(patients: PatientListItem[], sort: PatientSort) {
+  const copy = [...patients]
+  const byName = (a: PatientListItem, b: PatientListItem) =>
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+  if (sort === 'name') {
+    copy.sort(byName)
+    return copy
+  }
+  if (sort === 'next') {
+    copy.sort((a, b) => nearestSessionTime(a) - nearestSessionTime(b) || byName(a, b))
+    return copy
+  }
+  copy.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || byName(a, b))
+  return copy
+}
 
 export function PatientsPage() {
   const { user, profile } = useAuth()
@@ -28,6 +61,12 @@ export function PatientsPage() {
     return `Ficha de ${patient.createdByName || 'fisioterapeuta'}`
   }
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<PatientSort>('recent')
+  const visible = useMemo(
+    () => sortPatients(filterPatientsByName(patients, query), sort),
+    [patients, query, sort],
+  )
 
   const form = useForm<CreatePatientFormData>({
     resolver: zodResolver(createPatientSchema),
@@ -106,8 +145,48 @@ export function PatientsPage() {
 
       {!isLoading && !isError && patients.length > 0 ? (
         <>
+          <div className="mb-4 space-y-3">
+            <Input
+              label="Buscar paciente"
+              placeholder="Digite o nome"
+              autoComplete="off"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Ordenar pacientes">
+              {SORT_OPTIONS.map((option) => {
+                const selected = sort === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setSort(option.value)}
+                    className={[
+                      'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition',
+                      selected
+                        ? 'bg-forest text-white'
+                        : 'border border-line bg-canvas text-muted hover:bg-accent-soft hover:text-forest',
+                    ].join(' ')}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {visible.length === 0 ? (
+            <article className="rounded-2xl border border-line bg-surface px-6 py-10 text-center">
+              <p className="text-sm text-muted">Nenhum paciente com esse nome.</p>
+            </article>
+          ) : null}
+
+          {visible.length > 0 ? (
+          <>
           <div className="space-y-2 md:hidden">
-            {patients.map((patient, index) => {
+            {visible.map((patient, index) => {
               const writable = canWritePatient(user?.id, patient.createdBy)
               const nameAndMeta = (
                 <>
@@ -174,7 +253,7 @@ export function PatientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {patients.map((patient) => {
+                {visible.map((patient) => {
                   const fichaDe = fichaDeLine(patient)
                   const writable = canWritePatient(user?.id, patient.createdBy)
                   return (
@@ -231,7 +310,10 @@ export function PatientsPage() {
                       </td>
                       <td className="px-5 py-3.5 text-muted">{patient.program}</td>
                       <td className="px-5 py-3.5 text-muted">
-                        {patient.sessionsDone}/{patient.sessionsTotal}
+                        <span className="block text-ink">{patient.sessionsDone} feitos</span>
+                        {patient.sessionsTotal > 0 ? (
+                          <span className="block text-xs">{patient.sessionsTotal} planejados</span>
+                        ) : null}
                       </td>
                       <td className="px-5 py-3.5 text-muted">
                         {patient.nextSession
@@ -244,6 +326,8 @@ export function PatientsPage() {
               </tbody>
             </table>
           </div>
+          </>
+          ) : null}
         </>
       ) : null}
 

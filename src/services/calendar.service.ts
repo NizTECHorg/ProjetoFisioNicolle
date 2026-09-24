@@ -80,20 +80,24 @@ export async function listSessionsInRange(fromIso: string, toIso: string): Promi
 export async function createSession(input: {
   patientId: string
   scheduledAt: string
+  scheduledAts?: string[]
   type: string
   place: string
   therapistId?: string
   therapistName?: string
 }) {
-  const { error } = await supabase.from('patient_sessions').insert({
-    patient_id: input.patientId,
-    scheduled_at: input.scheduledAt,
-    session_type: input.type,
-    place: input.place,
-    status: 'agendada',
-    therapist_id: input.therapistId ?? null,
-    therapist_name: input.therapistName ?? null,
-  })
+  const times = input.scheduledAts?.length ? input.scheduledAts : [input.scheduledAt]
+  const { error } = await supabase.from('patient_sessions').insert(
+    times.map((scheduledAt) => ({
+      patient_id: input.patientId,
+      scheduled_at: scheduledAt,
+      session_type: input.type,
+      place: input.place,
+      status: 'agendada' as const,
+      therapist_id: input.therapistId ?? null,
+      therapist_name: input.therapistName ?? null,
+    })),
+  )
   throwIfError(error)
 }
 

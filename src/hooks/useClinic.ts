@@ -31,10 +31,11 @@ export function useCreateSession() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: createSession,
-    onSuccess: () => {
+    onSuccess: (_data, input) => {
+      const count = input.scheduledAts?.length ?? 1
       void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
       void qc.invalidateQueries({ queryKey: ['patients'] })
-      toast('Sessão agendada', 'success')
+      toast(count > 1 ? `${count} sessões agendadas` : 'Sessão agendada', 'success')
     },
     onError,
   })

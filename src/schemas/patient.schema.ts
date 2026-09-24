@@ -87,10 +87,11 @@ export const adminSectionSchema = z.object({
   adminNotes: optionalText(2000),
 })
 
+const optionalSessionCount = z.union([z.literal(''), z.coerce.number().int().min(0).max(9999)])
+
 export const treatmentSectionSchema = z.object({
   treatmentStartedOn: optionalDate,
-  sessionsDone: z.coerce.number().int().min(0).max(9999),
-  sessionsTotal: z.coerce.number().int().min(0).max(9999),
+  sessionsTotal: optionalSessionCount,
   frequency: optionalText(80),
 })
 
@@ -98,8 +99,7 @@ export const caseUnderstandingSchema = z.object({
   complaint: optionalText(2000),
   diagnosis: optionalText(2000),
   treatmentStartedOn: optionalDate,
-  sessionsDone: z.coerce.number().int().min(0).max(9999),
-  sessionsTotal: z.coerce.number().int().min(0).max(9999),
+  sessionsTotal: optionalSessionCount,
 })
 
 export type CreatePatientFormData = z.infer<typeof createPatientSchema>
@@ -207,13 +207,13 @@ export const imageUploadSchema = z.object({
 
 export type ImageUploadInput = z.infer<typeof imageUploadSchema>
 
-export const PATIENT_PHOTO_MIMES = ['image/jpeg', 'image/png'] as const
+export const PATIENT_PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const
 export const MAX_PATIENT_PHOTO_BYTES = 8 * 1024 * 1024
 
 export const patientPhotoSchema = z.object({
   mimeType: z.enum(PATIENT_PHOTO_MIMES, {
     errorMap: () => ({
-      message: 'Envie PNG ou JPEG.',
+      message: 'Envie PNG, JPEG ou WebP.',
     }),
   }),
   byteSize: z

@@ -27,7 +27,9 @@ export function PatientPhotoControl({
   className,
 }: PatientPhotoControlProps) {
   const upload = useUploadPatientPhoto(patientId)
-  const hasPhoto = Boolean(photoUrl)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const shownUrl = previewUrl ?? photoUrl
+  const hasPhoto = Boolean(shownUrl)
   const ariaLabel = hasPhoto ? `Trocar foto de ${name}` : `Escolher foto de ${name}`
 
   async function onPhotoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -37,32 +39,52 @@ export function PatientPhotoControl({
       return
     }
     const file = input.files?.[0]
+    input.value = ''
     if (!file) return
     try {
       const prepared = await preparePatientPhoto(file)
-      upload.mutate({ file: prepared.blob, mimeType: prepared.mimeType })
+      const nextPreview = URL.createObjectURL(prepared.blob)
+      setPreviewUrl((current) => {
+        if (current) URL.revokeObjectURL(current)
+        return nextPreview
+      })
+      upload.mutate(
+        { file: prepared.blob, mimeType: prepared.mimeType },
+        {
+          onError: () => {
+            setPreviewUrl((current) => {
+              if (current === nextPreview) {
+                URL.revokeObjectURL(nextPreview)
+                return null
+              }
+              return current
+            })
+          },
+        },
+      )
     } catch (error) {
       if (error instanceof Error) {
         toast(error.message, 'error')
       }
-    } finally {
-      input.value = ''
     }
   }
 
   return (
-    <label className="group/photo relative inline-flex" aria-busy={upload.isPending}>
+    <label
+      className="group/photo relative inline-flex h-fit w-fit shrink-0 self-start overflow-hidden rounded-full"
+      aria-busy={upload.isPending}
+    >
       <PatientAvatar
         name={name}
         tone={tone}
         initials={initials}
-        photoUrl={photoUrl}
+        photoUrl={shownUrl}
         size={size}
         className={className}
       />
       <input
         type="file"
-        accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+        accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
         className="sr-only"
         aria-label={ariaLabel}
         onChange={(event) => {

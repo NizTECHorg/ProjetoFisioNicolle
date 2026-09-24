@@ -39,20 +39,9 @@ create index if not exists board_cards_org_idx
   on public.board_cards (organization_id);
 
 -- ---------------------------------------------------------------------------
--- 2. Backfill comentado. Nao executa neste paste.
--- Se a contagem for zero, siga. Se for maior que zero, troque uuid-do-operador
--- pelo uuid do profile do operador, descomente so o UPDATE e rode antes das
--- politicas. Sem isso as linhas atuais somem (fail closed).
--- Nao repetir backfill de um unico profile.
+-- 2. Listas antigas sem dono somem no RLS. A devolucao esta no bloco 8,
+-- no fim deste arquivo. Ele entrega essas listas a conta mais antiga.
 -- ---------------------------------------------------------------------------
--- select count(*) from public.board_columns;
--- select count(*) from public.board_cards;
--- update public.board_columns
---   set owner_id = 'uuid-do-operador'
---   where owner_id is null;
--- update public.board_cards
---   set owner_id = 'uuid-do-operador'
---   where owner_id is null;
 
 -- ---------------------------------------------------------------------------
 -- 3. Derruba politicas antigas do quadro (nomes ao vivo nao estao no git).
@@ -446,4 +435,45 @@ notify pgrst, 'reload schema';
 --
 -- Terceiro bloco: a prova no papel padrao do Editor nao vale,
 -- porque esse papel ignora RLS.
+
+-- ---------------------------------------------------------------------------
+-- 8. Devolve as listas criadas antes do isolamento.
+-- O gatilho de carimbo recoloca owner_id nulo em qualquer UPDATE.
+-- Por isso ele fica desligado so neste bloco. Listas sem dono voltam
+-- para a conta mais antiga, a que existia antes da outra conta.
+-- Pode rodar este bloco de novo: so mexe em linha com owner_id nulo.
+-- ---------------------------------------------------------------------------
+alter table public.board_columns disable trigger board_columns_stamp_scope;
+alter table public.board_cards disable trigger board_cards_stamp_scope;
+
+update public.board_columns
+set owner_id = (
+  select id
+  from auth.users
+  order by created_at asc
+  limit 1
+)
+where owner_id is null
+  and organization_id is null;
+
+update public.board_cards as card
+set
+  owner_id = col.owner_id,
+  organization_id = col.organization_id
+from public.board_columns as col
+where card.column_id = col.id
+  and card.owner_id is null;
+
+update public.board_cards
+set owner_id = (
+  select id
+  from auth.users
+  order by created_at asc
+  limit 1
+)
+where owner_id is null
+  and organization_id is null;
+
+alter table public.board_columns enable trigger board_columns_stamp_scope;
+alter table public.board_cards enable trigger board_cards_stamp_scope;
 

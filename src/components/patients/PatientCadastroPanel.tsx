@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
+import { plannedCount } from '@/components/patients/AttendanceCounts'
 import { useUpdatePatient } from '@/hooks/usePatients'
 import {
   adminSectionSchema,
@@ -160,8 +161,7 @@ export function PatientCadastroPanel({
     if (section === 'treatment') {
       treatmentForm.reset({
         treatmentStartedOn: patient.startDateRaw ?? '',
-        sessionsDone: patient.sessionsDone,
-        sessionsTotal: patient.sessionsTotal,
+        sessionsTotal: patient.sessionsTotal > 0 ? patient.sessionsTotal : '',
         frequency: dash(patient.frequency),
       })
     }
@@ -189,7 +189,11 @@ export function PatientCadastroPanel({
         </EditableCard>
         <EditableCard title="Tratamento" onEdit={canWrite ? () => setSection('treatment') : undefined}>
           <Field label="Início" value={patient.startDate} />
-          <Field label="Sessões" value={`${patient.sessionsDone} / ${patient.sessionsTotal}`} />
+          <Field label="Feitos" value={String(patient.sessionsDone)} />
+          <Field
+            label="Planejados"
+            value={patient.sessionsTotal > 0 ? String(patient.sessionsTotal) : '—'}
+          />
           <Field label="Frequência" value={patient.frequency} />
         </EditableCard>
       </div>
@@ -368,8 +372,7 @@ export function PatientCadastroPanel({
           onSubmit={treatmentForm.handleSubmit((values) =>
             save({
               treatmentStartedOn: values.treatmentStartedOn,
-              sessionsDone: values.sessionsDone,
-              sessionsTotal: values.sessionsTotal,
+              sessionsTotal: plannedCount(values.sessionsTotal),
               frequency: values.frequency,
             }),
           )}
@@ -380,22 +383,14 @@ export function PatientCadastroPanel({
             error={treatmentForm.formState.errors.treatmentStartedOn?.message}
             {...treatmentForm.register('treatmentStartedOn')}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Sessões feitas"
-              type="number"
-              min={0}
-              error={treatmentForm.formState.errors.sessionsDone?.message}
-              {...treatmentForm.register('sessionsDone')}
-            />
-            <Input
-              label="Sessões planejadas"
-              type="number"
-              min={0}
-              error={treatmentForm.formState.errors.sessionsTotal?.message}
-              {...treatmentForm.register('sessionsTotal')}
-            />
-          </div>
+          <Input
+            label="Sessões planejadas"
+            type="number"
+            min={0}
+            hint="Opcional. As feitas acompanham as sessões concluídas."
+            error={treatmentForm.formState.errors.sessionsTotal?.message}
+            {...treatmentForm.register('sessionsTotal')}
+          />
           <Input
             label="Frequência"
             error={treatmentForm.formState.errors.frequency?.message}

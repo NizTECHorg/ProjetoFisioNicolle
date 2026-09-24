@@ -15,6 +15,7 @@ import {
   Stethoscope,
   Target,
 } from 'lucide-react'
+import { AttendanceCounts, plannedCount } from '@/components/patients/AttendanceCounts'
 import {
   PatientProfileHeader,
   type PatientTab,
@@ -118,10 +119,6 @@ function EntendaOCaso({
   const nextLabel = patient.nextSession
     ? `${patient.nextSession.dateLabel} · ${patient.nextSession.timeLabel}`
     : '—'
-  const sessionsLabel =
-    patient.sessionsTotal > 0
-      ? `${patient.sessionsDone}/${patient.sessionsTotal}`
-      : `${patient.sessionsDone}`
 
   useEffect(() => {
     if (!open) return
@@ -130,8 +127,7 @@ function EntendaOCaso({
       complaint: dash(patient.complaint),
       diagnosis: dash(patient.diagnosis),
       treatmentStartedOn: source?.startDateRaw ?? '',
-      sessionsDone: patient.sessionsDone,
-      sessionsTotal: patient.sessionsTotal,
+      sessionsTotal: patient.sessionsTotal > 0 ? patient.sessionsTotal : '',
     })
   }, [open, patient, detail, form])
 
@@ -167,7 +163,7 @@ function EntendaOCaso({
           <Metric label="Início" value={patient.startDate} />
           <Metric label="Última sessão" value={patient.lastSessionLabel} />
           <Metric label="Próxima sessão" value={nextLabel} />
-          <Metric label="Atendimentos" value={sessionsLabel} />
+          <AttendanceCounts done={patient.sessionsDone} planned={patient.sessionsTotal} />
         </div>
 
         <div className="mt-5">
@@ -211,8 +207,7 @@ function EntendaOCaso({
                   complaint: values.complaint,
                   diagnosis: values.diagnosis,
                   treatmentStartedOn: values.treatmentStartedOn,
-                  sessionsDone: values.sessionsDone,
-                  sessionsTotal: values.sessionsTotal,
+                  sessionsTotal: plannedCount(values.sessionsTotal),
                 },
               },
               { onSuccess: () => setOpen(false) },
@@ -237,22 +232,14 @@ function EntendaOCaso({
             error={form.formState.errors.treatmentStartedOn?.message}
             {...form.register('treatmentStartedOn')}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Atendimentos feitos"
-              type="number"
-              min={0}
-              error={form.formState.errors.sessionsDone?.message}
-              {...form.register('sessionsDone')}
-            />
-            <Input
-              label="Atendimentos planejados"
-              type="number"
-              min={0}
-              error={form.formState.errors.sessionsTotal?.message}
-              {...form.register('sessionsTotal')}
-            />
-          </div>
+          <Input
+            label="Atendimentos planejados"
+            type="number"
+            min={0}
+            hint="Opcional. Os feitos entram sozinhos quando uma sessão é concluída."
+            error={form.formState.errors.sessionsTotal?.message}
+            {...form.register('sessionsTotal')}
+          />
           <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancelar

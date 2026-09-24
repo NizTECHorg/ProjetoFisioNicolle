@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
 import { useCalendarSessions, useCreateSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
 import {
   useDisconnectGoogleCalendar,
@@ -17,7 +16,9 @@ import {
   useLinkGoogleCalendar,
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
+import { filterPatientsByName } from '@/lib/dashboardShortcut'
 import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
+import type { PatientListItem } from '@/types/patient'
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
@@ -40,6 +41,20 @@ function monthGrid(year: number, month: number) {
   return cells
 }
 
+function weeklyAt(start: Date, weeks: number): Date[] {
+  return Array.from({ length: weeks }, (_, index) => {
+    const next = new Date(start)
+    next.setDate(start.getDate() + index * 7)
+    return next
+  })
+}
+
+function clampWeeks(value: string) {
+  const count = Number(value)
+  if (!Number.isFinite(count)) return 1
+  return Math.min(24, Math.max(1, Math.trunc(count)))
+}
+
 function toLocalInput(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -51,7 +66,12 @@ export function CalendarPage() {
   const [selected, setSelected] = useState(today)
   const [open, setOpen] = useState(false)
   const [patientId, setPatientId] = useState('')
+  const [patientQuery, setPatientQuery] = useState('')
+  const [patientMenuOpen, setPatientMenuOpen] = useState(false)
+  const [sessionDate, setSessionDate] = useState(today)
+  const [pickerCursor, setPickerCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [time, setTime] = useState('09:00')
+  const [repeatWeeks, setRepeatWeeks] = useState('1')
   const [type, setType] = useState('Sessão')
   const [place, setPlace] = useState('Sala 1')
   const [disconnectOpen, setDisconnectOpen] = useState(false)
@@ -64,6 +84,10 @@ export function CalendarPage() {
   const { data: sessions = [], isLoading } = useCalendarSessions(fromIso, toIso)
   const { data: board } = useBoard()
   const { data: patients = [] } = usePatients()
+  const patientMatches = useMemo(
+    () => filterPatientsByName(patients, patientQuery),
+    [patients, patientQuery],
+  )
   const create = useCreateSession()
   const updateStatus = useUpdateSessionStatus()
 
@@ -139,20 +163,60 @@ export function CalendarPage() {
     )
   }
 
+  function openComposer() {
+    setPatientId('')
+    setPatientQuery('')
+    setPatientMenuOpen(false)
+    setSessionDate(selected)
+    setPickerCursor(new Date(selected.getFullYear(), selected.getMonth(), 1))
+    setRepeatWeeks('1')
+    setOpen(true)
+  }
+
+  function pickPatient(patient: PatientListItem) {
+    setPatientId(patient.id)
+    setPatientQuery(patient.name)
+    setPatientMenuOpen(false)
+  }
+
+  function onPatientQueryChange(value: string) {
+    setPatientQuery(value)
+    setPatientId('')
+    setPatientMenuOpen(true)
+  }
+
+  function chooseSessionDate(date: Date) {
+    const next = startOfDay(date)
+    setSessionDate(next)
+    setPickerCursor(new Date(next.getFullYear(), next.getMonth(), 1))
+    setSelected(next)
+    setCursor(new Date(next.getFullYear(), next.getMonth(), 1))
+  }
+
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!patientId) return
     const [hours = 9, minutes = 0] = time.split(':').map(Number)
-    const when = new Date(selected)
+    const when = new Date(sessionDate)
     when.setHours(hours, minutes, 0, 0)
+    const weeks = clampWeeks(repeatWeeks)
+    const scheduledAts = weeklyAt(when, weeks).map((date) => date.toISOString())
     create.mutate(
       {
         patientId,
-        scheduledAt: when.toISOString(),
+        scheduledAt: scheduledAts[0] ?? when.toISOString(),
+        scheduledAts,
         type,
         place,
       },
-      { onSuccess: () => setOpen(false) },
+      {
+        onSuccess: () => {
+          setOpen(false)
+          setPatientId('')
+          setPatientQuery('')
+          setPatientMenuOpen(false)
+        },
+      },
     )
   }
 
@@ -199,7 +263,7 @@ export function CalendarPage() {
         title="Agenda"
         description="Sessões da clínica e prazos de entrega do Quadro."
         action={
-          <Button onClick={() => setOpen(true)}>
+          <Button onClick={openComposer}>
             <Plus size={16} />
             Nova sessão
           </Button>
@@ -531,17 +595,119 @@ export function CalendarPage() {
 
       <Modal open={open} title="Nova sessão" onClose={() => setOpen(false)}>
         <form className="space-y-4" onSubmit={submit}>
-          <Select
-            label="Paciente"
-            value={patientId}
-            onChange={(event) => setPatientId(event.target.value)}
-            options={[
-              { value: '', label: 'Selecione' },
-              ...patients.map((patient) => ({ value: patient.id, label: patient.name })),
-            ]}
-          />
-          <Input label="Data" type="date" value={toLocalInput(selected)} readOnly />
+          <div>
+            <Input
+              label="Paciente"
+              placeholder="Digite o nome"
+              autoComplete="off"
+              value={patientQuery}
+              onChange={(event) => onPatientQueryChange(event.target.value)}
+              onFocus={() => setPatientMenuOpen(true)}
+            />
+            {patientMenuOpen ? (
+              <ul className="mt-2 max-h-48 overflow-y-auto rounded-2xl border border-line bg-canvas">
+                {patientMatches.length === 0 ? (
+                  <li className="px-4 py-3 text-sm text-muted">
+                    {patientQuery.trim()
+                      ? 'Nenhum paciente com esse nome.'
+                      : 'Nenhum paciente cadastrado.'}
+                  </li>
+                ) : (
+                  patientMatches.map((patient) => (
+                    <li key={patient.id}>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-surface"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => pickPatient(patient)}
+                      >
+                        <PatientAvatar
+                          name={patient.name}
+                          tone={patient.photoTone}
+                          initials={patient.initials}
+                          size="sm"
+                          photoUrl={patient.photoUrl}
+                        />
+                        <span className="min-w-0 truncate text-sm font-medium text-ink">{patient.name}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            ) : null}
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink">Data</p>
+            <div className="rounded-2xl border border-line bg-canvas p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <button
+                  type="button"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted hover:bg-surface hover:text-ink"
+                  aria-label="Mês anterior"
+                  onClick={() =>
+                    setPickerCursor(new Date(pickerCursor.getFullYear(), pickerCursor.getMonth() - 1, 1))
+                  }
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <p className="text-sm font-semibold capitalize text-ink">
+                  {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(pickerCursor)}
+                </p>
+                <button
+                  type="button"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted hover:bg-surface hover:text-ink"
+                  aria-label="Próximo mês"
+                  onClick={() =>
+                    setPickerCursor(new Date(pickerCursor.getFullYear(), pickerCursor.getMonth() + 1, 1))
+                  }
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-0.5 text-center text-[11px] font-medium uppercase tracking-wide text-muted">
+                {WEEKDAYS.map((day) => (
+                  <div key={day} className="py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-0.5">
+                {monthGrid(pickerCursor.getFullYear(), pickerCursor.getMonth()).map((date, index) => {
+                  if (!date) return <div key={`picker-empty-${index}`} className="h-9" />
+                  const isChosen = sameDay(date, sessionDate)
+                  const isToday = sameDay(date, today)
+                  return (
+                    <button
+                      key={date.toISOString()}
+                      type="button"
+                      onClick={() => chooseSessionDate(date)}
+                      className={[
+                        'h-9 rounded-xl text-sm',
+                        isChosen ? 'bg-forest text-white' : isToday ? 'bg-accent-soft text-forest' : 'hover:bg-surface',
+                      ].join(' ')}
+                    >
+                      {date.getDate()}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
           <Input label="Horário" type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+          <Input
+            label="Horário fixo"
+            type="number"
+            min={1}
+            max={24}
+            inputMode="numeric"
+            value={repeatWeeks}
+            hint={
+              clampWeeks(repeatWeeks) === 1
+                ? '1 marca só esta data, como agendada.'
+                : `Marca esta e as próximas ${clampWeeks(repeatWeeks) - 1} no mesmo dia e horário, todas como agendadas.`
+            }
+            onChange={(event) => setRepeatWeeks(event.target.value)}
+          />
           <Input label="Tipo" value={type} onChange={(event) => setType(event.target.value)} />
           <Input label="Sala" value={place} onChange={(event) => setPlace(event.target.value)} />
           <Button type="submit" fullWidth isLoading={create.isPending} disabled={!patientId}>

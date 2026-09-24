@@ -158,6 +158,7 @@ export interface PatientListItem {
   sessionsDone: number
   sessionsTotal: number
   nextSession: PatientSession | null
+  createdAt: string
   createdBy: string | null
   createdByName: string | null
 }

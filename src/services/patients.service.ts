@@ -64,6 +64,7 @@ interface ListPatientRow {
   program_name: string | null
   sessions_done: number
   sessions_planned: number
+  created_at: string
   created_by: string | null
 }
 
@@ -118,7 +119,7 @@ const DETAIL_COLUMNS =
   'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by'
 
 const LIST_COLUMNS =
-  'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_by'
+  'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_at, created_by'
 
 const DASHBOARD_COLUMNS =
   'id, full_name, code, phone, status, photo_tone, photo_path, complaint, diagnosis, treatment_started_on, sessions_done, sessions_planned, last_visit_on, created_by'
@@ -246,15 +247,26 @@ function goalPayload(input: UpsertPatientGoalInput) {
 }
 
 function pickUpcoming(sessions: SessionRow[]) {
-  return sessions
-    .filter((session) => session.status === 'agendada' || session.status === 'confirmada')
-    .sort((a, b) => (a.scheduled_at ?? '').localeCompare(b.scheduled_at ?? ''))[0]
+  const open = sessions.filter(
+    (session) =>
+      (session.status === 'agendada' || session.status === 'confirmada') && session.scheduled_at,
+  )
+  const now = new Date().toISOString()
+  const future = open
+    .filter((session) => (session.scheduled_at as string) >= now)
+    .sort((a, b) => (a.scheduled_at as string).localeCompare(b.scheduled_at as string))
+  if (future[0]) return future[0]
+  return open.sort((a, b) => (b.scheduled_at as string).localeCompare(a.scheduled_at as string))[0]
 }
 
 function pickLastDone(sessions: SessionRow[]) {
   return sessions
     .filter((session) => session.status === 'realizada' && session.scheduled_at)
     .sort((a, b) => (b.scheduled_at ?? '').localeCompare(a.scheduled_at ?? ''))[0]
+}
+
+function countCompletedSessions(sessions: SessionRow[]) {
+  return sessions.filter((session) => session.status === 'realizada').length
 }
 
 function photoUrlFrom(path: string | null | undefined, urls: Map<string, string>): string | null {
@@ -279,9 +291,10 @@ function mapListItem(
     code: row.code,
     phone: row.phone ?? '—',
     program: row.program_name ?? '—',
-    sessionsDone: row.sessions_done,
+    sessionsDone: countCompletedSessions(sessions),
     sessionsTotal: row.sessions_planned,
     nextSession: upcoming ? mapSession(upcoming) : null,
+    createdAt: row.created_at,
     createdBy: row.created_by,
     createdByName,
   }
@@ -322,7 +335,7 @@ function mapPatient(
     adminNotes: row.admin_notes ?? '',
     referralSource: row.referral_source ?? '—',
     startDate: formatDate(row.treatment_started_on),
-    sessionsDone: row.sessions_done,
+    sessionsDone: countCompletedSessions(extras.sessions ?? []),
     sessionsTotal: row.sessions_planned,
     frequency: row.frequency ?? '—',
     therapist: row.therapist_name ?? '—',
@@ -528,7 +541,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     diagnosis: row.diagnosis ?? '—',
     startDate: formatDate(row.treatment_started_on),
     lastSessionLabel: last ? formatDateTime(last.scheduled_at).dateLabel : formatDate(row.last_visit_on),
-    sessionsDone: row.sessions_done,
+    sessionsDone: countCompletedSessions(sessionRows),
     sessionsTotal: row.sessions_planned,
     activeGoals: ((goals.data ?? []) as GoalRow[]).map(mapGoal),
     alerts: ((alerts.data ?? []) as AlertRow[]).map(mapAlert),
@@ -595,7 +608,6 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
   if (input.treatmentStartedOn !== undefined) {
     payload.treatment_started_on = emptyToNull(input.treatmentStartedOn)
   }
-  if (input.sessionsDone !== undefined) payload.sessions_done = input.sessionsDone
   if (input.sessionsTotal !== undefined) payload.sessions_planned = input.sessionsTotal
   if (input.frequency !== undefined) payload.frequency = emptyToNull(input.frequency)
   if (input.complaint !== undefined) payload.complaint = emptyToNull(input.complaint)

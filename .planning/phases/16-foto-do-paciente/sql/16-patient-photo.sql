@@ -1,7 +1,7 @@
 -- Foto do paciente. D-01 D-04. Idempotente. Cole no SQL Editor do Supabase.
 -- Nao aplique pelo CLI. Nao DROP can_*.
 -- Nao DELETE FROM storage.objects. Nao reescrever private.can_read_patient / can_write_patient.
--- Nao DROP politicas da galeria. Bucket privado patient-avatars (jpeg/png, 2 MiB).
+-- Nao DROP politicas da galeria. Bucket privado patient-avatars (jpeg/png/webp, 2 MiB).
 -- patients.photo_path nullable. patients_update ja usa can_write_patient — nao criar policy em public.patients.
 
 -- ---------------------------------------------------------------------------
@@ -15,13 +15,16 @@ values (
   'patient-avatars',
   false,
   2097152,
-  array['image/jpeg', 'image/png']::text[]
+  array['image/jpeg', 'image/png', 'image/webp']::text[]
 )
-on conflict (id) do nothing;
+on conflict (id) do update
+set allowed_mime_types = excluded.allowed_mime_types,
+    file_size_limit = excluded.file_size_limit,
+    public = false;
 
 -- ---------------------------------------------------------------------------
 -- 2. Ponteiro da foto. Null mantem iniciais e photo_tone (D-01).
--- CHECK amarra a pasta ao patients.id e so aceita .jpg ou .png.
+-- CHECK amarra a pasta ao patients.id e so aceita .jpg, .png ou .webp.
 -- ---------------------------------------------------------------------------
 alter table public.patients
   add column if not exists photo_path text;
@@ -35,7 +38,7 @@ alter table public.patients
     photo_path is null
     or (
       split_part(photo_path, '/', 1) = id::text
-      and photo_path ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png)$'
+      and photo_path ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$'
     )
   );
 
@@ -55,7 +58,7 @@ create policy patient_avatars_storage_select
   using (
     bucket_id = 'patient-avatars'
     and (storage.foldername(name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png)$'
+    and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$'
     and (select private.can_read_patient(((storage.foldername(name))[1])::uuid))
   );
 
@@ -66,7 +69,7 @@ create policy patient_avatars_storage_insert
   with check (
     bucket_id = 'patient-avatars'
     and (storage.foldername(name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png)$'
+    and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$'
     and (select private.can_write_patient(((storage.foldername(name))[1])::uuid))
   );
 
@@ -77,7 +80,7 @@ create policy patient_avatars_storage_delete
   using (
     bucket_id = 'patient-avatars'
     and (storage.foldername(name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png)$'
+    and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$'
     and (select private.can_write_patient(((storage.foldername(name))[1])::uuid))
   );
 
@@ -88,11 +91,11 @@ notify pgrst, 'reload schema';
 
 -- ---------------------------------------------------------------------------
 -- Checagens no SQL Editor (apos Success):
--- 1. bucket privado, file_size_limit 2097152, mime somente jpeg e png
+-- 1. bucket privado, file_size_limit 2097152, mime somente jpeg, png e webp
 -- 2. photo_path nullable; linhas existentes permanecem null
 -- 3. author INSERT object e UPDATE photo_path ok
 -- 4. author DELETE object depois de photo_path null ok
 -- 5. empresa SELECT e signed URL ok; INSERT e UPDATE falham
--- 6. upload webp ou heic falha
+-- 6. upload heic falha; webp e permitido
 -- 7. politicas da galeria e helpers can_* permanecem inalterados
 -- ---------------------------------------------------------------------------

@@ -2,11 +2,11 @@ const CROP_EDGE = 512
 const JPEG_QUALITY = 0.85
 const MAX_INPUT_BYTES = 8 * 1024 * 1024
 const MAX_OUTPUT_BYTES = 2 * 1024 * 1024
-const TYPE_ERROR = 'Envie PNG ou JPEG.'
+const TYPE_ERROR = 'Envie PNG, JPEG ou WebP.'
 const SIZE_ERROR = 'A foto deve ter no máximo 8 MB.'
 const SAVE_ERROR = 'Não foi possível salvar a foto. Tente de novo.'
 
-type PatientPhotoMime = 'image/jpeg' | 'image/png'
+type PatientPhotoMime = 'image/jpeg' | 'image/png' | 'image/webp'
 
 const JPEG_MAGIC = [0xff, 0xd8, 0xff]
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47]
@@ -24,7 +24,7 @@ function headerIncludesAscii(bytes: Uint8Array, text: string) {
 }
 
 function sniffMime(bytes: Uint8Array): PatientPhotoMime | null {
-  if (startsWith(bytes, RIFF_MAGIC) && startsWith(bytes, WEBP_MAGIC, 8)) return null
+  if (startsWith(bytes, RIFF_MAGIC) && startsWith(bytes, WEBP_MAGIC, 8)) return 'image/webp'
   if (headerIncludesAscii(bytes, 'ftyp')) return null
   if (startsWith(bytes, JPEG_MAGIC)) return 'image/jpeg'
   if (startsWith(bytes, PNG_MAGIC)) return 'image/png'
@@ -32,10 +32,15 @@ function sniffMime(bytes: Uint8Array): PatientPhotoMime | null {
 }
 
 function declaredAgrees(file: File, sniffed: PatientPhotoMime) {
-  if (file.type === '') {
-    return /\.(png|jpe?g)$/i.test(file.name)
+  const declared = file.type.toLowerCase()
+  if (declared === '' || declared === 'application/octet-stream') {
+    return /\.(png|jpe?g|webp)$/i.test(file.name)
   }
-  return (file.type === 'image/png' || file.type === 'image/jpeg') && file.type === sniffed
+  if (sniffed === 'image/png') {
+    return declared === 'image/png' || declared === 'image/x-png' || declared === 'image/apng'
+  }
+  if (sniffed === 'image/webp') return declared === 'image/webp'
+  return declared === 'image/jpeg' || declared === 'image/jpg' || declared === 'image/pjpeg'
 }
 
 async function readHeader(file: File) {
@@ -77,6 +82,10 @@ function canvasToBlob(canvas: HTMLCanvasElement, mimeType: PatientPhotoMime) {
       canvas.toBlob((result) => resolve(result), 'image/png')
       return
     }
+    if (mimeType === 'image/webp') {
+      canvas.toBlob((result) => resolve(result), 'image/webp', JPEG_QUALITY)
+      return
+    }
     canvas.toBlob((result) => resolve(result), 'image/jpeg', JPEG_QUALITY)
   })
 }
@@ -105,11 +114,20 @@ export async function preparePatientPhoto(file: File): Promise<{
     if (!ctx) throw new Error(SAVE_ERROR)
     ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, CROP_EDGE, CROP_EDGE)
 
-    const blob = await canvasToBlob(canvas, sniffed)
+    let mimeType = sniffed
+    let blob = await canvasToBlob(canvas, mimeType)
+    if (!blob && mimeType === 'image/webp') {
+      mimeType = 'image/jpeg'
+      blob = await canvasToBlob(canvas, mimeType)
+    }
+    if (blob && mimeType !== 'image/jpeg' && blob.size > MAX_OUTPUT_BYTES) {
+      mimeType = 'image/jpeg'
+      blob = await canvasToBlob(canvas, mimeType)
+    }
     if (!blob || blob.size > MAX_OUTPUT_BYTES) {
       throw new Error(SAVE_ERROR)
     }
-    return { blob, mimeType: sniffed }
+    return { blob, mimeType }
   } finally {
     bitmap.close()
   }

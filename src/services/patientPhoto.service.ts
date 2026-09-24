@@ -8,7 +8,7 @@ const BUCKET_LIMIT_BYTES = 2 * 1024 * 1024
 const SAVE_FAILED = 'Não foi possível salvar a foto. Tente de novo.'
 const REMOVE_FAILED = 'Não foi possível remover a foto. Tente de novo.'
 
-type PhotoMime = 'image/jpeg' | 'image/png'
+type PhotoMime = 'image/jpeg' | 'image/png' | 'image/webp'
 
 function signedUrlByPath(
   entries:
@@ -31,7 +31,9 @@ function signedUrlByPath(
 }
 
 function extensionFor(mimeType: PhotoMime) {
-  return mimeType === 'image/jpeg' ? 'jpg' : 'png'
+  if (mimeType === 'image/jpeg') return 'jpg'
+  if (mimeType === 'image/webp') return 'webp'
+  return 'png'
 }
 
 export async function signPatientPhotoUrls(
@@ -80,8 +82,10 @@ export async function uploadPatientPhoto(
       ? current.photo_path
       : null
 
-  const path = `${patientId}/${crypto.randomUUID()}.${extensionFor(mimeType)}`
-  const { error: uploadError } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
+  const extension = extensionFor(mimeType)
+  const path = `${patientId.toLowerCase()}/${crypto.randomUUID()}.${extension}`
+  const body = new File([file], `photo.${extension}`, { type: mimeType })
+  const { error: uploadError } = await supabase.storage.from(AVATAR_BUCKET).upload(path, body, {
     contentType: mimeType,
     upsert: false,
   })
