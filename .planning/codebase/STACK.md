@@ -18,7 +18,7 @@
 
 **Environment:**
 - Browser SPA (no Node server, no SSR, no API routes in-repo). Entry: `src/main.tsx` mounted on `#root` in `index.html`.
-- Node.js is the **build/dev** runtime only. README (`README.md`) says 18+. Installed `@supabase/supabase-js@2.110.7` requires **Node >= 22**. `react-router-dom@7.18.1` requires Node >= 20. Use **Node 22+** for `npm install`, `npm run dev`, and `npm run build`.
+- Node.js is the **build/dev** runtime only. README (`README.md`) says 18+. Installed `@supabase/supabase-js@2.117.1`. `react-router-dom@7.18.1` requires Node >= 20. Use **Node 22+** for `npm install`, `npm run dev`, and `npm run build`.
 - No `.nvmrc` / `.node-version` / `engines` field in `package.json`. Pin Node 22 locally and in hosting build settings.
 
 **Package Manager:**
@@ -49,7 +49,7 @@
 ## Key Dependencies
 
 **Critical:**
-- `@supabase/supabase-js` 2.110.7 (`^2.49.8`) — only backend client. Instantiate via `getSupabase()` / `supabase` proxy in `src/lib/supabase/client.ts`. Auth flow: PKCE, `persistSession`, `detectSessionInUrl`, `autoRefreshToken`. Client header `X-Client-Info: fisio-web`. Never import `service_role` or put it in `VITE_*`.
+- `@supabase/supabase-js` 2.117.1 (exact pin) — only backend client. Instantiate via `getSupabase()` / `supabase` proxy in `src/lib/supabase/client.ts`. Auth flow: implicit (`flowType: 'implicit'`), `persistSession`, `detectSessionInUrl`, `autoRefreshToken`. Client header `X-Client-Info: fisio-web`. Never import `service_role` or put it in `VITE_*`.
 - `@tanstack/react-query` 5.101.2 — cache all Supabase reads/mutations through hooks in `src/hooks/`.
 - `zod` 3.25.76 + `@hookform/resolvers` 5.4.0 + `react-hook-form` 7.81.0 — validate on the client before calling services. Services also re-parse auth payloads (`loginSchema.parse` / `registerSchema.parse` in `src/services/auth.service.ts`).
 - `react-router-dom` 7.18.1 — navigation and auth gates.

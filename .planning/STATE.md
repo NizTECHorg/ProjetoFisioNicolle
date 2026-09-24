@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-09-24T14:06:38.040Z"
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-09-24T14:35:26.450Z"
 progress:
   total_phases: 18
   completed_phases: 9
   total_plans: 74
-  completed_plans: 62
+  completed_plans: 63
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 18 (Minha conta) — ready to execute
-Plan: 2 of 6
+Plan: 4 of 6
 
 - Status: Ready to execute
-- Progress: 2/6 plans
+- Progress: 3/6 plans
 
-**Progress:** [████████░░] 84%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -162,6 +162,8 @@ Plan: 2 of 6
 - [Phase 18]: authenticated UPDATE on profiles is limited to full_name and avatar_url — Pitfall 4 / T-18-01: profiles_update_own stays; service_role and the owner are not revoked
 - [Phase 18]: Blank new password fails with Informe a nova senha. before passwordSchema, so an empty field does not show the 8-character rule — An empty field must not surface the minimum-of-8 line from passwordSchema
 - [Phase 18]: mapAuthError branches on error.code before any message that contains password, so current_password_invalid is Senha atual incorreta. — GoTrue uses the same human text for a wrong current password and a missing one, and that text contains the word password
+- [Phase 18]: Pin @supabase/supabase-js at exact 2.117.1 with no caret so UserAttributes.current_password stays typed — A caret could resolve to a 2.x without the field and force a cast
+- [Phase 18]: Leave src/lib/supabase/client.ts on flowType implicit — The SDK pin types current_password; the app session stays implicit
 
 ### Pending user action
 
@@ -186,8 +188,8 @@ Plan: 2 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T14:06:38.017Z
-Stopped at: Completed 18-03-PLAN.md
+Last session: 2026-09-24T14:35:26.417Z
+Stopped at: Completed 18-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -228,3 +230,4 @@ Resume file: None
 | Phase 17 P03 | 3min | 2 tasks | 2 files |
 | Phase 18 P01 | 4min | 2 tasks | 1 files |
 | Phase 18 P03 | 5min | 2 tasks | 2 files |
+| Phase 18 P02 | 1min | 2 tasks | 2 files |
