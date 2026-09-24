@@ -23,7 +23,8 @@ function formatBytes(bytes: number): string {
 }
 
 /**
- * Analisa o PDF da Avaliação Física com o Gemini Flash ou gera simulação de alta fidelidade para dev.
+ * Analisa o PDF da Avaliação Física com o Gemini Flash.
+ * Sem chave, a função lança erro e não inventa laudo.
  */
 export async function analyzePhysicalEvaluationPdf(
   patientId: string,
@@ -134,31 +135,7 @@ export async function analyzePhysicalEvaluationPdf(
     }
   }
 
-  // Simulação inteligente de desenvolvimento quando sem chave de API (para teste da UI)
-  await new Promise((r) => setTimeout(r, 1800))
-
-  return {
-    id: `eval_${Date.now()}`,
-    patientId,
-    fileName: file.name,
-    fileSize: formatBytes(file.size),
-    uploadedAt: new Date().toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-    summary: `Avaliação física funcional extraída de "${file.name}". O paciente apresenta padrão álgico moderado a intenso durante movimentação ativa, com indicação para fisioterapia motora e analgésica.`,
-    mainComplaint: 'Dor lombar irradiada para membro inferior direito com piora ao sentar e permanecer em pé por longos períodos.',
-    postureAndMovement: 'Hiperlordose lombar compensatória, assimetria de cristas ilíacas (elevação à direita) e limitação na flexão de tronco (distância dedo-chão de 25cm). Amplitude de movimento reduzida em rotação de quadril.',
-    muscleForceAndTests: 'Teste de Lasegue positivo a 45º à direita. Força de glúteo médio 3/5 bilateralmente. Teste de Thomas positivo para encurtamento de iliopsoas.',
-    cinesiologicDiagnosis: 'Disfunção cinesiológica funcional da coluna lombossacra associada a radiculopatia L5-S1 e desequilíbrio muscular da cintura pélvica.',
-    suggestedTreatmentPlan: 'Terapia manual (mobilização articular), cinesioterapia de fortalecimento de Core e estabilização pélvica, eletroterapia analgésica (TENS) nas primeiras sessões. Frequência sugerida: 2x a 3x por semana.',
-    suggestedGoals: [
-      'Reduzir escala visual analógica de dor (EVA) de 7 para 3 em 4 semanas',
-      'Restabelecer flexão de tronco sem irradiação',
-      'Fortalecer estabilizadores profundos do tronco e glúteos',
-    ],
-  }
+  throw new Error(
+    'A análise do PDF precisa da chave da IA. Sem ela, nenhum laudo é gerado.',
+  )
 }
