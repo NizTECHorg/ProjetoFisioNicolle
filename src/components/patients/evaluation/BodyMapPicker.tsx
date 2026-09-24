@@ -1,4 +1,10 @@
-import { useMemo, useState } from 'react'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import {
   FOCUS_REGIONS,
   focusRegionPathAriaLabel,
@@ -50,6 +56,7 @@ function regionClass(marked: boolean, active: boolean, canWrite: boolean) {
 export function BodyMapPicker({ marks, onChange, canWrite = false }: BodyMapPickerProps) {
   const [activeKey, setActiveKey] = useState<FocusRegionKey | null>(null)
   const [symbol, setSymbol] = useState<BodyMapSymbol>('X')
+  const pathRefs = useRef(new Map<FocusRegionKey, SVGPathElement>())
 
   const markByKey = useMemo(() => {
     const map = new Map<string, BodyMapMark>()
@@ -86,41 +93,80 @@ export function BodyMapPicker({ marks, onChange, canWrite = false }: BodyMapPick
     )
   }
 
+  function onFigureKeyDown(view: FocusView, event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!canWrite) return
+    const advance = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+    const retreat = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+    if (!advance && !retreat) return
+    event.preventDefault()
+    const regions = view === 'front' ? FRONT : BACK
+    if (regions.length === 0) return
+    const focusedIndex = regions.findIndex(
+      (region) => pathRefs.current.get(region.key) === event.target,
+    )
+    const activeIndex =
+      focusedIndex === -1 && activeKey
+        ? regions.findIndex((region) => region.key === activeKey)
+        : focusedIndex
+    const nextIndex =
+      activeIndex === -1
+        ? 0
+        : advance
+          ? (activeIndex + 1) % regions.length
+          : (activeIndex - 1 + regions.length) % regions.length
+    const next = regions[nextIndex]
+    if (!next) return
+    pathRefs.current.get(next.key)?.focus({ preventScroll: true })
+  }
+
   function renderFigure(view: FocusView) {
     const regions = view === 'front' ? FRONT : BACK
     const caption = view === 'front' ? 'Vista anterior' : 'Vista posterior'
     return (
       <div className="flex flex-col items-center">
-        <svg
-          viewBox="0 0 140 240"
-          className="h-44 w-auto text-forest sm:h-52"
-          aria-label={caption}
+        <div
+          className="scroll-m-0 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          tabIndex={canWrite ? 0 : undefined}
+          onKeyDown={(event) => onFigureKeyDown(view, event)}
         >
-          {regions.map((region) => {
-            const marked = markByKey.has(region.key)
-            const active = activeKey === region.key
-            return (
-              <path
-                key={region.key}
-                d={region.path}
-                aria-label={focusRegionPathAriaLabel(region)}
-                pointerEvents="fill"
-                strokeWidth={0.65}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                className={`${regionClass(marked, active, canWrite)} outline-none`}
-                tabIndex={canWrite ? 0 : undefined}
-                onClick={() => toggleRegion(region.key)}
-                onKeyDown={(event) => {
+          <svg
+            viewBox="0 0 140 240"
+            className="h-44 w-auto overflow-visible text-forest sm:h-52"
+            aria-label={caption}
+          >
+            {regions.map((region) => {
+              const marked = markByKey.has(region.key)
+              const active = activeKey === region.key
+              const pathProps = {
+                ref: (el: SVGPathElement | null) => {
+                  if (el) pathRefs.current.set(region.key, el)
+                  else pathRefs.current.delete(region.key)
+                },
+                d: region.path,
+                'aria-label': focusRegionPathAriaLabel(region),
+                pointerEvents: 'fill' as const,
+                strokeWidth: 0.65,
+                strokeLinejoin: 'round' as const,
+                strokeLinecap: 'round' as const,
+                className: `${regionClass(marked, active, canWrite)} scroll-m-0 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`,
+                onPointerDown: (event: ReactPointerEvent<SVGPathElement>) => {
+                  event.preventDefault()
+                },
+                onClick: () => toggleRegion(region.key),
+                onKeyDown: (event: ReactKeyboardEvent<SVGPathElement>) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
                     toggleRegion(region.key)
                   }
-                }}
-              />
-            )
-          })}
-        </svg>
+                },
+              }
+              if (!canWrite) {
+                return <path key={region.key} {...pathProps} />
+              }
+              return <path key={region.key} {...pathProps} tabIndex={-1} />
+            })}
+          </svg>
+        </div>
         <p className="mt-2 text-sm text-muted">{caption}</p>
       </div>
     )
