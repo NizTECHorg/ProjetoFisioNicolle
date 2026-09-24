@@ -94,6 +94,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setMembership(null)
   }, [queryClient])
 
+  const reloadProfile = useCallback(async () => {
+    if (!userId) return
+    const nextProfile = await fetchProfile(userId)
+    setProfile(nextProfile)
+  }, [userId])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
@@ -109,8 +115,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         !isPendingTherapist(profile.accountType, membership?.status) &&
         !(profile.accountType === 'fisioterapeuta' && membership === null),
       signOut,
+      reloadProfile,
     }),
-    [session, profile, membership, sessionLoaded, profileLoading, signOut],
+    [session, profile, membership, sessionLoaded, profileLoading, signOut, reloadProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
