@@ -51,6 +51,13 @@ function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message)
 }
 
+async function requireUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser()
+  throwIfError(error)
+  if (!data.user) throw new Error('Sessão expirada. Entre novamente.')
+  return data.user.id
+}
+
 export async function listBoard() {
   const { data: columns, error: columnsError } = await supabase
     .from('board_columns')
@@ -105,6 +112,7 @@ export async function listBoard() {
 }
 
 export async function createColumn(title: string) {
+  const ownerId = await requireUserId()
   const { data: last } = await supabase
     .from('board_columns')
     .select('sort_order')
@@ -113,6 +121,7 @@ export async function createColumn(title: string) {
     .maybeSingle()
 
   const { error } = await supabase.from('board_columns').insert({
+    owner_id: ownerId,
     title,
     sort_order: (last?.sort_order ?? -1) + 1,
   })
@@ -126,6 +135,7 @@ export async function createCard(input: {
   patientId?: string | null
   dueOn?: string | null
 }) {
+  const ownerId = await requireUserId()
   const { data: last } = await supabase
     .from('board_cards')
     .select('sort_order')
@@ -135,6 +145,7 @@ export async function createCard(input: {
     .maybeSingle()
 
   const { error } = await supabase.from('board_cards').insert({
+    owner_id: ownerId,
     column_id: input.columnId,
     title: input.title,
     description: input.description || null,
@@ -169,13 +180,23 @@ export async function listDueCards(fromDate: string, toDate: string): Promise<Du
     ((columns ?? []) as Array<{ id: string; title: string }>).map((column) => [column.id, column.title]),
   )
 
-  const dueRows = ((data ?? []) as Array<{
+  const dueRows: Array<{
+    id: string
+    title: string
+    due_on: string
+    column_id: string
+    patients: BoardPatient | BoardPatient[] | null
+  }> = []
+  for (const row of (data ?? []) as Array<{
     id: string
     title: string
     due_on: string | null
     column_id: string
     patients: BoardPatient | BoardPatient[] | null
-  }>).filter((row) => row.due_on)
+  }>) {
+    if (!row.due_on) continue
+    dueRows.push({ ...row, due_on: row.due_on })
+  }
 
   const photoUrls = await signPatientPhotoUrls(dueRows.map((row) => firstPatient(row.patients)?.photo_path))
 
