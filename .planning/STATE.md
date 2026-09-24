@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-09-24T02:17:43.502Z"
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-09-24T02:23:07.749Z"
 progress:
   total_phases: 17
   completed_phases: 8
   total_plans: 68
-  completed_plans: 58
+  completed_plans: 59
   percent: 47
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 17 (Isolamento de dados por conta) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 - Status: Ready to execute
-- Progress: 1/3 plans
+- Progress: 2/3 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -152,6 +152,8 @@ Plan: 2 of 3
 - [Phase 17]: SQL Editor is the apply path for account isolation; do not run supabase db push — Hosted Editor is the only apply path; the script is not applied from the repo
 - [Phase 17]: Board personal branch is organization_id null plus owner_id = auth.uid(); company branch uses viewer_org_id() and does not rewrite can_read_patient — D-05 null org is not a shared bucket; D-06 keeps the phase 3 ficha model
 - [Phase 17]: patients_select drops the null created_by branch and keeps created_by = auth.uid() for INSERT RETURNING — can_read_patient is STABLE and cannot see the new row
+- [Phase 17]: Without VITE_GEMINI_API_KEY, analyzePhysicalEvaluationPdf throws and does not invent a report (D-04) — Empty state instead of a simulated lumbar report
+- [Phase 17]: Saved simulated report is discarded only when cinesiologicDiagnosis FNV-1a 64 equals d7513069ba374c9f; eval_ ids with another diagnosis stay — Real Gemini results also use the eval_ prefix
 
 ### Pending user action
 
@@ -174,8 +176,8 @@ Plan: 2 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-24T02:17:43.485Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-09-24T02:23:07.731Z
+Stopped at: Completed 17-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -212,3 +214,4 @@ Resume file: None
 | Phase 16 P05 | 4min | 2 tasks | 4 files |
 | Phase 16 P06 | 2min | 2 tasks | 4 files |
 | Phase 17 P01 | 5min | 2 tasks | 1 files |
+| Phase 17 P02 | 3min | 2 tasks | 2 files |
