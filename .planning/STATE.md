@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 16-06-PLAN.md
-last_updated: "2026-09-24T00:55:10.369Z"
+stopped_at: Phase 17 planned — ready to execute
+last_updated: "2026-09-24T02:07:15.366Z"
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 8
-  total_plans: 65
+  total_plans: 68
   completed_plans: 57
-  percent: 50
+  percent: 47
 ---
 
 # Project State
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 16 — foto do paciente
+**Current focus:** Phase 17 — Isolamento de dados por conta
 
 ## Current Position
 
-Phase: 16
-Plan: 6 of 6
+Phase: 17
+Plan: 0 of 3
 
-- Status: Phase complete — ready for verification
-- Progress: plans 16-01 through 16-06 verified
+- Status: Ready to execute
+- Progress: 0/3 plans
 
 **Progress:** [█████████░] 88%
 
@@ -170,8 +170,8 @@ Plan: 6 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T00:55:05.315Z
-Stopped at: Completed 16-06-PLAN.md
+Last session: 2026-09-24T02:07:15.366Z
+Stopped at: Phase 17 planned — ready to execute
 Resume file: None
 
 ## Performance Metrics
