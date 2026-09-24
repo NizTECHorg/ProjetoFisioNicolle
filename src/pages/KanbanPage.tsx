@@ -204,7 +204,7 @@ export function KanbanPage() {
                         ) : null}
                         {card.patientName ? (
                           <div className="mt-3 flex items-center gap-2">
-                            <PatientAvatar name={card.patientName} tone={card.photoTone} size="sm" />
+                            <PatientAvatar name={card.patientName} tone={card.photoTone} photoUrl={card.photoUrl} size="sm" />
                             <span className="truncate text-xs text-muted">{card.patientName}</span>
                           </div>
                         ) : null}

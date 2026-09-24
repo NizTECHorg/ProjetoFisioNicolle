@@ -86,6 +86,7 @@ export function CalendarPage() {
           dueOn: (card.dueOn as string).slice(0, 10),
           patientName: card.patientName,
           photoTone: card.photoTone,
+          photoUrl: card.photoUrl,
           columnTitle,
           done: columnTitle.toLowerCase().includes('conclu'),
         }
@@ -429,7 +430,7 @@ export function CalendarPage() {
                   <span className="mt-1 block text-sm font-medium text-ink">{card.title}</span>
                   {card.patientName ? (
                     <span className="mt-2 flex items-center gap-2">
-                      <PatientAvatar name={card.patientName} tone={card.photoTone} size="sm" />
+                      <PatientAvatar name={card.patientName} tone={card.photoTone} photoUrl={card.photoUrl} size="sm" />
                       <span className="truncate text-xs text-muted">{card.patientName}</span>
                     </span>
                   ) : null}
@@ -444,7 +445,7 @@ export function CalendarPage() {
               {daySessions.map((session) => (
                 <div key={session.id} className="rounded-2xl border border-line p-3">
                   <Link to={`/pacientes/${session.patientId}`} className="flex items-center gap-3">
-                    <PatientAvatar name={session.patientName} tone={session.photoTone} />
+                    <PatientAvatar name={session.patientName} tone={session.photoTone} photoUrl={session.photoUrl} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-ink">{session.patientName}</span>
                       <span className="block text-xs text-muted">
