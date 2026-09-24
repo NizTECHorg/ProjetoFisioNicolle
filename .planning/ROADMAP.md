@@ -21,7 +21,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 13: PDF Avaliação / Evolução** — Seções de export, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
 - [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
-- [ ] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG
+- [x] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG (completed 2026-09-24)
 
 ## Phase Details
 
@@ -461,7 +461,7 @@ Plans:
 **Goal:** Na ficha e nas listas, a foto do paciente aceita PNG ou JPEG: o hover mostra um ícone de câmera e o clique abre a escolha do arquivo. Sem foto, continuam as iniciais.
 **Requirements**: TBD
 **Depends on:** Phase 7
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 
@@ -481,4 +481,4 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 16-05-PLAN.md — Camera and file picker on the ficha and the patient list
-- [ ] 16-06-PLAN.md — Display the same photo on quadro, agenda, painel, and the shortcut
+- [x] 16-06-PLAN.md — Display the same photo on quadro, agenda, painel, and the shortcut

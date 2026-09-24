@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 16-05-PLAN.md
-last_updated: "2026-09-24T00:51:15.777Z"
+stopped_at: Completed 16-06-PLAN.md
+last_updated: "2026-09-24T00:55:10.369Z"
 progress:
   total_phases: 16
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 65
-  completed_plans: 56
-  percent: 44
+  completed_plans: 57
+  percent: 50
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 Phase: 16
 Plan: 6 of 6
 
-- Status: Ready to execute
+- Status: Phase complete — ready for verification
 - Progress: plans 16-01 through 16-06 verified
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -147,6 +147,8 @@ Plan: 6 of 6
 - [Phase 16]: A missing photo_path leaves photoUrl null and keeps the existing photoTone — Initials stay when there is no stored path; photoTone mapping is unchanged
 - [Phase 16]: Remover foto is PatientPhotoRemoveButton after the status pill — The avatar cell always passes showRemove false so the circle stays a label only
 - [Phase 16]: Writable list rows keep the file control outside the link — Desktop stopPropagation on click and keydown so the picker does not open the ficha
+- [Phase 16]: Calendar due cards copy photoUrl onto the view object so the sm avatar can show the signed URL — The day-view memo only copied photoTone, so the due-card avatar could not receive the signed URL.
+- [Phase 16]: Quadro, agenda, painel, and the shortcut stay display-only; upload remains on the ficha and the list — A camera or file input on a draggable card or shortcut button would bypass the write surfaces from plan 16-05.
 
 ### Pending user action
 
@@ -167,8 +169,8 @@ Plan: 6 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T00:51:15.761Z
-Stopped at: Completed 16-05-PLAN.md
+Last session: 2026-09-24T00:55:05.315Z
+Stopped at: Completed 16-06-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -203,3 +205,4 @@ Resume file: None
 | Phase 16 P03 | 3min | 2 tasks | 4 files |
 | Phase 16 P04 | 2min | 2 tasks | 3 files |
 | Phase 16 P05 | 4min | 2 tasks | 4 files |
+| Phase 16 P06 | 2min | 2 tasks | 4 files |
