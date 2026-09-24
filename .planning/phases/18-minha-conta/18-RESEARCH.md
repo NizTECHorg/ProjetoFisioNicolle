@@ -451,17 +451,11 @@ if config.Security.UpdatePasswordRequireCurrentPassword {
 
 **If this table is empty:** não se aplica.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **O Auth hospedado já exige senha atual?**
-   - What we know: O fonte atual confere só com o flag; o default é false. O client 2.117.1 manda o campo.
-   - What's unclear: Se este projeto já recebeu essa versão do GoTrue e se o toggle está visível.
-   - Recommendation: Checkpoint humano para ligar o toggle. O assert de omissão é o gate. Não inventar checagem paralela no client como substituto.
+1. **O Auth hospedado já exige senha atual?** RESOLVED: o plano 18-06 prova com o assert de omissão. `updateUser({ password })` sem `current_password` tem de falhar com `current_password_required`. O operador liga `security_update_password_require_current_password` no Dashboard e deixa reauthentication desligada. Se o update sem current_password gravar, D-05 não fecha.
 
-2. **Há `avatar_url` legado não nulo?**
-   - What we know: O app não escreve a coluna hoje. O rodapé usa iniciais.
-   - What's unclear: Dados da confeitaria no mesmo projeto.
-   - Recommendation: O SQL aborta se achar valor fora do path. Não migrar no escuro.
+2. **Há `avatar_url` legado não nulo?** RESOLVED: o plano 18-01 aborta com DO/RAISE EXCEPTION se achar avatar_url não nulo que não seja path do bucket novo. Não faz UPDATE em massa para apagar.
 
 ## Environment Availability
 
