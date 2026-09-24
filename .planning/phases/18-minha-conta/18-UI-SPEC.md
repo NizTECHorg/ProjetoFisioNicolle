@@ -1,7 +1,8 @@
 ---
 phase: 18
 slug: minha-conta
-status: draft
+status: approved
+reviewed_at: 2026-09-24T13:30:00-03:00
 shadcn_initialized: false
 preset: none
 created: 2026-09-24

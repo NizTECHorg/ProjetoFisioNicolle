@@ -21,6 +21,7 @@
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
 - [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
+- [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -109,6 +110,19 @@ Uma conta não vê dados digitados em outra. O quadro vazou uma tarefa entre con
 1. Conta recém-criada não lista tarefa, paciente, sessão ou nota de outra conta.
 2. Banco e consultas do app recusam leitura e escrita fora do dono do registro.
 3. Nenhuma tela usa paciente, tarefa, valor ou texto de exemplo no lugar de dado real.
+
+## REQ-29 — Minha conta
+
+**Indispensável · Artur**
+
+No rodapé da barra lateral, ao lado de Sair, um botão só com ícone abre a página da própria conta. Lá a pessoa troca a foto, o nome e a senha.
+
+### Acceptance
+
+1. O botão fica na mesma faixa do botão de sair, mostra só um ícone e abre a página Minha conta.
+2. A página permite trocar a foto, o nome e a senha da conta que está logada.
+3. Foto, nome e senha novos permanecem depois de recarregar e não alteram outra conta.
+4. Resetar a senha exige verificação: a senha atual é conferida antes de gravar a nova. Senha atual errada não altera nada. Depois do reset, a senha antiga deixa de entrar e a nova entra.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -293,3 +307,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-26 | Phase 14 | Planned |
 | REQ-27 | Phase 15 | Complete |
 | REQ-28 | Phase 17 | Complete |
+| REQ-29 | Phase 18 | Planned |

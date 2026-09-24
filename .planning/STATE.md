@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: verifying
 stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-09-24T02:28:09.246Z"
+last_updated: "2026-09-24T13:52:14.167Z"
 progress:
-  total_phases: 17
+  total_phases: 18
   completed_phases: 9
-  total_plans: 68
+  total_plans: 74
   completed_plans: 60
-  percent: 53
+  percent: 50
 ---
 
 # Project State
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 17 — Isolamento de dados por conta
+**Current focus:** Phase 18 — Minha conta
 
 ## Current Position
 
-Phase: 17 (Isolamento de dados por conta) — ready for verification
-Plan: 3 of 3
+Phase: 18 (Minha conta) — ready to execute
+Plan: 0 of 6
 
-- Status: Phase complete — ready for verification
-- Progress: 3/3 plans
+- Status: Ready to execute
+- Progress: 0/6 plans
 
 **Progress:** [█████████░] 88%
 
@@ -176,6 +176,7 @@ Plan: 3 of 3
 - Phase 8 added: Integração Google Agenda — exportar sessões da agenda da aplicação para o Google Calendar
 - Phase 16 added: Foto do paciente — hover com câmera e envio de PNG ou JPEG
 - Phase 17 added: Isolamento de dados por conta — vazamento do quadro entre contas, auditoria de todo dado digitável e remoção de mocks
+- Phase 18 added: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
 
 ## Session Continuity
 
