@@ -207,6 +207,24 @@ export const imageUploadSchema = z.object({
 
 export type ImageUploadInput = z.infer<typeof imageUploadSchema>
 
+export const PATIENT_PHOTO_MIMES = ['image/jpeg', 'image/png'] as const
+export const MAX_PATIENT_PHOTO_BYTES = 8 * 1024 * 1024
+
+export const patientPhotoSchema = z.object({
+  mimeType: z.enum(PATIENT_PHOTO_MIMES, {
+    errorMap: () => ({
+      message: 'Envie PNG ou JPEG.',
+    }),
+  }),
+  byteSize: z
+    .number()
+    .int()
+    .positive()
+    .max(MAX_PATIENT_PHOTO_BYTES, 'A foto deve ter no máximo 8 MB.'),
+})
+
+export type PatientPhotoInput = z.infer<typeof patientPhotoSchema>
+
 export const imageMetadataFormSchema = z.object({
   description: optionalText(500),
   sessionId: z.string(),
