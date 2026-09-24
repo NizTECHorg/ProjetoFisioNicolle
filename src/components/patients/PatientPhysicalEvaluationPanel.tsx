@@ -19,6 +19,38 @@ import { analyzePhysicalEvaluationPdf } from '@/services/aiPhysicalEvaluation.se
 import { useUpdatePatient } from '@/hooks/usePatients'
 import type { PhysicalEvaluationResult } from '@/types/evaluation'
 
+const INVENTED_DIAGNOSIS_FNV1A = 'd7513069ba374c9f'
+const FNV1A64_OFFSET = 0xcbf29ce484222325n
+const FNV1A64_PRIME = 0x100000001b3n
+const FNV1A64_MASK = 0xffffffffffffffffn
+
+function fnv1a64Hex(text: string): string {
+  const bytes = new TextEncoder().encode(text)
+  let hash = FNV1A64_OFFSET
+  for (const byte of bytes) {
+    hash ^= BigInt(byte)
+    hash = (hash * FNV1A64_PRIME) & FNV1A64_MASK
+  }
+  return hash.toString(16).padStart(16, '0')
+}
+
+function readStoredEvaluations(storageKey: string): PhysicalEvaluationResult[] {
+  try {
+    const saved = localStorage.getItem(storageKey)
+    if (!saved) return []
+    const parsed: unknown = JSON.parse(saved)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((item): item is PhysicalEvaluationResult => {
+      if (item === null || typeof item !== 'object') return true
+      const diagnosis = (item as { cinesiologicDiagnosis?: unknown }).cinesiologicDiagnosis
+      if (typeof diagnosis !== 'string') return true
+      return fnv1a64Hex(diagnosis) !== INVENTED_DIAGNOSIS_FNV1A
+    })
+  } catch {
+    return []
+  }
+}
+
 interface PatientPhysicalEvaluationPanelProps {
   patientId: string
   patientName?: string
@@ -35,14 +67,9 @@ export function PatientPhysicalEvaluationPanel({
   const updatePatient = useUpdatePatient()
   const storageKey = `fisio.evaluations.${patientId}`
 
-  const [evaluations, setEvaluations] = useState<PhysicalEvaluationResult[]>(() => {
-    try {
-      const saved = localStorage.getItem(storageKey)
-      return saved ? (JSON.parse(saved) as PhysicalEvaluationResult[]) : []
-    } catch {
-      return []
-    }
-  })
+  const [evaluations, setEvaluations] = useState<PhysicalEvaluationResult[]>(() =>
+    readStoredEvaluations(storageKey),
+  )
 
   const [selectedEvaluation, setSelectedEvaluation] = useState<PhysicalEvaluationResult | null>(
     null,
@@ -81,7 +108,11 @@ export function PatientPhysicalEvaluationPanel({
       setSelectedEvaluation(result)
     } catch (err) {
       console.error(err)
-      setErrorMessage('Ocorreu um erro ao processar a avaliação física. Tente novamente.')
+      if (err instanceof Error && err.message !== '') {
+        setErrorMessage(err.message)
+      } else {
+        setErrorMessage('Ocorreu um erro ao processar a avaliação física. Tente novamente.')
+      }
     } finally {
       setIsAnalyzing(false)
     }
