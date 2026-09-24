@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-09-24T14:35:26.450Z"
+stopped_at: Completed 18-04-PLAN.md
+last_updated: "2026-09-24T14:41:26.091Z"
 progress:
   total_phases: 18
   completed_phases: 9
   total_plans: 74
-  completed_plans: 63
+  completed_plans: 64
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 18 (Minha conta) — ready to execute
-Plan: 4 of 6
+Plan: 5 of 6
 
 - Status: Ready to execute
 - Progress: 3/6 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -164,6 +164,9 @@ Plan: 4 of 6
 - [Phase 18]: mapAuthError branches on error.code before any message that contains password, so current_password_invalid is Senha atual incorreta. — GoTrue uses the same human text for a wrong current password and a missing one, and that text contains the word password
 - [Phase 18]: Pin @supabase/supabase-js at exact 2.117.1 with no caret so UserAttributes.current_password stays typed — A caret could resolve to a 2.x without the field and force a cast
 - [Phase 18]: Leave src/lib/supabase/client.ts on flowType implicit — The SDK pin types current_password; the app session stays implicit
+- [Phase 18]: changePassword calls supabase.auth.updateUser with password and current_password together and does not sign in first — The password wall is one updateUser on the app client; a prior sign-in is not the server check
+- [Phase 18]: profiles.avatar_url stores the account-avatars object path; signAccountAvatarUrl returns a 3600-second URL and does not write it back — Signed URLs expire; the column must keep the storage path
+- [Phase 18]: reloadProfile calls fetchProfile outside onAuthStateChange and does not clear the query cache — Fetching inside the auth callback deadlocks the supabase-js lock; cache clear is only for login and logout
 
 ### Pending user action
 
@@ -188,8 +191,8 @@ Plan: 4 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T14:35:26.417Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-09-24T14:41:15.640Z
+Stopped at: Completed 18-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -231,3 +234,4 @@ Resume file: None
 | Phase 18 P01 | 4min | 2 tasks | 1 files |
 | Phase 18 P03 | 5min | 2 tasks | 2 files |
 | Phase 18 P02 | 1min | 2 tasks | 2 files |
+| Phase 18 P04 | 4min | 3 tasks | 4 files |
