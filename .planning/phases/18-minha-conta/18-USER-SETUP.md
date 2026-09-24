@@ -12,7 +12,7 @@ None.
 
 ## Dashboard Configuration
 
-- [ ] **Paste the account script and run it once**
+- [x] **Paste the account script and run it once** (operador confirmou em 2026-09-24)
   - Location: Supabase Dashboard → SQL Editor
   - Set to: contents of `.planning/phases/18-minha-conta/sql/18-account.sql`
   - Notes: Do not use `supabase db push`. The script is idempotent. It creates the private bucket `account-avatars` (2097152 bytes, `image/jpeg`, `image/png`, `image/webp`), the path check `profiles_avatar_url_shape`, storage policies for the signed-in user's folder, and `GRANT UPDATE` only on `full_name` and `avatar_url`. If the DO block aborts because a legacy `avatar_url` is not a UUID path, inspect that row. Do not null `avatar_url` in bulk.
