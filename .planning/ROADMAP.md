@@ -524,14 +524,14 @@ Plans:
   3. Depois de salvar e recarregar, foto, nome e senha novos valem só para essa conta
   4. Resetar a senha confere a senha atual antes de gravar a nova; senha atual errada não altera nada, e depois do reset a senha antiga deixa de entrar
 
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 - [x] 18-01-PLAN.md — SQL do bucket account-avatars e do GRANT de coluna
 - [x] 18-02-PLAN.md — Bump de @supabase/supabase-js para 2.117.1
 - [x] 18-03-PLAN.md — Schema de nome e senha e mapAuthError por error.code
 - [x] 18-04-PLAN.md — Services de nome, senha, foto e reloadProfile
-- [ ] 18-05-PLAN.md — Ícone Minha conta, rota /conta e card de foto e nome
+- [x] 18-05-PLAN.md — Ícone Minha conta, rota /conta e card de foto e nome
 - [ ] 18-06-PLAN.md — Card Senha e password reset verification rule
 
 **Wave 1**

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 18-04-PLAN.md
-last_updated: "2026-09-24T14:41:26.091Z"
+stopped_at: Completed 18-05-PLAN.md
+last_updated: "2026-09-24T14:47:58.600Z"
 progress:
   total_phases: 18
   completed_phases: 9
   total_plans: 74
-  completed_plans: 64
+  completed_plans: 65
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 18 (Minha conta) — ready to execute
-Plan: 5 of 6
+Plan: 6 of 6
 
 - Status: Ready to execute
-- Progress: 3/6 plans
+- Progress: 5/6 plans
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -167,6 +167,9 @@ Plan: 5 of 6
 - [Phase 18]: changePassword calls supabase.auth.updateUser with password and current_password together and does not sign in first — The password wall is one updateUser on the app client; a prior sign-in is not the server check
 - [Phase 18]: profiles.avatar_url stores the account-avatars object path; signAccountAvatarUrl returns a 3600-second URL and does not write it back — Signed URLs expire; the column must keep the storage path
 - [Phase 18]: reloadProfile calls fetchProfile outside onAuthStateChange and does not clear the query cache — Fetching inside the auth callback deadlocks the supabase-js lock; cache clear is only for login and logout
+- [Phase 18]: Footer Minha conta is an icon-only NavLink to /conta immediately before Sair — Accessible name is exactly Minha conta; the item is not added to mobileNavItems
+- [Phase 18]: Signed account avatar URLs stay in component state and are not written to profiles — profiles.avatar_url remains the storage path; the footer and AccountPage sign it at read time
+- [Phase 18]: Password card stays off AccountPage until plan 18-06 — REQ-29 password verification is the next plan; this plan only ships photo and name
 
 ### Pending user action
 
@@ -191,8 +194,8 @@ Plan: 5 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T14:41:15.640Z
-Stopped at: Completed 18-04-PLAN.md
+Last session: 2026-09-24T14:47:58.584Z
+Stopped at: Completed 18-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -235,3 +238,4 @@ Resume file: None
 | Phase 18 P03 | 5min | 2 tasks | 2 files |
 | Phase 18 P02 | 1min | 2 tasks | 2 files |
 | Phase 18 P04 | 4min | 3 tasks | 4 files |
+| Phase 18 P05 | 4min | 2 tasks | 3 files |
