@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import { useTogglePatientFocusArea } from '@/hooks/usePatients'
 import {
   focusRegionListLabel,
@@ -46,20 +54,6 @@ function regionPathClassName(marked: boolean, preview: boolean, canWrite: boolea
   const stroke = marked || showPreview ? 'stroke-accent' : 'stroke-forest'
   const cursor = canWrite ? 'cursor-pointer' : 'cursor-default'
   return [fill, stroke, cursor].join(' ')
-}
-
-/** Keep panel-scroll position when SVG paths receive focus (desktop scroll jump). */
-function preservePanelScroll(run: () => void) {
-  const panel = document.querySelector('.panel-scroll')
-  const top = panel instanceof HTMLElement ? panel.scrollTop : window.scrollY
-  run()
-  requestAnimationFrame(() => {
-    if (panel instanceof HTMLElement) {
-      panel.scrollTop = top
-      return
-    }
-    window.scrollTo({ top, left: window.scrollX })
-  })
 }
 
 export function PatientFocusAreasPanel({
@@ -160,9 +154,7 @@ export function PatientFocusAreasPanel({
       const key = openKey
       closeChip()
       if (key) {
-        preservePanelScroll(() => {
-          pathRefs.current.get(key)?.focus({ preventScroll: true })
-        })
+        pathRefs.current.get(key)?.focus({ preventScroll: true })
       }
     }
 
@@ -201,7 +193,28 @@ export function PatientFocusAreasPanel({
 
   function onRegionFocus(key: FocusRegionKey) {
     if (!canWrite) return
-    preservePanelScroll(() => openRegion(key))
+    openRegion(key)
+  }
+
+  function onGroupKeyDown(view: FocusView, event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!canWrite) return
+    if (event.target === chipRef.current) return
+    const advance = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+    const retreat = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+    if (!advance && !retreat) return
+    event.preventDefault()
+    const regions = view === 'front' ? FRONT_REGIONS : BACK_REGIONS
+    if (regions.length === 0) return
+    const openIndex = openKey ? regions.findIndex((region) => region.key === openKey) : -1
+    const nextIndex =
+      openIndex === -1
+        ? 0
+        : advance
+          ? (openIndex + 1) % regions.length
+          : (openIndex - 1 + regions.length) % regions.length
+    const next = regions[nextIndex]
+    if (!next) return
+    pathRefs.current.get(next.key)?.focus({ preventScroll: true })
   }
 
   function onGroupPointerLeave(event: ReactPointerEvent<HTMLDivElement>) {
@@ -232,42 +245,43 @@ export function PatientFocusAreasPanel({
           ref={(el) => {
             groupRefs.current[view] = el
           }}
-          className="relative overflow-visible"
+          className="relative overflow-visible scroll-m-0 outline-none [overflow-anchor:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          tabIndex={canWrite ? 0 : undefined}
           onPointerLeave={onGroupPointerLeave}
+          onKeyDown={(event) => onGroupKeyDown(view, event)}
         >
           <svg
             viewBox="0 0 140 240"
-            overflow="hidden"
-            className="h-44 w-auto overflow-hidden text-forest sm:h-52 [overflow-anchor:none]"
+            className="h-44 w-auto overflow-visible text-forest sm:h-52"
             aria-label={svgLabel}
           >
             {regions.map((region) => {
               const marked = selectedKeys.has(region.key)
               const preview = hotKey === region.key || openKey === region.key
-              return (
-                <path
-                  key={region.key}
-                  ref={(el) => {
-                    if (el) pathRefs.current.set(region.key, el)
-                    else pathRefs.current.delete(region.key)
-                  }}
-                  d={region.path}
-                  data-region={region.key}
-                  aria-label={focusRegionPathAriaLabel(region)}
-                  pointerEvents="fill"
-                  strokeWidth={0.65}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  className={`${regionPathClassName(marked, preview, canWrite)} scroll-m-0 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`}
-                  tabIndex={canWrite ? 0 : undefined}
-                  onPointerEnter={() => onRegionPointerEnter(region.key)}
-                  onPointerDown={(event) => {
-                    event.preventDefault()
-                    onRegionPointerDown(region.key)
-                  }}
-                  onFocus={() => onRegionFocus(region.key)}
-                />
-              )
+              const pathProps = {
+                ref: (el: SVGPathElement | null) => {
+                  if (el) pathRefs.current.set(region.key, el)
+                  else pathRefs.current.delete(region.key)
+                },
+                d: region.path,
+                'data-region': region.key,
+                'aria-label': focusRegionPathAriaLabel(region),
+                pointerEvents: 'fill' as const,
+                strokeWidth: 0.65,
+                strokeLinejoin: 'round' as const,
+                strokeLinecap: 'round' as const,
+                className: `${regionPathClassName(marked, preview, canWrite)} scroll-m-0 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`,
+                onPointerEnter: () => onRegionPointerEnter(region.key),
+                onPointerDown: (event: ReactPointerEvent<SVGPathElement>) => {
+                  event.preventDefault()
+                  onRegionPointerDown(region.key)
+                },
+                onFocus: () => onRegionFocus(region.key),
+              }
+              if (!canWrite) {
+                return <path key={region.key} {...pathProps} />
+              }
+              return <path key={region.key} {...pathProps} tabIndex={-1} />
             })}
           </svg>
 
@@ -277,6 +291,9 @@ export function PatientFocusAreasPanel({
               type="button"
               aria-pressed={markedOpen}
               aria-busy={toggle.isPending || undefined}
+              onPointerDown={(event) => {
+                event.preventDefault()
+              }}
               onClick={onChipClick}
               onPointerLeave={(event) => {
                 if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
