@@ -23,7 +23,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
 - [x] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG (completed 2026-09-24)
 - [x] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site (completed 2026-09-24)
-- [ ] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha
+- [x] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha (completed 2026-09-24)
 
 ## Phase Details
 
@@ -524,7 +524,7 @@ Plans:
   3. Depois de salvar e recarregar, foto, nome e senha novos valem só para essa conta
   4. Resetar a senha confere a senha atual antes de gravar a nova; senha atual errada não altera nada, e depois do reset a senha antiga deixa de entrar
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 - [x] 18-01-PLAN.md — SQL do bucket account-avatars e do GRANT de coluna
@@ -532,7 +532,7 @@ Plans:
 - [x] 18-03-PLAN.md — Schema de nome e senha e mapAuthError por error.code
 - [x] 18-04-PLAN.md — Services de nome, senha, foto e reloadProfile
 - [x] 18-05-PLAN.md — Ícone Minha conta, rota /conta e card de foto e nome
-- [ ] 18-06-PLAN.md — Card Senha e password reset verification rule
+- [x] 18-06-PLAN.md — Card Senha e password reset verification rule
 
 **Wave 1**
 
@@ -546,8 +546,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 18-05-PLAN.md — Ícone Minha conta, rota /conta e card de foto e nome
+- [x] 18-05-PLAN.md — Ícone Minha conta, rota /conta e card de foto e nome
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 18-06-PLAN.md — Card Senha e password reset verification rule
+- [x] 18-06-PLAN.md — Card Senha e password reset verification rule

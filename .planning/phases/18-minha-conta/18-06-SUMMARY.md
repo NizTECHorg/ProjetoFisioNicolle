@@ -69,7 +69,7 @@ Each task was committed atomically:
 1. **Task 1: Card Senha chama changePassword com a senha atual** - `7679750` (feat)
 2. **Task 2: password reset verification rule** - `b1b15d6` (docs)
 
-**Plan metadata:** pending docs commit after this file
+**Plan metadata:** `bdd4ac1` (docs: complete Senha card plan)
 
 ## Files Created/Modified
 

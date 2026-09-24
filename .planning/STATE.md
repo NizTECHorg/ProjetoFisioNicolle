@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 18-05-PLAN.md
-last_updated: "2026-09-24T14:47:58.600Z"
+stopped_at: Completed 18-06-PLAN.md
+last_updated: "2026-09-24T14:53:38.333Z"
 progress:
   total_phases: 18
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 74
-  completed_plans: 65
-  percent: 50
+  completed_plans: 66
+  percent: 56
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 18 (Minha conta) — ready to execute
+Phase: 18 (Minha conta) — Phase complete — ready for verification
 Plan: 6 of 6
 
-- Status: Ready to execute
-- Progress: 5/6 plans
+- Status: Phase complete — ready for verification
+- Progress: 6/6 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 89%
 
 ## Accumulated Context
 
@@ -170,6 +170,9 @@ Plan: 6 of 6
 - [Phase 18]: Footer Minha conta is an icon-only NavLink to /conta immediately before Sair — Accessible name is exactly Minha conta; the item is not added to mobileNavItems
 - [Phase 18]: Signed account avatar URLs stay in component state and are not written to profiles — profiles.avatar_url remains the storage path; the footer and AccountPage sign it at read time
 - [Phase 18]: Password card stays off AccountPage until plan 18-06 — REQ-29 password verification is the next plan; this plan only ships photo and name
+- [Phase 18]: Salvar senha calls changePassword only — The page does not call updateUser, signInWithPassword, reauthenticate, or signOut
+- [Phase 18]: Wrong current password shows Senha atual incorreta. on that field — Clears only Senha atual, keeps the new-password fields, and stays on /conta
+- [Phase 18]: Hosted password oracle was documented and was not executed — Second client persistSession false is a human check; the Dashboard flag was not applied via the Management API
 
 ### Pending user action
 
@@ -194,8 +197,8 @@ Plan: 6 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T14:47:58.584Z
-Stopped at: Completed 18-05-PLAN.md
+Last session: 2026-09-24T14:53:38.314Z
+Stopped at: Completed 18-06-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -239,3 +242,4 @@ Resume file: None
 | Phase 18 P02 | 1min | 2 tasks | 2 files |
 | Phase 18 P04 | 4min | 3 tasks | 4 files |
 | Phase 18 P05 | 4min | 2 tasks | 3 files |
+| Phase 18 P06 | 4 min | 2 tasks | 2 files |

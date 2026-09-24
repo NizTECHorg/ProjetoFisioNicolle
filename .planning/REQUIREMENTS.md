@@ -21,7 +21,7 @@
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
 - [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
-- [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
+- [x] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -307,4 +307,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-26 | Phase 14 | Planned |
 | REQ-27 | Phase 15 | Complete |
 | REQ-28 | Phase 17 | Complete |
-| REQ-29 | Phase 18 | Planned |
+| REQ-29 | Phase 18 | Complete |
