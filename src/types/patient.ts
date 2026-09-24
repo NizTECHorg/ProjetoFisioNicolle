@@ -150,6 +150,7 @@ export interface PatientListItem {
   name: string
   initials: string
   photoTone: string
+  photoUrl: string | null
   status: PatientStatus
   code: string
   phone: string
@@ -166,6 +167,7 @@ export interface Patient {
   name: string
   initials: string
   photoTone: string
+  photoUrl: string | null
   status: PatientStatus
   code: string
   age: number | null
@@ -210,6 +212,7 @@ export interface PatientDashboard {
   name: string
   initials: string
   photoTone: string
+  photoUrl: string | null
   status: PatientStatus
   code: string
   phone: string

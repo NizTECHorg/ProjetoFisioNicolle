@@ -37,6 +37,7 @@ import type {
 } from '@/types/patient'
 import type { SessionChargeDraft } from '@/types/finance'
 import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
+import { removePatientPhoto, uploadPatientPhoto } from '@/services/patientPhoto.service'
 import { toast, type ToastAction } from '@/stores/toast.store'
 
 function onError(error: unknown) {
@@ -53,6 +54,14 @@ export function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patient
   void qc.invalidateQueries({ queryKey: ['patients', patientId, 'ai-reports'] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
   void qc.invalidateQueries({ queryKey: ['finance'] })
+}
+
+function invalidatePatientPhoto(qc: ReturnType<typeof useQueryClient>, patientId: string) {
+  void qc.invalidateQueries({ queryKey: ['patients'], exact: true })
+  void qc.invalidateQueries({ queryKey: ['patients', patientId], exact: true })
+  void qc.invalidateQueries({ queryKey: ['patients', patientId, 'dashboard'], exact: true })
+  void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
+  void qc.invalidateQueries({ queryKey: ['board'] })
 }
 
 function shouldUpsertCharge(charge: SessionChargeDraft | null | undefined): charge is SessionChargeDraft {
@@ -82,6 +91,31 @@ export function usePatientDashboard(id: string | undefined) {
     queryFn: () => getPatientDashboard(id!),
     enabled: Boolean(id),
     staleTime: 60_000,
+  })
+}
+
+export function useUploadPatientPhoto(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ file, mimeType }: { file: Blob; mimeType: 'image/jpeg' | 'image/png' }) =>
+      uploadPatientPhoto(patientId, file, mimeType),
+    onSuccess: () => {
+      invalidatePatientPhoto(qc, patientId)
+      toast('Foto atualizada.', 'success')
+    },
+    onError,
+  })
+}
+
+export function useRemovePatientPhoto(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => removePatientPhoto(patientId),
+    onSuccess: () => {
+      invalidatePatientPhoto(qc, patientId)
+      toast('Foto removida.', 'success')
+    },
+    onError,
   })
 }
 
