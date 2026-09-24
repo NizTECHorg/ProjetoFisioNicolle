@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-09-24T13:59:24.084Z"
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-09-24T14:06:38.040Z"
 progress:
   total_phases: 18
   completed_phases: 9
   total_plans: 74
-  completed_plans: 61
+  completed_plans: 62
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 18 (Minha conta) — ready to execute
-Plan: 1 of 6
+Plan: 2 of 6
 
 - Status: Ready to execute
-- Progress: 1/6 plans
+- Progress: 2/6 plans
 
-**Progress:** [████████░░] 82%
+**Progress:** [████████░░] 84%
 
 ## Accumulated Context
 
@@ -160,6 +160,8 @@ Plan: 1 of 6
 - [Phase 18]: SQL Editor is the apply path for account-avatars; do not run supabase db push — Hosted Editor is the only apply path; the script is not applied from the repo
 - [Phase 18]: profiles.avatar_url stores a UUID path or null; a legacy value aborts the script instead of being nulled — Pitfall 5: ADD CONSTRAINT must not hide an http URL by mass-nulling the column
 - [Phase 18]: authenticated UPDATE on profiles is limited to full_name and avatar_url — Pitfall 4 / T-18-01: profiles_update_own stays; service_role and the owner are not revoked
+- [Phase 18]: Blank new password fails with Informe a nova senha. before passwordSchema, so an empty field does not show the 8-character rule — An empty field must not surface the minimum-of-8 line from passwordSchema
+- [Phase 18]: mapAuthError branches on error.code before any message that contains password, so current_password_invalid is Senha atual incorreta. — GoTrue uses the same human text for a wrong current password and a missing one, and that text contains the word password
 
 ### Pending user action
 
@@ -184,8 +186,8 @@ Plan: 1 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T13:59:24.060Z
-Stopped at: Completed 18-01-PLAN.md
+Last session: 2026-09-24T14:06:38.017Z
+Stopped at: Completed 18-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -225,3 +227,4 @@ Resume file: None
 | Phase 17 P02 | 3min | 2 tasks | 2 files |
 | Phase 17 P03 | 3min | 2 tasks | 2 files |
 | Phase 18 P01 | 4min | 2 tasks | 1 files |
+| Phase 18 P03 | 5min | 2 tasks | 2 files |
