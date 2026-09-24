@@ -104,7 +104,7 @@ export function AppShell() {
         </nav>
 
         <div className="p-4">
-          <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-3">
+          <div className="group flex items-center gap-3 rounded-2xl bg-white/10 p-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/20 text-xs font-semibold text-accent">
               {avatarSrc && !avatarBroken ? (
                 <img
@@ -128,10 +128,16 @@ export function AppShell() {
               onClick={() => setIsMenuOpen(false)}
               className={({ isActive }) =>
                 [
-                  'flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl p-2 transition-colors',
+                  'flex shrink-0 items-center justify-center overflow-hidden rounded-xl transition-all duration-200',
                   isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/40 hover:bg-white/10 hover:text-white',
+                    ? 'min-h-11 min-w-11 bg-white/10 p-2 text-white'
+                    : [
+                        'pointer-events-none w-0 min-w-0 p-0 text-white/40 opacity-0',
+                        'hover:bg-white/10 hover:text-white',
+                        'group-hover:pointer-events-auto group-hover:w-11 group-hover:min-h-11 group-hover:min-w-11 group-hover:p-2 group-hover:opacity-100',
+                        'group-focus-within:pointer-events-auto group-focus-within:w-11 group-focus-within:min-h-11 group-focus-within:min-w-11 group-focus-within:p-2 group-focus-within:opacity-100',
+                        '[@media(hover:none)]:pointer-events-auto [@media(hover:none)]:w-11 [@media(hover:none)]:min-h-11 [@media(hover:none)]:min-w-11 [@media(hover:none)]:p-2 [@media(hover:none)]:opacity-100',
+                      ].join(' '),
                 ].join(' ')
               }
             >
