@@ -162,7 +162,7 @@ export function DashboardClinicalShortcut() {
                       ].join(' ')}
                       onClick={() => selectPatient(state.kind, patient)}
                     >
-                      <PatientAvatar name={patient.name} tone={patient.photoTone} initials={patient.initials} />
+                      <PatientAvatar name={patient.name} tone={patient.photoTone} initials={patient.initials} photoUrl={patient.photoUrl} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium text-ink">{patient.name}</span>
                         <span className="block truncate text-xs text-muted">

@@ -304,6 +304,7 @@ export function DashboardPage() {
           patientId: session.patientId,
           name: session.patientName,
           tone: session.photoTone,
+          photoUrl: session.photoUrl,
           detail: `${session.type} · ${formatTime(session.scheduledAt)}`,
           progress: progressLabel(patient),
         }
@@ -470,7 +471,7 @@ export function DashboardPage() {
                         to={`/pacientes/${item.patientId}`}
                         className="flex items-center gap-3 rounded-2xl p-1 transition hover:bg-canvas"
                       >
-                        <PatientAvatar name={item.name} tone={item.tone} />
+                        <PatientAvatar name={item.name} tone={item.tone} photoUrl={item.photoUrl} />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-ink">{item.name}</p>
                           <p className="truncate text-xs text-muted">{item.detail}</p>
