@@ -28,8 +28,8 @@ created: 2026-09-23
 ## Sampling Rate
 
 - **After every task commit:** Run `npm run typecheck`
-- **After every plan wave:** Run `npm run typecheck` e `rg -n "Disfunção cinesiológica" src`
-- **Before `/gsd-verify-work`:** Typecheck verde, busca do laudo inventado vazia, e o operador marca o SQL de prova no UAT
+- **After every plan wave:** Run `npm run typecheck` e `rg -n "Disfunção cinesiológica" src` (vazio). Depois do plano 02, `rg -n "d7513069ba374c9f" src/components/patients/PatientPhysicalEvaluationPanel.tsx` encontra o digest.
+- **Before `/gsd-verify-work`:** Typecheck verde, busca do laudo inventado vazia, digest d7513069ba374c9f no painel, e o operador marca o SQL de prova no UAT
 - **Max feedback latency:** 30 seconds
 
 ---
@@ -41,7 +41,7 @@ created: 2026-09-23
 | 17-01-01 | 01 | 1 | REQ-28 | T-17-01 | Autônomo B não lê card/coluna de A; insert na coluna de A devolve 42501 | manual SQL | Bloco em `17-account-isolation.sql` com `set local role authenticated` | ❌ W0 | ⬜ pending |
 | 17-01-02 | 01 | 1 | REQ-28 | T-17-02 | Autônomo B não lê paciente, sessão ou nota de A; empresa ainda lê a ficha do fisioterapeuta ativo | manual SQL | Mesmo bloco: select em `patients`, `patient_sessions`, `patient_session_evolutions` → 0 linhas para outro autônomo | ❌ W0 | ⬜ pending |
 | 17-02-01 | 02 | 1 | REQ-28 | T-17-07 | Sem chave, o serviço não devolve o laudo inventado | search | `rg -n "Disfunção cinesiológica" src` vazio | ✅ | ⬜ pending |
-| 17-02-02 | 02 | 1 | REQ-28 | T-17-07 | localStorage da simulação não reidrata; o painel mostra err.message | search | `rg -n "Disfunção cinesiológica" src` vazio e `npm run typecheck` | ✅ | ⬜ pending |
+| 17-02-02 | 02 | 1 | REQ-28 | T-17-07 | localStorage da simulação não reidrata; o painel mostra err.message | search | `rg -n "d7513069ba374c9f" src/components/patients/PatientPhysicalEvaluationPanel.tsx` e `rg -n "Disfunção cinesiológica" src` vazio e `npm run typecheck` | ✅ | ⬜ pending |
 | 17-03-01 | 03 | 2 | REQ-28 | T-17-03 | createColumn e createCard enviam owner_id e não filtram a lista no JS | typecheck | `npm run typecheck` e ausência de `.eq('owner_id')` em `board.service.ts` | ✅ | ⬜ pending |
 | 17-03-02 | 03 | 2 | REQ-28 | T-17-05 | Conta nova em `/quadro` não mostra a tarefa do outro autônomo; vazio sem seed | search | `rg -n "board.sql" src/pages/KanbanPage.tsx` vazio | ✅ | ⬜ pending |
 

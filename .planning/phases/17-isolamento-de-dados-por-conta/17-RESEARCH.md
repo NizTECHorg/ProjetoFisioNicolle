@@ -443,17 +443,19 @@ or (created_by is null and (select auth.uid()) is not null)
 | A2 | Linhas atuais do quadro devem ser atribuídas ao profile do operador (quem criou a tarefa que vazou), não apagadas. | Runtime State Inventory | Se o uuid colado no `UPDATE` for o da cliente, a tarefa passa a ser dela. O SQL deve deixar o uuid num comentário que o operador substitui, nunca hardcoded. |
 | A3 | Quadro da mesma empresa é uma lista compartilhada (`organization_id`), enquanto a ficha continua por `created_by`. | Pattern 1 / Pitfall 7 | Se a intenção fosse quadro pessoal também dentro da empresa, fisioterapeutas passariam a ver títulos de tarefa uns dos outros. D-06 pede que a empresa continue vendo os dados daquela organização; a ficha não muda. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Quantas linhas de `board_*` e de `patients.created_by is null` existem hoje?**
+1. **Quantas linhas de `board_*` e de `patients.created_by is null` existem hoje?** — RESOLVED
    - What we know: o app não tem essas colunas de escopo no quadro; o OR de nulo está no SQL aplicado.
    - What's unclear: contagem no banco hospedado. Não há `psql` local nem service role no repositório.
    - Recommendation: o script começa com dois `SELECT count(*)` comentados para o operador ler antes do `UPDATE` de backfill. Não bloquear o plano nesse número.
+   - Resolution: o plano 17-01 deixa os `SELECT count(*)` e o `UPDATE` comentados, com o placeholder `uuid-do-operador`. A contagem ao vivo não trava o script.
 
-2. **Nomes exatos das políticas atuais do quadro**
+2. **Nomes exatos das políticas atuais do quadro** — RESOLVED
    - What we know: não estão em nenhum `.sql` rastreado.
    - What's unclear: `policyname` ao vivo.
    - Recommendation: drop via `pg_policies`, não via lista fixa de nomes.
+   - Resolution: o plano 17-01 dropa com loop em `pg_policies` só para `board_columns` e `board_cards`, sem lista fixa de nomes.
 
 ## Environment Availability
 
