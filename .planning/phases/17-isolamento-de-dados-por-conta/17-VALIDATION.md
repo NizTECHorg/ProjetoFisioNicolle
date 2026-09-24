@@ -39,10 +39,11 @@ created: 2026-09-23
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 17-01-01 | 01 | 1 | REQ-28 | T-17-01 | Autônomo B não lê card/coluna de A; insert na coluna de A devolve 42501 | manual SQL | Bloco em `17-account-isolation.sql` com `set local role authenticated` | ❌ W0 | ⬜ pending |
-| 17-01-02 | 01 | 1 | REQ-28 | T-17-02 | Autônomo B não lê paciente, sessão ou nota de A | manual SQL | Mesmo bloco: select em `patients`, `patient_sessions`, `patient_session_evolutions` → 0 linhas | ❌ W0 | ⬜ pending |
-| 17-01-03 | 01 | 1 | REQ-28 | T-17-03 | Empresa continua vendo a ficha do fisioterapeuta ativo; outro autônomo não | manual SQL | `set local` do dono da empresa vê o paciente; sub de outro autônomo → 0 | ❌ W0 | ⬜ pending |
-| 17-02-01 | 02 | 2 | REQ-28 | T-17-04 | Conta nova em `/quadro` não mostra a tarefa do outro autônomo | manual UI | Roteiro UAT: login da conta nova | ❌ | ⬜ pending |
-| 17-02-02 | 02 | 2 | REQ-28 | T-17-05 | Nenhum texto de exemplo no lugar de registro | search | `rg -n "Disfunção cinesiológica" src` vazio | ✅ | ⬜ pending |
+| 17-01-02 | 01 | 1 | REQ-28 | T-17-02 | Autônomo B não lê paciente, sessão ou nota de A; empresa ainda lê a ficha do fisioterapeuta ativo | manual SQL | Mesmo bloco: select em `patients`, `patient_sessions`, `patient_session_evolutions` → 0 linhas para outro autônomo | ❌ W0 | ⬜ pending |
+| 17-02-01 | 02 | 1 | REQ-28 | T-17-07 | Sem chave, o serviço não devolve o laudo inventado | search | `rg -n "Disfunção cinesiológica" src` vazio | ✅ | ⬜ pending |
+| 17-02-02 | 02 | 1 | REQ-28 | T-17-07 | localStorage da simulação não reidrata; o painel mostra err.message | search | `rg -n "Disfunção cinesiológica" src` vazio e `npm run typecheck` | ✅ | ⬜ pending |
+| 17-03-01 | 03 | 2 | REQ-28 | T-17-03 | createColumn e createCard enviam owner_id e não filtram a lista no JS | typecheck | `npm run typecheck` e ausência de `.eq('owner_id')` em `board.service.ts` | ✅ | ⬜ pending |
+| 17-03-02 | 03 | 2 | REQ-28 | T-17-05 | Conta nova em `/quadro` não mostra a tarefa do outro autônomo; vazio sem seed | search | `rg -n "board.sql" src/pages/KanbanPage.tsx` vazio | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

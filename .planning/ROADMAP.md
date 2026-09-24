@@ -495,7 +495,18 @@ Plans:
   2. Toda tabela de dado digitável está coberta por regra de acesso no banco e pela leitura no app
   3. Nenhuma tela mostra paciente, sessão, valor ou texto de exemplo que não veio do banco daquela conta
 
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 17 to break down)
+- [ ] 17-01-PLAN.md — RLS do quadro e fechamento de patients_select
+- [ ] 17-02-PLAN.md — Remover o laudo inventado da aba Avaliações
+- [ ] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
+
+**Wave 1**
+
+- [ ] 17-01-PLAN.md — RLS do quadro e fechamento de patients_select
+- [ ] 17-02-PLAN.md — Remover o laudo inventado da aba Avaliações
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
