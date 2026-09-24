@@ -59,7 +59,7 @@ const MAX_EVOLUCAO_SESSIONS = 12
 const MAX_FIELD_CHARS = 1200
 const MAX_HINT_CHARS = 2000
 
-/** Closed catalog — mirror src/lib/focusRegions.ts (30 keys). */
+/** Closed catalog — mirror src/lib/focusRegions.ts (42 keys). */
 const FOCUS_REGION_KEYS = new Set([
   'front.head',
   'front.neck',
@@ -67,15 +67,21 @@ const FOCUS_REGION_KEYS = new Set([
   'front.shoulder_r',
   'front.chest',
   'front.abdomen',
-  'front.arm_l',
-  'front.arm_r',
+  'front.upper_arm_l',
+  'front.upper_arm_r',
+  'front.forearm_l',
+  'front.forearm_r',
+  'front.palm_l',
+  'front.palm_r',
   'front.hip',
   'front.thigh_l',
   'front.thigh_r',
   'front.knee_l',
   'front.knee_r',
-  'front.leg_l',
-  'front.leg_r',
+  'front.shin_l',
+  'front.shin_r',
+  'front.foot_l',
+  'front.foot_r',
   'back.neck',
   'back.shoulder_l',
   'back.shoulder_r',
@@ -83,14 +89,20 @@ const FOCUS_REGION_KEYS = new Set([
   'back.lumbar',
   'back.glute_l',
   'back.glute_r',
-  'back.arm_l',
-  'back.arm_r',
+  'back.upper_arm_l',
+  'back.upper_arm_r',
+  'back.forearm_l',
+  'back.forearm_r',
+  'back.hand_l',
+  'back.hand_r',
   'back.thigh_l',
   'back.thigh_r',
   'back.knee_l',
   'back.knee_r',
-  'back.leg_l',
-  'back.leg_r',
+  'back.calf_l',
+  'back.calf_r',
+  'back.ankle_l',
+  'back.ankle_r',
 ])
 
 /** Prefer current flash ids — 2.5/2.0 return 404 for new API keys (2026). */
