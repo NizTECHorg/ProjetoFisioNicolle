@@ -1,5 +1,5 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Camera } from 'lucide-react'
 import { z } from 'zod'
@@ -10,9 +10,13 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { accountTypeLabel } from '@/lib/accountAccess'
 import { preparePatientPhoto } from '@/lib/cropPatientPhoto'
-import { accountNameSchema } from '@/schemas/auth.schema'
+import {
+  accountNameSchema,
+  changePasswordSchema,
+  type ChangePasswordFormData,
+} from '@/schemas/auth.schema'
 import { removeAccountPhoto, signAccountAvatarUrl, uploadAccountPhoto } from '@/services/accountPhoto.service'
-import { updateOwnName } from '@/services/auth.service'
+import { changePassword, updateOwnName } from '@/services/auth.service'
 import { toast } from '@/stores/toast.store'
 
 const PERMISSION = 'Você não tem permissão para esta ação.'
@@ -21,6 +25,16 @@ const PHOTO_SIZE = 'A foto deve ter no máximo 8 MB.'
 const PHOTO_SAVE = 'Não foi possível salvar a foto. Tente de novo.'
 const PHOTO_REMOVE = 'Não foi possível remover a foto. Tente de novo.'
 const NAME_SAVE = 'Não foi possível salvar o nome. Tente de novo.'
+const WRONG_CURRENT_PASSWORD = 'Senha atual incorreta.'
+const SAME_PASSWORD = 'A nova senha deve ser diferente da atual.'
+const PASSWORD_RATE_LIMIT = 'Muitas tentativas. Aguarde e tente novamente mais tarde.'
+const PASSWORD_SAVE = 'Não foi possível atualizar a senha. Tente de novo.'
+const PASSWORD_HINT = 'Mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial'
+const EMPTY_PASSWORD_FORM: ChangePasswordFormData = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+}
 
 const nameFormSchema = z.object({
   fullName: accountNameSchema,
@@ -80,6 +94,27 @@ export function AccountPage() {
   const nameValue = watch('fullName')
   const nameUnchanged = nameValue.trim() === savedName
   const showingPhoto = Boolean(signedUrl) && !imageBroken
+
+  const sessionEmailRef = useRef(email)
+  sessionEmailRef.current = email
+  const [showPasswords, setShowPasswords] = useState(false)
+  const resolvePassword = useCallback<Resolver<ChangePasswordFormData>>(
+    (values, context, options) =>
+      zodResolver(changePasswordSchema(sessionEmailRef.current))(values, context, options),
+    [],
+  )
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    reset: resetPassword,
+    setError: setPasswordError,
+    setFocus: setPasswordFocus,
+    setValue: setPasswordValue,
+    formState: { errors: passwordErrors, isSubmitting: isPasswordSubmitting },
+  } = useForm<ChangePasswordFormData>({
+    resolver: resolvePassword,
+    defaultValues: EMPTY_PASSWORD_FORM,
+  })
 
   useEffect(() => {
     reset({ fullName: savedName })
@@ -156,6 +191,31 @@ export function AccountPage() {
     }
   }
 
+  async function onPasswordSubmit(data: ChangePasswordFormData) {
+    try {
+      await changePassword(email, data)
+      resetPassword(EMPTY_PASSWORD_FORM)
+      toast('Senha atualizada.', 'success')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+      if (message === WRONG_CURRENT_PASSWORD) {
+        setPasswordValue('currentPassword', '')
+        setPasswordError('currentPassword', { type: 'server', message: WRONG_CURRENT_PASSWORD })
+        setPasswordFocus('currentPassword')
+        return
+      }
+      if (message === SAME_PASSWORD) {
+        setPasswordError('newPassword', { type: 'server', message: SAME_PASSWORD })
+        return
+      }
+      if (message === PASSWORD_RATE_LIMIT) {
+        toast(PASSWORD_RATE_LIMIT, 'error')
+        return
+      }
+      toast(PASSWORD_SAVE, 'error')
+    }
+  }
+
   return (
     <section className="mx-auto w-full max-w-2xl font-sans">
       <PageHeader
@@ -164,6 +224,7 @@ export function AccountPage() {
         description="Foto, nome e senha desta conta."
       />
 
+      <div className="space-y-6">
       <article className="rounded-2xl border border-line bg-surface p-4 text-ink md:p-6">
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-semibold leading-[1.2]">Foto e nome</h2>
@@ -243,6 +304,57 @@ export function AccountPage() {
           </form>
         </div>
       </article>
+
+      <article className="rounded-2xl border border-line bg-surface p-4 text-ink md:p-6">
+        <form
+          onSubmit={handlePasswordSubmit(onPasswordSubmit)}
+          className="flex flex-col gap-4"
+          noValidate
+        >
+          <h2 className="text-xl font-semibold leading-[1.2]">Senha</h2>
+          <p className="text-sm leading-normal text-muted">
+            Informe a senha atual para gravar a nova.
+          </p>
+          <Input
+            label="Senha atual"
+            type={showPasswords ? 'text' : 'password'}
+            autoComplete="current-password"
+            placeholder="••••••••••••"
+            error={passwordErrors.currentPassword?.message}
+            {...registerPassword('currentPassword')}
+          />
+          <Input
+            label="Nova senha"
+            type={showPasswords ? 'text' : 'password'}
+            autoComplete="new-password"
+            placeholder="••••••••••••"
+            hint={PASSWORD_HINT}
+            error={passwordErrors.newPassword?.message}
+            {...registerPassword('newPassword')}
+          />
+          <Input
+            label="Confirmar nova senha"
+            type={showPasswords ? 'text' : 'password'}
+            autoComplete="new-password"
+            placeholder="••••••••••••"
+            error={passwordErrors.confirmPassword?.message}
+            {...registerPassword('confirmPassword')}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPasswords((current) => !current)}
+            className="inline-flex min-h-11 items-center text-xs text-muted transition-colors hover:text-forest"
+          >
+            {showPasswords ? 'Ocultar senhas' : 'Mostrar senhas'}
+          </button>
+          <div>
+            <Button type="submit" isLoading={isPasswordSubmitting}>
+              Salvar senha
+            </Button>
+          </div>
+        </form>
+      </article>
+      </div>
 
       <ConfirmDialog
         open={confirmOpen && Boolean(avatarPath)}
