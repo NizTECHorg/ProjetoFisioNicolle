@@ -461,14 +461,14 @@ Plans:
 **Goal:** Na ficha e nas listas, a foto do paciente aceita PNG ou JPEG: o hover mostra um ícone de câmera e o clique abre a escolha do arquivo. Sem foto, continuam as iniciais.
 **Requirements**: TBD
 **Depends on:** Phase 7
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 
 **Wave 1**
 
 - [x] 16-01-PLAN.md — Bucket patient-avatars, patients.photo_path, and PNG/JPEG schema
-- [ ] 16-02-PLAN.md — Center-crop gate and PatientAvatar photoUrl
+- [x] 16-02-PLAN.md — Center-crop gate and PatientAvatar photoUrl
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
