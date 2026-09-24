@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase/client'
 import { mapDbError } from '@/lib/security'
 import { getFocusRegion } from '@/lib/focusRegions'
 import { focusRegionKeySchema } from '@/schemas/patient.schema'
+import { signPatientPhotoUrls } from '@/services/patientPhoto.service'
 import type {
   AlertTone,
   CreatePatientAlertInput,
@@ -48,6 +49,7 @@ interface PatientRow {
   last_conducts: string | null
   next_session_plan: string | null
   photo_tone: string
+  photo_path: string | null
   created_by: string | null
 }
 
@@ -58,6 +60,7 @@ interface ListPatientRow {
   phone: string | null
   status: PatientStatus
   photo_tone: string
+  photo_path: string | null
   program_name: string | null
   sessions_done: number
   sessions_planned: number
@@ -112,13 +115,13 @@ interface AlertRow {
 const ALERT_COLUMNS = 'id, message, tone, created_at, created_by, created_by_name'
 
 const DETAIL_COLUMNS =
-  'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan, photo_tone, created_by'
+  'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by'
 
 const LIST_COLUMNS =
-  'id, full_name, code, phone, status, photo_tone, program_name, sessions_done, sessions_planned, created_by'
+  'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_by'
 
 const DASHBOARD_COLUMNS =
-  'id, full_name, code, phone, status, photo_tone, complaint, diagnosis, treatment_started_on, sessions_done, sessions_planned, last_visit_on, created_by'
+  'id, full_name, code, phone, status, photo_tone, photo_path, complaint, diagnosis, treatment_started_on, sessions_done, sessions_planned, last_visit_on, created_by'
 
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message)
@@ -254,10 +257,16 @@ function pickLastDone(sessions: SessionRow[]) {
     .sort((a, b) => (b.scheduled_at ?? '').localeCompare(a.scheduled_at ?? ''))[0]
 }
 
+function photoUrlFrom(path: string | null | undefined, urls: Map<string, string>): string | null {
+  if (!path) return null
+  return urls.get(path) ?? null
+}
+
 function mapListItem(
   row: ListPatientRow,
   sessions: SessionRow[],
   createdByName: string | null,
+  photoUrls: Map<string, string>,
 ): PatientListItem {
   const upcoming = pickUpcoming(sessions)
   return {
@@ -265,7 +274,7 @@ function mapListItem(
     name: row.full_name,
     initials: initialsFrom(row.full_name),
     photoTone: row.photo_tone || 'bg-forest',
-    photoUrl: null,
+    photoUrl: photoUrlFrom(row.photo_path, photoUrls),
     status: row.status,
     code: row.code,
     phone: row.phone ?? '—',
@@ -287,6 +296,7 @@ function mapPatient(
     sessions?: SessionRow[]
     alerts?: AlertRow[]
     createdByName?: string | null
+    photoUrls?: Map<string, string>
   } = {},
 ): Patient {
   const upcoming = pickUpcoming(extras.sessions ?? [])
@@ -296,7 +306,7 @@ function mapPatient(
     name: row.full_name,
     initials: initialsFrom(row.full_name),
     photoTone: row.photo_tone || 'bg-forest',
-    photoUrl: null,
+    photoUrl: photoUrlFrom(row.photo_path, extras.photoUrls ?? new Map()),
     status: row.status,
     code: row.code,
     age: ageFrom(row.birth_date),
@@ -372,10 +382,13 @@ export async function listPatients(): Promise<PatientListItem[]> {
   if (rows.length === 0) return []
 
   const ids = rows.map((row) => row.id)
-  const { data: sessions, error: sessionsError } = await supabase
-    .from('patient_sessions')
-    .select('id, patient_id, scheduled_at, session_type, place, status, notes')
-    .in('patient_id', ids)
+  const [{ data: sessions, error: sessionsError }, photoUrls] = await Promise.all([
+    supabase
+      .from('patient_sessions')
+      .select('id, patient_id, scheduled_at, session_type, place, status, notes')
+      .in('patient_id', ids),
+    signPatientPhotoUrls(rows.map((row) => row.photo_path)),
+  ])
 
   throwIfError(sessionsError)
 
@@ -392,6 +405,7 @@ export async function listPatients(): Promise<PatientListItem[]> {
       row,
       sessionsByPatient.get(row.id) ?? [],
       row.created_by ? (nameById.get(row.created_by) ?? null) : null,
+      photoUrls,
     ),
   )
 }
@@ -408,7 +422,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
   const row = data as PatientRow
 
-  const [goals, focus, pain, sessions, alerts, nameById] = await Promise.all([
+  const [goals, focus, pain, sessions, alerts, nameById, photoUrls] = await Promise.all([
     supabase.from('patient_goals').select(GOAL_COLUMNS).eq('patient_id', id),
     supabase.from('patient_focus_areas').select(FOCUS_COLUMNS).eq('patient_id', id),
     supabase.from('patient_pain_logs').select('recorded_on, eva').eq('patient_id', id),
@@ -422,6 +436,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .eq('patient_id', id)
       .order('created_at', { ascending: false }),
     resolveCreatedByNames([row.created_by]),
+    signPatientPhotoUrls([row.photo_path]),
   ])
 
   throwIfError(goals.error)
@@ -437,6 +452,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     sessions: (sessions.data ?? []) as SessionRow[],
     alerts: (alerts.data ?? []) as AlertRow[],
     createdByName: row.created_by ? (nameById.get(row.created_by) ?? null) : null,
+    photoUrls,
   })
 }
 
@@ -458,6 +474,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     | 'phone'
     | 'status'
     | 'photo_tone'
+    | 'photo_path'
     | 'complaint'
     | 'diagnosis'
     | 'treatment_started_on'
@@ -467,7 +484,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     | 'created_by'
   >
 
-  const [goals, alerts, sessions, nameById] = await Promise.all([
+  const [goals, alerts, sessions, nameById, photoUrls] = await Promise.all([
     supabase
       .from('patient_goals')
       .select(GOAL_COLUMNS)
@@ -487,6 +504,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
       .eq('patient_id', id)
       .in('status', ['agendada', 'confirmada', 'realizada']),
     resolveCreatedByNames([row.created_by]),
+    signPatientPhotoUrls([row.photo_path]),
   ])
 
   throwIfError(goals.error)
@@ -502,7 +520,7 @@ export async function getPatientDashboard(id: string): Promise<PatientDashboard 
     name: row.full_name,
     initials: initialsFrom(row.full_name),
     photoTone: row.photo_tone || 'bg-forest',
-    photoUrl: null,
+    photoUrl: photoUrlFrom(row.photo_path, photoUrls),
     status: row.status,
     code: row.code,
     phone: row.phone ?? '—',
