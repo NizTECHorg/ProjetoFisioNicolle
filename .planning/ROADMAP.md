@@ -23,7 +23,8 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
 - [x] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG (completed 2026-09-24)
 - [x] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site (completed 2026-09-24)
-- [x] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha (completed 2026-09-24)
+- [ ] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha *(oráculo de senha pendente)*
+- [ ] **Phase 19: Boneco de área de foco** — Divisões nos braços, pés separados e seleção sem scroll na página
 
 ## Phase Details
 
@@ -551,3 +552,20 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 18-06-PLAN.md — Card Senha e password reset verification rule
+
+### Phase 19: Boneco de área de foco
+
+**Goal:** Refatorar a silhueta de áreas de foco: os braços passam a ter divisões, os pés viram uma região separada, e selecionar uma área não cria scroll na página. Se o desenho atual não permitir eliminar esse scroll, o boneco é refeito sem o erro.
+**Requirements**: REQ-30
+**Depends on:** Phase 6
+**Success Criteria** (what must be TRUE):
+
+  1. Os braços da silhueta têm divisões, e cada divisão pode ser marcada como área de foco
+  2. Os pés são uma região separada das pernas
+  3. Selecionar uma área de foco não cria scroll na página
+  4. Se o boneco atual não puder ser corrigido sem o scroll, ele é substituído por um desenho em que a seleção não cria scroll
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 19 to break down)

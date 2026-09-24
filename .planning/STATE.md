@@ -181,6 +181,7 @@ Plan: 6 of 6
 - Paste `.planning/phases/16-foto-do-paciente/sql/16-patient-photo.sql` in the Supabase SQL Editor once. Do not use supabase db push.
 - Paste `.planning/phases/17-isolamento-de-dados-por-conta/sql/17-account-isolation.sql` in the Supabase SQL Editor once. Do not use supabase db push. If board counts are above zero, uncomment only the owner backfill first.
 - Paste `.planning/phases/18-minha-conta/sql/18-account.sql` in the Supabase SQL Editor once. Do not use supabase db push. If the DO block aborts on a legacy avatar_url, inspect the row and do not null it in bulk.
+- (adiado) Oráculo de senha da fase 18: ligar `security_update_password_require_current_password`, deixar a reautenticação desligada e seguir `.planning/phases/18-minha-conta/18-USER-SETUP.md`. A prova fica em aberto.
 
 ### Roadmap Evolution
 
@@ -194,6 +195,7 @@ Plan: 6 of 6
 - Phase 16 added: Foto do paciente — hover com câmera e envio de PNG ou JPEG
 - Phase 17 added: Isolamento de dados por conta — vazamento do quadro entre contas, auditoria de todo dado digitável e remoção de mocks
 - Phase 18 added: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
+- Phase 19 added: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
 
 ## Session Continuity
 

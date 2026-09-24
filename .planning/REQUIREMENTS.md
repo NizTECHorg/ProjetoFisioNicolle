@@ -21,7 +21,8 @@
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
 - [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
-- [x] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
+- [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha *(oráculo de senha pendente)*
+- [ ] **REQ-30**: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -166,6 +167,20 @@ Na Agenda da aplicação, o profissional conecta a conta Google e sobe as sessõ
 4. Se sync Google → app for inviável nesta fase, a UI deixa claro que a integração é só exportação.
 5. Falha de token / escopo / rede mostra mensagem em português e permite reconectar.
 
+## REQ-30 — Boneco de área de foco
+
+**Indispensável · Artur**
+
+Refatorar a silhueta já entregue em REQ-18. A paciente pediu divisões nos braços e que os pés sejam uma região separada. Selecionar uma área de foco não pode criar scroll na página. Se o desenho atual não permitir corrigir esse scroll, refazer o boneco sem o erro.
+
+### Acceptance
+
+1. Os braços têm divisões, e cada divisão marca ou desmarca como área de foco do paciente.
+2. Os pés são uma região própria, separada das pernas.
+3. Selecionar uma área não cria scroll na página.
+4. Se o boneco atual não eliminar o scroll, ele é substituído e a seleção continua sem scroll.
+5. O que já está salvo em `patient_focus_areas` continua visível; regiões novas entram no mesmo fluxo de marcar e desmarcar.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
@@ -307,4 +322,5 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-26 | Phase 14 | Planned |
 | REQ-27 | Phase 15 | Complete |
 | REQ-28 | Phase 17 | Complete |
-| REQ-29 | Phase 18 | Complete |
+| REQ-29 | Phase 18 | Human verification pending |
+| REQ-30 | Phase 19 | Planned |
