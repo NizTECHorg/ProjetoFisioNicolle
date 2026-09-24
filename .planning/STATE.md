@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 19 UI-SPEC approved
-last_updated: "2026-09-24T16:19:18.487Z"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-09-24T16:26:30.757Z"
 progress:
   total_phases: 19
   completed_phases: 10
   total_plans: 77
-  completed_plans: 66
+  completed_plans: 67
   percent: 53
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 19 (Boneco de área de foco) — Ready to execute
-Plan: 0 of 3
+Plan: 1 of 3
 
 - Status: Ready to execute
-- Progress: 0/3 plans
+- Progress: 1/3 plans
 
-**Progress:** [█████████░] 89%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -173,6 +173,10 @@ Plan: 0 of 3
 - [Phase 18]: Salvar senha calls changePassword only — The page does not call updateUser, signInWithPassword, reauthenticate, or signOut
 - [Phase 18]: Wrong current password shows Senha atual incorreta. on that field — Clears only Senha atual, keeps the new-password fields, and stays on /conta
 - [Phase 18]: Hosted password oracle was documented and was not executed — Second client persistSession false is a human check; the Dashboard flag was not applied via the Management API
+- [Phase 19]: Retired the eight whole-limb keys; new parts use upper_arm, forearm, palm, hand, shin, foot, calf, and ankle — D-06 forbids reusing front.arm_l and the other seven keys
+- [Phase 19]: Palm, hand, foot, and ankle are 28 viewBox units tall; shin and calf are only the y=206-212 band under the existing knee — Distal parts need a usable hit target without growing the viewBox or absorbing the knee
+- [Phase 19]: Phase 13 patient-ai-summary Set mirrors the 42 keys; deploy stays on the Dashboard and the phase 11 twin is unchanged — The function cannot import src/; publishing is operator work
+- [Phase 19]: Centroids of unchanged keys stay the current literals, including back.shoulder_l at x 96 — The plan forbids recalculating centers of regions that did not change
 
 ### Pending user action
 
@@ -182,6 +186,7 @@ Plan: 0 of 3
 - Paste `.planning/phases/17-isolamento-de-dados-por-conta/sql/17-account-isolation.sql` in the Supabase SQL Editor once. Do not use supabase db push. If board counts are above zero, uncomment only the owner backfill first.
 - Paste `.planning/phases/18-minha-conta/sql/18-account.sql` in the Supabase SQL Editor once. Do not use supabase db push. If the DO block aborts on a legacy avatar_url, inspect the row and do not null it in bulk.
 - (adiado) Oráculo de senha da fase 18: ligar `security_update_password_require_current_password`, deixar a reautenticação desligada e seguir `.planning/phases/18-minha-conta/18-USER-SETUP.md`. A prova fica em aberto.
+- Publish Edge Function patient-ai-summary from `.planning/phases/13-pdf-export-avaliacao-evolucao/functions/patient-ai-summary/index.ts` in the Supabase Dashboard. Do not publish the phase 11 twin. Do not use supabase db push. See `.planning/phases/19-boneco-de-rea-de-foco/19-USER-SETUP.md`.
 
 ### Roadmap Evolution
 
@@ -199,9 +204,9 @@ Plan: 0 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-24T16:04:36.169Z
-Stopped at: Phase 19 UI-SPEC approved
-Resume file: .planning/phases/19-boneco-de-rea-de-foco/19-UI-SPEC.md
+Last session: 2026-09-24T16:25:52.510Z
+Stopped at: Completed 19-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -245,3 +250,4 @@ Resume file: .planning/phases/19-boneco-de-rea-de-foco/19-UI-SPEC.md
 | Phase 18 P04 | 4min | 3 tasks | 4 files |
 | Phase 18 P05 | 4min | 2 tasks | 3 files |
 | Phase 18 P06 | 4 min | 2 tasks | 2 files |
+| Phase 19 P01 | 4min | 2 tasks | 3 files |
