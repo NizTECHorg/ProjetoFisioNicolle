@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-09-24T16:26:30.757Z"
+stopped_at: Completed 19-02-PLAN.md
+last_updated: "2026-09-24T16:32:47.015Z"
 progress:
   total_phases: 19
   completed_phases: 10
   total_plans: 77
-  completed_plans: 67
+  completed_plans: 68
   percent: 53
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 19 (Boneco de área de foco) — Ready to execute
-Plan: 1 of 3
+Plan: 2 of 3
 
 - Status: Ready to execute
-- Progress: 1/3 plans
+- Progress: 2/3 plans
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -177,6 +177,7 @@ Plan: 1 of 3
 - [Phase 19]: Palm, hand, foot, and ankle are 28 viewBox units tall; shin and calf are only the y=206-212 band under the existing knee — Distal parts need a usable hit target without growing the viewBox or absorbing the knee
 - [Phase 19]: Phase 13 patient-ai-summary Set mirrors the 42 keys; deploy stays on the Dashboard and the phase 11 twin is unchanged — The function cannot import src/; publishing is operator work
 - [Phase 19]: Centroids of unchanged keys stay the current literals, including back.shoulder_l at x 96 — The plan forbids recalculating centers of regions that did not change
+- [Phase 19]: SQL Editor is the apply path for the eight-key DELETE; do not run supabase db push — Operator confirmed applied and the eight-key count returned zero rows
 
 ### Pending user action
 
@@ -204,8 +205,8 @@ Plan: 1 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-24T16:25:52.510Z
-Stopped at: Completed 19-01-PLAN.md
+Last session: 2026-09-24T16:32:46.999Z
+Stopped at: Completed 19-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -251,3 +252,4 @@ Resume file: None
 | Phase 18 P05 | 4min | 2 tasks | 3 files |
 | Phase 18 P06 | 4 min | 2 tasks | 2 files |
 | Phase 19 P01 | 4min | 2 tasks | 3 files |
+| Phase 19 P02 | 4min | 2 tasks | 1 files |
