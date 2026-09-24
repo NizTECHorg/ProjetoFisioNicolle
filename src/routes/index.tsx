@@ -14,6 +14,7 @@ import { PatientCadastroPage } from '@/pages/PatientCadastroPage'
 import { PatientModuleStubPage } from '@/pages/PatientModuleStubPage'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { KanbanPage } from '@/pages/KanbanPage'
+import { AccountPage } from '@/pages/AccountPage'
 
 export function AppRoutes() {
   return (
@@ -40,6 +41,7 @@ export function AppRoutes() {
           <Route path="/agenda" element={<CalendarPage />} />
           <Route path="/quadro" element={<KanbanPage />} />
           <Route path="/kanban" element={<Navigate to="/quadro" replace />} />
+          <Route path="/conta" element={<AccountPage />} />
           <Route path="*" element={<Navigate to="/pacientes" replace />} />
         </Route>
       </Route>

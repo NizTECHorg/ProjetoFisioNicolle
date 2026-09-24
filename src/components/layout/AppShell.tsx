@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LogOut, Menu, X } from 'lucide-react'
+import { CircleUser, LogOut, Menu, X } from 'lucide-react'
 import { clinicNavigationItems, mobileNavItems } from '@/config/navigation'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { useAuth } from '@/hooks/useAuth'
 import { accountTypeLabel } from '@/lib/accountAccess'
+import { signAccountAvatarUrl } from '@/services/accountPhoto.service'
 
 export function AppShell() {
   const { profile, user, signOut } = useAuth()
@@ -18,6 +19,29 @@ export function AppShell() {
     .toUpperCase()
   const roleLabel = profile ? accountTypeLabel(profile.accountType) : (user?.email ?? '')
   const drawerItems = clinicNavigationItems(profile?.accountType)
+  const avatarPath =
+    typeof profile?.avatarUrl === 'string' && profile.avatarUrl.length > 0 ? profile.avatarUrl : null
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
+  const [avatarBroken, setAvatarBroken] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setAvatarBroken(false)
+    if (!avatarPath) {
+      setAvatarSrc(null)
+      return
+    }
+    void signAccountAvatarUrl(avatarPath)
+      .then((url) => {
+        if (!cancelled) setAvatarSrc(url)
+      })
+      .catch(() => {
+        if (!cancelled) setAvatarSrc(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [avatarPath])
 
   return (
     <div className="min-h-dvh bg-canvas text-ink lg:h-dvh lg:overflow-hidden lg:bg-forest">
@@ -81,19 +105,44 @@ export function AppShell() {
 
         <div className="p-4">
           <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/20 text-xs font-semibold text-accent">
-              {initials || 'U'}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/20 text-xs font-semibold text-accent">
+              {avatarSrc && !avatarBroken ? (
+                <img
+                  src={avatarSrc}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  onError={() => setAvatarBroken(true)}
+                />
+              ) : (
+                initials || 'U'
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">{displayName}</p>
               <p className="truncate text-xs text-white/45">{roleLabel}</p>
             </div>
+            <NavLink
+              to="/conta"
+              aria-label="Minha conta"
+              title="Minha conta"
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                [
+                  'flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl p-2 transition-colors',
+                  isActive
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/40 hover:bg-white/10 hover:text-white',
+                ].join(' ')
+              }
+            >
+              <CircleUser size={17} aria-hidden="true" />
+            </NavLink>
             <button
               type="button"
               aria-label="Sair"
               title="Sair"
               onClick={() => void signOut()}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
             >
               <LogOut size={17} />
             </button>
