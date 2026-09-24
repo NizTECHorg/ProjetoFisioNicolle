@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Milestone complete (Phase 15 was final phase)
-last_updated: 2026-09-23T23:28:07.965Z
+status: planning
+stopped_at: Phase 16 planned — ready to execute
+last_updated: "2026-09-24T00:03:12.889Z"
 progress:
-  total_phases: 15
-  completed_phases: 6
-  total_plans: 59
+  total_phases: 16
+  completed_phases: 7
+  total_plans: 65
   completed_plans: 51
-  percent: 40
+  percent: 44
 ---
 
 # Project State
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Milestone complete
+**Current focus:** Phase 16 — foto do paciente
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
+Phase: 16
+Plan: 6 plans, not started
 
-- Status: 15-03 complete (bare ConfirmationURL templates + production runbook); next 15-04 Dashboard apply and new cadastro UAT
-- Progress: templates and runbook name https://fluxofisio.vercel.app; live Dashboard paste and UAT remain
+- Status: Ready to execute
+- Progress: plans 16-01 through 16-06 verified
 
 **Progress:** [█████████░] 85%
 
@@ -154,9 +154,9 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-09-23T23:01:11.504Z
-Stopped at: Completed 15-03-PLAN.md
-Resume file: None
+Last session: 2026-09-23T23:47:08.118Z
+Stopped at: Phase 16 planned — ready to execute
+Resume file: .planning/phases/16-foto-do-paciente/16-01-PLAN.md
 
 ## Performance Metrics
 
