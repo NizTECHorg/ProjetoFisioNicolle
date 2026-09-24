@@ -2,6 +2,10 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
+import {
+  PatientPhotoControl,
+  PatientPhotoRemoveButton,
+} from '@/components/patients/PatientPhotoControl'
 import { statusLabels, type PatientStatus } from '@/types/patient'
 
 export type PatientTab =
@@ -14,9 +18,12 @@ export type PatientTab =
   | 'imagens'
 
 type PatientProfileHeaderProps = {
+  patientId: string
   name: string
   initials: string
   photoTone: string
+  photoUrl: string | null
+  canWrite: boolean
   status: PatientStatus
   meta: string
   activeTab: PatientTab
@@ -26,10 +33,15 @@ type PatientProfileHeaderProps = {
   topRightAction?: ReactNode
 }
 
+const avatarClassName = '!h-14 !w-14 !text-base sm:!h-16 sm:!w-16 sm:!text-lg'
+
 export function PatientProfileHeader({
+  patientId,
   name,
   initials,
   photoTone,
+  photoUrl,
+  canWrite,
   status,
   meta,
   activeTab,
@@ -58,13 +70,27 @@ export function PatientProfileHeader({
         className="dash-in group mt-5 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:gap-x-4"
         style={{ animationDelay: '60ms' }}
       >
-        <PatientAvatar
-          name={name}
-          tone={photoTone}
-          initials={initials}
-          size="lg"
-          className="!h-14 !w-14 !text-base sm:!h-16 sm:!w-16 sm:!text-lg"
-        />
+        {canWrite ? (
+          <PatientPhotoControl
+            patientId={patientId}
+            name={name}
+            tone={photoTone}
+            initials={initials}
+            photoUrl={photoUrl}
+            size="lg"
+            className={avatarClassName}
+            showRemove={false}
+          />
+        ) : (
+          <PatientAvatar
+            name={name}
+            tone={photoTone}
+            initials={initials}
+            photoUrl={photoUrl}
+            size="lg"
+            className={avatarClassName}
+          />
+        )}
 
         <div className="min-w-0">
           <div className="flex min-h-11 items-start justify-between gap-3">
@@ -73,6 +99,9 @@ export function PatientProfileHeader({
               <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
                 {statusLabels[status]}
               </span>
+              {canWrite ? (
+                <PatientPhotoRemoveButton patientId={patientId} name={name} photoUrl={photoUrl} />
+              ) : null}
             </div>
             {topRightAction ?? identityAction ? (
               <div className="shrink-0 self-start">{topRightAction ?? identityAction}</div>

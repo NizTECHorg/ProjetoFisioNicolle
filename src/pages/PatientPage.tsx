@@ -522,9 +522,12 @@ export function PatientPage() {
       ) : null}
 
       <PatientProfileHeader
+        patientId={dashboard.id}
         name={dashboard.name}
         initials={dashboard.initials}
         photoTone={dashboard.photoTone}
+        photoUrl={dashboard.photoUrl}
+        canWrite={canWrite}
         status={dashboard.status}
         meta={meta}
         activeTab={tab}

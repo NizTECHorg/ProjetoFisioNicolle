@@ -4,11 +4,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PatientPhotoControl } from '@/components/patients/PatientPhotoControl'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/hooks/useAuth'
+import { canWritePatient } from '@/lib/accountAccess'
 import { useCreatePatient, usePatients } from '@/hooks/usePatients'
 import { createPatientSchema, type CreatePatientFormData } from '@/schemas/patient.schema'
 import { statusLabels, type PatientListItem } from '@/types/patient'
@@ -105,22 +107,56 @@ export function PatientsPage() {
       {!isLoading && !isError && patients.length > 0 ? (
         <>
           <div className="space-y-2 md:hidden">
-            {patients.map((patient, index) => (
-              <Link
-                key={patient.id}
-                to={`/pacientes/${patient.id}`}
-                className="dash-card dash-in flex items-center gap-3 rounded-2xl border border-line bg-surface p-4"
-                style={{ animationDelay: `${80 + index * 50}ms` }}
-              >
-                <PatientAvatar name={patient.name} tone={patient.photoTone} initials={patient.initials} />
-                <span className="min-w-0 flex-1">
+            {patients.map((patient, index) => {
+              const writable = canWritePatient(user?.id, patient.createdBy)
+              const nameAndMeta = (
+                <>
                   <span className="block truncate font-medium text-ink">{patient.name}</span>
                   <span className="block truncate text-xs text-muted">
                     {fichaDeLine(patient) ?? `${statusLabels[patient.status]} · ${patient.program}`}
                   </span>
-                </span>
-              </Link>
-            ))}
+                </>
+              )
+              if (!writable) {
+                return (
+                  <Link
+                    key={patient.id}
+                    to={`/pacientes/${patient.id}`}
+                    className="dash-card dash-in flex items-center gap-3 rounded-2xl border border-line bg-surface p-4"
+                    style={{ animationDelay: `${80 + index * 50}ms` }}
+                  >
+                    <PatientAvatar
+                      name={patient.name}
+                      tone={patient.photoTone}
+                      initials={patient.initials}
+                      size="md"
+                      photoUrl={patient.photoUrl}
+                    />
+                    <span className="min-w-0 flex-1">{nameAndMeta}</span>
+                  </Link>
+                )
+              }
+              return (
+                <div
+                  key={patient.id}
+                  className="dash-card dash-in flex items-center gap-3 rounded-2xl border border-line bg-surface p-4"
+                  style={{ animationDelay: `${80 + index * 50}ms` }}
+                >
+                  <PatientPhotoControl
+                    patientId={patient.id}
+                    name={patient.name}
+                    tone={patient.photoTone}
+                    initials={patient.initials}
+                    photoUrl={patient.photoUrl}
+                    size="md"
+                    showRemove={false}
+                  />
+                  <Link to={`/pacientes/${patient.id}`} className="min-w-0 flex-1">
+                    {nameAndMeta}
+                  </Link>
+                </div>
+              )
+            })}
           </div>
 
           <div
@@ -140,6 +176,7 @@ export function PatientsPage() {
               <tbody>
                 {patients.map((patient) => {
                   const fichaDe = fichaDeLine(patient)
+                  const writable = canWritePatient(user?.id, patient.createdBy)
                   return (
                     <tr
                       key={patient.id}
@@ -155,7 +192,30 @@ export function PatientsPage() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <PatientAvatar name={patient.name} tone={patient.photoTone} initials={patient.initials} />
+                          {writable ? (
+                            <div
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                            >
+                              <PatientPhotoControl
+                                patientId={patient.id}
+                                name={patient.name}
+                                tone={patient.photoTone}
+                                initials={patient.initials}
+                                photoUrl={patient.photoUrl}
+                                size="md"
+                                showRemove={false}
+                              />
+                            </div>
+                          ) : (
+                            <PatientAvatar
+                              name={patient.name}
+                              tone={patient.photoTone}
+                              initials={patient.initials}
+                              size="md"
+                              photoUrl={patient.photoUrl}
+                            />
+                          )}
                           <span>
                             <span className="block font-medium text-ink">{patient.name}</span>
                             {fichaDe ? (
