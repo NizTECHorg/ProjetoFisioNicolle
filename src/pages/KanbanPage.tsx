@@ -119,7 +119,7 @@ export function KanbanPage() {
 
       {isError ? (
         <article className="dash-in rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
-          Não foi possível carregar o quadro. Execute o script supabase/board.sql no Supabase.
+          Não foi possível carregar o quadro.
         </article>
       ) : null}
 
@@ -130,7 +130,7 @@ export function KanbanPage() {
             aria-label="Quadro com rolagem horizontal"
           >
           {columns.length === 0 ? (
-            <p className="text-sm text-muted">Nenhuma lista ainda. Crie uma acima ou execute o script supabase/board.sql.</p>
+            <p className="text-sm text-muted">Nenhuma lista ainda.</p>
           ) : null}
           {columns.map((column, index) => {
             const columnCards = cards.filter((card) => card.columnId === column.id)
