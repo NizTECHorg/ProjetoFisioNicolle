@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 16 planned — ready to execute
-last_updated: "2026-09-24T00:03:12.889Z"
+status: executing
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-09-24T00:32:11.517Z"
 progress:
   total_phases: 16
   completed_phases: 7
   total_plans: 65
-  completed_plans: 51
-  percent: 44
+  completed_plans: 52
+  percent: 80
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 16
-Plan: 6 plans, not started
+Plan: 2 of 6
 
 - Status: Ready to execute
 - Progress: plans 16-01 through 16-06 verified
 
-**Progress:** [█████████░] 85%
+**Progress:** [████████░░] 80%
 
 ## Accumulated Context
 
@@ -135,11 +135,15 @@ Plan: 6 plans, not started
 - [Phase 15]: Confirm and reset CTAs are a bare ConfirmationURL, including a visible fallback line, so GoTrue verifies before any redirect — GoTrue confirms on /auth/v1/verify before the redirect, so the href must not be built from the Dashboard Site URL
 - [Phase 15]: Site URL is https://fluxofisio.vercel.app and the allow-list is only that origin, the wildcard, and /auth/confirm — An unlisted redirect_to falls back to the Site URL; local entries would keep bug 1 alive
 - [Phase 15]: Links mailed before this fix stay invalid; the operator must run a new cadastro — D-07: old confirm messages keep the broken href and must not be reused for UAT
+- [Phase 16]: SQL Editor is the apply path for patient-avatars; do not run supabase db push — Hosted Editor is the only apply path; the script is not applied from the repo
+- [Phase 16]: patientPhotoSchema is JPEG and PNG only; imageUploadSchema still allows WebP and PDF — D-04: avatar validation must not reuse the gallery allow-list
+- [Phase 16]: patients.photo_path is nullable; storage policies exist only on bucket patient-avatars — Null keeps initials and photo_tone; patients_update already uses can_write_patient
 
 ### Pending user action
 
 - (adiado) Executar `supabase/patients-req05-evaluations.sql` no SQL Editor
 - (adiado) Re-executar `supabase/patients-req14-goals.sql` se ainda não rodou a versão com em_andamento/concluido
+- Paste `.planning/phases/16-foto-do-paciente/sql/16-patient-photo.sql` in the Supabase SQL Editor once. Do not use supabase db push.
 
 ### Roadmap Evolution
 
@@ -154,9 +158,9 @@ Plan: 6 plans, not started
 
 ## Session Continuity
 
-Last session: 2026-09-23T23:47:08.118Z
-Stopped at: Phase 16 planned — ready to execute
-Resume file: .planning/phases/16-foto-do-paciente/16-01-PLAN.md
+Last session: 2026-09-24T00:32:11.500Z
+Stopped at: Completed 16-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -185,3 +189,4 @@ Resume file: .planning/phases/16-foto-do-paciente/16-01-PLAN.md
 | Phase 15 P01 | 2min | 2 tasks | 3 files |
 | Phase 15 P02 | 3min | 2 tasks | 4 files |
 | Phase 15 P03 | 3min | 2 tasks | 3 files |
+| Phase 16 P01 | 3min | 2 tasks | 2 files |
