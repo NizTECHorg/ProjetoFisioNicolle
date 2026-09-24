@@ -20,6 +20,7 @@
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
+- [ ] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -96,6 +97,18 @@ O e-mail que autoriza a criação de conta (confirmação de cadastro) deixa de 
 3. O link de confirmação abre o app e completa o fluxo de conta já existente (autônomo / empresa / fisioterapeuta).
 4. Documentação operacional no repo: o que configurar no Supabase Dashboard (SMTP + templates) e variáveis/segredos necessários.
 5. Recuperação de senha (se permanecer ativa) usa o mesmo sistema de marca; convites de equipe fora do escopo.
+
+## REQ-28 — Isolamento de dados por conta
+
+**Indispensável · Artur**
+
+Uma conta não vê dados digitados em outra. O quadro vazou uma tarefa entre contas. O mesmo isolamento vale para pacientes, sessões, notas e todo dado digitável. Dados mockados saem do site.
+
+### Acceptance
+
+1. Conta recém-criada não lista tarefa, paciente, sessão ou nota de outra conta.
+2. Banco e consultas do app recusam leitura e escrita fora do dono do registro.
+3. Nenhuma tela usa paciente, tarefa, valor ou texto de exemplo no lugar de dado real.
 
 ## REQ-22 — Responsividade mobile 100%
 
@@ -279,3 +292,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-25 | Phase 13 | Planned |
 | REQ-26 | Phase 14 | Planned |
 | REQ-27 | Phase 15 | Complete |
+| REQ-28 | Phase 17 | Planned |

@@ -166,6 +166,7 @@ Plan: 6 of 6
 - Phase 7 added: Galeria de imagens na ficha do paciente
 - Phase 8 added: Integração Google Agenda — exportar sessões da agenda da aplicação para o Google Calendar
 - Phase 16 added: Foto do paciente — hover com câmera e envio de PNG ou JPEG
+- Phase 17 added: Isolamento de dados por conta — vazamento do quadro entre contas, auditoria de todo dado digitável e remoção de mocks
 
 ## Session Continuity
 

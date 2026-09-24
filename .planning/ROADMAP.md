@@ -22,6 +22,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
 - [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
 - [x] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG (completed 2026-09-24)
+- [ ] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site
 
 ## Phase Details
 
@@ -482,3 +483,19 @@ Plans:
 
 - [x] 16-05-PLAN.md — Camera and file picker on the ficha and the patient list
 - [x] 16-06-PLAN.md — Display the same photo on quadro, agenda, painel, and the shortcut
+
+### Phase 17: Isolamento de dados por conta
+
+**Goal:** Uma conta não vê dados digitados em outra conta. O quadro, pacientes, sessões, notas e todo o resto do site ficam isolados. Qualquer dado mockado sai do produto.
+**Requirements**: REQ-28
+**Depends on:** Phase 16
+**Success Criteria** (what must be TRUE):
+
+  1. Uma conta nova não vê tarefas do quadro, pacientes, sessões nem notas criados em outra conta
+  2. Toda tabela de dado digitável está coberta por regra de acesso no banco e pela leitura no app
+  3. Nenhuma tela mostra paciente, sessão, valor ou texto de exemplo que não veio do banco daquela conta
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 17 to break down)
