@@ -9,16 +9,18 @@ import {
 } from '@/services/patientAiReports.service'
 import type { PatientAiReport } from '@/types/patient'
 import { toast } from '@/stores/toast.store'
+import { useAccountScope } from '@/hooks/useAccountScope'
 
 function onError(error: unknown) {
   toast(error instanceof Error ? error.message : PATIENT_AI_COPY.exportError, 'error')
 }
 
 export function usePatientAiReports(patientId: string | undefined) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients', patientId, 'ai-reports'],
+    queryKey: ['patients', patientId, 'ai-reports', userId],
     queryFn: () => listPatientAiReports(patientId!),
-    enabled: Boolean(patientId),
+    enabled: Boolean(patientId) && signedIn,
     staleTime: 30_000,
   })
 }

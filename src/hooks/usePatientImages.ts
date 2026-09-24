@@ -8,16 +8,18 @@ import {
 } from '@/services/patientImages.service'
 import type { PatientImage, UpdatePatientImageInput } from '@/types/patient'
 import { toast } from '@/stores/toast.store'
+import { useAccountScope } from '@/hooks/useAccountScope'
 
 function onError(error: unknown) {
   toast(error instanceof Error ? error.message : 'Erro inesperado', 'error')
 }
 
 export function usePatientImages(patientId: string | undefined) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients', patientId, 'images'],
+    queryKey: ['patients', patientId, 'images', userId],
     queryFn: () => listPatientImages(patientId!),
-    enabled: Boolean(patientId),
+    enabled: Boolean(patientId) && signedIn,
     staleTime: 30_000,
   })
 }

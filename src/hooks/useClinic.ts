@@ -11,6 +11,7 @@ import {
   updateCardDue,
 } from '@/services/board.service'
 import type { SessionStatus } from '@/types/patient'
+import { useAccountScope } from '@/hooks/useAccountScope'
 import { toast } from '@/stores/toast.store'
 
 function onError(error: unknown) {
@@ -18,9 +19,11 @@ function onError(error: unknown) {
 }
 
 export function useCalendarSessions(fromIso: string, toIso: string) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['calendar-sessions', fromIso, toIso],
+    queryKey: ['calendar-sessions', fromIso, toIso, userId],
     queryFn: () => listSessionsInRange(fromIso, toIso),
+    enabled: signedIn,
   })
 }
 
@@ -43,6 +46,7 @@ export function useUpdateSessionStatus() {
     mutationFn: ({ id, status }: { id: string; status: SessionStatus }) => updateSessionStatus(id, status),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
+      void qc.invalidateQueries({ queryKey: ['patients'] })
       toast('Status atualizado', 'success')
     },
     onError,
@@ -50,9 +54,11 @@ export function useUpdateSessionStatus() {
 }
 
 export function useBoard() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['board'],
+    queryKey: ['board', userId],
     queryFn: listBoard,
+    enabled: signedIn,
   })
 }
 
@@ -98,9 +104,11 @@ export function useMoveCard() {
 }
 
 export function useDueCards(fromDate: string, toDate: string) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['board-dues', fromDate, toDate],
+    queryKey: ['board-dues', fromDate, toDate, userId],
     queryFn: () => listDueCards(fromDate, toDate),
+    enabled: signedIn,
   })
 }
 

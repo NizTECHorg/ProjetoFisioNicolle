@@ -14,6 +14,7 @@ import {
 } from '@/services/googleCalendar.service'
 import type { GoogleCalendarExportResult } from '@/types/googleCalendar'
 import { toast } from '@/stores/toast.store'
+import { useAccountScope } from '@/hooks/useAccountScope'
 
 const CONNECTION_QUERY_KEY = ['google-calendar', 'connection'] as const
 
@@ -36,9 +37,11 @@ function isNeedsReconnect(error: unknown): boolean {
 }
 
 export function useGoogleCalendarConnection() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: CONNECTION_QUERY_KEY,
+    queryKey: [...CONNECTION_QUERY_KEY, userId],
     queryFn: getGoogleCalendarConnection,
+    enabled: signedIn,
     staleTime: 30_000,
   })
 }

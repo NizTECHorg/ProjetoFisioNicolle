@@ -13,6 +13,7 @@ import {
 } from '@/services/finance.service'
 import type { CreatePriceInput, UpdatePriceInput, UpsertSessionChargeInput } from '@/types/finance'
 import { toast } from '@/stores/toast.store'
+import { useAccountScope } from '@/hooks/useAccountScope'
 
 function onError(error: unknown) {
   toast(error instanceof Error ? error.message : 'Erro inesperado', 'error')
@@ -23,44 +24,52 @@ function invalidateFinance(qc: ReturnType<typeof useQueryClient>) {
 }
 
 export function useFinancePrices() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['finance', 'prices'],
+    queryKey: ['finance', 'prices', userId],
     queryFn: listActivePrices,
+    enabled: signedIn,
     staleTime: 60_000,
   })
 }
 
 export function useFinanceTotals() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['finance', 'totals'],
+    queryKey: ['finance', 'totals', userId],
     queryFn: fetchFinanceTotals,
+    enabled: signedIn,
     staleTime: 60_000,
   })
 }
 
 export function useFinanceRealizadas() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['finance', 'sessions'],
+    queryKey: ['finance', 'sessions', userId],
     queryFn: listFinanceRealizadas,
+    enabled: signedIn,
     staleTime: 30_000,
   })
 }
 
 export function useSessionCharge(sessionId: string | undefined) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['finance', 'charge', sessionId],
+    queryKey: ['finance', 'charge', sessionId, userId],
     queryFn: () => fetchChargeBySessionId(sessionId!),
-    enabled: Boolean(sessionId),
+    enabled: Boolean(sessionId) && signedIn,
     staleTime: 30_000,
   })
 }
 
 export function useSessionCharges(patientId: string, sessionIds: string[], enabled: boolean) {
+  const { userId, signedIn } = useAccountScope()
   const idsKey = sessionIds.slice().sort().join('|')
   return useQuery({
-    queryKey: ['finance', 'charges', patientId, idsKey],
+    queryKey: ['finance', 'charges', patientId, idsKey, userId],
     queryFn: () => fetchChargesBySessionIds(idsKey ? idsKey.split('|') : []),
-    enabled: enabled && sessionIds.length > 0,
+    enabled: enabled && signedIn && sessionIds.length > 0,
     staleTime: 30_000,
   })
 }

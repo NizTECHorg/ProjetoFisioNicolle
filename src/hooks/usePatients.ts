@@ -39,6 +39,7 @@ import type { SessionChargeDraft } from '@/types/finance'
 import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
 import { removePatientPhoto, uploadPatientPhoto } from '@/services/patientPhoto.service'
 import { toast, type ToastAction } from '@/stores/toast.store'
+import { useAccountScope } from '@/hooks/useAccountScope'
 
 function onError(error: unknown) {
   toast(error instanceof Error ? error.message : 'Erro inesperado', 'error')
@@ -57,9 +58,8 @@ export function invalidatePatient(qc: ReturnType<typeof useQueryClient>, patient
 }
 
 function invalidatePatientPhoto(qc: ReturnType<typeof useQueryClient>, patientId: string) {
-  void qc.invalidateQueries({ queryKey: ['patients'], exact: true })
-  void qc.invalidateQueries({ queryKey: ['patients', patientId], exact: true })
-  void qc.invalidateQueries({ queryKey: ['patients', patientId, 'dashboard'], exact: true })
+  void qc.invalidateQueries({ queryKey: ['patients', 'list'] })
+  void qc.invalidateQueries({ queryKey: ['patients', patientId] })
   void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
   void qc.invalidateQueries({ queryKey: ['board'] })
 }
@@ -69,27 +69,31 @@ function shouldUpsertCharge(charge: SessionChargeDraft | null | undefined): char
 }
 
 export function usePatients() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients'],
+    queryKey: ['patients', 'list', userId],
     queryFn: listPatients,
+    enabled: signedIn,
     staleTime: 60_000,
   })
 }
 
 export function usePatient(id: string | undefined, options?: { enabled?: boolean }) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients', id],
+    queryKey: ['patients', id, userId],
     queryFn: () => getPatientById(id!),
-    enabled: Boolean(id) && (options?.enabled ?? true),
+    enabled: Boolean(id) && signedIn && (options?.enabled ?? true),
     staleTime: 60_000,
   })
 }
 
 export function usePatientDashboard(id: string | undefined) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients', id, 'dashboard'],
+    queryKey: ['patients', id, 'dashboard', userId],
     queryFn: () => getPatientDashboard(id!),
-    enabled: Boolean(id),
+    enabled: Boolean(id) && signedIn,
     staleTime: 60_000,
   })
 }
@@ -97,7 +101,7 @@ export function usePatientDashboard(id: string | undefined) {
 export function useUploadPatientPhoto(patientId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ file, mimeType }: { file: Blob; mimeType: 'image/jpeg' | 'image/png' }) =>
+    mutationFn: ({ file, mimeType }: { file: Blob; mimeType: 'image/jpeg' | 'image/png' | 'image/webp' }) =>
       uploadPatientPhoto(patientId, file, mimeType),
     onSuccess: () => {
       invalidatePatientPhoto(qc, patientId)
@@ -237,18 +241,21 @@ export function useTogglePatientFocusArea(patientId: string) {
 }
 
 export function usePatientSessions(patientId: string | undefined) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients', patientId, 'sessions'],
+    queryKey: ['patients', patientId, 'sessions', userId],
     queryFn: () => listPatientSessions(patientId!),
-    enabled: Boolean(patientId),
+    enabled: Boolean(patientId) && signedIn,
     staleTime: 30_000,
   })
 }
 
 export function useActiveTherapists() {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['therapists'],
+    queryKey: ['therapists', userId],
     queryFn: listActiveTherapists,
+    enabled: signedIn,
     staleTime: 120_000,
   })
 }
@@ -326,10 +333,11 @@ export function useDeletePatientSession(patientId: string) {
 }
 
 export function usePatientEvaluations(patientId: string | undefined) {
+  const { userId, signedIn } = useAccountScope()
   return useQuery({
-    queryKey: ['patients', patientId, 'evaluations'],
+    queryKey: ['patients', patientId, 'evaluations', userId],
     queryFn: () => listPatientEvaluations(patientId!),
-    enabled: Boolean(patientId),
+    enabled: Boolean(patientId) && signedIn,
     staleTime: 30_000,
   })
 }

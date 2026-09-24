@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 import { confirmFromInitialUrl, initialUrlHasAuthCallback } from '@/lib/auth/confirmCallback'
@@ -13,6 +14,8 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const queryClient = useQueryClient()
+  const seenUserId = useRef<string | null | undefined>(undefined)
   const [session, setSession] = useState<Session | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
   const [profile, setProfile] = useState<ClinicProfile | null>(null)
@@ -50,6 +53,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const userId = session?.user.id ?? null
 
   useEffect(() => {
+    if (!sessionLoaded) return
+    if (seenUserId.current !== undefined && seenUserId.current !== userId) {
+      queryClient.clear()
+    }
+    seenUserId.current = userId
+  }, [queryClient, sessionLoaded, userId])
+
+  useEffect(() => {
     if (!userId) {
       setProfile(null)
       setMembership(null)
@@ -76,11 +87,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [userId])
 
   const signOut = useCallback(async () => {
+    queryClient.clear()
     await authSignOut()
     setSession(null)
     setProfile(null)
     setMembership(null)
-  }, [])
+  }, [queryClient])
 
   const value = useMemo<AuthContextValue>(
     () => ({
