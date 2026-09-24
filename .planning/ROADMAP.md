@@ -565,7 +565,15 @@ Plans:
   3. Selecionar uma área de foco não cria scroll na página
   4. Se o boneco atual não puder ser corrigido sem o scroll, ele é substituído por um desenho em que a seleção não cria scroll
 
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 19 to break down)
+
+**Wave 1**
+
+- [ ] 19-01-PLAN.md — Catálogo de 42 regiões, centroids do PDF e Set da função de IA
+- [ ] 19-02-PLAN.md — DELETE das oito keys obsoletas no SQL Editor
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 19-03-PLAN.md — Seleção sem scroll no card e no mapa da avaliação
