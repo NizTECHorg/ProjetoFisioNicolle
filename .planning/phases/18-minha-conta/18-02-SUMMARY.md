@@ -66,7 +66,7 @@ Each task was committed atomically:
 1. **Task 1: Confirmar @supabase/supabase-js@2.117.1 no registry** — checkpoint already approved for exactly `@supabase/supabase-js@2.117.1` (no commit; nothing installed)
 2. **Task 2: Instalar @supabase/supabase-js@2.117.1** - `de034a2` (chore)
 
-**Plan metadata:** pending docs commit
+**Plan metadata:** `9c36b4d` (docs: complete plan)
 
 ## Files Created/Modified
 
