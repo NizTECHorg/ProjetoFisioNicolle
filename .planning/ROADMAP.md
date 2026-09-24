@@ -461,7 +461,7 @@ Plans:
 **Goal:** Na ficha e nas listas, a foto do paciente aceita PNG ou JPEG: o hover mostra um ícone de câmera e o clique abre a escolha do arquivo. Sem foto, continuam as iniciais.
 **Requirements**: TBD
 **Depends on:** Phase 7
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 
@@ -472,7 +472,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 16-03-PLAN.md — Upload, remove, signed URLs, and photo mutations
+- [x] 16-03-PLAN.md — Upload, remove, signed URLs, and photo mutations
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

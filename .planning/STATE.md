@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-09-24T00:36:40.834Z"
+stopped_at: Completed 16-03-PLAN.md
+last_updated: "2026-09-24T00:42:22.010Z"
 progress:
   total_phases: 16
   completed_phases: 7
   total_plans: 65
-  completed_plans: 53
+  completed_plans: 54
   percent: 44
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 16
-Plan: 3 of 6
+Plan: 4 of 6
 
 - Status: Ready to execute
 - Progress: plans 16-01 through 16-06 verified
 
-**Progress:** [████████░░] 82%
+**Progress:** [████████░░] 83%
 
 ## Accumulated Context
 
@@ -141,6 +141,8 @@ Plan: 3 of 6
 - [Phase 16]: preparePatientPhoto accepts only JPEG FF D8 FF and PNG 89 50 4E 47; PNG stays image/png and JPEG uses quality 0.85 — Transparency must still show photo_tone; WebP, HEIC, and PDF are rejected before decode
 - [Phase 16]: PatientAvatar paints a non-empty photoUrl with object-cover and falls back to initials on photo_tone — Missing and broken URLs keep D-01 initials; the component does not open a file dialog
 - [Phase 16]: PatientAvatar lg stays h-16 w-16 — The live size map was kept so existing call sites do not shrink
+- [Phase 16]: Photo invalidation uses exact query keys so the patients prefix does not refresh the gallery — TanStack Query prefix match would refetch patient images
+- [Phase 16]: Patient mappers set photoUrl null until plan 16-04 signs photo_path — This plan exposes the field; signing stays in the read services
 
 ### Pending user action
 
@@ -161,8 +163,8 @@ Plan: 3 of 6
 
 ## Session Continuity
 
-Last session: 2026-09-24T00:36:33.596Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-09-24T00:42:21.993Z
+Stopped at: Completed 16-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -194,3 +196,4 @@ Resume file: None
 | Phase 15 P03 | 3min | 2 tasks | 3 files |
 | Phase 16 P01 | 3min | 2 tasks | 2 files |
 | Phase 16 P02 | 2min | 2 tasks | 2 files |
+| Phase 16 P03 | 3min | 2 tasks | 4 files |
