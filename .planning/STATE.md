@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-09-24T02:23:07.749Z"
+status: verifying
+stopped_at: Completed 17-03-PLAN.md
+last_updated: "2026-09-24T02:28:09.246Z"
 progress:
   total_phases: 17
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 68
-  completed_plans: 59
-  percent: 47
+  completed_plans: 60
+  percent: 53
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 17 (Isolamento de dados por conta) — EXECUTING
+Phase: 17 (Isolamento de dados por conta) — ready for verification
 Plan: 3 of 3
 
-- Status: Ready to execute
-- Progress: 2/3 plans
+- Status: Phase complete — ready for verification
+- Progress: 3/3 plans
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -154,6 +154,9 @@ Plan: 3 of 3
 - [Phase 17]: patients_select drops the null created_by branch and keeps created_by = auth.uid() for INSERT RETURNING — can_read_patient is STABLE and cannot see the new row
 - [Phase 17]: Without VITE_GEMINI_API_KEY, analyzePhysicalEvaluationPdf throws and does not invent a report (D-04) — Empty state instead of a simulated lumbar report
 - [Phase 17]: Saved simulated report is discarded only when cinesiologicDiagnosis FNV-1a 64 equals d7513069ba374c9f; eval_ ids with another diagnosis stay — Real Gemini results also use the eval_ prefix
+- [Phase 17]: createColumn and createCard send owner_id from supabase.auth.getUser and omit organization_id; stamp_board_column_scope remains the authority (D-03, D-05) — The insert must satisfy WITH CHECK; the trigger still overwrites owner and organization
+- [Phase 17]: listBoard and listDueCards do not filter by owner in the client; RLS returns zero rows for the other autonomo (D-01, D-05) — A client owner predicate would hide rows the policies already withhold
+- [Phase 17]: Empty board copy is exactly Nenhuma lista ainda. and does not mention supabase/board.sql (D-04) — The missing seed script would push a shared board and reopen the leak
 
 ### Pending user action
 
@@ -176,8 +179,8 @@ Plan: 3 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-24T02:23:07.731Z
-Stopped at: Completed 17-02-PLAN.md
+Last session: 2026-09-24T02:28:09.224Z
+Stopped at: Completed 17-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -215,3 +218,4 @@ Resume file: None
 | Phase 16 P06 | 2min | 2 tasks | 4 files |
 | Phase 17 P01 | 5min | 2 tasks | 1 files |
 | Phase 17 P02 | 3min | 2 tasks | 2 files |
+| Phase 17 P03 | 3min | 2 tasks | 2 files |

@@ -22,7 +22,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 14: PDF ficha visual polish** — Layout denso/legível alinhado às refs 01–04 (tipografia, blocos, tabelas, mapa, escala EVA)
 - [x] **Phase 15: E-mail Fluxo de confirmação de conta** — Template + SMTP próprio no lugar do e-mail genérico do Supabase (completed 2026-09-23)
 - [x] **Phase 16: Foto do paciente** — Hover na foto mostra a câmera; o clique envia PNG ou JPEG (completed 2026-09-24)
-- [ ] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site
+- [x] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site (completed 2026-09-24)
 
 ## Phase Details
 
@@ -495,12 +495,12 @@ Plans:
   2. Toda tabela de dado digitável está coberta por regra de acesso no banco e pela leitura no app
   3. Nenhuma tela mostra paciente, sessão, valor ou texto de exemplo que não veio do banco daquela conta
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 17-01-PLAN.md — RLS do quadro e fechamento de patients_select
 - [x] 17-02-PLAN.md — Remover o laudo inventado da aba Avaliações
-- [ ] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
+- [x] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
 
 **Wave 1**
 
@@ -509,4 +509,4 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
+- [x] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro

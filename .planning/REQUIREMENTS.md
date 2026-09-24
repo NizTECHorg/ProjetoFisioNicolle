@@ -20,7 +20,7 @@
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
-- [ ] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
+- [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -292,4 +292,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-25 | Phase 13 | Planned |
 | REQ-26 | Phase 14 | Planned |
 | REQ-27 | Phase 15 | Complete |
-| REQ-28 | Phase 17 | Planned |
+| REQ-28 | Phase 17 | Complete |
