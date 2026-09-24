@@ -100,3 +100,17 @@ create policy account_avatars_storage_delete
     and (storage.foldername(name))[1] = (select auth.uid())::text
     and name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$'
   );
+
+-- ---------------------------------------------------------------------------
+-- 5. Coluna de UPDATE para authenticated: só full_name e avatar_url.
+-- A policy de self-update permanece. Não revogar select, insert ou delete.
+-- Não revogar service_role nem o owner.
+-- ---------------------------------------------------------------------------
+revoke update on public.profiles from public, anon, authenticated;
+
+grant update (full_name, avatar_url) on public.profiles to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 6. Recarrega o schema do PostgREST.
+-- ---------------------------------------------------------------------------
+notify pgrst, 'reload schema';
