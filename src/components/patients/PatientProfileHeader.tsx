@@ -6,6 +6,7 @@ import {
   PatientPhotoControl,
   PatientPhotoRemoveButton,
 } from '@/components/patients/PatientPhotoControl'
+import { PatientStatusToggle } from '@/components/patients/PatientStatusToggle'
 import { statusLabels, type PatientStatus } from '@/types/patient'
 
 export type PatientTab =
@@ -67,54 +68,63 @@ export function PatientProfileHeader({
         então a borda esquerda de tabs e cards fica alinhada.
       */}
       <div
-        className="dash-in group mt-5 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:gap-x-4"
+        className="dash-in mt-5 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:gap-x-4"
         style={{ animationDelay: '60ms' }}
       >
-        {canWrite ? (
-          <PatientPhotoControl
-            patientId={patientId}
-            name={name}
-            tone={photoTone}
-            initials={initials}
-            photoUrl={photoUrl}
-            size="lg"
-            className={avatarClassName}
-            showRemove={false}
-          />
-        ) : (
-          <PatientAvatar
-            name={name}
-            tone={photoTone}
-            initials={initials}
-            photoUrl={photoUrl}
-            size="lg"
-            className={avatarClassName}
-          />
-        )}
+        <div className="group col-span-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:gap-x-4">
+          {canWrite ? (
+            <PatientPhotoControl
+              patientId={patientId}
+              name={name}
+              tone={photoTone}
+              initials={initials}
+              photoUrl={photoUrl}
+              size="lg"
+              className={avatarClassName}
+              showRemove={false}
+            />
+          ) : (
+            <PatientAvatar
+              name={name}
+              tone={photoTone}
+              initials={initials}
+              photoUrl={photoUrl}
+              size="lg"
+              className={avatarClassName}
+            />
+          )}
 
-        <div className="min-w-0">
-          <div className="flex min-h-11 items-start justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{name}</h1>
-              <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-forest">
-                {statusLabels[status]}
-              </span>
-              {canWrite ? (
-                <PatientPhotoRemoveButton patientId={patientId} name={name} photoUrl={photoUrl} />
+          <div className="min-w-0">
+            <div className="flex min-h-11 items-start justify-between gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{name}</h1>
+                {canWrite ? (
+                  <span className="opacity-0 transition-opacity pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
+                    <PatientPhotoRemoveButton patientId={patientId} name={name} photoUrl={photoUrl} />
+                  </span>
+                ) : null}
+              </div>
+              {topRightAction ?? identityAction ? (
+                <div className="shrink-0 self-start">{topRightAction ?? identityAction}</div>
               ) : null}
             </div>
-            {topRightAction ?? identityAction ? (
-              <div className="shrink-0 self-start">{topRightAction ?? identityAction}</div>
-            ) : null}
+
+            <div className="mt-2 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1">
+              {meta ? <p className="text-sm text-muted">{meta}</p> : null}
+              {canWrite ? (
+                <PatientStatusToggle patientId={patientId} status={status} />
+              ) : (
+                <span className="text-xs text-muted">{statusLabels[status]}</span>
+              )}
+            </div>
           </div>
+        </div>
 
-          <p className="mt-2 min-h-5 break-words text-sm text-muted">{meta}</p>
-
-          <nav
-            className="mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
-            aria-label="Sessões do paciente"
-            role="tablist"
-          >
+        <nav
+          className="col-start-2 mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
+          aria-label="Sessões do paciente"
+          role="tablist"
+        >
             <button
               type="button"
               role="tab"
@@ -200,7 +210,6 @@ export function PatientProfileHeader({
               Imagens
             </button>
           </nav>
-        </div>
       </div>
     </>
   )

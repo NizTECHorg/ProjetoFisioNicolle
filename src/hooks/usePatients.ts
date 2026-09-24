@@ -30,6 +30,9 @@ import { upsertSessionCharge } from '@/services/finance.service'
 import type {
   CreatePatientAlertInput,
   CreatePatientInput,
+  Patient,
+  PatientDashboard,
+  PatientListItem,
   UpdatePatientAlertInput,
   UpdatePatientInput,
   UpsertPatientGoalInput,
@@ -140,6 +143,32 @@ export function useUpdatePatient() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdatePatientInput }) => updatePatient(id, input),
     onSuccess: (_data, variables) => {
+      const status = variables.input.status
+      if (status) {
+        qc.setQueriesData<PatientListItem[] | undefined>(
+          { queryKey: ['patients', 'list'] },
+          (current) =>
+            current?.map((patient) => (patient.id === variables.id ? { ...patient, status } : patient)),
+        )
+        qc.setQueriesData<PatientDashboard | null | undefined>(
+          {
+            predicate: (query) =>
+              query.queryKey[0] === 'patients' &&
+              query.queryKey[1] === variables.id &&
+              query.queryKey[2] === 'dashboard',
+          },
+          (current) => (current ? { ...current, status } : current),
+        )
+        qc.setQueriesData<Patient | null | undefined>(
+          {
+            predicate: (query) =>
+              query.queryKey[0] === 'patients' &&
+              query.queryKey[1] === variables.id &&
+              query.queryKey.length === 3,
+          },
+          (current) => (current ? { ...current, status } : current),
+        )
+      }
       invalidatePatient(qc, variables.id)
       toast('Ficha atualizada', 'success')
     },

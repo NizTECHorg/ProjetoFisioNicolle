@@ -616,8 +616,9 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
 
   if (Object.keys(payload).length === 0) return
 
-  const { error } = await supabase.from('patients').update(payload).eq('id', id)
+  const { data, error } = await supabase.from('patients').update(payload).eq('id', id).select('id')
   throwIfError(error)
+  if (!data?.length) throw new Error('Não foi possível atualizar este paciente.')
 }
 
 export async function createPatientAlert(
