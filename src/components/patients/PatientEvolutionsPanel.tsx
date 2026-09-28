@@ -28,9 +28,6 @@ type PatientEvolutionsPanelProps = {
   canWrite?: boolean
 }
 
-function photosForSession(images: PatientImage[], sessionId: string) {
-  return images.filter((image) => image.sessionId === sessionId)
-}
 
 function photoCountLabel(count: number) {
   if (count === 1) return '1 foto'
@@ -140,13 +137,24 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
     return map
   }, [charges])
 
+  const photosBySession = useMemo(() => {
+    const map = new Map<string, PatientImage[]>()
+    for (const image of images) {
+      if (!image.sessionId) continue
+      const list = map.get(image.sessionId) || []
+      list.push(image)
+      map.set(image.sessionId, list)
+    }
+    return map
+  }, [images])
+
   const [editorOpen, setEditorOpen] = useState(false)
   const [editing, setEditing] = useState<PatientSessionRecord | null>(null)
   const [viewing, setViewing] = useState<PatientSessionRecord | null>(null)
   const [openPhotoId, setOpenPhotoId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PatientSessionRecord | null>(null)
 
-  const viewingPhotos = viewing ? photosForSession(images, viewing.id) : []
+  const viewingPhotos = viewing ? photosBySession.get(viewing.id) || [] : []
   const openPhoto = viewingPhotos.find((image) => image.id === openPhotoId) ?? viewingPhotos[0] ?? null
 
   function closeEditor() {
@@ -187,7 +195,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
         ) : (
           <ul className="space-y-3">
             {sessions.map((session) => {
-              const photos = photosForSession(images, session.id)
+              const photos = photosBySession.get(session.id) || []
               const charge = chargeBySession.get(session.id) ?? null
               return (
                 <li key={session.id} className="group rounded-2xl border border-line bg-surface p-4">

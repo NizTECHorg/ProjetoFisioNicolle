@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FileText, Image, Pencil, Plus, Trash2, X } from 'lucide-react'
@@ -256,7 +256,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
     })
   }, [editing, editForm, sessions])
 
-  const filtered = filterImages(images, filter)
+  const filtered = useMemo(() => filterImages(images, filter), [images, filter])
   const openImage = images.find((image) => image.id === openId) ?? null
   const unfilteredEmpty = images.length === 0
   const emptyHeading = unfilteredEmpty
@@ -270,13 +270,13 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
       : 'Altere o filtro ou toque em Adicionar.'
     : undefined
 
-  const sessionOptions = [
+  const sessionOptions = useMemo(() => [
     { value: '', label: 'Avulsa (sem sessão)' },
     ...sessions.map((session) => ({
       value: session.id,
       label: `${session.dateLabel} · ${session.timeLabel}`,
     })),
-  ]
+  ], [sessions])
 
   function openUpload() {
     uploadForm.reset({

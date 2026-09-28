@@ -4,11 +4,10 @@ import { useDismissNotification, useNotifications } from '@/hooks/queries'
 import { formatDateTime } from '@/lib/security'
 
 const kindLabels: Record<string, string> = {
-  pedido: 'Pedido',
-  estoque: 'Estoque',
-  producao: 'Produção',
-  entrega: 'Entrega',
-  cliente: 'Paciente',
+  agendamento: 'Agendamento',
+  pagamento: 'Pagamento',
+  avaliacao: 'Avaliação',
+  alerta: 'Alerta',
 }
 
 export function NotificationsMenu() {
