@@ -47,6 +47,14 @@
     @apply bg-canvas text-ink font-sans min-h-screen antialiased;
   }
 
+  @media (min-width: 1024px) {
+    html,
+    body {
+      overflow: hidden;
+      height: 100%;
+    }
+  }
+
   input,
   textarea,
   select,
