@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-09-29T21:06:45.653Z"
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-09-29T21:09:33.541Z"
 progress:
   total_phases: 20
   completed_phases: 10
   total_plans: 81
-  completed_plans: 69
+  completed_plans: 70
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 20 (esqueci-minha-senha) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 - Status: Ready to execute
 - Progress: 2/3 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -181,6 +181,8 @@ Plan: 2 of 4
 - [Phase 20]: recoveryPasswordSchema uses password/confirmPassword field names (not newPassword) per plan interfaces
 - [Phase 20]: mapRecoveryRequestError returns fixed UI-SPEC send failure string; rate-limit still via mapAuthError
 - [Phase 20]: typesToTry(null) left without recovery (Pitfall 5 / T-20-05)
+- [Phase 20]: Success state hides Lembrou a senha footer; Voltar ao login lives in the centered body
+- [Phase 20]: Forgot link sits inside password space-y-2 under Mostrar senha, above Entrar
 
 ### Pending user action
 
@@ -209,8 +211,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-29T21:06:45.623Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-09-29T21:09:33.517Z
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -258,3 +260,4 @@ Resume file: None
 | Phase 19 P01 | 4min | 2 tasks | 3 files |
 | Phase 19 P02 | 4min | 2 tasks | 1 files |
 | Phase 20 P01 | 2min | 2 tasks | 4 files |
+| Phase 20 P02 | 1min | 2 tasks | 3 files |
