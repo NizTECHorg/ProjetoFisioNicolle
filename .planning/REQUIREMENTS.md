@@ -23,7 +23,7 @@
 - [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
 - [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **REQ-30**: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
-- [ ] **REQ-31**: Esqueci minha senha — no login, e-mail para redefinir a senha
+- [x] **REQ-31**: Esqueci minha senha — no login, e-mail para redefinir a senha
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 

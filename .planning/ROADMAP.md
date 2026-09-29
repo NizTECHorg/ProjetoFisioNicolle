@@ -593,12 +593,12 @@ Plans:
   3. Abrir o link do e-mail permite definir uma senha nova
   4. Depois disso, a senha antiga deixa de entrar e a nova entra
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — Schemas, rate limit, confirm mode, requestPasswordReset + setPasswordFromRecovery
+- [x] 20-01-PLAN.md — Schemas, rate limit, confirm mode, requestPasswordReset + setPasswordFromRecovery
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

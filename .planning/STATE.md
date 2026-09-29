@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
 stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-09-29T20:54:40.142Z"
+last_updated: "2026-09-29T21:06:20.152Z"
 progress:
   total_phases: 20
   completed_phases: 10
   total_plans: 81
-  completed_plans: 68
+  completed_plans: 69
   percent: 50
 ---
 
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 19 — Boneco de área de foco
+**Current focus:** Phase 20 — esqueci-minha-senha
 
 ## Current Position
 
-Phase: 19 (Boneco de área de foco) — Ready to execute
-Plan: 2 of 3
+Phase: 20 (esqueci-minha-senha) — EXECUTING
+Plan: 2 of 4
 
 - Status: Ready to execute
 - Progress: 2/3 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -206,9 +206,9 @@ Plan: 2 of 3
 
 ## Session Continuity
 
-Last session: 2026-09-29T20:42:59.904Z
+Last session: 2026-09-29T21:06:20.129Z
 Stopped at: Phase 20 UI-SPEC approved
-Resume file: .planning/phases/20-esqueci-minha-senha/20-UI-SPEC.md
+Resume file: None
 
 ## Performance Metrics
 
