@@ -71,6 +71,49 @@ export const registerSchema = z
 export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+})
+
+export const recoveryPasswordSchema = z
+  .object({
+    password: z.string(),
+    confirmPassword: z.string().min(1, 'Confirme a nova senha.'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Informe a nova senha.',
+        path: ['password'],
+      })
+      return
+    }
+
+    const parsed = passwordSchema.safeParse(data.password)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: issue?.message ?? 'A senha deve ter no mínimo 8 caracteres',
+        path: ['password'],
+      })
+    }
+  })
+  .refine(
+    (data) =>
+      data.password.trim() === '' ||
+      data.confirmPassword.length === 0 ||
+      data.password === data.confirmPassword,
+    {
+      message: 'As senhas não coincidem.',
+      path: ['confirmPassword'],
+    },
+  )
+
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export type RecoveryPasswordFormData = z.infer<typeof recoveryPasswordSchema>
+
 export function changePasswordSchema(email: string) {
   return z
     .object({

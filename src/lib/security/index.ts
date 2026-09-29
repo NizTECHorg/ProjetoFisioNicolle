@@ -193,6 +193,10 @@ function limitsFor(key: string): { max: number; windowMs: number } {
     return { max: REGISTER_MAX_ATTEMPTS, windowMs: REGISTER_WINDOW_MS }
   }
 
+  if (key.startsWith('auth:recovery:')) {
+    return { max: REGISTER_MAX_ATTEMPTS, windowMs: REGISTER_WINDOW_MS }
+  }
+
   return {
     max: key.endsWith(':global') ? LOGIN_MAX_ATTEMPTS_GLOBAL : LOGIN_MAX_ATTEMPTS_PER_KEY,
     windowMs: LOGIN_WINDOW_MS,
