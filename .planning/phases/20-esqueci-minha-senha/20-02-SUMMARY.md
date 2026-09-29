@@ -65,7 +65,7 @@ Each task was committed atomically:
 1. **Task 1: ForgotPasswordPage + rota GuestRoute** - `331afed` (feat)
 2. **Task 2: Link Esqueci minha senha no LoginPage** - `8547c65` (feat)
 
-**Plan metadata:** see final docs commit on this plan
+**Plan metadata:** `1750b27` (docs: complete plan)
 
 ## Files Created/Modified
 
