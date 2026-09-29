@@ -328,17 +328,19 @@ export const recoveryPasswordSchema = z
 
 **If this table is empty:** N/A — three assumptions remain for discuss/planner confirmation.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Set-password UI placement**
    - What we know: `/auth/confirm` is the locked redirect landing; signup UX already lives there.
    - What's unclear: Branch in-page vs navigate to `/auth/redefinir-senha` after detecting recovery (no Dashboard change if client-only navigate).
    - Recommendation: Prefer branching `/auth/confirm` (or client navigate to a new **public** route) **without** changing Dashboard Redirect URLs.
+   - **RESOLVED:** Plans use an in-page branch on `/auth/confirm` (plan 20-03). No new Dashboard Redirect URL. No `/auth/redefinir-senha` route.
 
 2. **Phase 18 hosted flag status**
    - What we know: Oracle to enable `security_update_password_require_current_password` is still pending human action.
    - What's unclear: Whether it is already ON in production.
    - Recommendation: Recovery UAT must prove `updateUser({ password })` **without** `current_password` succeeds on a recovery session either way; do not turn the flag off for this phase.
+   - **RESOLVED:** Plan 20-04 hosted UAT proves recovery `updateUser({ password })` without `current_password`. Do not disable the Phase 18 oracle flag for this phase.
 
 ## Environment Availability
 

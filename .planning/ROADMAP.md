@@ -501,6 +501,7 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] 17-01-PLAN.md — RLS do quadro e fechamento de patients_select
 - [x] 17-02-PLAN.md — Remover o laudo inventado da aba Avaliações
 - [x] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
@@ -529,6 +530,7 @@ Plans:
 **Plans:** 6/6 plans complete
 
 Plans:
+
 - [x] 18-01-PLAN.md — SQL do bucket account-avatars e do GRANT de coluna
 - [x] 18-02-PLAN.md — Bump de @supabase/supabase-js para 2.117.1
 - [x] 18-03-PLAN.md — Schema de nome e senha e mapAuthError por error.code
@@ -594,7 +596,15 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 20-01-PLAN.md — Schemas, rate limit, confirm mode, requestPasswordReset + setPasswordFromRecovery
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 20-02-PLAN.md — Link no login + GuestRoute /esqueci-senha anti-enumeração
 - [ ] 20-03-PLAN.md — AuthConfirmPage branch recovery + formulário Nova senha
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 20-04-PLAN.md — UAT hospedado REQ-31 + confirmação template Fluxo
