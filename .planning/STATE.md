@@ -202,6 +202,7 @@ Plan: 2 of 3
 - Phase 17 added: Isolamento de dados por conta — vazamento do quadro entre contas, auditoria de todo dado digitável e remoção de mocks
 - Phase 18 added: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
 - Phase 19 added: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
+- Phase 20 added: Esqueci minha senha — link no login envia e-mail para redefinir a senha
 
 ## Session Continuity
 
