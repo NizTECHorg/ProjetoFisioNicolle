@@ -70,7 +70,7 @@ Each task was committed atomically:
 1. **Task 1: Schemas forgot + recovery e rate limit recovery** - `7f3be66` (feat)
 2. **Task 2: confirmCallback mode recovery + auth.service reset/set** - `3a8a00c` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `5e199d3` (docs: complete plan)
 
 ## Files Created/Modified
 

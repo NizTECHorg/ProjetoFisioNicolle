@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-09-29T21:06:20.152Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-09-29T21:06:45.653Z"
 progress:
   total_phases: 20
   completed_phases: 10
@@ -178,6 +178,9 @@ Plan: 2 of 4
 - [Phase 19]: Phase 13 patient-ai-summary Set mirrors the 42 keys; deploy stays on the Dashboard and the phase 11 twin is unchanged — The function cannot import src/; publishing is operator work
 - [Phase 19]: Centroids of unchanged keys stay the current literals, including back.shoulder_l at x 96 — The plan forbids recalculating centers of regions that did not change
 - [Phase 19]: SQL Editor is the apply path for the eight-key DELETE; do not run supabase db push — Operator confirmed applied and the eight-key count returned zero rows
+- [Phase 20]: recoveryPasswordSchema uses password/confirmPassword field names (not newPassword) per plan interfaces
+- [Phase 20]: mapRecoveryRequestError returns fixed UI-SPEC send failure string; rate-limit still via mapAuthError
+- [Phase 20]: typesToTry(null) left without recovery (Pitfall 5 / T-20-05)
 
 ### Pending user action
 
@@ -206,8 +209,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-29T21:06:20.129Z
-Stopped at: Phase 20 UI-SPEC approved
+Last session: 2026-09-29T21:06:45.623Z
+Stopped at: Completed 20-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -254,3 +257,4 @@ Resume file: None
 | Phase 18 P06 | 4 min | 2 tasks | 2 files |
 | Phase 19 P01 | 4min | 2 tasks | 3 files |
 | Phase 19 P02 | 4min | 2 tasks | 1 files |
+| Phase 20 P01 | 2min | 2 tasks | 4 files |
