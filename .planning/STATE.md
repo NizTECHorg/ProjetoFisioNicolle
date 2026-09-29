@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-09-29T21:09:33.541Z"
+stopped_at: Completed 20-03-PLAN.md
+last_updated: "2026-09-29T21:14:08.335Z"
 progress:
   total_phases: 20
   completed_phases: 10
   total_plans: 81
-  completed_plans: 70
+  completed_plans: 71
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 20 (esqueci-minha-senha) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 - Status: Ready to execute
-- Progress: 2/3 plans
+- Progress: 3/4 plans
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -183,6 +183,8 @@ Plan: 3 of 4
 - [Phase 20]: typesToTry(null) left without recovery (Pitfall 5 / T-20-05)
 - [Phase 20]: Success state hides Lembrou a senha footer; Voltar ao login lives in the centered body
 - [Phase 20]: Forgot link sits inside password space-y-2 under Mostrar senha, above Entrar
+- [Phase 20]: Recovery ok sets status recovery without toast or clinic navigate (Pitfall 1 / T-20-02) — GuestRoute must not admit clinic with recovery session before setPasswordFromRecovery
+- [Phase 20]: Kept UI-SPEC Senha atualizada toast; plan Senha atual substring assert was a false positive — UI-SPEC toast required; verified label Senha atual absent instead
 
 ### Pending user action
 
@@ -211,8 +213,8 @@ Plan: 3 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-29T21:09:33.517Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-09-29T21:14:02.053Z
+Stopped at: Completed 20-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -261,3 +263,4 @@ Resume file: None
 | Phase 19 P02 | 4min | 2 tasks | 1 files |
 | Phase 20 P01 | 2min | 2 tasks | 4 files |
 | Phase 20 P02 | 1min | 2 tasks | 3 files |
+| Phase 20 P03 | 3min | 2 tasks | 1 files |

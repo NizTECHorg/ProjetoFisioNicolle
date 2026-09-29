@@ -593,7 +593,7 @@ Plans:
   3. Abrir o link do e-mail permite definir uma senha nova
   4. Depois disso, a senha antiga deixa de entrar e a nova entra
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -603,7 +603,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 20-02-PLAN.md — Link no login + GuestRoute /esqueci-senha anti-enumeração
-- [ ] 20-03-PLAN.md — AuthConfirmPage branch recovery + formulário Nova senha
+- [x] 20-03-PLAN.md — AuthConfirmPage branch recovery + formulário Nova senha
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
