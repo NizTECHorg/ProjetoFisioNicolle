@@ -63,7 +63,7 @@ Each task was committed atomically:
 1. **Task 1: Branch recovery vs signup no confirm effect** - `b20d933` (feat)
 2. **Task 2: Formulário Nova senha + setPasswordFromRecovery** - `bce8665` (feat)
 
-**Plan metadata:**  (docs: complete plan)
+**Plan metadata:** `ba5296b` (docs: complete plan)
 
 ## Files Created/Modified
 
