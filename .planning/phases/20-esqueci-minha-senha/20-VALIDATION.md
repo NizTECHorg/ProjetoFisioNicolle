@@ -2,8 +2,8 @@
 phase: 20
 slug: esqueci-minha-senha
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-09-29
 ---
 
@@ -38,11 +38,13 @@ created: 2026-09-29
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 20-req-31.1 | TBD | TBD | REQ-31 | — | Login tem caminho Esqueci minha senha | typecheck + grep | `npm run typecheck` | ❌ | ⬜ pending |
-| 20-req-31.2 | TBD | TBD | REQ-31 | T-20-enum | Sucesso idêntico se o e-mail existe ou não; sem probe de cadastro | typecheck + grep | `npm run typecheck` | ❌ | ⬜ pending |
-| 20-req-31.3 | TBD | TBD | REQ-31 | — | Link do e-mail abre o app e grava senha nova | manual-only | `npm run typecheck` | ❌ | ⬜ pending |
-| 20-req-31.4 | TBD | TBD | REQ-31 | — | Senha antiga deixa de entrar; a nova entra | manual-only | `npm run typecheck` | ❌ | ⬜ pending |
-| 20-req-31.5 | TBD | TBD | REQ-31 | — | `changePassword` em `/conta` continua com `current_password` | typecheck + grep | `npm run typecheck` | ✅ | ⬜ pending |
+| 20-01-T1 | 01 | 1 | REQ-31 | T-20-04 | Schemas + limitsFor auth:recovery | typecheck + grep | `npm run typecheck` | ✅ | ⬜ pending |
+| 20-01-T2 | 01 | 1 | REQ-31 | T-20-01 T-20-02 | requestPasswordReset sem probe; setPasswordFromRecovery sem current_password; mode recovery | typecheck + grep | `npm run typecheck` | ✅ | ⬜ pending |
+| 20-02-T1 | 02 | 2 | REQ-31 | T-20-01 | /esqueci-senha success idêntico | typecheck + grep | `npm run typecheck` | ❌ → ✅ on exec | ⬜ pending |
+| 20-02-T2 | 02 | 2 | REQ-31 | — | Login link Esqueci minha senha | typecheck + grep | `npm run typecheck` | ✅ | ⬜ pending |
+| 20-03-T1 | 03 | 2 | REQ-31 | T-20-02 | Branch recovery sem navigate clinic | typecheck + grep | `npm run typecheck` | ✅ | ⬜ pending |
+| 20-03-T2 | 03 | 2 | REQ-31 | T-20-07 | setPasswordFromRecovery; changePassword intocado | typecheck + grep | `npm run typecheck` | ✅ | ⬜ pending |
+| 20-04-T1 | 04 | 3 | REQ-31 | T-20-01 T-20-02 | Hosted e-mail + old/new password + anti-enum | typecheck + manual | `npm run typecheck` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,7 +52,11 @@ created: 2026-09-29
 
 ## Wave 0 Requirements
 
-Existing infrastructure covers typecheck. Não instalar Vitest. Sem SQL nesta fase. Prova do e-mail e do sign-in é humana no Auth hospedado.
+Existing infrastructure covers typecheck. Não instalar Vitest. Sem SQL nesta fase. Prova do e-mail e do sign-in é humana no Auth hospedado (plano 04).
+
+- [x] Framework install: none (skip)
+- [x] Manual UAT checklist: plano 04 checkpoint
+- [x] No MISSING automated refs that require Vitest
 
 ---
 
@@ -58,19 +64,20 @@ Existing infrastructure covers typecheck. Não instalar Vitest. Sem SQL nesta fa
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| E-mail Fluxo chega e o link abre `/auth/confirm` | REQ-31 | SMTP e GoTrue só no projeto hospedado | Pedir reset com e-mail real; abrir o link no celular ou em outro browser |
-| Senha antiga falha; senha nova entra | REQ-31 | Credencial no Auth hospedado | Depois de gravar a nova, tentar a antiga (invalid_credentials) e a nova (sessão) |
-| E-mail inexistente não revela ausência | REQ-31 | Anti-enumeração | Pedir reset com e-mail inventado; a tela mostra a mesma mensagem de sucesso |
+| E-mail Fluxo chega e o link abre `/auth/confirm` | REQ-31 | SMTP e GoTrue só no projeto hospedado | Plano 04 passos 1–3 |
+| Senha antiga falha; senha nova entra | REQ-31 | Credencial no Auth hospedado | Plano 04 passo 4 |
+| E-mail inexistente não revela ausência | REQ-31 | Anti-enumeração | Plano 04 passo 5 |
+| Minha conta ainda pede senha atual | REQ-31.5 | Regressão Phase 18 | Plano 04 passo 6 |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (Vitest skipped by phase constraint)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** planning-complete
