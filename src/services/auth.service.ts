@@ -13,9 +13,12 @@ import { isRejectedAccount, normalizeJoinCode } from '@/lib/accountAccess'
 import {
   accountNameSchema,
   changePasswordSchema,
+  forgotPasswordSchema,
   loginSchema,
+  recoveryPasswordSchema,
   registerSchema,
   type LoginFormData,
+  type RecoveryPasswordFormData,
   type RegisterFormData,
 } from '@/schemas/auth.schema'
 import { fetchMembership } from '@/services/team.service'
@@ -195,4 +198,64 @@ export async function changePassword(
   if (error) {
     throw new Error(mapAuthError(error))
   }
+}
+
+function mapRecoveryRequestError(error: {
+  message?: string
+  status?: number
+  code?: string
+}): string {
+  if (
+    error.code === 'over_request_rate_limit' ||
+    error.status === 429 ||
+    (error.message?.toLowerCase().includes('rate limit') ?? false)
+  ) {
+    return mapAuthError(error)
+  }
+
+  return 'Não foi possível enviar o link. Tente de novo.'
+}
+
+export async function requestPasswordReset(emailInput: string): Promise<void> {
+  const parsed = forgotPasswordSchema.parse({ email: emailInput })
+  const email = sanitizeEmail(parsed.email)
+
+  assertRateLimit([`auth:recovery:${email}`, 'auth:recovery:global'])
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${env.appUrl}/auth/confirm`,
+  })
+
+  if (error) {
+    throw new Error(mapRecoveryRequestError(error))
+  }
+
+  resetRateLimit(`auth:recovery:${email}`)
+}
+
+export async function setPasswordFromRecovery(
+  input: RecoveryPasswordFormData,
+): Promise<void> {
+  const parsed = recoveryPasswordSchema.parse(input)
+
+  const rateKeys = ['auth:recovery:set:global']
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user?.id) {
+    rateKeys.unshift(`auth:recovery:set:${user.id}`)
+  }
+  assertRateLimit(rateKeys)
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.password,
+  })
+
+  if (error) {
+    throw new Error(
+      mapAuthError(error) || 'Não foi possível salvar a nova senha. Tente de novo.',
+    )
+  }
+
+  await signOut()
 }
