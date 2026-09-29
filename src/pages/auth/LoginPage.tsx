@@ -81,6 +81,12 @@ export function LoginPage() {
           >
             {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
           </button>
+          <Link
+            to="/esqueci-senha"
+            className="inline-flex min-h-11 items-center text-xs text-muted transition-colors hover:text-forest"
+          >
+            Esqueci minha senha
+          </Link>
         </div>
 
         <Button type="submit" fullWidth isLoading={isSubmitting}>
