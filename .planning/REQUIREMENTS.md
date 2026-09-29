@@ -23,6 +23,7 @@
 - [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
 - [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **REQ-30**: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
+- [ ] **REQ-31**: Esqueci minha senha — no login, e-mail para redefinir a senha
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -181,6 +182,20 @@ Refatorar a silhueta já entregue em REQ-18. A paciente pediu divisões nos bra�
 4. Se o boneco atual não eliminar o scroll, ele é substituído e a seleção continua sem scroll.
 5. O que já está salvo em `patient_focus_areas` continua visível; regiões novas entram no mesmo fluxo de marcar e desmarcar.
 
+## REQ-31 — Esqueci minha senha
+
+**Indispensável · Artur**
+
+Na tela de login, a pessoa que não lembra a senha pede um e-mail de redefinição. O e-mail usa a marca Fluxo (template Reset password da fase 15). O link abre o app para definir uma senha nova. Depois disso, só a senha nova entra.
+
+### Acceptance
+
+1. Na tela de login há um caminho claro Esqueci minha senha.
+2. Informar o e-mail dispara o envio da mensagem de redefinição (mesmo se a conta não existir, a UI não revela se o e-mail está cadastrado).
+3. O link do e-mail abre o app e permite gravar uma senha nova.
+4. Depois do sucesso, a senha antiga deixa de entrar e a nova entra.
+5. A troca de senha logada em Minha conta (com senha atual) continua como está — este fluxo é só para quem não está logado.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
@@ -324,3 +339,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-28 | Phase 17 | Complete |
 | REQ-29 | Phase 18 | Human verification pending |
 | REQ-30 | Phase 19 | Planned |
+| REQ-31 | Phase 20 | Planned |

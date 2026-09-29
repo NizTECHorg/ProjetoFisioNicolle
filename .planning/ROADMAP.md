@@ -25,6 +25,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [x] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site (completed 2026-09-24)
 - [ ] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **Phase 19: Boneco de área de foco** — Divisões nos braços, pés separados e seleção sem scroll na página
+- [ ] **Phase 20: Esqueci minha senha** — Link no login envia e-mail para trocar a senha
 
 ## Phase Details
 
@@ -577,3 +578,20 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [ ] 19-03-PLAN.md — Seleção sem scroll no card e no mapa da avaliação
+
+### Phase 20: Esqueci minha senha
+
+**Goal:** No login, um link Esqueci minha senha pede o e-mail e manda a mensagem Fluxo de redefinição. O link do e-mail abre o app para a pessoa escolher uma senha nova e entrar de novo.
+**Requirements**: REQ-31
+**Depends on:** Phase 15
+**Success Criteria** (what must be TRUE):
+
+  1. Na tela de login existe um caminho Esqueci minha senha
+  2. Informar o e-mail dispara o e-mail de redefinição (template Fluxo já existente)
+  3. Abrir o link do e-mail permite definir uma senha nova
+  4. Depois disso, a senha antiga deixa de entrar e a nova entra
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 20 to break down)
