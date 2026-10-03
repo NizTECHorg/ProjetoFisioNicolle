@@ -17,7 +17,14 @@ import {
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
 import { filterPatientsByName } from '@/lib/dashboardShortcut'
-import { buildWeeklySeries, clampWeeks } from '@/lib/sessionSeries'
+import {
+  MAX_SERIES_WEEKS,
+  SERIES_WEEKDAYS,
+  buildSeriesPreview,
+  buildWeeklySeries,
+  clampWeeks,
+  seriesCtaLabel,
+} from '@/lib/sessionSeries'
 import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
 import type { PatientListItem } from '@/types/patient'
 
@@ -200,11 +207,30 @@ export function CalendarPage() {
     return start
   }
 
+  function toggleWeekday(day: number) {
+    setWeekdaysTouched(true)
+    if (weekdays.includes(day)) {
+      if (weekdays.length === 1) return
+      setWeekdays(weekdays.filter((value) => value !== day))
+      return
+    }
+    setWeekdays([...weekdays, day])
+  }
+
+  const seriesCycles = clampWeeks(repeatWeeks)
+  const series = buildWeeklySeries(seriesStartAt(), weekdays, seriesCycles)
+  const seriesTotal = series.length
+  const seriesPreviewText = buildSeriesPreview(series, {
+    weekdayCount: weekdays.length,
+    cycles: seriesCycles,
+    showTime: time.trim() !== '',
+  })
+  const ctaLabel = seriesCtaLabel(seriesTotal)
+
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!patientId) return
     const when = seriesStartAt()
-    const series = buildWeeklySeries(when, weekdays, clampWeeks(repeatWeeks))
     if (series.length === 0) return
     const scheduledAts = series.map((date) => date.toISOString())
     create.mutate(
@@ -700,24 +726,62 @@ export function CalendarPage() {
             </div>
           </div>
           <Input label="Horário" type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+          <div>
+            <p id="dias-semana-label" className="mb-2 text-sm font-medium text-ink">
+              Dias da semana
+            </p>
+            <div role="group" aria-labelledby="dias-semana-label" className="grid grid-cols-7 gap-1">
+              {SERIES_WEEKDAYS.map(({ day, label, ariaLabel }) => {
+                const pressed = weekdays.includes(day)
+                const onlyOne = pressed && weekdays.length === 1
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleWeekday(day)}
+                    aria-pressed={pressed}
+                    aria-label={ariaLabel}
+                    aria-disabled={onlyOne}
+                    className={[
+                      'min-h-11 rounded-xl border text-sm font-medium transition',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25',
+                      pressed
+                        ? 'border-forest bg-forest text-white'
+                        : 'border-line bg-canvas text-ink hover:bg-surface',
+                    ].join(' ')}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              Marque um ou mais dias. Pelo menos um dia precisa ficar marcado.
+            </p>
+          </div>
           <Input
-            label="Horário fixo"
+            label="Repetir por quantas semanas"
             type="number"
             min={1}
-            max={24}
+            max={MAX_SERIES_WEEKS}
             inputMode="numeric"
             value={repeatWeeks}
-            hint={
-              clampWeeks(repeatWeeks) === 1
-                ? '1 marca só esta data, como agendada.'
-                : `Marca esta e as próximas ${clampWeeks(repeatWeeks) - 1} no mesmo dia e horário, todas como agendadas.`
-            }
+            hint="Os dias marcados se repetem a cada semana, sempre no mesmo horário. De 1 a 24 semanas."
             onChange={(event) => setRepeatWeeks(event.target.value)}
           />
+          {seriesPreviewText ? (
+            <p
+              role="status"
+              aria-live="polite"
+              className="rounded-2xl border border-accent/30 bg-accent-soft p-3 text-sm text-forest"
+            >
+              {seriesPreviewText}
+            </p>
+          ) : null}
           <Input label="Tipo" value={type} onChange={(event) => setType(event.target.value)} />
           <Input label="Sala" value={place} onChange={(event) => setPlace(event.target.value)} />
           <Button type="submit" fullWidth isLoading={create.isPending} disabled={!patientId}>
-            Agendar
+            {ctaLabel}
           </Button>
         </form>
       </Modal>
