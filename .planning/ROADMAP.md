@@ -622,12 +622,12 @@ Plans:
   3. As sessões nascem agendadas, no mesmo horário, nos dias escolhidos
   4. Repetir só um dia continua possível (comportamento de hoje)
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 21-01-PLAN.md — Helper puro `src/lib/sessionSeries.ts` (série semanal, clamp 1–24, catálogo Seg→Dom, cópia PT-BR) provado por `node --test`
+- [x] 21-01-PLAN.md — Helper puro `src/lib/sessionSeries.ts` (série semanal, clamp 1–24, catálogo Seg→Dom, cópia PT-BR) provado por `node --test`
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

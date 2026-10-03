@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
 stopped_at: Phase 21 UI-SPEC approved
-last_updated: "2026-10-03T22:32:39.814Z"
+last_updated: "2026-10-03T22:37:35.070Z"
 progress:
   total_phases: 21
   completed_phases: 10
   total_plans: 84
-  completed_plans: 71
+  completed_plans: 72
   percent: 48
 ---
 
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 20 — esqueci-minha-senha
+**Current focus:** Phase 21 — agendar-sessoes-varios-dias
 
 ## Current Position
 
-Phase: 20 (esqueci-minha-senha) — EXECUTING
-Plan: 4 of 4
+Phase: 21 (agendar-sessoes-varios-dias) — EXECUTING
+Plan: 2 of 3
 
 - Status: Ready to execute
 - Progress: 3/4 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -214,9 +214,9 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-03T22:08:00.182Z
+Last session: 2026-10-03T22:37:31.152Z
 Stopped at: Phase 21 UI-SPEC approved
-Resume file: .planning/phases/21-agendar-sessoes-varios-dias/21-UI-SPEC.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -265,3 +265,4 @@ Resume file: .planning/phases/21-agendar-sessoes-varios-dias/21-UI-SPEC.md
 | Phase 20 P01 | 2min | 2 tasks | 4 files |
 | Phase 20 P02 | 1min | 2 tasks | 3 files |
 | Phase 20 P03 | 3min | 2 tasks | 1 files |
+| Phase 21 P01 | 8min | 2 tasks | 2 files |
