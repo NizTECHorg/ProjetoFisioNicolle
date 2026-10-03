@@ -26,6 +26,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **Phase 19: Boneco de área de foco** — Divisões nos braços, pés separados e seleção sem scroll na página
 - [ ] **Phase 20: Esqueci minha senha** — Link no login envia e-mail para trocar a senha
+- [ ] **Phase 21: Agendar sessões em vários dias** — Escolher segunda, quarta, sábado (ou outros) e quantas vezes repetir
 
 ## Phase Details
 
@@ -608,3 +609,20 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 20-04-PLAN.md — UAT hospedado REQ-31 + confirmação template Fluxo
+
+### Phase 21: Agendar sessões em vários dias da semana com repetição
+
+**Goal:** No agendamento, o profissional escolhe um ou mais dias da semana (por exemplo segunda, quarta e sábado) e quantas vezes a série se repete. Cada ocorrência vira sessão agendada no mesmo horário. Hoje só dá para repetir o mesmo dia da data escolhida.
+**Requirements**: REQ-32
+**Depends on:** Nothing (agenda e criação de sessões já existem)
+**Success Criteria** (what must be TRUE):
+
+  1. Dá para marcar mais de um dia da semana na mesma série (ex.: segunda, quarta e sábado)
+  2. Dá para informar quantas vezes a série se repete
+  3. As sessões nascem agendadas, no mesmo horário, nos dias escolhidos
+  4. Repetir só um dia continua possível (comportamento de hoje)
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 21 to break down)

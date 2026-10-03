@@ -24,6 +24,7 @@
 - [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **REQ-30**: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
 - [x] **REQ-31**: Esqueci minha senha — no login, e-mail para redefinir a senha
+- [ ] **REQ-32**: Agendar sessões futuras em vários dias da semana, com repetição
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -196,6 +197,19 @@ Na tela de login, a pessoa que não lembra a senha pede um e-mail de redefiniç�
 4. Depois do sucesso, a senha antiga deixa de entrar e a nova entra.
 5. A troca de senha logada em Minha conta (com senha atual) continua como está — este fluxo é só para quem não está logado.
 
+## REQ-32 — Agendar sessões em vários dias da semana
+
+**Indispensável · Artur**
+
+Hoje o agendamento futuro escolhe uma data (por exemplo sexta) e quantas vezes repetir: a série cai sempre no mesmo dia da semana. O profissional precisa escolher vários dias (segunda, quarta e sábado) e quantas vezes essa combinação se repete. Cada ocorrência é uma sessão agendada, no mesmo horário.
+
+### Acceptance
+
+1. No agendamento, dá para selecionar um ou mais dias da semana na mesma série.
+2. Dá para informar quantas vezes a série se repete.
+3. O app cria as sessões agendadas nesses dias, no horário escolhido.
+4. Continua possível repetir um único dia, como hoje.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
@@ -340,3 +354,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-29 | Phase 18 | Human verification pending |
 | REQ-30 | Phase 19 | Planned |
 | REQ-31 | Phase 20 | Planned |
+| REQ-32 | Phase 21 | Pending |
