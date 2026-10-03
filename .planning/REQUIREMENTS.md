@@ -210,6 +210,21 @@ Hoje o agendamento futuro escolhe uma data (por exemplo sexta) e quantas vezes r
 3. O app cria as sessões agendadas nesses dias, no horário escolhido.
 4. Continua possível repetir um único dia, como hoje.
 
+## REQ-33 — Resumo do paciente preenchido e editável
+
+**Indispensável · Artur**
+
+A geração atual só escreve o bloco Resumo IA. O profissional precisa que a mesma geração preencha o resumo inteiro, com um conjunto de campos igual para todo paciente, e que possa corrigir o texto na aba Resumo. A aba Resumo IA guarda só o original da última geração. Só o último resumo fica salvo.
+
+### Acceptance
+
+1. Cada nova geração substitui o resumo anterior. Não há lista de versões.
+2. A aba Resumo IA mostra o texto original da última geração, sem edição.
+3. A aba Resumo permite editar o texto do resumo, e essa edição fica salva.
+4. A geração preenche os campos do resumo definidos nesta fase, os mesmos para todos os pacientes, incluindo as áreas de foco.
+5. Se um card atual não puder ser preenchido com honestidade a partir do prontuário, ele é trocado agora, de forma global, por um campo que a IA consiga preencher.
+6. O system prompt da função descreve esses campos e o que a IA não deve inventar.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**

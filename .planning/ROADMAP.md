@@ -28,6 +28,8 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 20: Esqueci minha senha** — Link no login envia e-mail para trocar a senha
 - [x] **Phase 21: Agendar sessões em vários dias** — Escolher segunda, quarta, sábado (ou outros) e quantas vezes repetir (completed 2026-10-03)
 
+- [ ] **Phase 22: Resumo do paciente pela IA** — A IA preenche o resumo inteiro; o profissional edita na aba Resumo
+
 ## Phase Details
 
 ### Phase 1: Avaliação inicial
@@ -636,3 +638,20 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 21-03-PLAN.md — Full suite + UAT manual da série real na agenda (checkpoint bloqueante)
+
+### Phase 22: Resumo do paciente editável e preenchido pela IA
+
+**Goal:** A geração de Resumo IA grava só o último resultado e preenche, para todo paciente, o mesmo conjunto de campos do Resumo do paciente — incluindo áreas de foco. A aba Resumo IA mostra o texto original gerado. A edição desse texto fica na aba Resumo.
+**Requirements**: REQ-33
+**Depends on:** Nothing (ficha, áreas de foco e a função de resumo já existem)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 22 to break down)
+
+**Success Criteria** (what must be TRUE):
+1. Gerar de novo substitui o resumo anterior; não há histórico de resumos.
+2. Na aba Resumo IA o profissional lê o texto original da última geração e não edita ali.
+3. Na aba Resumo o profissional edita o texto do resumo e a edição persiste.
+4. A mesma geração preenche os campos fixos do resumo (os definidos nesta fase, iguais para todos os pacientes) e as áreas de foco.
+5. O system prompt descreve esses campos e só usa o que o prontuário contém.

@@ -211,6 +211,7 @@ Plan: 3 of 3
 - Phase 19 added: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
 - Phase 20 added: Esqueci minha senha — link no login envia e-mail para redefinir a senha
 - Phase 21 added: Agendar sessões em vários dias da semana com repetição
+- Phase 22 added: Resumo do paciente editável e preenchido pela IA (REQ-33)
 
 ## Session Continuity
 
