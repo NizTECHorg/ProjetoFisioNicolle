@@ -622,7 +622,7 @@ Plans:
   3. As sessões nascem agendadas, no mesmo horário, nos dias escolhidos
   4. Repetir só um dia continua possível (comportamento de hoje)
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 **Wave 1**
@@ -631,7 +631,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 21-02-PLAN.md — Chips de dias da semana, campo "Repetir por quantas semanas", preview e CTA com contagem no modal Nova sessão
+- [x] 21-02-PLAN.md — Chips de dias da semana, campo "Repetir por quantas semanas", preview e CTA com contagem no modal Nova sessão
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

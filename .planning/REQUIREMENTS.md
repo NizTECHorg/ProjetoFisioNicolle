@@ -24,7 +24,7 @@
 - [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **REQ-30**: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
 - [x] **REQ-31**: Esqueci minha senha — no login, e-mail para redefinir a senha
-- [ ] **REQ-32**: Agendar sessões futuras em vários dias da semana, com repetição
+- [x] **REQ-32**: Agendar sessões futuras em vários dias da semana, com repetição
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -354,4 +354,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-29 | Phase 18 | Human verification pending |
 | REQ-30 | Phase 19 | Planned |
 | REQ-31 | Phase 20 | Planned |
-| REQ-32 | Phase 21 | Pending |
+| REQ-32 | Phase 21 | Complete |
