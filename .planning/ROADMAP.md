@@ -26,7 +26,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **Phase 19: Boneco de área de foco** — Divisões nos braços, pés separados e seleção sem scroll na página
 - [ ] **Phase 20: Esqueci minha senha** — Link no login envia e-mail para trocar a senha
-- [ ] **Phase 21: Agendar sessões em vários dias** — Escolher segunda, quarta, sábado (ou outros) e quantas vezes repetir
+- [x] **Phase 21: Agendar sessões em vários dias** — Escolher segunda, quarta, sábado (ou outros) e quantas vezes repetir (completed 2026-10-03)
 
 ## Phase Details
 
@@ -622,7 +622,7 @@ Plans:
   3. As sessões nascem agendadas, no mesmo horário, nos dias escolhidos
   4. Repetir só um dia continua possível (comportamento de hoje)
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -635,4 +635,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 21-03-PLAN.md — Full suite + UAT manual da série real na agenda (checkpoint bloqueante)
+- [x] 21-03-PLAN.md — Full suite + UAT manual da série real na agenda (checkpoint bloqueante)
