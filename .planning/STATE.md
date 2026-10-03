@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 20-03-PLAN.md
-last_updated: "2026-09-29T21:14:08.335Z"
+stopped_at: Phase 21 UI-SPEC approved
+last_updated: "2026-10-03T22:32:39.814Z"
 progress:
-  total_phases: 20
+  total_phases: 21
   completed_phases: 10
-  total_plans: 81
+  total_plans: 84
   completed_plans: 71
-  percent: 50
+  percent: 48
 ---
 
 # Project State
@@ -214,9 +214,9 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-09-29T21:14:02.053Z
-Stopped at: Completed 20-03-PLAN.md
-Resume file: None
+Last session: 2026-10-03T22:08:00.182Z
+Stopped at: Phase 21 UI-SPEC approved
+Resume file: .planning/phases/21-agendar-sessoes-varios-dias/21-UI-SPEC.md
 
 ## Performance Metrics
 

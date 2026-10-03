@@ -136,7 +136,7 @@ Dica de posição: a ajuda dinâmica que hoje fica no `hint` do campo "Horário 
 - Atualiza ao mudar: data, horário, chips ou semanas.
 - Total = (nº de dias marcados) × (semanas) — contado pelo helper `buildWeeklySeries(...).length`, **não** recalculado à mão, para ficar coerente com o que será gravado (inclui data inicial fora dos dias marcados).
 - Mostra: total, composição "D dia(s) × S semana(s)", intervalo da 1ª à última data e o horário.
-- Se o horário estiver vazio, omitir o trecho "às HH:mm" (submit já assume 09:00 como hoje; o preview não deve prometer horário que o usuário não digitou — **não** mostrar "às" nesse caso).
+- Se o horário estiver vazio, omitir o trecho "às HH:mm" no preview (não prometer um horário que o usuário não digitou). No submit, horário vazio grava **09:00**: `Number('')` é `0`, então o default `hours = 9` não vale — `seriesStartAt` trata string vazia ou número inválido como 9h00.
 - Formato de data no preview: `dd/MM` (pt-BR); incluir `/aaaa` apenas se a 1ª e a última data estiverem em anos diferentes.
 - Caso de 1 sessão: sem composição nem intervalo, só a data.
 

@@ -255,15 +255,12 @@ Observação: imports relativos com `.ts` são aceitos por `tsconfig` (`allowImp
 | A4 | Sessões em data/hora já passada (ex.: hoje de manhã) continuam sendo criadas, como hoje | Pitfalls | Se quiserem pular passadas, adicionar filtro (mudança de comportamento, não pedida) |
 | A5 | Sem checagem de conflito de horário/duplicidade (hoje não existe e o schema não tem unique) | Summary | Duplicatas possíveis se o usuário reenviar; fora do escopo |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **"Quantas vezes" = N semanas ou N sessões no total?** *(NÃO é decisão travada pelo usuário.)*
-   - What we know: REQ-32 diz "quantas vezes essa combinação se repete"; ROADMAP diz "quantas vezes a série se repete"; hoje, com 1 dia, N semanas = N sessões (indistinguível).
-   - What's unclear: com 3 dias, o usuário espera 3×N (ciclos) ou N (total)?
-   - **Recomendação (default do planner se o usuário não decidir): N = número de semanas/ciclos.** Rationale: (a) é a leitura literal de "a combinação se repete"; (b) é previsível — cada dia marcado aparece exatamente N vezes, sem semana parcial; (c) coerente com o caso de 1 dia de hoje; (d) "N total" produz resultados estranhos (ex.: 4 sessões com seg/qua/sáb termina no meio de uma semana). Mitigar ambiguidade com o preview "Serão criadas X sessões" e o rótulo "semanas". Alternativa (N total) só exigiria trocar o loop por "gerar até atingir N".
-2. **Teto de sessões totais?** Recomendação: manter 24 semanas (sem teto extra) e confiar no preview; planner pode decidir cap (ex.: 100) se preferir.
-3. **Devem ser puladas ocorrências em data/hora passada?** Recomendação: não (mantém comportamento atual).
-4. **Atualizar `docs`/README?** Não há docs sobre `scheduledAts` (grep em `docs`/`.planning` não retornou usos fora do código).
+1. **"Quantas vezes" = N semanas ou N sessões no total?** RESOLVED: N = número de semanas/ciclos. Cada dia marcado aparece N vezes (segunda/quarta/sábado × 4 = 12 sessões). Travado na UI-SPEC ("Repetir por quantas semanas") e nos planos 21-01/21-02. Não é N sessões no total.
+2. **Teto de sessões totais?** RESOLVED: só o teto de 24 semanas (`MAX_SERIES_WEEKS`). Sem teto extra de linhas.
+3. **Devem ser puladas ocorrências em data/hora passada?** RESOLVED: não. A série inclui a data escolhida mesmo se já passou, como o `weeklyAt` de hoje.
+4. **Atualizar `docs`/README?** RESOLVED: não. Não há doc de `scheduledAts` para atualizar nesta fase.
 
 ## Environment Availability
 

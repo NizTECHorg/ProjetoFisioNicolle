@@ -622,7 +622,17 @@ Plans:
   3. As sessões nascem agendadas, no mesmo horário, nos dias escolhidos
   4. Repetir só um dia continua possível (comportamento de hoje)
 
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 21 to break down)
+**Wave 1**
+
+- [ ] 21-01-PLAN.md — Helper puro `src/lib/sessionSeries.ts` (série semanal, clamp 1–24, catálogo Seg→Dom, cópia PT-BR) provado por `node --test`
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 21-02-PLAN.md — Chips de dias da semana, campo "Repetir por quantas semanas", preview e CTA com contagem no modal Nova sessão
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 21-03-PLAN.md — Full suite + UAT manual da série real na agenda (checkpoint bloqueante)
