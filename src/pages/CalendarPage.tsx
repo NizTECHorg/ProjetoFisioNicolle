@@ -17,6 +17,7 @@ import {
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
 import { filterPatientsByName } from '@/lib/dashboardShortcut'
+import { buildWeeklySeries, clampWeeks } from '@/lib/sessionSeries'
 import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
 import type { PatientListItem } from '@/types/patient'
 
@@ -41,20 +42,6 @@ function monthGrid(year: number, month: number) {
   return cells
 }
 
-function weeklyAt(start: Date, weeks: number): Date[] {
-  return Array.from({ length: weeks }, (_, index) => {
-    const next = new Date(start)
-    next.setDate(start.getDate() + index * 7)
-    return next
-  })
-}
-
-function clampWeeks(value: string) {
-  const count = Number(value)
-  if (!Number.isFinite(count)) return 1
-  return Math.min(24, Math.max(1, Math.trunc(count)))
-}
-
 function toLocalInput(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -72,6 +59,8 @@ export function CalendarPage() {
   const [pickerCursor, setPickerCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [time, setTime] = useState('09:00')
   const [repeatWeeks, setRepeatWeeks] = useState('1')
+  const [weekdays, setWeekdays] = useState<number[]>([today.getDay()])
+  const [weekdaysTouched, setWeekdaysTouched] = useState(false)
   const [type, setType] = useState('Sessão')
   const [place, setPlace] = useState('Sala 1')
   const [disconnectOpen, setDisconnectOpen] = useState(false)
@@ -170,6 +159,8 @@ export function CalendarPage() {
     setSessionDate(selected)
     setPickerCursor(new Date(selected.getFullYear(), selected.getMonth(), 1))
     setRepeatWeeks('1')
+    setWeekdays([selected.getDay()])
+    setWeekdaysTouched(false)
     setOpen(true)
   }
 
@@ -188,19 +179,34 @@ export function CalendarPage() {
   function chooseSessionDate(date: Date) {
     const next = startOfDay(date)
     setSessionDate(next)
+    if (!weekdaysTouched) setWeekdays([next.getDay()])
     setPickerCursor(new Date(next.getFullYear(), next.getMonth(), 1))
     setSelected(next)
     setCursor(new Date(next.getFullYear(), next.getMonth(), 1))
   }
 
+  function seriesStartAt() {
+    const start = new Date(sessionDate)
+    let hours = 9
+    let minutes = 0
+    if (time.trim() !== '') {
+      const [h, m] = time.split(':').map(Number)
+      if (Number.isFinite(h) && Number.isFinite(m)) {
+        hours = h as number
+        minutes = m as number
+      }
+    }
+    start.setHours(hours, minutes, 0, 0)
+    return start
+  }
+
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!patientId) return
-    const [hours = 9, minutes = 0] = time.split(':').map(Number)
-    const when = new Date(sessionDate)
-    when.setHours(hours, minutes, 0, 0)
-    const weeks = clampWeeks(repeatWeeks)
-    const scheduledAts = weeklyAt(when, weeks).map((date) => date.toISOString())
+    const when = seriesStartAt()
+    const series = buildWeeklySeries(when, weekdays, clampWeeks(repeatWeeks))
+    if (series.length === 0) return
+    const scheduledAts = series.map((date) => date.toISOString())
     create.mutate(
       {
         patientId,
@@ -550,7 +556,7 @@ export function CalendarPage() {
               {daySessions.length === 0 && dayDues.length === 0 ? (
                 <button
                   type="button"
-                  onClick={() => setOpen(true)}
+                  onClick={openComposer}
                   className="text-sm font-medium text-forest"
                 >
                   Agendar sessão neste dia
