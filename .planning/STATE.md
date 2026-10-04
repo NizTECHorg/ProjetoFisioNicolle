@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-10-04T00:13:45.507Z"
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-10-04T00:18:37.526Z"
 progress:
   total_phases: 22
   completed_phases: 11
   total_plans: 91
-  completed_plans: 75
+  completed_plans: 76
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 22 (resumo-paciente-ia) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 
 - Status: Ready to execute
 - Progress: 0/7 plans
 
-**Progress:** [████████░░] 82%
+**Progress:** [████████░░] 84%
 
 ## Accumulated Context
 
@@ -188,6 +188,9 @@ Plan: 2 of 7
 - [Phase 22]: Zod schemas for the AI summary live in patientSummary.ts so node --test imports them without the @/ alias
 - [Phase 22]: formatGeneratedAt uses hourCycle h23 so midnight in São Paulo renders 00:00
 - [Phase 22]: REQ-33 stays open after 22-01; pack, prompt, and ResumoDoPaciente contract cases stay red until 22-04 and 22-05
+- [Phase 22]: Patient summary jsonb CHECKs are explicit null-or-object and 20000 bytes; no new RLS policy — patients_update already covers new columns
+- [Phase 22]: Paste 22-patient-summary-fields.sql before running the app after plan 22-03; publish patient-ai-summary only in the 22-07 UAT after plan 22-04 edits the phase 13 source
+- [Phase 22]: REQ-33 stays open after 22-02; the SQL script and operator document do not complete the requirement
 
 ### Pending user action
 
@@ -197,7 +200,8 @@ Plan: 2 of 7
 - Paste `.planning/phases/17-isolamento-de-dados-por-conta/sql/17-account-isolation.sql` in the Supabase SQL Editor once. Do not use supabase db push. If board counts are above zero, uncomment only the owner backfill first.
 - Paste `.planning/phases/18-minha-conta/sql/18-account.sql` in the Supabase SQL Editor once. Do not use supabase db push. If the DO block aborts on a legacy avatar_url, inspect the row and do not null it in bulk.
 - (adiado) Oráculo de senha da fase 18: ligar `security_update_password_require_current_password`, deixar a reautenticação desligada e seguir `.planning/phases/18-minha-conta/18-USER-SETUP.md`. A prova fica em aberto.
-- Publish Edge Function patient-ai-summary from `.planning/phases/13-pdf-export-avaliacao-evolucao/functions/patient-ai-summary/index.ts` in the Supabase Dashboard. Do not publish the phase 11 twin. Do not use supabase db push. See `.planning/phases/19-boneco-de-rea-de-foco/19-USER-SETUP.md`.
+- Paste `.planning/phases/22-resumo-paciente-ia/sql/22-patient-summary-fields.sql` in the Supabase SQL Editor before running the app after plan 22-03. Do not use supabase db push. Without those columns the patient chart fails to load. See `.planning/phases/22-resumo-paciente-ia/22-USER-SETUP.md`.
+- Publish Edge Function patient-ai-summary only in the plan 22-07 UAT, from `.planning/phases/13-pdf-export-avaliacao-evolucao/functions/patient-ai-summary/index.ts` after plan 22-04 edits it. Do not publish the phase 11 twin or `supabase/functions/patient-ai-summary/index.ts`. Do not use `supabase functions deploy`. The phase 19 42-key publish waits for that same step.
 
 ### Roadmap Evolution
 
@@ -218,8 +222,8 @@ Plan: 2 of 7
 
 ## Session Continuity
 
-Last session: 2026-10-04T00:13:45.491Z
-Stopped at: Completed 22-01-PLAN.md
+Last session: 2026-10-04T00:18:37.508Z
+Stopped at: Completed 22-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -272,3 +276,4 @@ Resume file: None
 | Phase 21 P01 | 8min | 2 tasks | 2 files |
 | Phase 21 P02 | 10min | 2 tasks | 1 files |
 | Phase 22 P01 | 9min | 3 tasks | 3 files |
+| Phase 22 P02 | 2min | 2 tasks | 2 files |
