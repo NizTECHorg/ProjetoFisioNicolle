@@ -644,7 +644,7 @@ Plans:
 **Goal:** A geração de Resumo IA grava só o último resultado e preenche, para todo paciente, o mesmo conjunto de campos do Resumo do paciente — incluindo áreas de foco. A aba Resumo IA mostra o texto original gerado. A edição desse texto fica na aba Resumo.
 **Requirements**: REQ-33
 **Depends on:** Nothing (ficha, áreas de foco e a função de resumo já existem)
-**Plans:** 2/7 plans executed
+**Plans:** 3/7 plans executed
 
 Plans:
 **Wave 1**
@@ -654,7 +654,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 22-03-PLAN.md — Tipos, leitura saneada das colunas, as duas escritas dedicadas, geração validada por Zod e hook de edição
+- [x] 22-03-PLAN.md — Tipos, leitura saneada das colunas, as duas escritas dedicadas, geração validada por Zod e hook de edição
 - [ ] 22-04-PLAN.md — Edge Function: pack do modo resumo limpo, prompt das 7 chaves e parse estendido
 
 **Wave 3** *(blocked on Wave 2 completion)*
