@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { PatientAiFieldPicker } from '@/components/patients/PatientAiFieldPicker'
 import { Button } from '@/components/ui/Button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import {
@@ -80,6 +81,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerSelectedIds, setPickerSelectedIds] = useState<Set<string>>(() => new Set())
   const [pendingExport, setPendingExport] = useState<PendingExport | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const sessionsForPicker = useMemo(() => {
     const withEvo: typeof sessions = []
@@ -161,6 +163,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     } finally {
       setGenerating(false)
     }
+  }
+
+  function requestGenerate() {
+    if (detail?.summaryEdits) {
+      setConfirmOpen(true)
+      return
+    }
+    void handleGenerate()
   }
 
   async function handleExport() {
@@ -402,7 +412,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
             className="w-full sm:w-auto"
             isLoading={generating}
             disabled={busy}
-            onClick={() => void handleGenerate()}
+            onClick={() => requestGenerate()}
           >
             {PATIENT_AI_COPY.ctaGenerate}
           </Button>
@@ -509,6 +519,21 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         onBack={closePicker}
         confirming={createReport.isPending}
         onConfirm={() => void handlePickerConfirm()}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={PATIENT_AI_COPY.regenerateConfirmTitle}
+        description={PATIENT_AI_COPY.regenerateConfirmBody}
+        confirmLabel={PATIENT_AI_COPY.regenerateConfirmLabel}
+        cancelLabel={PATIENT_AI_COPY.regenerateCancelLabel}
+        tone="danger"
+        autoFocusCancel
+        isLoading={generating}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          void handleGenerate().finally(() => setConfirmOpen(false))
+        }}
       />
     </div>
   )

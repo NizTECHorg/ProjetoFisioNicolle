@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   tone?: 'danger' | 'default'
   isLoading?: boolean
+  /** When true, the cancel button receives initial focus. Default keeps existing callers unchanged. */
+  autoFocusCancel?: boolean
   onConfirm: () => void
   onClose: () => void
 }
@@ -21,6 +23,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancelar',
   tone = 'default',
   isLoading = false,
+  autoFocusCancel = false,
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
@@ -33,6 +36,7 @@ export function ConfirmDialog({
           className="sm:w-auto"
           onClick={onClose}
           disabled={isLoading}
+          autoFocus={autoFocusCancel}
         >
           {cancelLabel}
         </Button>
