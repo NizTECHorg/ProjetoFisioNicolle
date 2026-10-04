@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 22-03-PLAN.md
-last_updated: "2026-10-04T00:25:28.259Z"
+stopped_at: Completed 22-04-PLAN.md
+last_updated: "2026-10-04T00:29:26.452Z"
 progress:
   total_phases: 22
   completed_phases: 11
   total_plans: 91
-  completed_plans: 77
+  completed_plans: 78
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 22 (resumo-paciente-ia) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 
 - Status: Ready to execute
 - Progress: 0/7 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -195,6 +195,9 @@ Plan: 4 of 7
 - [Phase 22]: Summary save errors throw PATIENT_AI_COPY.editError or editForbidden — the hook shows error.message and does not call mapDbError
 - [Phase 22]: A summary-only function response is accepted — optional texts stay absent and ai_summary_fields keeps generatedAt
 - [Phase 22]: REQ-33 stays open after 22-03 — plans 22-04 through 22-07 still own the prompt, the UI, and the hosted UAT
+- [Phase 22]: Resumo pack drops unread defaults; PatientRow stays so evolucao still reads program, EVA, and evolution columns — assembleEvolucaoContextPack casts the same interface
+- [Phase 22]: Empty focusRegionKeys stays on the response because omitEmpty drops empty arrays — An empty catalog result must still include the key
+- [Phase 22]: REQ-33 stays open after 22-04 — plans 22-05 through 22-07 still own the Resumo UI and the hosted UAT — This plan ships the phase 13 function source only; Dashboard publish stays in 22-USER-SETUP.md
 
 ### Pending user action
 
@@ -226,8 +229,8 @@ Plan: 4 of 7
 
 ## Session Continuity
 
-Last session: 2026-10-04T00:25:28.231Z
-Stopped at: Completed 22-03-PLAN.md
+Last session: 2026-10-04T00:29:26.432Z
+Stopped at: Completed 22-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -282,3 +285,4 @@ Resume file: None
 | Phase 22 P01 | 9min | 3 tasks | 3 files |
 | Phase 22 P02 | 2min | 2 tasks | 2 files |
 | Phase 22 P03 | 5min | 3 tasks | 5 files |
+| Phase 22 P04 | 2min | 2 tasks | 1 files |
