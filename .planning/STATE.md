@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 22-04-PLAN.md
-last_updated: "2026-10-04T00:29:26.452Z"
+stopped_at: Completed 22-05-PLAN.md
+last_updated: "2026-10-04T00:34:46.361Z"
 progress:
   total_phases: 22
   completed_phases: 11
   total_plans: 91
-  completed_plans: 78
+  completed_plans: 79
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 22 (resumo-paciente-ia) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 
 - Status: Ready to execute
 - Progress: 0/7 plans
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -198,6 +198,9 @@ Plan: 5 of 7
 - [Phase 22]: Resumo pack drops unread defaults; PatientRow stays so evolucao still reads program, EVA, and evolution columns — assembleEvolucaoContextPack casts the same interface
 - [Phase 22]: Empty focusRegionKeys stays on the response because omitEmpty drops empty arrays — An empty catalog result must still include the key
 - [Phase 22]: REQ-33 stays open after 22-04 — plans 22-05 through 22-07 still own the Resumo UI and the hosted UAT — This plan ships the phase 13 function source only; Dashboard publish stays in 22-USER-SETUP.md
+- [Phase 22]: Form reset depends only on open; resolved text is read through a ref so a patient refetch does not wipe in-progress edits — A query refresh while the modal is open must not replace what the user typed
+- [Phase 22]: EvaChart is unchanged and mounts only when painSeries has rows, so the empty-series message is not shown on Dor e limitações — The empty branch stays inside EvaChart; this card simply does not render it
+- [Phase 22]: REQ-33 stays open after 22-05; plans 22-06 and 22-07 still own the Resumo IA tab, regenerate confirmation, goals typography, and hosted UAT — This plan covers the Resumo tab editor only; requirements.mark-complete was not called
 
 ### Pending user action
 
@@ -229,8 +232,8 @@ Plan: 5 of 7
 
 ## Session Continuity
 
-Last session: 2026-10-04T00:29:26.432Z
-Stopped at: Completed 22-04-PLAN.md
+Last session: 2026-10-04T00:34:31.503Z
+Stopped at: Completed 22-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -286,3 +289,4 @@ Resume file: None
 | Phase 22 P02 | 2min | 2 tasks | 2 files |
 | Phase 22 P03 | 5min | 3 tasks | 5 files |
 | Phase 22 P04 | 2min | 2 tasks | 1 files |
+| Phase 22 P05 | 3min | 2 tasks | 2 files |
