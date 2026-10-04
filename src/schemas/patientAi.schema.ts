@@ -44,8 +44,27 @@ export const PATIENT_AI_COPY = {
   pickerBack: 'Voltar',
   needFields: 'Selecione ao menos um campo.',
   needSessions: 'Selecione ao menos uma sessão.',
+  regenerateConfirmTitle: 'Gerar de novo?',
+  regenerateConfirmBody:
+    'Gerar de novo substitui o resumo e as suas edições. O texto editado e o resumo original anterior serão perdidos.',
+  regenerateConfirmLabel: 'Substituir e gerar',
+  regenerateCancelLabel: 'Manter meu resumo',
+  resumoIaHelp:
+    'Gere o resumo clínico ou exporte PDFs. Aqui fica o texto original da última geração. Para corrigir, abra a aba Resumo.',
+  originalBlockLabel: 'Resumo original da IA',
+  originalEmptyCanWrite: 'Nenhum resumo gerado ainda. Use "Gerar resumo" acima.',
+  originalEmptyReadOnly: 'Nenhum resumo gerado ainda.',
+  editSuccess: 'Resumo salvo',
   editError: 'Não foi possível salvar o resumo. Tente de novo.',
   editForbidden: 'Você não tem permissão para editar este paciente.',
+  summaryAiCaption: 'Gerado pela IA a partir do prontuário. Revise antes de usar.',
+  summaryEditedCaption: 'Texto editado. O original gerado pela IA está na aba Resumo IA.',
+  editModalTitle: 'Editar resumo',
+  editModalDescription:
+    'Corrija os textos do Resumo do paciente. O original gerado pela IA continua na aba Resumo IA. Campo vazio aparece como —.',
+  editModalCancel: 'Fechar sem salvar',
+  editModalSubmit: 'Salvar edições',
+  editPencilLabel: 'Editar resumo do paciente',
 } as const
 
 export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024

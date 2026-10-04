@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import { mapPatientAiError } from '@/lib/security'
+import { aiSummaryResponseSchema, type SummaryTexts } from '@/lib/patientSummary'
 import { getFocusRegion } from '@/lib/focusRegions'
 import { focusRegionKeySchema } from '@/schemas/patient.schema'
 import {
@@ -10,17 +11,9 @@ import {
   type PatientAiEvolucaoInvokeInput,
   type PatientAiSummaryInvokeInput,
 } from '@/schemas/patientAi.schema'
-import { updatePatient } from '@/services/patients.service'
+import { saveGeneratedPatientSummary } from '@/services/patients.service'
 
 interface FunctionsErrorBody {
-  error?: string
-  code?: string
-  message?: string
-}
-
-interface SummaryResponseBody {
-  summary?: string
-  focusRegionKeys?: string[]
   error?: string
   code?: string
   message?: string
@@ -135,7 +128,8 @@ export async function applyAiFocusRegionKeys(
 
 /**
  * Invokes Edge Function patient-ai-summary (GEMINI_API_KEY server-side), then
- * persists ai_summary via updatePatient and additively marks focus regions.
+ * persists the summary, generated fields, and cleared edits in one UPDATE.
+ * Focus marks stay additive.
  */
 export async function generatePatientAiSummary(
   input: PatientAiSummaryInvokeInput,
@@ -154,28 +148,42 @@ export async function generatePatientAiSummary(
     throwMappedFunctionsError(payload)
   }
 
-  const body = data as SummaryResponseBody | null
-  if (!body || typeof body.summary !== 'string' || !body.summary.trim()) {
-    if (body?.code || body?.error) {
-      throwMappedFunctionsError({
-        code: typeof body.code === 'string' ? body.code : undefined,
-        message:
-          typeof body.message === 'string'
-            ? body.message
-            : typeof body.error === 'string'
-              ? body.error
-              : undefined,
-      })
-    }
+  const body = data as Record<string, unknown> | null
+  if (body && (body.code || body.error) && typeof body.summary !== 'string') {
+    throwMappedFunctionsError({
+      code: typeof body.code === 'string' ? body.code : undefined,
+      message:
+        typeof body.message === 'string'
+          ? body.message
+          : typeof body.error === 'string'
+            ? body.error
+            : undefined,
+    })
+  }
+
+  const parsedSummary = aiSummaryResponseSchema.safeParse(body)
+  if (!parsedSummary.success) {
     throwMappedFunctionsError({ code: 'ai_unavailable' })
   }
 
-  const summary = body.summary.trim()
-  const focusRegionKeys = Array.isArray(body.focusRegionKeys)
-    ? body.focusRegionKeys.filter((k): k is string => typeof k === 'string')
-    : undefined
+  const {
+    summary,
+    focusRegionKeys,
+    treatmentPlan,
+    evolution,
+    conducts,
+    nextSessionPlan,
+    painLimitations,
+  } = parsedSummary.data
 
-  await updatePatient(parsed.patientId, { aiSummary: summary })
+  const fields: SummaryTexts = {}
+  if (treatmentPlan) fields.treatmentPlan = treatmentPlan
+  if (evolution) fields.evolution = evolution
+  if (conducts) fields.conducts = conducts
+  if (nextSessionPlan) fields.nextSessionPlan = nextSessionPlan
+  if (painLimitations) fields.painLimitations = painLimitations
+
+  await saveGeneratedPatientSummary(parsed.patientId, summary, fields)
   await applyAiFocusRegionKeys(parsed.patientId, focusRegionKeys)
 
   return summary
