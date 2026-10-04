@@ -644,12 +644,12 @@ Plans:
 **Goal:** A geração de Resumo IA grava só o último resultado e preenche, para todo paciente, o mesmo conjunto de campos do Resumo do paciente — incluindo áreas de foco. A aba Resumo IA mostra o texto original gerado. A edição desse texto fica na aba Resumo.
 **Requirements**: REQ-33
 **Depends on:** Nothing (ficha, áreas de foco e a função de resumo já existem)
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 22-01-PLAN.md — Módulo puro patientSummary (chaves, rótulos, limites, resolução, diff, Zod) + node:test + teste de contrato
+- [x] 22-01-PLAN.md — Módulo puro patientSummary (chaves, rótulos, limites, resolução, diff, Zod) + node:test + teste de contrato
 - [ ] 22-02-PLAN.md — Script SQL das colunas jsonb para o SQL Editor + documento de setup do operador
 
 **Wave 2** *(blocked on Wave 1 completion)*

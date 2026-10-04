@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 22 planning complete
-last_updated: "2026-10-03T23:59:38.662Z"
+stopped_at: Completed 22-01-PLAN.md
+last_updated: "2026-10-04T00:13:45.507Z"
 progress:
   total_phases: 22
   completed_phases: 11
   total_plans: 91
-  completed_plans: 74
+  completed_plans: 75
   percent: 50
 ---
 
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 22 (resumo-paciente-ia) — READY
-Plan: 0 of 7
+Phase: 22 (resumo-paciente-ia) — EXECUTING
+Plan: 2 of 7
 
 - Status: Ready to execute
 - Progress: 0/7 plans
 
-**Progress:** [░░░░░░░░░░] 0%
+**Progress:** [████████░░] 82%
 
 ## Accumulated Context
 
@@ -185,6 +185,9 @@ Plan: 0 of 7
 - [Phase 20]: Forgot link sits inside password space-y-2 under Mostrar senha, above Entrar
 - [Phase 20]: Recovery ok sets status recovery without toast or clinic navigate (Pitfall 1 / T-20-02) — GuestRoute must not admit clinic with recovery session before setPasswordFromRecovery
 - [Phase 20]: Kept UI-SPEC Senha atualizada toast; plan Senha atual substring assert was a false positive — UI-SPEC toast required; verified label Senha atual absent instead
+- [Phase 22]: Zod schemas for the AI summary live in patientSummary.ts so node --test imports them without the @/ alias
+- [Phase 22]: formatGeneratedAt uses hourCycle h23 so midnight in São Paulo renders 00:00
+- [Phase 22]: REQ-33 stays open after 22-01; pack, prompt, and ResumoDoPaciente contract cases stay red until 22-04 and 22-05
 
 ### Pending user action
 
@@ -215,9 +218,9 @@ Plan: 0 of 7
 
 ## Session Continuity
 
-Last session: 2026-10-03T23:20:02.443Z
-Stopped at: Phase 22 planning complete
-Resume file: .planning/phases/22-resumo-paciente-ia/22-UI-SPEC.md
+Last session: 2026-10-04T00:13:45.491Z
+Stopped at: Completed 22-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -268,3 +271,4 @@ Resume file: .planning/phases/22-resumo-paciente-ia/22-UI-SPEC.md
 | Phase 20 P03 | 3min | 2 tasks | 1 files |
 | Phase 21 P01 | 8min | 2 tasks | 2 files |
 | Phase 21 P02 | 10min | 2 tasks | 1 files |
+| Phase 22 P01 | 9min | 3 tasks | 3 files |
