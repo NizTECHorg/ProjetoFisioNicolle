@@ -27,6 +27,7 @@ import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
 import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
+import { PatientSummaryEditorModal } from '@/components/patients/PatientSummaryEditorModal'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -36,6 +37,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { usePatient, usePatientDashboard, useUpdatePatient } from '@/hooks/usePatients'
 import { canWritePatient } from '@/lib/accountAccess'
 import { patientFichaPath } from '@/lib/dashboardShortcut'
+import { resolveSummaryFields } from '@/lib/patientSummary'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import {
   caseUnderstandingSchema,
   type CaseUnderstandingFormData,
@@ -69,6 +72,13 @@ function clampText(value: string, empty = '—') {
 
 function dash(value: string) {
   return value === '—' ? '' : value
+}
+
+function textOrDash(value: string) {
+  if (!value.trim()) {
+    return <span aria-label="Sem informação">—</span>
+  }
+  return value
 }
 
 function EvaChart({ series }: { series: PatientPainLog[] }) {
@@ -264,6 +274,8 @@ function ResumoDoPaciente({
   detail: Patient | null | undefined
   canWrite: boolean
 }) {
+  const [editOpen, setEditOpen] = useState(false)
+
   if (!detail) {
     return (
       <article className="rounded-2xl border border-line bg-surface p-6">
@@ -274,61 +286,99 @@ function ResumoDoPaciente({
     )
   }
 
+  const text = resolveSummaryFields(
+    { summary: detail.aiSummary, ...detail.aiSummaryFields },
+    detail.summaryEdits,
+  )
+
   return (
     <article className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Resumo do paciente</p>
 
-      <div className="mt-4 rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
+      <div className="group mt-4 rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Resumo IA</p>
-          <Sparkles size={16} className="text-accent" />
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Resumo IA</p>
+          <div className="flex items-center gap-1">
+            <Sparkles size={16} className="text-accent" aria-hidden />
+            {canWrite ? (
+              <button
+                type="button"
+                aria-label={PATIENT_AI_COPY.editPencilLabel}
+                onClick={() => setEditOpen(true)}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+              >
+                <Pencil size={16} />
+              </button>
+            ) : null}
+          </div>
         </div>
-        <p className="mt-3 text-sm leading-7 text-ink/90 sm:text-base">
-          {detail.aiSummary || 'Sem resumo ainda.'}
+        <p className="mt-4 text-sm leading-7 text-ink/90 sm:text-base whitespace-pre-line break-words">
+          {text.summary || 'Sem resumo ainda.'}
         </p>
+        {detail.aiSummary || detail.summaryEdits != null ? (
+          <p className="mt-2 text-xs text-muted">
+            {detail.summaryEdits != null
+              ? PATIENT_AI_COPY.summaryEditedCaption
+              : PATIENT_AI_COPY.summaryAiCaption}
+          </p>
+        ) : null}
       </div>
+
+      {canWrite ? (
+        <PatientSummaryEditorModal
+          patientId={patientId}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          original={{ summary: detail.aiSummary, ...detail.aiSummaryFields }}
+          edits={detail.summaryEdits}
+        />
+      ) : null}
 
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-3 lg:grid-flow-col lg:grid-rows-[auto_auto]">
         <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Programa</p>
-          <h3 className="mt-2 text-sm font-semibold text-ink">{detail.program}</h3>
-          <div className="mt-auto pt-3">
-            <div className="h-2 overflow-hidden rounded-full bg-canvas">
-              <div className="h-full rounded-full bg-accent" style={{ width: `${detail.programProgress}%` }} />
-            </div>
-            <p className="mt-2 text-xs text-muted">{detail.programProgress}% concluído</p>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+            Plano de tratamento
+          </p>
+          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+            {textOrDash(text.treatmentPlan)}
+          </p>
         </div>
 
         <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
-          <p className="mt-2 break-words text-sm leading-6 text-ink">{detail.evolutionSummary || '—'}</p>
-          <div className="mt-auto flex min-w-0 items-center gap-3 pt-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-forest">
-              {detail.eva}/10
-            </span>
-            <span className="min-w-0 text-xs text-muted">EVA na sessão de {detail.lastVisit}</span>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
+          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+            {textOrDash(text.evolution)}
+          </p>
         </div>
 
         <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
-          <p className="mt-2 break-words text-sm leading-6 text-ink">{detail.lastConducts || '—'}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
+          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+            {textOrDash(text.conducts)}
+          </p>
           <div className="mt-auto pt-4">
             <p className="text-xs text-muted">Plano próxima sessão</p>
-            <p className="mt-1 break-words text-sm text-ink">{detail.nextSessionPlan || '—'}</p>
+            <p className="mt-1 break-words whitespace-pre-line text-sm text-ink">
+              {textOrDash(text.nextSessionPlan)}
+            </p>
           </div>
         </div>
 
         <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Dor (EVA)</p>
-          <div className="mt-auto flex w-full min-w-0 flex-1 items-end">
-            <EvaChart series={detail.painSeries} />
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Dor e limitações</p>
+          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+            {textOrDash(text.painLimitations)}
+          </p>
+          {detail.painSeries.length > 0 ? (
+            <div className="mt-4">
+              <p className="text-xs text-muted">Registros de dor (EVA)</p>
+              <EvaChart series={detail.painSeries} />
+            </div>
+          ) : null}
         </div>
 
         <div className="flex h-full min-h-[16rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
           <div className="mt-auto flex w-full min-w-0 flex-1 items-center">
             <PatientFocusAreasPanel
               patientId={patientId}
