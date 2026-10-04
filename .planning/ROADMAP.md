@@ -644,7 +644,7 @@ Plans:
 **Goal:** A geração de Resumo IA grava só o último resultado e preenche, para todo paciente, o mesmo conjunto de campos do Resumo do paciente — incluindo áreas de foco. A aba Resumo IA mostra o texto original gerado. A edição desse texto fica na aba Resumo.
 **Requirements**: REQ-33
 **Depends on:** Nothing (ficha, áreas de foco e a função de resumo já existem)
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -660,7 +660,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 22-05-PLAN.md — Aba Resumo: os sete cards do conjunto fixo, lápis e modal Editar resumo
-- [ ] 22-06-PLAN.md — Aba Resumo IA somente leitura, confirmação antes de regenerar e tipografia dos objetivos
+- [x] 22-06-PLAN.md — Aba Resumo IA somente leitura, confirmação antes de regenerar e tipografia dos objetivos
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

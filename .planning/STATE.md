@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 22-05-PLAN.md
-last_updated: "2026-10-04T00:34:46.361Z"
+stopped_at: Completed 22-06-PLAN.md
+last_updated: "2026-10-04T00:39:10.782Z"
 progress:
   total_phases: 22
   completed_phases: 11
   total_plans: 91
-  completed_plans: 79
+  completed_plans: 80
   percent: 50
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 22 (resumo-paciente-ia) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 
 - Status: Ready to execute
 - Progress: 0/7 plans
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -201,6 +201,9 @@ Plan: 6 of 7
 - [Phase 22]: Form reset depends only on open; resolved text is read through a ref so a patient refetch does not wipe in-progress edits — A query refresh while the modal is open must not replace what the user typed
 - [Phase 22]: EvaChart is unchanged and mounts only when painSeries has rows, so the empty-series message is not shown on Dor e limitações — The empty branch stays inside EvaChart; this card simply does not render it
 - [Phase 22]: REQ-33 stays open after 22-05; plans 22-06 and 22-07 still own the Resumo IA tab, regenerate confirmation, goals typography, and hosted UAT — This plan covers the Resumo tab editor only; requirements.mark-complete was not called
+- [Phase 22]: The Nova button on the goals card uses font-semibold because this phase forbids font-medium on these surfaces — Typography forbids font-medium on S1–S4; the card table named the seals, and the Nova button is part of the same card
+- [Phase 22]: autoFocusCancel defaults to false so the other ConfirmDialog callers keep their previous focus — The dialog is shared; only the regenerate confirmation opts into cancel focus
+- [Phase 22]: REQ-33 stays open after 22-06; plan 22-07 still owns the hosted UAT — This plan covers the Resumo IA block, regenerate confirmation, and goals typography; requirements.mark-complete was not called
 
 ### Pending user action
 
@@ -232,8 +235,8 @@ Plan: 6 of 7
 
 ## Session Continuity
 
-Last session: 2026-10-04T00:34:31.503Z
-Stopped at: Completed 22-05-PLAN.md
+Last session: 2026-10-04T00:39:10.764Z
+Stopped at: Completed 22-06-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -290,3 +293,4 @@ Resume file: None
 | Phase 22 P03 | 5min | 3 tasks | 5 files |
 | Phase 22 P04 | 2min | 2 tasks | 1 files |
 | Phase 22 P05 | 3min | 2 tasks | 2 files |
+| Phase 22 P06 | 4min | 3 tasks | 4 files |
