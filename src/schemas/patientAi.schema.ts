@@ -44,6 +44,8 @@ export const PATIENT_AI_COPY = {
   pickerBack: 'Voltar',
   needFields: 'Selecione ao menos um campo.',
   needSessions: 'Selecione ao menos uma sessão.',
+  editError: 'Não foi possível salvar o resumo. Tente de novo.',
+  editForbidden: 'Você não tem permissão para editar este paciente.',
 } as const
 
 export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024

@@ -1,7 +1,10 @@
 import { supabase } from '@/lib/supabase/client'
 import { mapDbError } from '@/lib/security'
+import { narrowAiSummaryFields, narrowSummaryEdits } from '@/lib/patientSummary'
 import { getFocusRegion } from '@/lib/focusRegions'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import { focusRegionKeySchema } from '@/schemas/patient.schema'
+import type { SummaryTexts } from '@/lib/patientSummary'
 import { signPatientPhotoUrls } from '@/services/patientPhoto.service'
 import type {
   AlertTone,
@@ -45,6 +48,8 @@ interface PatientRow {
   current_eva: number
   last_visit_on: string | null
   ai_summary: string | null
+  ai_summary_fields: Record<string, unknown> | null
+  summary_edits: Record<string, unknown> | null
   evolution_summary: string | null
   last_conducts: string | null
   next_session_plan: string | null
@@ -116,7 +121,7 @@ interface AlertRow {
 const ALERT_COLUMNS = 'id, message, tone, created_at, created_by, created_by_name'
 
 const DETAIL_COLUMNS =
-  'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by'
+  'id, full_name, code, birth_date, phone, email, status, profession, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, ai_summary_fields, summary_edits, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by'
 
 const LIST_COLUMNS =
   'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_at, created_by'
@@ -349,6 +354,8 @@ function mapPatient(
     eva: row.current_eva,
     lastVisit: formatDate(row.last_visit_on),
     aiSummary: row.ai_summary ?? '',
+    aiSummaryFields: narrowAiSummaryFields(row.ai_summary_fields),
+    summaryEdits: narrowSummaryEdits(row.summary_edits),
     evolutionSummary: row.evolution_summary ?? '',
     lastConducts: row.last_conducts ?? '',
     nextSessionPlan: row.next_session_plan ?? '',
@@ -622,6 +629,39 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
   const { data, error } = await supabase.from('patients').update(payload).eq('id', id).select('id')
   throwIfError(error)
   if (!data?.length) throw new Error('Não foi possível atualizar este paciente.')
+}
+
+export async function savePatientSummaryEdits(
+  patientId: string,
+  edits: SummaryTexts | null,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('patients')
+    .update({ summary_edits: edits })
+    .eq('id', patientId)
+    .select('id')
+
+  if (error) throw new Error(PATIENT_AI_COPY.editError)
+  if (!data?.length) throw new Error(PATIENT_AI_COPY.editForbidden)
+}
+
+export async function saveGeneratedPatientSummary(
+  patientId: string,
+  summary: string,
+  fields: SummaryTexts,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('patients')
+    .update({
+      ai_summary: summary,
+      ai_summary_fields: { generatedAt: new Date().toISOString(), ...fields },
+      summary_edits: null,
+    })
+    .eq('id', patientId)
+    .select('id')
+
+  if (error) throw new Error(PATIENT_AI_COPY.editError)
+  if (!data?.length) throw new Error(PATIENT_AI_COPY.editForbidden)
 }
 
 export async function createPatientAlert(

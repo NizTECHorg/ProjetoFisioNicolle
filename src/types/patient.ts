@@ -1,3 +1,5 @@
+import type { SummaryTexts } from '@/lib/patientSummary'
+
 export type PatientStatus = 'em_tratamento' | 'avaliacao' | 'alta' | 'inativo'
 export type SessionStatus = 'agendada' | 'confirmada' | 'realizada' | 'cancelada' | 'faltou'
 export type AlertTone = 'info' | 'warning' | 'success'
@@ -163,6 +165,18 @@ export interface PatientListItem {
   createdByName: string | null
 }
 
+/** Textos gerados sem o resumo. O original do resumo continua em `patients.ai_summary`. */
+export interface AiSummaryFields {
+  generatedAt?: string
+  treatmentPlan?: string
+  evolution?: string
+  conducts?: string
+  nextSessionPlan?: string
+  painLimitations?: string
+}
+
+export type SummaryEdits = SummaryTexts
+
 export interface Patient {
   id: string
   name: string
@@ -195,6 +209,8 @@ export interface Patient {
   eva: number
   lastVisit: string
   aiSummary: string
+  aiSummaryFields: AiSummaryFields | null
+  summaryEdits: SummaryEdits | null
   evolutionSummary: string
   lastConducts: string
   nextSessionPlan: string
