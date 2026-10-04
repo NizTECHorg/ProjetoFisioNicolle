@@ -232,6 +232,7 @@ Plan: 7 of 7
 - Phase 20 added: Esqueci minha senha — link no login envia e-mail para redefinir a senha
 - Phase 21 added: Agendar sessões em vários dias da semana com repetição
 - Phase 22 added: Resumo do paciente editável e preenchido pela IA (REQ-33)
+- Phase 23 added: Ajustes do resumo IA e rolagem do Entenda o caso (REQ-34)
 
 ## Session Continuity
 

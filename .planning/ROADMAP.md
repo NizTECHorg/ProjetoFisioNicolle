@@ -29,6 +29,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [x] **Phase 21: Agendar sessões em vários dias** — Escolher segunda, quarta, sábado (ou outros) e quantas vezes repetir (completed 2026-10-03)
 
 - [ ] **Phase 22: Resumo do paciente pela IA** — A IA preenche o resumo inteiro; o profissional edita na aba Resumo
+- [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
 
 ## Phase Details
 
@@ -673,3 +674,20 @@ Plans:
 3. Na aba Resumo o profissional edita o texto do resumo e a edição persiste.
 4. A mesma geração preenche os campos fixos do resumo (os definidos nesta fase, iguais para todos os pacientes) e as áreas de foco.
 5. O system prompt descreve esses campos e só usa o que o prontuário contém.
+
+### Phase 23: Ajustes do resumo IA e rolagem do Entenda o caso
+
+**Goal:** Na aba Resumo cada caixa se edita no próprio texto, sem modal. A geração usa o número real de sessões feitas, marca só as áreas de foco do prontuário e da descrição extra, e trata essa descrição com o mesmo peso do prontuário. No Entenda o caso, queixa e diagnóstico longos rolam por um slider discreto em vez de cortar a página.
+**Requirements**: REQ-34
+**Depends on:** Phase 22 (cards, persistência original/edição e a função de resumo)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 23 to break down)
+
+**Success Criteria** (what must be TRUE):
+1. Cada campo de texto do Resumo do paciente se edita dentro da própria caixa. Não abre uma janela com todos os campos.
+2. O número de sessões feitas que a IA usa é o das sessões concluídas do prontuário, não um campo desatualizado.
+3. As áreas de foco geradas são exatamente as que o prontuário e a descrição extra sustentam.
+4. A descrição adicional escrita antes de gerar entra no prompt como fonte, não como nota ignorável.
+5. Queixa e diagnóstico longos no Entenda o caso rolam no card, sem estourar o layout.

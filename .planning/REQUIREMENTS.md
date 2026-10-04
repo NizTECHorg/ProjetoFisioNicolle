@@ -225,6 +225,20 @@ A geração atual só escreve o bloco Resumo IA. O profissional precisa que a me
 5. Se um card atual não puder ser preenchido com honestidade a partir do prontuário, ele é trocado agora, de forma global, por um campo que a IA consiga preencher.
 6. O system prompt da função descreve esses campos e o que a IA não deve inventar.
 
+## REQ-34 — Ajustes do resumo IA e rolagem do Entenda o caso
+
+**Indispensável · Artur**
+
+A edição do resumo hoje abre um modal com todos os textos. O profissional precisa corrigir cada caixa no próprio card. A geração ainda usa contagens e áreas de foco erradas e trata a descrição extra como texto sem peso. No Entenda o caso, queixa e diagnóstico longos cortam o card.
+
+### Acceptance
+
+1. Na aba Resumo, cada campo de texto gerado se edita dentro da própria caixa. Não abre uma janela listando todos os campos.
+2. A geração usa o número de sessões já feitas contado das sessões concluídas do prontuário.
+3. As áreas de foco marcadas pela geração são as que o prontuário sustenta, mais as que a descrição adicional pede. Nada além disso.
+4. A descrição adicional escrita antes de gerar é fonte da geração, com o mesmo peso do restante do prontuário.
+5. No Entenda o caso, queixa e diagnóstico longos rolam no card por um slider simples, de baixa opacidade, de cima para baixo. O card não cresce até cortar a página.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
