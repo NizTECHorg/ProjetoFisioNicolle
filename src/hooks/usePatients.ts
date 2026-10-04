@@ -8,6 +8,7 @@ import {
   getPatientById,
   getPatientDashboard,
   listPatients,
+  savePatientSummaryEdits,
   togglePatientFocusArea,
   updatePatient,
   updatePatientAlert,
@@ -40,6 +41,8 @@ import type {
 } from '@/types/patient'
 import type { SessionChargeDraft } from '@/types/finance'
 import type { UpsertPatientEvaluationInput } from '@/types/evaluation'
+import type { SummaryTexts } from '@/lib/patientSummary'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import { removePatientPhoto, uploadPatientPhoto } from '@/services/patientPhoto.service'
 import { toast, type ToastAction } from '@/stores/toast.store'
 import { useAccountScope } from '@/hooks/useAccountScope'
@@ -171,6 +174,18 @@ export function useUpdatePatient() {
       }
       invalidatePatient(qc, variables.id)
       toast('Ficha atualizada', 'success')
+    },
+    onError,
+  })
+}
+
+export function useSavePatientSummaryEdits(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (edits: SummaryTexts | null) => savePatientSummaryEdits(patientId, edits),
+    onSuccess: () => {
+      invalidatePatient(qc, patientId)
+      toast(PATIENT_AI_COPY.editSuccess, 'success')
     },
     onError,
   })
