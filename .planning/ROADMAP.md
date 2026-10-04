@@ -644,12 +644,30 @@ Plans:
 **Goal:** A geração de Resumo IA grava só o último resultado e preenche, para todo paciente, o mesmo conjunto de campos do Resumo do paciente — incluindo áreas de foco. A aba Resumo IA mostra o texto original gerado. A edição desse texto fica na aba Resumo.
 **Requirements**: REQ-33
 **Depends on:** Nothing (ficha, áreas de foco e a função de resumo já existem)
-**Plans:** 0 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 22 to break down)
+**Wave 1**
+
+- [ ] 22-01-PLAN.md — Módulo puro patientSummary (chaves, rótulos, limites, resolução, diff, Zod) + node:test + teste de contrato
+- [ ] 22-02-PLAN.md — Script SQL das colunas jsonb para o SQL Editor + documento de setup do operador
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 22-03-PLAN.md — Tipos, leitura saneada das colunas, as duas escritas dedicadas, geração validada por Zod e hook de edição
+- [ ] 22-04-PLAN.md — Edge Function: pack do modo resumo limpo, prompt das 7 chaves e parse estendido
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 22-05-PLAN.md — Aba Resumo: os sete cards do conjunto fixo, lápis e modal Editar resumo
+- [ ] 22-06-PLAN.md — Aba Resumo IA somente leitura, confirmação antes de regenerar e tipografia dos objetivos
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 22-07-PLAN.md — Suíte completa + UAT hospedado bloqueante (SQL, publicação, geração, edição, regeneração)
 
 **Success Criteria** (what must be TRUE):
+
 1. Gerar de novo substitui o resumo anterior; não há histórico de resumos.
 2. Na aba Resumo IA o profissional lê o texto original da última geração e não edita ali.
 3. Na aba Resumo o profissional edita o texto do resumo e a edição persiste.

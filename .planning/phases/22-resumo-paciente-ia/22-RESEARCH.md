@@ -392,12 +392,12 @@ const text = resolveSummaryFields(
 | A5 | Limites de caracteres (1500/500/400) cabem nos cards | Prompt | Ajuste de número; sem impacto de schema |
 | A6 | O banco hospedado usa grants padrão do Supabase para `patients` (sem GRANT por coluna) | SQL | Checagem 4 do script detecta; se falhar, adicionar `grant update (...)` |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Editar só o resumo (REQ-33.3) ou todos os textos?** — **RESOLVED.** REQ-33.3 pede editar "o texto do resumo", e a decisão travada fala em "esse texto". Como os outros campos agora vêm da mesma geração e ficam errados do mesmo jeito, o modal cobre os 6 textos; custa uma chave a mais no mesmo objeto. Se o usuário quiser só o `summary`, remover 5 `Textarea`.
 2. **Edição inline no card ou editor único?** — **RESOLVED.** Editor único em modal, lápis no bloco Resumo IA. Evidência: todo editor existente (`EntendaOCaso`, alertas, metas) é lápis + `Modal`; não há inline editing no app.
-3. **Há linhas reais em `patient_pain_logs`?** — Não dá para saber pelo código (sem escritor). Tratado: gráfico condicional. Conferir com `select count(*) from patient_pain_logs;` durante o UAT.
-4. **O que a função hospedada tem hoje?** — Não verificável do repositório. `22-USER-SETUP.md` deve exigir publicar a fonte editada e conferir as 42 chaves e as 7 chaves de saída.
+3. **Há linhas reais em `patient_pain_logs`?** — **RESOLVED.** O plano 22-05 monta o gráfico de EVA só quando `painSeries.length > 0`. A contagem `select count(*) from patient_pain_logs;` fica no UAT do plano 22-07 e em `22-USER-SETUP.md` (escrito no plano 22-02).
+4. **O que a função hospedada tem hoje?** — **RESOLVED.** Não é verificável pelo repositório. O plano 22-02 escreve `22-USER-SETUP.md` exigindo publicar a fonte da fase 13 já editada e conferir as 42 chaves de foco e as 7 chaves de saída. A publicação em si é o passo 2 do UAT do plano 22-07, depois que o plano 22-04 editou essa fonte. Não publicar antes.
 
 ## Environment Availability
 

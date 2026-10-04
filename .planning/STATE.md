@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 21 UI-SPEC approved
-last_updated: "2026-10-03T22:40:21.881Z"
+stopped_at: Phase 22 planning complete
+last_updated: "2026-10-03T23:59:38.662Z"
 progress:
-  total_phases: 21
-  completed_phases: 10
-  total_plans: 84
-  completed_plans: 73
-  percent: 48
+  total_phases: 22
+  completed_phases: 11
+  total_plans: 91
+  completed_plans: 74
+  percent: 50
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 21 — agendar-sessoes-varios-dias
+**Current focus:** Phase 22 — resumo-paciente-ia
 
 ## Current Position
 
-Phase: 21 (agendar-sessoes-varios-dias) — EXECUTING
-Plan: 3 of 3
+Phase: 22 (resumo-paciente-ia) — READY
+Plan: 0 of 7
 
 - Status: Ready to execute
-- Progress: 3/4 plans
+- Progress: 0/7 plans
 
-**Progress:** [█████████░] 87%
+**Progress:** [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -215,9 +215,9 @@ Plan: 3 of 3
 
 ## Session Continuity
 
-Last session: 2026-10-03T22:40:15.737Z
-Stopped at: Phase 21 UI-SPEC approved
-Resume file: None
+Last session: 2026-10-03T23:20:02.443Z
+Stopped at: Phase 22 planning complete
+Resume file: .planning/phases/22-resumo-paciente-ia/22-UI-SPEC.md
 
 ## Performance Metrics
 
