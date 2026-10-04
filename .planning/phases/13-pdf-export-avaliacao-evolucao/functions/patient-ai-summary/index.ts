@@ -229,7 +229,7 @@ async function assembleContextPack(
   patientId: string,
 ): Promise<Record<string, unknown> | Response> {
   const patientSelect =
-    'id, full_name, code, birth_date, status, profession, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, evolution_summary, last_conducts, next_session_plan'
+    'id, full_name, code, birth_date, status, profession, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, complaint, diagnosis, last_visit_on'
 
   const { data: patientData, error: patientError } = await client
     .from('patients')
@@ -366,9 +366,6 @@ async function assembleContextPack(
       profession: truncate(patient.profession, 120),
       complaint: truncate(patient.complaint),
       diagnosis: truncate(patient.diagnosis),
-      program: truncate(patient.program_name, 200),
-      programProgress: patient.program_progress ?? undefined,
-      eva: patient.current_eva ?? undefined,
       lastVisit: patient.last_visit_on ?? undefined,
       sessionsDone: patient.sessions_done ?? undefined,
       sessionsPlanned: patient.sessions_planned ?? undefined,
@@ -377,10 +374,6 @@ async function assembleContextPack(
       startDate: patient.treatment_started_on ?? undefined,
       referralSource: truncate(patient.referral_source, 120),
       adminNotes: truncate(patient.admin_notes),
-      evolutionSummary: truncate(patient.evolution_summary),
-      lastConducts: truncate(patient.last_conducts),
-      nextSessionPlan: truncate(patient.next_session_plan),
-      priorAiSummary: truncate(patient.ai_summary),
     }),
     goals,
     focusAreas,
