@@ -9,7 +9,14 @@ import {
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Input } from '@/components/ui/Input'
-import { CATALOGO_MOBILIDADE } from '@/lib/mobilidadePalpacao'
+import {
+  CATALOGO_MOBILIDADE,
+  CATALOGO_PALPACAO,
+  CATALOGO_TESTES,
+  fold,
+  type AchadoPalpacao,
+  type LadoAchado,
+} from '@/lib/mobilidadePalpacao'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import {
   BoolCheck,
@@ -471,6 +478,794 @@ function MobilidadeRegioes({
   )
 }
 
+const LADOS_ACHADO: ReadonlyArray<{ value: LadoAchado; label: string }> = [
+  { value: 'direito', label: 'Direito' },
+  { value: 'esquerdo', label: 'Esquerdo' },
+  { value: 'bilateral', label: 'Bilateral' },
+  { value: 'central', label: 'Central' },
+  { value: 'naoSeAplica', label: 'Não se aplica' },
+]
+
+const ACHADOS_PALPACAO: ReadonlyArray<{ key: AchadoPalpacao; label: string }> = [
+  { key: 'semAlteracao', label: 'Sem alteração' },
+  { key: 'doloroso', label: 'Doloroso' },
+  { key: 'edema', label: 'Edema' },
+  { key: 'tensao', label: 'Tensão aumentada' },
+  { key: 'crepitacao', label: 'Crepitação' },
+  { key: 'temperatura', label: 'Alteração de temperatura' },
+  { key: 'outro', label: 'Outro' },
+]
+
+type RascunhoAchado = {
+  regiao: string
+  buscaLocal: string
+  local: string
+  localOutro: string
+  lado: string
+  achado: string
+  achadoOutro: string
+  dor: string
+  observacao: string
+}
+
+const RASCUNHO_VAZIO: RascunhoAchado = {
+  regiao: '',
+  buscaLocal: '',
+  local: '',
+  localOutro: '',
+  lado: '',
+  achado: '',
+  achadoOutro: '',
+  dor: '',
+  observacao: '',
+}
+
+function ladoValido(valor: string): LadoAchado | undefined {
+  return LADOS_ACHADO.find((item) => item.value === valor)?.value
+}
+
+function achadoValido(valor: string): AchadoPalpacao | undefined {
+  return ACHADOS_PALPACAO.find((item) => item.key === valor)?.key
+}
+
+function rotuloRegiaoPalpacao(chave: string) {
+  return CATALOGO_PALPACAO.find((item) => item.key === chave)?.label ?? chave
+}
+
+function rotuloLocalAchado(regiao: string, local: string, localOutro?: string) {
+  if (local === 'outro' && localOutro?.trim()) return localOutro.trim()
+  const catalogo = CATALOGO_PALPACAO.find((item) => item.key === regiao)
+  return catalogo?.locais.find((item) => item.key === local)?.label ?? local
+}
+
+function rotuloAchadoPalpacao(achado?: string, achadoOutro?: string) {
+  if (!achado) return ''
+  if (achado === 'outro' && achadoOutro?.trim()) return `Outro: ${achadoOutro.trim()}`
+  return ACHADOS_PALPACAO.find((item) => item.key === achado)?.label ?? achado
+}
+
+function rotuloLadoAchado(lado?: string) {
+  if (!lado) return ''
+  return LADOS_ACHADO.find((item) => item.value === lado)?.label ?? ''
+}
+
+function rotuloDorAchado(dor?: number) {
+  if (typeof dor !== 'number' || !Number.isFinite(dor)) return ''
+  return `${dor}/10`
+}
+
+function gravarAchado(rascunho: RascunhoAchado) {
+  const lado = ladoValido(rascunho.lado)
+  const achado = achadoValido(rascunho.achado)
+  const dor = vazioViraUndefined(rascunho.dor)
+  const item: {
+    regiao: string
+    local: string
+    localOutro?: string
+    lado?: LadoAchado
+    achado?: AchadoPalpacao
+    achadoOutro?: string
+    dor?: number
+    observacao?: string
+  } = {
+    regiao: rascunho.regiao,
+    local: rascunho.local,
+  }
+  if (rascunho.local === 'outro' && rascunho.localOutro.trim()) item.localOutro = rascunho.localOutro.trim()
+  if (lado) item.lado = lado
+  if (achado) item.achado = achado
+  if (achado === 'outro' && rascunho.achadoOutro.trim()) item.achadoOutro = rascunho.achadoOutro.trim()
+  if (typeof dor === 'number') item.dor = dor
+  if (rascunho.observacao.trim()) item.observacao = rascunho.observacao.trim()
+  return item
+}
+
+function locaisDaRegiao(regiao: string, consulta: string) {
+  const catalogo = CATALOGO_PALPACAO.find((item) => item.key === regiao)
+  if (!catalogo) return []
+  const filtro = fold(consulta.trim())
+  const visiveis = catalogo.locais.filter((item) => !filtro || fold(item.label).includes(filtro))
+  const resto = visiveis.filter((item) => item.key !== 'outro')
+  const outro = visiveis.filter((item) => item.key === 'outro')
+  return [...resto, ...outro]
+}
+
+function RegistroAnterior({ texto }: { texto: string }) {
+  if (!texto.trim()) return null
+  return (
+    <p className="whitespace-pre-wrap">
+      <span className="text-sm font-semibold text-ink">Registro anterior</span>
+      {'\n'}
+      <span className="text-sm font-normal leading-normal text-ink">{texto}</span>
+    </p>
+  )
+}
+
+function AcoesAchado({
+  disabled,
+  onEdit,
+  onAskRemove,
+}: {
+  disabled?: boolean
+  onEdit: () => void
+  onAskRemove: () => void
+}) {
+  if (disabled) return null
+  return (
+    <div className="flex flex-wrap gap-3">
+      <button type="button" className="min-h-11 text-sm text-ink" onClick={onEdit}>
+        Editar achado
+      </button>
+      <button type="button" className="min-h-11 text-sm text-muted hover:text-error" onClick={onAskRemove}>
+        Remover achado
+      </button>
+    </div>
+  )
+}
+
+function FormularioAchado({
+  rascunho,
+  setRascunho,
+  editando,
+  disabled,
+  onAdd,
+  onSave,
+  onCancel,
+}: {
+  rascunho: RascunhoAchado
+  setRascunho: (valor: RascunhoAchado | ((atual: RascunhoAchado) => RascunhoAchado)) => void
+  editando: boolean
+  disabled?: boolean
+  onAdd: () => void
+  onSave: () => void
+  onCancel: () => void
+}) {
+  const idRegiao = useId()
+  const idLocal = useId()
+  const idOutroLocal = useId()
+  const idOutroAchado = useId()
+  const idDor = useId()
+  const idObs = useId()
+  const idLado = useId()
+  const catalogo = CATALOGO_PALPACAO.find((item) => item.key === rascunho.regiao)
+  const locais = catalogo ? locaisDaRegiao(rascunho.regiao, rascunho.buscaLocal) : []
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor={idRegiao} className={ROTULO}>
+          Região
+        </label>
+        <select
+          id={idRegiao}
+          className={CAMPO}
+          disabled={disabled}
+          value={rascunho.regiao}
+          onChange={(event) => {
+            const next = event.target.value
+            setRascunho((atual) => {
+              const proximo = CATALOGO_PALPACAO.find((item) => item.key === next)
+              const permanece = proximo?.locais.some((item) => item.key === atual.local) ?? false
+              return {
+                ...atual,
+                regiao: next,
+                buscaLocal: '',
+                local: permanece ? atual.local : '',
+                localOutro: permanece ? atual.localOutro : '',
+              }
+            })
+          }}
+        >
+          <option value="">Escolha a região</option>
+          {CATALOGO_PALPACAO.map((item) => (
+            <option key={item.key} value={item.key}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-2">
+        <label htmlFor={idLocal} className={ROTULO}>
+          Local / estrutura
+        </label>
+        <input
+          id={idLocal}
+          type="search"
+          className={CAMPO}
+          disabled={disabled || !rascunho.regiao}
+          value={rascunho.buscaLocal}
+          onChange={(event) =>
+            setRascunho((atual) => ({ ...atual, buscaLocal: event.target.value }))
+          }
+        />
+        {rascunho.regiao ? (
+          <ul className="flex flex-col gap-1">
+            {locais.map((item) => {
+              const ativo = rascunho.local === item.key
+              return (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    aria-pressed={ativo}
+                    className={`${CHIP} w-full justify-start ${ativo ? CHIP_ATIVO : CHIP_INATIVO}`}
+                    onClick={() =>
+                      setRascunho((atual) => ({
+                        ...atual,
+                        local: item.key,
+                        localOutro: item.key === 'outro' ? atual.localOutro : '',
+                      }))
+                    }
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
+        <p className="text-sm font-normal leading-normal text-muted">
+          Primeiro selecione a região. Local/estrutura mostra só as opções dessa região, com busca e Outro para digitar.
+        </p>
+      </div>
+      {rascunho.local === 'outro' ? (
+        <div className="space-y-2">
+          <label htmlFor={idOutroLocal} className={ROTULO}>
+            Outro local
+          </label>
+          <input
+            id={idOutroLocal}
+            type="text"
+            className={CAMPO}
+            disabled={disabled}
+            value={rascunho.localOutro}
+            onChange={(event) =>
+              setRascunho((atual) => ({ ...atual, localOutro: event.target.value }))
+            }
+          />
+        </div>
+      ) : null}
+      <fieldset className="space-y-2">
+        <legend className="text-xs text-muted">Lado</legend>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {LADOS_ACHADO.map((opcao) => (
+            <label key={opcao.value} className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
+              <input
+                type="radio"
+                name={idLado}
+                value={opcao.value}
+                className="accent-forest"
+                disabled={disabled}
+                checked={rascunho.lado === opcao.value}
+                onChange={() => setRascunho((atual) => ({ ...atual, lado: opcao.value }))}
+              />
+              <span>{opcao.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div className="space-y-2">
+        <p className={ROTULO}>Achado à palpação</p>
+        <div className="flex flex-wrap gap-2">
+          {ACHADOS_PALPACAO.map((item) => {
+            const ativo = rascunho.achado === item.key
+            return (
+              <button
+                key={item.key}
+                type="button"
+                disabled={disabled}
+                className={`${CHIP} ${ativo ? CHIP_ATIVO : CHIP_INATIVO}`}
+                onClick={() =>
+                  setRascunho((atual) => ({
+                    ...atual,
+                    achado: atual.achado === item.key ? '' : item.key,
+                    achadoOutro: item.key === 'outro' && atual.achado !== item.key ? atual.achadoOutro : '',
+                  }))
+                }
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      {rascunho.achado === 'outro' ? (
+        <div className="space-y-2">
+          <label htmlFor={idOutroAchado} className={ROTULO}>
+            Outro achado
+          </label>
+          <input
+            id={idOutroAchado}
+            type="text"
+            className={CAMPO}
+            disabled={disabled}
+            value={rascunho.achadoOutro}
+            onChange={(event) =>
+              setRascunho((atual) => ({ ...atual, achadoOutro: event.target.value }))
+            }
+          />
+        </div>
+      ) : null}
+      <div className="space-y-2">
+        <label htmlFor={idDor} className={ROTULO}>
+          Dor (0–10)
+        </label>
+        <input
+          id={idDor}
+          type="number"
+          min={0}
+          max={10}
+          step={1}
+          className={CAMPO}
+          disabled={disabled}
+          value={rascunho.dor}
+          onChange={(event) => setRascunho((atual) => ({ ...atual, dor: event.target.value }))}
+        />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor={idObs} className={ROTULO}>
+          Observação
+        </label>
+        <input
+          id={idObs}
+          type="text"
+          className={CAMPO}
+          disabled={disabled}
+          value={rascunho.observacao}
+          onChange={(event) =>
+            setRascunho((atual) => ({ ...atual, observacao: event.target.value }))
+          }
+        />
+      </div>
+      {!disabled ? (
+        editando ? (
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" disabled={!rascunho.regiao} onClick={onSave}>
+              Salvar achado
+            </Button>
+            <Button type="button" variant="secondary" onClick={onCancel}>
+              Cancelar edição
+            </Button>
+          </div>
+        ) : (
+          <Button type="button" variant="secondary" disabled={!rascunho.regiao} onClick={onAdd}>
+            Adicionar achado
+          </Button>
+        )
+      ) : null}
+    </div>
+  )
+}
+
+function TabelaAchados({
+  achados,
+  disabled,
+  onEdit,
+  onAskRemove,
+}: {
+  achados: Array<{
+    id: string
+    regiao: string
+    local: string
+    localOutro?: string
+    lado?: string
+    achado?: string
+    achadoOutro?: string
+    dor?: number
+    observacao?: string
+  }>
+  disabled?: boolean
+  onEdit: (index: number) => void
+  onAskRemove: (index: number) => void
+}) {
+  const colunas = ['Região', 'Local / estrutura', 'Lado', 'Achado', 'Dor', 'Observação'] as const
+
+  function celulas(item: (typeof achados)[number]) {
+    return [
+      rotuloRegiaoPalpacao(item.regiao),
+      rotuloLocalAchado(item.regiao, item.local, item.localOutro),
+      rotuloLadoAchado(item.lado),
+      rotuloAchadoPalpacao(item.achado, item.achadoOutro),
+      rotuloDorAchado(item.dor),
+      item.observacao?.trim() ?? '',
+    ]
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold leading-[1.2] text-ink">Achados registrados</p>
+      {achados.length === 0 ? (
+        <p className="text-sm font-normal leading-normal text-muted">
+          {disabled
+            ? 'Nenhum achado registrado.'
+            : 'Nenhum achado registrado. Preencha o formulário acima e toque em Adicionar achado.'}
+        </p>
+      ) : (
+        <>
+          <div className="space-y-3 sm:hidden">
+            {achados.map((item, index) => {
+              const valores = celulas(item)
+              return (
+              <div key={item.id} className="space-y-2 rounded-2xl border border-line bg-surface p-4">
+                {colunas.map((coluna, colunaIndex) => (
+                  <p key={coluna} className="text-sm font-normal leading-normal text-ink">
+                    <span className="font-semibold">{coluna}</span>
+                    {valores[colunaIndex] ? ` ${valores[colunaIndex]}` : ''}
+                  </p>
+                ))}
+                <AcoesAchado
+                  disabled={disabled}
+                  onEdit={() => onEdit(index)}
+                  onAskRemove={() => onAskRemove(index)}
+                />
+              </div>
+              )
+            })}
+          </div>
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  {colunas.map((coluna) => (
+                    <th
+                      key={coluna}
+                      className="border border-line bg-canvas px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+                    >
+                      {coluna}
+                    </th>
+                  ))}
+                  {!disabled ? (
+                    <th className="border border-line bg-canvas px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <span className="sr-only">Ações</span>
+                    </th>
+                  ) : null}
+                </tr>
+              </thead>
+              <tbody>
+                {achados.map((item, index) => (
+                  <tr key={item.id}>
+                    {celulas(item).map((valor, colunaIndex) => (
+                      <td
+                        key={colunas[colunaIndex]}
+                        className="border border-line px-3 py-2 text-sm font-normal leading-normal text-ink"
+                      >
+                        {valor}
+                      </td>
+                    ))}
+                    {!disabled ? (
+                      <td className="border border-line px-3 py-2">
+                        <AcoesAchado
+                          disabled={disabled}
+                          onEdit={() => onEdit(index)}
+                          onAskRemove={() => onAskRemove(index)}
+                        />
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function CamposTesteMarcado({
+  indice,
+  outro,
+  register,
+  disabled,
+}: {
+  indice: number
+  outro: boolean
+  register: UseFormRegister<EvaluationFormData>
+  disabled?: boolean
+}) {
+  const idOutro = useId()
+  const idResultado = useId()
+
+  return (
+    <div className="space-y-2 pb-2">
+      {outro ? (
+        <div className="space-y-2">
+          <label htmlFor={idOutro} className={ROTULO}>
+            Outro teste
+          </label>
+          <input
+            id={idOutro}
+            type="text"
+            className={CAMPO}
+            disabled={disabled}
+            {...register(`ficha.avaliacaoPlano.palpacaoTestes.testes.${indice}.outroTexto`)}
+          />
+        </div>
+      ) : null}
+      <div className="space-y-2">
+        <label htmlFor={idResultado} className={ROTULO}>
+          Resultado
+        </label>
+        <input
+          id={idResultado}
+          type="text"
+          className={CAMPO}
+          disabled={disabled}
+          {...register(`ficha.avaliacaoPlano.palpacaoTestes.testes.${indice}.resultado`)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function ListaTestes({
+  register,
+  control,
+  disabled,
+  registroAnterior,
+}: {
+  register: UseFormRegister<EvaluationFormData>
+  control: Control<EvaluationFormData>
+  disabled?: boolean
+  registroAnterior: string
+}) {
+  const idBusca = useId()
+  const [busca, setBusca] = useState('')
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'ficha.avaliacaoPlano.palpacaoTestes.testes',
+  })
+  const consulta = busca.trim()
+  const filtro = fold(consulta)
+  const regioes = CATALOGO_TESTES.flatMap((regiao) => {
+    const outro = regiao.testes.find((item) => item.key === 'outro')
+    const demais = regiao.testes.filter((item) => item.key !== 'outro')
+    if (!filtro) return [regiao]
+    const casados = demais.filter((item) => fold(item.label).includes(filtro))
+    const outroCasa = outro ? fold(outro.label).includes(filtro) : false
+    if (casados.length === 0 && !outroCasa) return []
+    return [{ ...regiao, testes: outro ? [...casados, outro] : casados }]
+  })
+  const visiveis = new Set(
+    regioes.flatMap((regiao) => regiao.testes.map((item) => `${regiao.key}:${item.key}`)),
+  )
+  const escondidos = fields.some((item) => !visiveis.has(`${item.regiao}:${item.teste}`))
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm font-semibold leading-[1.2] text-ink">Testes clínicos</p>
+      <div className="space-y-2">
+        <label htmlFor={idBusca} className={ROTULO}>
+          Buscar teste
+        </label>
+        <input
+          id={idBusca}
+          type="search"
+          className={CAMPO}
+          disabled={disabled}
+          value={busca}
+          onChange={(event) => setBusca(event.target.value)}
+        />
+      </div>
+      {!consulta && fields.length === 0 ? (
+        <p className="text-sm font-normal leading-normal text-muted">
+          Nenhum teste marcado. Marque os testes na lista. Dá para marcar vários. Outro fica no fim de cada região.
+        </p>
+      ) : null}
+      {consulta && escondidos ? (
+        <p className="text-sm text-muted">
+          Testes marcados fora desta busca continuam na avaliação.
+        </p>
+      ) : null}
+      {consulta && regioes.length === 0 ? (
+        <p className="text-sm font-normal leading-normal text-muted">
+          Nenhum teste com esse texto. Apague a busca para ver a lista inteira.
+        </p>
+      ) : (
+        regioes.map((regiao) => (
+          <fieldset key={regiao.key} className="space-y-2">
+            <legend className="text-sm font-semibold leading-[1.2] text-ink">{regiao.label}</legend>
+            <ul className="flex flex-col">
+              {regiao.testes.map((item) => {
+                const indice = fields.findIndex(
+                  (campo) => campo.regiao === regiao.key && campo.teste === item.key,
+                )
+                const marcado = indice >= 0
+                return (
+                  <li key={item.key}>
+                    <label className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
+                      <input
+                        type="checkbox"
+                        className="accent-forest"
+                        checked={marcado}
+                        disabled={disabled}
+                        onChange={() => {
+                          if (marcado) remove(indice)
+                          else append({ regiao: regiao.key, teste: item.key })
+                        }}
+                      />
+                      <span>{item.label}</span>
+                    </label>
+                    {marcado ? (
+                      <CamposTesteMarcado
+                        indice={indice}
+                        outro={item.key === 'outro'}
+                        register={register}
+                        disabled={disabled}
+                      />
+                    ) : null}
+                  </li>
+                )
+              })}
+            </ul>
+          </fieldset>
+        ))
+      )}
+      <RegistroAnterior texto={registroAnterior} />
+    </div>
+  )
+}
+
+function PalpacaoBloco({
+  register,
+  watch,
+  control,
+  disabled,
+}: {
+  register: UseFormRegister<EvaluationFormData>
+  watch: UseFormWatch<EvaluationFormData>
+  control: Control<EvaluationFormData>
+  disabled?: boolean
+}) {
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: 'ficha.avaliacaoPlano.palpacaoTestes.achados',
+  })
+  const [rascunho, setRascunho] = useState<RascunhoAchado>(RASCUNHO_VAZIO)
+  const [editando, setEditando] = useState<number | null>(null)
+  const [pendente, setPendente] = useState<number | null>(null)
+  const achadosBrutos = watch('ficha.avaliacaoPlano.palpacaoTestes.achados')
+  const achados = (Array.isArray(achadosBrutos) ? achadosBrutos : fields).slice(0, fields.length)
+  const palpacaoRegistro = watch('ficha.avaliacaoPlano.palpacaoTestes.palpacaoRegistroAnterior')
+  const testesRegistro = watch('ficha.avaliacaoPlano.palpacaoTestes.testesRegistroAnterior')
+
+  function adicionar() {
+    if (!rascunho.regiao) return
+    append(gravarAchado(rascunho))
+    setRascunho(RASCUNHO_VAZIO)
+  }
+
+  function salvar() {
+    if (editando === null || !rascunho.regiao) return
+    update(editando, gravarAchado(rascunho))
+    setRascunho(RASCUNHO_VAZIO)
+    setEditando(null)
+  }
+
+  function editar(index: number) {
+    const item = achados[index]
+    if (!item) return
+    setEditando(index)
+    setRascunho({
+      regiao: item.regiao ?? '',
+      buscaLocal: '',
+      local: item.local ?? '',
+      localOutro: item.localOutro ?? '',
+      lado: item.lado ?? '',
+      achado: item.achado ?? '',
+      achadoOutro: item.achadoOutro ?? '',
+      dor: typeof item.dor === 'number' ? String(item.dor) : '',
+      observacao: item.observacao ?? '',
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <FormularioAchado
+        rascunho={rascunho}
+        setRascunho={setRascunho}
+        editando={editando !== null}
+        disabled={disabled}
+        onAdd={adicionar}
+        onSave={salvar}
+        onCancel={() => {
+          setRascunho(RASCUNHO_VAZIO)
+          setEditando(null)
+        }}
+      />
+      <TabelaAchados
+        achados={fields.map((field, index) => {
+          const item = achados[index] ?? field
+          return {
+            id: field.id,
+            regiao: item.regiao ?? '',
+            local: item.local ?? '',
+            localOutro: item.localOutro,
+            lado: item.lado,
+            achado: item.achado,
+            achadoOutro: item.achadoOutro,
+            dor: item.dor,
+            observacao: item.observacao,
+          }
+        })}
+        disabled={disabled}
+        onEdit={editar}
+        onAskRemove={setPendente}
+      />
+      <RegistroAnterior texto={typeof palpacaoRegistro === 'string' ? palpacaoRegistro : ''} />
+      <ListaTestes
+        register={register}
+        control={control}
+        disabled={disabled}
+        registroAnterior={typeof testesRegistro === 'string' ? testesRegistro : ''}
+      />
+      <TextField
+        label="Resultados relevantes"
+        name="ficha.avaliacaoPlano.palpacaoTestes.resultados"
+        register={register}
+        rows={2}
+        disabled={disabled}
+      />
+      <TextField
+        label="Teste funcional / medida de desempenho"
+        name="ficha.avaliacaoPlano.palpacaoTestes.testeFuncional"
+        register={register}
+        rows={2}
+        disabled={disabled}
+      />
+      <TextField
+        label="Resultado inicial"
+        name="ficha.avaliacaoPlano.palpacaoTestes.resultadoInicial"
+        register={register}
+        rows={2}
+        disabled={disabled}
+      />
+      {!disabled ? (
+        <ConfirmDialog
+          open={pendente !== null}
+          title="Remover achado?"
+          description="Este achado sai da palpação. Esta ação não pode ser desfeita."
+          confirmLabel="Remover achado"
+          cancelLabel="Manter achado"
+          tone="danger"
+          onConfirm={() => {
+            if (pendente === null) return
+            remove(pendente)
+            if (editando === pendente) {
+              setRascunho(RASCUNHO_VAZIO)
+              setEditando(null)
+            } else if (editando !== null && editando > pendente) {
+              setEditando(editando - 1)
+            }
+            setPendente(null)
+          }}
+          onClose={() => setPendente(null)}
+        />
+      ) : null}
+    </div>
+  )
+}
+
 function ForcaTable({
   register,
   control,
@@ -598,11 +1393,7 @@ export function EvaluationPage04({ register, watch, setValue, control, readOnly 
       </FichaBlock>
 
       <FichaBlock letter="E" title="Palpação / testes / função">
-        <TextField label="Palpação relevante" name="ficha.avaliacaoPlano.palpacaoTestes.palpacao" register={register} rows={2} disabled={disabled} />
-        <TextField label="Testes clínicos selecionados" name="ficha.avaliacaoPlano.palpacaoTestes.testesClinicos" register={register} rows={2} disabled={disabled} />
-        <TextField label="Resultados relevantes" name="ficha.avaliacaoPlano.palpacaoTestes.resultados" register={register} rows={2} disabled={disabled} />
-        <TextField label="Teste funcional / medida de desempenho" name="ficha.avaliacaoPlano.palpacaoTestes.testeFuncional" register={register} rows={2} disabled={disabled} />
-        <TextField label="Resultado inicial" name="ficha.avaliacaoPlano.palpacaoTestes.resultadoInicial" register={register} rows={2} disabled={disabled} />
+        <PalpacaoBloco register={register} watch={watch} control={control} disabled={disabled} />
       </FichaBlock>
 
       <div className="grid gap-4 lg:grid-cols-2">
