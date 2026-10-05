@@ -717,10 +717,28 @@ Plans:
 **Goal:** No bloco B de 03 Função, o profissional registra várias atividades. Cada uma tem capacidade atual e quanto conseguia antes, com unidade (minutos, km, repetições). Some o campo Atividade solto e o Consigo por separado.
 **Requirements**: REQ-35
 **Depends on:** Phase 12 (ficha 03 Função já existe)
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 24 to break down)
+**Wave 1**
+
+- [ ] 24-01-PLAN.md — Helper puro de capacidade (catálogo, normalize, format) e testes verdes
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 24-02-PLAN.md — Preprocess no schema e bloco B do formulário (grade revela a linha)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 24-03-PLAN.md — Leitura, catálogo 03.B e desenho do PDF com formatLinha
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 24-04-PLAN.md — Suíte completa e UAT hospedado do bloco B
+
+**Cross-cutting constraints:**
+- Só o bloco B de 03 Função; ficha já é jsonb, sem SQL e sem `supabase db push`
+- Não editar `patient-ai-summary`; não inventar EVA nem metas; sem pacote npm novo
 
 **Success Criteria** (what must be TRUE):
 1. Dá para marcar mais de uma atividade (correr, depois agachar) e preencher a capacidade de cada uma.

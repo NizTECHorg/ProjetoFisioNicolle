@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-10-05T00:45:27.266Z"
+stopped_at: Phase 24 planned (4 plans)
+last_updated: "2026-10-05T01:52:07.534Z"
 progress:
-  total_phases: 23
+  total_phases: 24
   completed_phases: 11
-  total_plans: 96
+  total_plans: 100
   completed_plans: 84
-  percent: 48
+  percent: 46
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 23 — ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso
+**Current focus:** Phase 24 — atividades-avaliacao-capacidade-e-unidade
 
 ## Current Position
 
-Phase: 23 (ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso) — EXECUTING
-Plan: 5 of 5
+Phase: 24 (atividades-avaliacao-capacidade-e-unidade) — PLANNED
+Plan: 0 of 4
 
 - Status: Ready to execute
-- Progress: 3/5 plans
+- Progress: 0/4 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -247,9 +247,9 @@ Plan: 5 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T00:45:27.219Z
-Stopped at: Completed 23-04-PLAN.md
-Resume file: None
+Last session: 2026-10-05T01:35:07.538Z
+Stopped at: Phase 24 planned (4 plans)
+Resume file: .planning/phases/24-atividades-avaliacao-capacidade-e-unidade/24-01-PLAN.md
 
 ## Performance Metrics
 
