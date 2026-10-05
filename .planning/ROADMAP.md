@@ -680,12 +680,12 @@ Plans:
 **Goal:** Na aba Resumo cada caixa se edita no próprio texto, sem modal. A geração usa o número real de sessões feitas, marca só as áreas de foco do prontuário e da descrição extra, e trata essa descrição com o mesmo peso do prontuário. No Entenda o caso, queixa e diagnóstico longos rolam por um slider discreto em vez de cortar a página.
 **Requirements**: REQ-34
 **Depends on:** Phase 22 (cards, persistência original/edição e a função de resumo)
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 23-01-PLAN.md — Matcher puro de rótulos (verde) e contratos REQ-34 (parte fica vermelha até os planos seguintes)
+- [x] 23-01-PLAN.md — Matcher puro de rótulos (verde) e contratos REQ-34 (parte fica vermelha até os planos seguintes)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

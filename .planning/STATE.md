@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 23 UI-SPEC approved
-last_updated: "2026-10-05T00:19:52.034Z"
+stopped_at: Completed 23-01-PLAN.md
+last_updated: "2026-10-05T00:27:45.390Z"
 progress:
   total_phases: 23
   completed_phases: 11
   total_plans: 96
-  completed_plans: 80
+  completed_plans: 81
   percent: 48
 ---
 
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 23 (ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso) — PLANNED
-Plan: 0 of 5
+Phase: 23 (ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso) — EXECUTING
+Plan: 2 of 5
 
 - Status: Ready to execute
-- Progress: 0/5 plans
+- Progress: 1/5 plans
 
-**Progress:** [░░░░░░░░░░] 0%
+**Progress:** [████████░░] 84%
 
 ## Accumulated Context
 
@@ -204,6 +204,9 @@ Plan: 0 of 5
 - [Phase 22]: The Nova button on the goals card uses font-semibold because this phase forbids font-medium on these surfaces — Typography forbids font-medium on S1–S4; the card table named the seals, and the Nova button is part of the same card
 - [Phase 22]: autoFocusCancel defaults to false so the other ConfirmDialog callers keep their previous focus — The dialog is shared; only the regenerate confirmation opts into cancel focus
 - [Phase 22]: REQ-33 stays open after 22-06; plan 22-07 still owns the hosted UAT — This plan covers the Resumo IA block, regenerate confirmation, and goals typography; requirements.mark-complete was not called
+- [Phase 23]: allowedFocusKeys matches a whole catalog label after NFD with a left boundary, and ignores a shorter label that only sits inside a longer one — antebraço must not mark braço, and Palma da mão esquerda must not mark Mão esquerda
+- [Phase 23]: NÃO CONFIÁVEL now belongs to hintBlockFor; the seven prompt keys and the 42-key parity stay — REQ-34.4 will refuse the phrase inside buildPrompt; putting it back would hide the red contracts
+- [Phase 23]: REQ-34 stays open after 23-01; plans 02-05 still own the Edge Function, inline editor, scroll, and UAT — requirements.mark-complete was not called because only the matcher and the still-red contracts shipped
 
 ### Pending user action
 
@@ -236,9 +239,9 @@ Plan: 0 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T00:04:20.642Z
-Stopped at: Phase 23 planned (5 plans)
-Resume file: .planning/phases/23-ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso/23-01-PLAN.md
+Last session: 2026-10-05T00:27:26.066Z
+Stopped at: Completed 23-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -295,3 +298,4 @@ Resume file: .planning/phases/23-ajustes-do-resumo-ia-e-rolagem-do-entenda-o-cas
 | Phase 22 P04 | 2min | 2 tasks | 1 files |
 | Phase 22 P05 | 3min | 2 tasks | 2 files |
 | Phase 22 P06 | 4min | 3 tasks | 4 files |
+| Phase 23 P01 | 5min | 2 tasks | 3 files |
