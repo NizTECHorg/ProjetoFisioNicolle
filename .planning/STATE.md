@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 24-01-PLAN.md
-last_updated: "2026-10-05T02:00:25.530Z"
+stopped_at: Completed 24-02-PLAN.md
+last_updated: "2026-10-05T02:09:40.748Z"
 progress:
   total_phases: 24
   completed_phases: 11
   total_plans: 100
-  completed_plans: 85
+  completed_plans: 86
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 24 (atividades-avaliacao-capacidade-e-unidade) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 - Status: Ready to execute
-- Progress: 1/4 plans
+- Progress: 2/4 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -217,6 +217,8 @@ Plan: 2 of 4
 - [Phase 24]: REQ-35 stays open after the capacity helper — Schema, page 03, and PDF still belong to plans 02-04
 - [Phase 24]: New-form normalize keeps textoLegado — A second pass must not erase the legacy paragraph
 - [Phase 24]: Free text such as 10 min is not parsed into a unit — Only minutos, km, and repeticoes are units
+- [Phase 24]: REQ-35 stays open after schema and bloco B: detail, catalog, and PDF remain plan 03 — Acceptance item 4 is still plan 03
+- [Phase 24]: Missing atividadesAfetadas keeps .default({}) outside preprocess so parse({}) stays equal to emptyEvaluationFicha() — Absent bloco B must still parse
 
 ### Pending user action
 
@@ -250,8 +252,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-05T02:00:25.505Z
-Stopped at: Completed 24-01-PLAN.md
+Last session: 2026-10-05T02:09:40.721Z
+Stopped at: Completed 24-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -314,3 +316,4 @@ Resume file: None
 | Phase 23 P03 | 6min | 2 tasks | 2 files |
 | Phase 23 P04 | 2min | 2 tasks | 3 files |
 | Phase 24 P01 | 6min | 2 tasks | 2 files |
+| Phase 24 P02 | 6min | 2 tasks | 4 files |

@@ -717,7 +717,7 @@ Plans:
 **Goal:** No bloco B de 03 Função, o profissional registra várias atividades. Cada uma tem capacidade atual e quanto conseguia antes, com unidade (minutos, km, repetições). Some o campo Atividade solto e o Consigo por separado.
 **Requirements**: REQ-35
 **Depends on:** Phase 12 (ficha 03 Função já existe)
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -726,7 +726,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 24-02-PLAN.md — Preprocess no schema e bloco B do formulário (grade revela a linha)
+- [x] 24-02-PLAN.md — Preprocess no schema e bloco B do formulário (grade revela a linha)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
