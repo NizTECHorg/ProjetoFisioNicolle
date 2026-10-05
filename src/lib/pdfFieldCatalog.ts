@@ -1,5 +1,11 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatLinha } from '@/lib/atividadeCapacidade'
+import {
+  formatAchado,
+  formatCabecalhoRegiao,
+  formatLinhaMovimento,
+  formatTeste,
+} from '@/lib/mobilidadePalpacao'
 
 export type PdfFieldId = string
 
@@ -511,26 +517,26 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     preview: previewFrom(inspecaoItems[0], plano?.inspecao?.achados),
   })
 
-  const mobFlags = checkedLabels(plano?.mobilidade as Record<string, unknown> | undefined, {
-    ativo: 'Ativo',
-    passivo: 'Passivo',
-    bilateral: 'Bilateral',
-  })
-  const mobRows = (plano?.mobilidade?.linhas ?? []).filter(
-    (row) =>
-      textFilled(row.movimento) ||
-      textFilled(row.direito) ||
-      textFilled(row.esquerdo) ||
-      textFilled(row.dor) ||
-      textFilled(row.observacao),
-  )
-  const hasMob = mobFlags.length > 0 || mobRows.length > 0
+  const mobilidade = plano?.mobilidade
+  const linhasMobilidade: string[] = []
+  for (const regiao of mobilidade?.regioes ?? []) {
+    const cabecalho = formatCabecalhoRegiao(regiao, { incluirNome: true })
+    if (cabecalho.trim()) linhasMobilidade.push(cabecalho)
+    for (const movimento of regiao.movimentos ?? []) {
+      const linha = formatLinhaMovimento(movimento, regiao.regiao)
+      if (linha.trim()) linhasMobilidade.push(linha)
+    }
+  }
+  const registroMobilidade = textFilled(mobilidade?.registroAnterior)
+    ? `Registro anterior: ${mobilidade.registroAnterior.trim()}`
+    : undefined
+  const hasMob = (mobilidade?.regioes?.length ?? 0) > 0 || textFilled(mobilidade?.registroAnterior)
   pushBlock(items, {
     id: '04.B',
     label: 'Mobilidade',
     groupLabel: '04 · Avaliação e plano · Bloco B',
     filled: hasMob,
-    preview: previewFrom(mobFlags[0], mobRows[0]?.movimento),
+    preview: previewFrom(linhasMobilidade[0], registroMobilidade),
   })
 
   const forcaRows = (plano?.forca?.linhas ?? []).filter(
@@ -566,21 +572,40 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     preview: previewFrom(neuroItems[0], plano?.neurologico?.achados),
   })
 
+  const palpacao = plano?.palpacaoTestes
+  const linhasAchado = (palpacao?.achados ?? [])
+    .map((achado) => formatAchado(achado))
+    .filter((linha) => linha.trim().length > 0)
+  const linhasTeste = (palpacao?.testes ?? [])
+    .map((teste) => formatTeste(teste))
+    .filter((linha) => linha.trim().length > 0)
+  const registroPalpacao = textFilled(palpacao?.palpacaoRegistroAnterior)
+    ? `Registro anterior: ${palpacao.palpacaoRegistroAnterior.trim()}`
+    : undefined
+  const registroTestes = textFilled(palpacao?.testesRegistroAnterior)
+    ? `Registro anterior: ${palpacao.testesRegistroAnterior.trim()}`
+    : undefined
   const hasPalp =
-    textFilled(plano?.palpacaoTestes?.palpacao) ||
-    textFilled(plano?.palpacaoTestes?.testesClinicos) ||
-    textFilled(plano?.palpacaoTestes?.resultados) ||
-    textFilled(plano?.palpacaoTestes?.testeFuncional) ||
-    textFilled(plano?.palpacaoTestes?.resultadoInicial)
+    (palpacao?.achados?.length ?? 0) > 0 ||
+    (palpacao?.testes?.length ?? 0) > 0 ||
+    textFilled(palpacao?.palpacaoRegistroAnterior) ||
+    textFilled(palpacao?.testesRegistroAnterior) ||
+    textFilled(palpacao?.resultados) ||
+    textFilled(palpacao?.testeFuncional) ||
+    textFilled(palpacao?.resultadoInicial)
   pushBlock(items, {
     id: '04.E',
     label: 'Palpação / testes / função',
     groupLabel: '04 · Avaliação e plano · Bloco E',
     filled: hasPalp,
     preview: previewFrom(
-      plano?.palpacaoTestes?.palpacao,
-      plano?.palpacaoTestes?.testesClinicos,
-      plano?.palpacaoTestes?.resultados,
+      linhasAchado[0],
+      registroPalpacao,
+      linhasTeste[0],
+      registroTestes,
+      palpacao?.resultados,
+      palpacao?.testeFuncional,
+      palpacao?.resultadoInicial,
     ),
   })
 

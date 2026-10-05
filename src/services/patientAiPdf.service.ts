@@ -10,6 +10,12 @@ import {
 import logoUrl from '@/assets/brand/logo.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatLinha, formatMiolo } from '@/lib/atividadeCapacidade'
+import {
+  formatAchado,
+  formatCabecalhoRegiao,
+  formatLinhaMovimento,
+  formatTeste,
+} from '@/lib/mobilidadePalpacao'
 import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/lib/focusRegions'
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import type { PatientGoal, PatientFocusArea, SessionEvolution } from '@/types/patient'
@@ -2081,20 +2087,8 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   })
   const hasInspecao = inspecaoItems.length > 0 || textFilled(plano?.inspecao?.achados)
 
-  const mobFlags = checkedLabels(plano?.mobilidade as Record<string, unknown> | undefined, {
-    ativo: 'Ativo',
-    passivo: 'Passivo',
-    bilateral: 'Bilateral',
-  })
-  const mobRows = (plano?.mobilidade?.linhas ?? []).filter(
-    (row) =>
-      textFilled(row.movimento) ||
-      textFilled(row.direito) ||
-      textFilled(row.esquerdo) ||
-      textFilled(row.dor) ||
-      textFilled(row.observacao),
-  )
-  const hasMob = mobFlags.length > 0 || mobRows.length > 0
+  const mobilidade = plano?.mobilidade
+  const hasMob = (mobilidade?.regioes?.length ?? 0) > 0 || textFilled(mobilidade?.registroAnterior)
 
   const forcaRows = (plano?.forca?.linhas ?? []).filter(
     (row) =>
@@ -2115,12 +2109,15 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   })
   const hasNeuro = neuroItems.length > 0 || textFilled(plano?.neurologico?.achados)
 
+  const palpacao = plano?.palpacaoTestes
   const hasPalp =
-    textFilled(plano?.palpacaoTestes?.palpacao) ||
-    textFilled(plano?.palpacaoTestes?.testesClinicos) ||
-    textFilled(plano?.palpacaoTestes?.resultados) ||
-    textFilled(plano?.palpacaoTestes?.testeFuncional) ||
-    textFilled(plano?.palpacaoTestes?.resultadoInicial)
+    (palpacao?.achados?.length ?? 0) > 0 ||
+    (palpacao?.testes?.length ?? 0) > 0 ||
+    textFilled(palpacao?.palpacaoRegistroAnterior) ||
+    textFilled(palpacao?.testesRegistroAnterior) ||
+    textFilled(palpacao?.resultados) ||
+    textFilled(palpacao?.testeFuncional) ||
+    textFilled(palpacao?.resultadoInicial)
 
   const hasSintese =
     textFilled(plano?.sintese?.problema1) ||
@@ -2191,24 +2188,21 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     }
     if (show04B) {
       drawFichaBlockFrame(ctx, 'B', 'Mobilidade', () => {
-        drawOptionalBullets(ctx, 'Modo', mobFlags)
-        drawDataTable(
-          ctx,
-          [
-            { label: 'Movimento', widthFrac: 0.28 },
-            { label: 'Direito', widthFrac: 0.16 },
-            { label: 'Esquerdo', widthFrac: 0.16 },
-            { label: 'Dor/Sintoma', widthFrac: 0.18 },
-            { label: 'Observacao', widthFrac: 0.22 },
-          ],
-          mobRows.map((row) => [
-            row.movimento,
-            row.direito,
-            row.esquerdo,
-            row.dor,
-            row.observacao,
-          ]),
-        )
+        for (const regiao of mobilidade?.regioes ?? []) {
+          const nome = formatCabecalhoRegiao({ regiao: regiao.regiao }, { incluirNome: true }).replaceAll(
+            '→',
+            '->',
+          )
+          const linhas = [
+            formatCabecalhoRegiao(regiao, { incluirNome: true }).replaceAll('→', '->'),
+            ...(regiao.movimentos ?? []).map((movimento) =>
+              formatLinhaMovimento(movimento, regiao.regiao).replaceAll('→', '->'),
+            ),
+          ].filter((linha) => linha.trim().length > 0)
+          if (!nome.trim() || linhas.length === 0) continue
+          drawOptionalField(ctx, nome, linhas.join('\n'))
+        }
+        drawOptionalField(ctx, 'Registro anterior', mobilidade?.registroAnterior?.replaceAll('→', '->'))
       })
     }
     if (show04C) {
@@ -2240,11 +2234,22 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     }
     if (show04E) {
       drawFichaBlockFrame(ctx, 'E', 'Palpação / testes / função', () => {
-        drawOptionalField(ctx, 'Palpação', plano?.palpacaoTestes?.palpacao)
-        drawOptionalField(ctx, 'Testes clínicos', plano?.palpacaoTestes?.testesClinicos)
-        drawOptionalField(ctx, 'Resultados', plano?.palpacaoTestes?.resultados)
-        drawOptionalField(ctx, 'Teste funcional', plano?.palpacaoTestes?.testeFuncional)
-        drawOptionalField(ctx, 'Resultado inicial', plano?.palpacaoTestes?.resultadoInicial)
+        for (const achado of palpacao?.achados ?? []) {
+          const frase = formatAchado(achado).replaceAll('→', '->')
+          if (!frase.trim()) continue
+          drawOptionalField(ctx, 'Achado', frase)
+        }
+        drawOptionalField(ctx, 'Registro anterior', palpacao?.palpacaoRegistroAnterior?.replaceAll('→', '->'))
+        const linhasTeste = (palpacao?.testes ?? [])
+          .map((teste) => formatTeste(teste).replaceAll('→', '->'))
+          .filter((linha) => linha.trim().length > 0)
+        if (linhasTeste.length > 0) {
+          drawOptionalField(ctx, 'Testes clínicos', linhasTeste.join('\n'))
+        }
+        drawOptionalField(ctx, 'Registro anterior', palpacao?.testesRegistroAnterior?.replaceAll('→', '->'))
+        drawOptionalField(ctx, 'Resultados', palpacao?.resultados?.replaceAll('→', '->'))
+        drawOptionalField(ctx, 'Teste funcional', palpacao?.testeFuncional?.replaceAll('→', '->'))
+        drawOptionalField(ctx, 'Resultado inicial', palpacao?.resultadoInicial?.replaceAll('→', '->'))
       })
     }
     if (show04F && show04G) {

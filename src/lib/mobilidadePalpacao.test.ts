@@ -578,7 +578,7 @@ test('REQ-36: catálogo não encolhe', () => {
       regiao.movimentos.map((item) => item.key),
       rotulo,
     )
-    equal(regiao.movimentos[0]?.key.length > 0, true)
+    equal((regiao.movimentos[0]?.key ?? '').length > 0, true)
   })
   const flexaoOmbro = CATALOGO_MOBILIDADE.find((regiao) => regiao.label === 'Ombro')?.movimentos.find(
     (item) => item.label === 'Flexão',

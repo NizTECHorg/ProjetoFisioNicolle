@@ -60,8 +60,8 @@ export type AchadoRegistrado = {
   regiao: string
   local: string
   localOutro?: string
-  lado?: LadoAchado
-  achado?: AchadoPalpacao
+  lado?: string
+  achado?: string
   achadoOutro?: string
   dor?: number
   observacao?: string
@@ -76,8 +76,8 @@ export type TesteMarcado = {
 
 export type RegiaoMobilidadeLida = {
   regiao: string
-  tipo?: TipoAvaliacao
-  comparacao?: ComparacaoMobilidade
+  tipo?: string
+  comparacao?: string
 }
 
 const CHIPS_SEM_GRAU = new Set(['Completo', 'Limitado', 'Não avaliado'])
@@ -696,9 +696,9 @@ export function formatCabecalhoRegiao(
 ): string {
   const partes: string[] = []
   if (opcoes?.incluirNome) partes.push(rotuloRegiaoMobilidade(regiao.regiao))
-  if (regiao.tipo && regiao.tipo in TIPO_ROTULO) partes.push(TIPO_ROTULO[regiao.tipo])
+  if (regiao.tipo && regiao.tipo in TIPO_ROTULO) partes.push(TIPO_ROTULO[regiao.tipo as TipoAvaliacao])
   if (regiao.comparacao && regiao.comparacao in COMPARACAO_ROTULO) {
-    partes.push(COMPARACAO_ROTULO[regiao.comparacao])
+    partes.push(COMPARACAO_ROTULO[regiao.comparacao as ComparacaoMobilidade])
   }
   return partes.join(' · ')
 }
@@ -748,12 +748,12 @@ export function formatAchado(achado: AchadoRegistrado): string {
   const local = achado.local === 'outro' && localOutro ? localOutro : rotuloLocal(achado.regiao, achado.local)
   if (local) partes.push(local)
 
-  if (achado.lado && achado.lado in LADO_ROTULO) partes.push(LADO_ROTULO[achado.lado])
+  if (achado.lado && achado.lado in LADO_ROTULO) partes.push(LADO_ROTULO[achado.lado as LadoAchado])
 
   if (achado.achado && achado.achado in ACHADO_ROTULO) {
     const achadoOutro = texto(achado.achadoOutro)
     if (achado.achado === 'outro' && achadoOutro) partes.push(`Outro: ${achadoOutro}`)
-    else partes.push(ACHADO_ROTULO[achado.achado])
+    else partes.push(ACHADO_ROTULO[achado.achado as AchadoPalpacao])
   }
 
   if (typeof achado.dor === 'number' && Number.isFinite(achado.dor)) {
