@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 25 UI-SPEC approved
-last_updated: "2026-10-05T22:49:57.422Z"
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-10-05T23:08:35.459Z"
 progress:
   total_phases: 26
   completed_phases: 12
   total_plans: 105
-  completed_plans: 88
+  completed_plans: 89
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 25 (mobilidade-palpacao-e-testes) — EXECUTING
-Plan: 1 of 5
+Plan: 2 of 5
 
-- Status: Phase complete — ready for verification
-- Progress: 4/4 plans
+- Status: Ready to execute
+- Progress: 1/5 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -223,6 +223,8 @@ Plan: 1 of 5
 - [Phase 24]: Name-only PDF activity lines use drawText; lines with a miolo use drawLabeledValue — drawOptionalField drops an empty value, so a checked activity with no measure would disappear
 - [Phase 24]: REQ-35 closes after the green suite, phase gate, and approved hosted UAT — Plan 04 changed no source; the six bloco B steps were approved
 - [Phase 24]: Task 1 stayed uncommitted because the REQ-35 suite was already green — A green file is not edited, and the UAT approval did not require a code commit
+- [Phase 25]: Rótulo ambíguo de mobilidade não escolhe a primeira região: Flexão vai para registroAnterior e Flexão de quadril marca só Quadril / Flexão — Match é rótulo inteiro único, depois segmento após barra, depois composição
+- [Phase 25]: resultados, testeFuncional e resultadoInicial cortam em 2000 no normalize da fase 25 — optionalText(2000) do plano 02 rejeitaria a ficha inteira
 
 ### Pending user action
 
@@ -257,9 +259,9 @@ Plan: 1 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T22:16:14.355Z
-Stopped at: Phase 25 UI-SPEC approved
-Resume file: .planning/phases/25-mobilidade-palpacao-e-testes/25-UI-SPEC.md
+Last session: 2026-10-05T23:08:35.417Z
+Stopped at: Completed 25-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -324,3 +326,4 @@ Resume file: .planning/phases/25-mobilidade-palpacao-e-testes/25-UI-SPEC.md
 | Phase 24 P02 | 6min | 2 tasks | 4 files |
 | Phase 24 P03 | 5min | 2 tasks | 4 files |
 | Phase 24 P04 | 4min | 2 tasks | 0 files |
+| Phase 25 P01 | 16min | 2 tasks | 2 files |
