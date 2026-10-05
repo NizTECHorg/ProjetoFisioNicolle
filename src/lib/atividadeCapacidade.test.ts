@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { deepEqual, equal } from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
 import { emptyEvaluationFicha, evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 import {
   ATIVIDADES,
@@ -384,4 +386,31 @@ test('REQ-35: valor legado acima de 200 é cortado e a ficha parseia', () => {
 
 test('REQ-35: parse({}) continua válido', () => {
   deepEqual(evaluationFichaSchema.parse({}), emptyEvaluationFicha())
+})
+
+test('REQ-35: catálogo e PDF do bloco B usam formatLinha', () => {
+  const catalogPath = fileURLToPath(new URL('./pdfFieldCatalog.ts', import.meta.url))
+  const servicePath = fileURLToPath(new URL('../services/patientAiPdf.service.ts', import.meta.url))
+  equal(catalogPath.includes('patient-ai-summary'), false)
+  equal(servicePath.includes('patient-ai-summary'), false)
+
+  const catalog = readFileSync(catalogPath, 'utf8')
+  const afterBlocoA = catalog.indexOf("groupLabel: '03 · Função · Bloco A'")
+  const beforeBlocoC = catalog.indexOf("id: '03.C'", afterBlocoA)
+  equal(afterBlocoA >= 0 && beforeBlocoC > afterBlocoA, true)
+  const catalogSlice = catalog.slice(afterBlocoA, beforeBlocoC)
+  equal(catalogSlice.includes('formatLinha'), true)
+  equal(catalogSlice.includes('atividadesAfetadas?.capacidadeAtual'), false)
+  equal(catalogSlice.includes('atividadesAfetadas?.consigoPor'), false)
+  equal(catalogSlice.includes('atividadesAfetadas?.antesConseguiaPor'), false)
+
+  const service = readFileSync(servicePath, 'utf8')
+  const show03B = service.indexOf('if (show03B)')
+  const frameC = service.indexOf("drawFichaBlockFrame(ctx, 'C'", show03B)
+  equal(show03B >= 0 && frameC > show03B, true)
+  const frameB = service.slice(show03B, frameC)
+  equal(frameB.includes('Registro anterior'), true)
+  equal(frameB.includes('Consigo por'), false)
+  equal(frameB.includes('Antes conseguia por'), false)
+  equal(frameB.includes('drawOptionalBullets'), false)
 })
