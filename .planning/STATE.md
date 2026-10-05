@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 25-03-PLAN.md
-last_updated: "2026-10-05T23:37:34.072Z"
+stopped_at: Completed 25-04-PLAN.md
+last_updated: "2026-10-05T23:48:31.993Z"
 progress:
   total_phases: 26
   completed_phases: 12
   total_plans: 105
-  completed_plans: 91
+  completed_plans: 92
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 25 (mobilidade-palpacao-e-testes) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 - Status: Ready to execute
 - Progress: 1/5 plans
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -230,6 +230,9 @@ Plan: 4 of 5
 - [Phase 25]: Trocar a região da mobilidade chama replace([]) nos movimentos, para a chave do catálogo anterior não ficar no array — O array só deve ter o movimento marcado da região atual
 - [Phase 25]: O rascunho do achado e a busca de teste são useState; o Lado copia o markup do RadioRow sem virar campo da ficha — RadioRow exige register e o rascunho não é campo da ficha
 - [Phase 25]: Salvar achado fica desabilitado com a região vazia, no mesmo travamento de Adicionar achado — O schema exige região no achado
+- [Phase 25]: O PDF troca → por -> só na string de 04.B e 04.E; toWinAnsiSafe permanece global — WinAnsi não tem U+2192; o detalhe e o preview no browser mantêm a seta
+- [Phase 25]: O preview usa a primeira linha formatada, com corte de 40 caracteres já existente — previewFrom corta em 40; a frase inteira fica no detalhe e no PDF
+- [Phase 25]: Tipo, comparação, lado e achado entram no formatador como string, porque o schema infere o enum assim — optionalEnum infere string; o mapa de rótulos ainda descarta valor fora do catálogo
 
 ### Pending user action
 
@@ -264,8 +267,8 @@ Plan: 4 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T23:37:24.523Z
-Stopped at: Completed 25-03-PLAN.md
+Last session: 2026-10-05T23:48:16.654Z
+Stopped at: Completed 25-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -334,3 +337,4 @@ Resume file: None
 | Phase 25 P01 | 16min | 2 tasks | 2 files |
 | Phase 25 P02 | 9min | 2 tasks | 6 files |
 | Phase 25 P03 | 14min | 2 tasks | 2 files |
+| Phase 25 P04 | 8min | 2 tasks | 5 files |
