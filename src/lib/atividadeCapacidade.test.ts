@@ -57,8 +57,8 @@ test('REQ-35: uma bool e capacidadeAtual viram capacidades dessa chave sem unida
     capacidadeAtual: '10',
   })
   equal(out.correr, true)
-  deepEqual(out.capacidades.correr, { atual: { valor: '10' } })
   equal(out.capacidades.correr?.atual?.unidade, undefined)
+  deepEqual(out.capacidades.correr, { atual: { valor: '10' } })
   equal(out.textoLegado, undefined)
 
   const coerced = normalizeAtividadesAfetadas({
@@ -82,8 +82,8 @@ test('REQ-35: consigoPor sozinho vira atual; capacidadeAtual vence se for o úni
     caminhar: true,
     consigoPor: '5',
   })
-  deepEqual(soConsigo.capacidades.caminhar, { atual: { valor: '5' } })
   equal(soConsigo.capacidades.caminhar?.atual?.unidade, undefined)
+  deepEqual(soConsigo.capacidades.caminhar, { atual: { valor: '5' } })
   equal(soConsigo.textoLegado, undefined)
 
   const soAtual = normalizeAtividadesAfetadas({
@@ -251,11 +251,10 @@ test('REQ-35: unidade fora do enum não vira unidade', () => {
       },
     },
   })
-  deepEqual(out.capacidades.correr, { atual: { valor: '10' }, antes: { valor: '2km' } })
   equal(out.capacidades.correr?.atual?.unidade, undefined)
   equal(out.capacidades.correr?.antes?.unidade, undefined)
+  deepEqual(out.capacidades.correr, { atual: { valor: '10' }, antes: { valor: '2km' } })
 
-  equal(normalizeAtividadesAfetadas(null).capacidades && true, true)
   deepEqual(normalizeAtividadesAfetadas(null), { capacidades: {} })
   deepEqual(normalizeAtividadesAfetadas(['correr']), { capacidades: {} })
   deepEqual(normalizeAtividadesAfetadas('10 min'), { capacidades: {} })
