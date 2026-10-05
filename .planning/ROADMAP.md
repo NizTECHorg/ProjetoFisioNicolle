@@ -30,6 +30,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 
 - [ ] **Phase 22: Resumo do paciente pela IA** — A IA preenche o resumo inteiro; o profissional edita na aba Resumo
 - [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
+- [ ] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade
 
 ## Phase Details
 
@@ -710,3 +711,19 @@ Plans:
 3. As áreas de foco geradas são exatamente as que o prontuário e a descrição extra sustentam.
 4. A descrição adicional escrita antes de gerar entra no prompt como fonte, não como nota ignorável.
 5. Queixa e diagnóstico longos no Entenda o caso rolam no card, sem estourar o layout.
+
+### Phase 24: Atividades da avaliação
+
+**Goal:** No bloco B de 03 Função, o profissional registra várias atividades. Cada uma tem capacidade atual e quanto conseguia antes, com unidade (minutos, km, repetições). Some o campo Atividade solto e o Consigo por separado.
+**Requirements**: REQ-35
+**Depends on:** Phase 12 (ficha 03 Função já existe)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 24 to break down)
+
+**Success Criteria** (what must be TRUE):
+1. Dá para marcar mais de uma atividade (correr, depois agachar) e preencher a capacidade de cada uma.
+2. Cada atividade mostra só capacidade atual e quanto conseguia antes. Não há campo Atividade nem Consigo por.
+3. Capacidade atual e quanto conseguia antes aceitam uma unidade de medida (minutos, km, repetições), com o par valor + unidade formatado de forma clara.
+4. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas atividades com valor e unidade.

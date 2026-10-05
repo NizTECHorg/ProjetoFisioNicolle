@@ -239,6 +239,19 @@ A edição do resumo hoje abre um modal com todos os textos. O profissional prec
 4. A descrição adicional escrita antes de gerar é fonte da geração, com o mesmo peso do restante do prontuário.
 5. No Entenda o caso, queixa e diagnóstico longos rolam no card por um slider simples, de baixa opacidade, de cima para baixo. O card não cresce até cortar a página.
 
+## REQ-35 — Atividades da avaliação com capacidade por item
+
+**Indispensável · Artur**
+
+No bloco B de 03 Função a grade marca várias atividades, mas capacidade atual, atividade, consigo por e quanto conseguia antes são um único conjunto para todas. O profissional precisa preencher cada atividade à parte, sem o campo Atividade e sem Consigo por separado, e escolher uma unidade (minutos, km, repetições).
+
+### Acceptance
+
+1. Dá para registrar mais de uma atividade no bloco B e preencher a capacidade de cada uma.
+2. Cada atividade mostra só capacidade atual e quanto conseguia antes. Não existe campo Atividade nem Consigo por.
+3. Capacidade atual e quanto conseguia antes aceitam unidade de medida: minutos, km e repetições, com valor e unidade visíveis juntos.
+4. A leitura da ficha, o PDF e o catálogo de export mostram essas atividades com valor e unidade.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
