@@ -401,8 +401,8 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
       {mode === 'resumo' ? (
         <div className="mt-4 space-y-4">
           <Textarea
-            label="Orientação opcional (opcional)"
-            placeholder="Ex.: enfatize evolução da dor lombar nas últimas sessões"
+            label="Descrição adicional (opcional)"
+            placeholder="Ex.: dor no joelho direito ao subir escada"
             rows={3}
             value={userHint}
             onChange={(event) => setUserHint(event.target.value)}
