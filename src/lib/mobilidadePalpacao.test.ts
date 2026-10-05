@@ -14,6 +14,8 @@ import {
   formatMovimentoCompacto,
   formatTeste,
   formatTestesParaColuna,
+  normalizeMobilidade,
+  normalizePalpacaoTestes,
 } from './mobilidadePalpacao.ts'
 
 const MOBILIDADE_ESPERADA: Array<[string, string[]]> = [
@@ -795,6 +797,295 @@ test('REQ-36: formatadores da frase travada', () => {
   equal(Array.isArray(coluna), false)
   equal(coluna, 'Schober\nValsalva: positivo\nnotas antigas')
   equal(formatTestesParaColuna(undefined), '')
+})
+
+test('REQ-36: Flexão sem região vai para registro anterior', () => {
+  for (const valor of [null, [], 'Flexão 110']) {
+    deepEqual(normalizeMobilidade(valor), { regioes: [] })
+  }
+
+  const flexao = normalizeMobilidade({
+    linhas: [{ movimento: 'Flexão', direito: '110°' }],
+  })
+  equal(flexao.regioes.length, 0)
+  equal(flexao.registroAnterior, 'Flexão · D 110°')
+  equal(
+    flexao.regioes.some((regiao) => regiao.movimentos.some((movimento) => movimento.dorDireito || movimento.dorEsquerdo)),
+    false,
+  )
+
+  const extensao = normalizeMobilidade({
+    linhas: [{ movimento: 'Extensão', direito: '40°' }],
+  })
+  equal(extensao.regioes.length, 0)
+  equal(extensao.registroAnterior, 'Extensão · D 40°')
+
+  const dedos = normalizeMobilidade({
+    linhas: [{ movimento: 'Flexão dos dedos', direito: '10°', esquerdo: '12°', dor: 'final', observacao: 'lento' }],
+  })
+  equal(dedos.regioes.length, 0)
+  equal(dedos.registroAnterior, 'Flexão dos dedos · D 10° · E 12° · Dor final · lento')
+
+  const varias = normalizeMobilidade({
+    ativo: true,
+    linhas: [
+      { movimento: 'Flexão', direito: '110°' },
+      { movimento: 'Algo solto', esquerdo: '5' },
+    ],
+  })
+  equal(varias.regioes.length, 0)
+  equal(varias.registroAnterior, 'Flexão · D 110°\nAlgo solto · E 5\nMovimento ativo')
+
+  const enorme = normalizeMobilidade({
+    linhas: [{ movimento: 'Flexão', observacao: 'x'.repeat(5000) }],
+  })
+  equal(enorme.registroAnterior?.length, 4000)
+  equal(enorme.registroAnterior?.startsWith('Flexão · '), true)
+
+  deepEqual(normalizeMobilidade(flexao), flexao)
+})
+
+test('REQ-36: Flexão de quadril marca só quadril e não copia para os outros movimentos', () => {
+  const out = normalizeMobilidade({
+    linhas: [{ movimento: 'Flexão de quadril', direito: '110°' }],
+  })
+  equal(out.regioes.length, 1)
+  equal(out.regioes[0]?.regiao, 'quadril')
+  equal(out.regioes[0]?.movimentos.length, 1)
+  equal(out.regioes[0]?.movimentos[0]?.movimento, 'flexao')
+  equal(out.regioes[0]?.movimentos[0]?.valorDireito, '110°')
+  equal(out.regioes[0]?.movimentos.some((movimento) => movimento.movimento === 'extensao'), false)
+  equal(out.registroAnterior, undefined)
+
+  const invertido = normalizeMobilidade({
+    linhas: [{ movimento: 'quadril Flexão', direito: '20°' }],
+  })
+  equal(invertido.regioes.length, 1)
+  equal(invertido.regioes[0]?.regiao, 'quadril')
+  equal(invertido.regioes[0]?.movimentos.length, 1)
+  equal(invertido.regioes[0]?.movimentos[0]?.movimento, 'flexao')
+
+  const sane = normalizeMobilidade({
+    regioes: [
+      {
+        regiao: 'quadril',
+        tipo: 'ativo',
+        comparacao: 'bilateral',
+        movimentos: [
+          { movimento: 'flexao', valorDireito: '110°', dorDireito: { inicio: '9'.repeat(50), maxima: 11, observacao: 'o'.repeat(500) } },
+          { movimento: 'dorsiflexao', valorDireito: '5°' },
+        ],
+      },
+    ],
+    registroAnterior: 'mantém',
+    linhas: [{ movimento: 'Extensão', direito: '1' }],
+    ativo: true,
+    passivo: true,
+  })
+  equal(sane.regioes.length, 1)
+  equal(sane.regioes[0]?.movimentos.length, 1)
+  equal(sane.regioes[0]?.movimentos[0]?.movimento, 'flexao')
+  equal(sane.regioes[0]?.movimentos[0]?.dorDireito?.inicio?.length, 40)
+  equal(sane.regioes[0]?.movimentos[0]?.dorDireito?.maxima, undefined)
+  equal(sane.regioes[0]?.movimentos[0]?.dorDireito?.observacao?.length, 400)
+  equal(sane.regioes[0]?.tipo, 'ativo')
+  equal(sane.registroAnterior, 'mantém')
+  deepEqual(normalizeMobilidade(sane), sane)
+  deepEqual(normalizeMobilidade(out), out)
+})
+
+test('REQ-36: Dorsiflexão único marca tornozelo', () => {
+  const out = normalizeMobilidade({
+    linhas: [{ movimento: 'Dorsiflexão', direito: '1'.repeat(100) }],
+  })
+  equal(out.regioes.length, 1)
+  equal(out.regioes[0]?.regiao, 'tornozelo')
+  equal(out.regioes[0]?.movimentos.length, 1)
+  equal(out.regioes[0]?.movimentos[0]?.movimento, 'dorsiflexao')
+  equal(out.regioes[0]?.movimentos[0]?.valorDireito?.length, 80)
+  equal(out.registroAnterior, undefined)
+
+  const tronco = CATALOGO_MOBILIDADE.find((regiao) => regiao.label === 'Tronco / coluna')
+  const extensaoLombar = tronco?.movimentos.find((item) => item.label === 'Extensão de tronco / extensão lombar')
+  const lombar = normalizeMobilidade({
+    linhas: [{ movimento: 'Extensão lombar', esquerdo: '15°' }],
+  })
+  equal(lombar.regioes.length, 1)
+  equal(lombar.regioes[0]?.regiao, tronco?.key)
+  equal(lombar.regioes[0]?.movimentos.length, 1)
+  equal(lombar.regioes[0]?.movimentos[0]?.movimento, extensaoLombar?.key)
+  equal(lombar.regioes[0]?.movimentos[0]?.valorEsquerdo, '15°')
+})
+
+test('REQ-36: dor antiga não preenche painel D nem E', () => {
+  const out = normalizeMobilidade({
+    linhas: [{ movimento: 'Dorsiflexão', direito: '10°', dor: 'd'.repeat(300), observacao: 'o'.repeat(300) }],
+  })
+  const movimento = out.regioes[0]?.movimentos[0]
+  equal(movimento?.dorDireito, undefined)
+  equal(movimento?.dorEsquerdo, undefined)
+  equal(movimento?.observacao?.length, 400)
+  equal(movimento?.observacao?.startsWith('d'.repeat(20)), true)
+  equal(movimento?.valorDireito, '10°')
+})
+
+test('REQ-36: checkbox global não abre região vazia', () => {
+  const vazio = normalizeMobilidade({ ativo: true, passivo: true, bilateral: true })
+  equal(vazio.regioes.length, 0)
+  equal(vazio.registroAnterior, 'Movimento ativo\nMovimento passivo\nComparação bilateral')
+
+  const soAtivo = normalizeMobilidade({ ativo: true })
+  equal(soAtivo.regioes.length, 0)
+  equal(soAtivo.registroAnterior, 'Movimento ativo')
+
+  const marcado = normalizeMobilidade({
+    ativo: true,
+    passivo: true,
+    bilateral: true,
+    linhas: [{ movimento: 'Dorsiflexão', direito: '10°' }],
+  })
+  equal(marcado.regioes.length, 1)
+  equal(marcado.regioes[0]?.regiao, 'tornozelo')
+  equal(marcado.regioes[0]?.tipo, 'ambos')
+  equal(marcado.regioes[0]?.comparacao, 'bilateral')
+  equal(marcado.registroAnterior, undefined)
+
+  const ativo = normalizeMobilidade({
+    ativo: true,
+    linhas: [{ movimento: 'Dorsiflexão' }],
+  })
+  equal(ativo.regioes[0]?.tipo, 'ativo')
+  equal(ativo.regioes[0]?.comparacao, undefined)
+
+  const passivo = normalizeMobilidade({
+    passivo: true,
+    linhas: [{ movimento: 'Dorsiflexão' }],
+  })
+  equal(passivo.regioes[0]?.tipo, 'passivo')
+
+  const bilateralFalso = normalizeMobilidade({
+    bilateral: false,
+    linhas: [{ movimento: 'Dorsiflexão', direito: '10' }],
+  })
+  equal(bilateralFalso.regioes[0]?.comparacao, undefined)
+  equal(bilateralFalso.registroAnterior, undefined)
+
+  const dois = normalizeMobilidade({
+    ativo: true,
+    linhas: [
+      { movimento: 'Dorsiflexão', direito: '10°' },
+      { movimento: 'Flexão de quadril', direito: '110°' },
+    ],
+  })
+  equal(dois.regioes.length, 2)
+  equal(dois.regioes.every((regiao) => regiao.tipo === 'ativo' && regiao.comparacao === undefined), true)
+  equal(dois.regioes.some((regiao) => regiao.regiao === 'ombro'), false)
+})
+
+test('REQ-36: linha Schober exata marca; Schober com texto fica no registro', () => {
+  const out = normalizePalpacaoTestes({
+    testesClinicos: 'Schober\nSchober: 5 cm',
+  })
+  deepEqual(out.testes, [{ regiao: 'lombar', teste: 'schober' }])
+  equal(out.testes[0]?.resultado, undefined)
+  equal(out.testesRegistroAnterior, 'Schober: 5 cm')
+  equal(out.achados.length, 0)
+
+  const ponto = normalizePalpacaoTestes({ testesClinicos: 'Schober; Schober: 5 cm' })
+  deepEqual(ponto.testes, [{ regiao: 'lombar', teste: 'schober' }])
+  equal(ponto.testesRegistroAnterior, 'Schober: 5 cm')
+
+  const texto = normalizePalpacaoTestes('dor no masseter')
+  equal(texto.achados.length, 0)
+  equal(texto.testes.length, 0)
+  equal(texto.palpacaoRegistroAnterior, 'dor no masseter')
+
+  const legado = normalizePalpacaoTestes({
+    palpacao: 'dor no masseter',
+    testesClinicos: 'Schober: 5 cm',
+    resultados: 'melhora',
+    testeFuncional: 'caminhada',
+    resultadoInicial: 'eva 6',
+  })
+  equal(legado.achados.length, 0)
+  equal(legado.testes.length, 0)
+  equal(legado.palpacaoRegistroAnterior, 'dor no masseter')
+  equal(legado.testesRegistroAnterior, 'Schober: 5 cm')
+  equal(legado.resultados, 'melhora')
+  equal(legado.testeFuncional, 'caminhada')
+  equal(legado.resultadoInicial, 'eva 6')
+
+  const obrien = normalizePalpacaoTestes({ testesClinicos: "O'Brien" })
+  equal(obrien.testes.length, 1)
+  equal(obrien.testes[0]?.regiao, 'ombrocinturaescapular')
+  equal(obrien.testes[0]?.teste, 'obrien')
+
+  const slr = normalizePalpacaoTestes({ testesClinicos: 'SLR' })
+  equal(slr.testes.length, 1)
+  equal(slr.testes[0]?.regiao, 'neurologico')
+  equal(slr.testes[0]?.teste, 'slr')
+
+  const lasegue = CATALOGO_TESTES.find((regiao) => regiao.label === 'Lombar')?.testes.find(
+    (item) => item.label === 'SLR / Lasègue',
+  )
+  const cruzado = normalizePalpacaoTestes({ testesClinicos: 'SLR / Lasègue' })
+  equal(cruzado.testes.length, 1)
+  equal(cruzado.testes[0]?.regiao, 'lombar')
+  equal(cruzado.testes[0]?.teste, lasegue?.key)
+  equal(cruzado.testes[0]?.teste === 'slr', false)
+
+  deepEqual(normalizePalpacaoTestes(null), { achados: [], testes: [] })
+  deepEqual(normalizePalpacaoTestes([]), { achados: [], testes: [] })
+  deepEqual(normalizePalpacaoTestes(out), out)
+})
+
+test('REQ-36: PA central ambíguo não escolhe torácica nem lombar', () => {
+  const out = normalizePalpacaoTestes({ testesClinicos: 'PA central' })
+  equal(out.testes.length, 0)
+  equal(out.testesRegistroAnterior, 'PA central')
+  equal(out.achados.length, 0)
+})
+
+test('REQ-36: distração solta não marca cervical nem Waddell', () => {
+  const out = normalizePalpacaoTestes({ testesClinicos: 'distração' })
+  equal(out.testes.length, 0)
+  equal(out.testesRegistroAnterior, 'distração')
+
+  const sane = normalizePalpacaoTestes({
+    achados: [
+      { regiao: 'joelho', local: 'masseter', achado: 'doloroso' },
+      { regiao: 'joelho', local: 'patela', lado: 'direito', achado: 'doloroso', dor: 4, observacao: 'calor' },
+    ],
+    testes: [
+      {
+        regiao: 'lombar',
+        teste: 'outro',
+        outroTexto: 'o'.repeat(250),
+        resultado: 'r'.repeat(250),
+      },
+      { regiao: 'lombar', teste: 'gavetaanterior' },
+    ],
+    palpacaoRegistroAnterior: 'mantém palpação',
+    testesRegistroAnterior: 'mantém testes',
+    resultados: 'r'.repeat(2500),
+    testeFuncional: 'caminhada',
+    resultadoInicial: 'eva 6',
+    palpacao: 'não copiar de novo',
+    testesClinicos: 'Schober',
+  })
+  equal(sane.achados.length, 1)
+  equal(sane.achados[0]?.local, 'patela')
+  equal(sane.achados[0]?.dor, 4)
+  equal(sane.testes.length, 1)
+  equal(sane.testes[0]?.teste, 'outro')
+  equal(sane.testes[0]?.outroTexto?.length, 200)
+  equal(sane.testes[0]?.resultado?.length, 200)
+  equal(sane.palpacaoRegistroAnterior, 'mantém palpação')
+  equal(sane.testesRegistroAnterior, 'mantém testes')
+  equal(sane.resultados?.length, 2000)
+  equal(sane.testeFuncional, 'caminhada')
+  equal(sane.resultadoInicial, 'eva 6')
+  deepEqual(normalizePalpacaoTestes(sane), sane)
 })
 
 test('REQ-36: Outro é o último item de cada região de teste', () => {
