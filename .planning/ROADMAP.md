@@ -717,7 +717,7 @@ Plans:
 **Goal:** No bloco B de 03 Função, o profissional registra várias atividades. Cada uma tem capacidade atual e quanto conseguia antes, com unidade (minutos, km, repetições). Some o campo Atividade solto e o Consigo por separado.
 **Requirements**: REQ-35
 **Depends on:** Phase 12 (ficha 03 Função já existe)
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -734,7 +734,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 24-04-PLAN.md — Suíte completa e UAT hospedado do bloco B
+- [x] 24-04-PLAN.md — Suíte completa e UAT hospedado do bloco B
 
 **Cross-cutting constraints:**
 - Só o bloco B de 03 Função; ficha já é jsonb, sem SQL e sem `supabase db push`

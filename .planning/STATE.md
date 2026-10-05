@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-10-05T02:16:40.111Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 24-04-PLAN.md
+last_updated: "2026-10-05T02:32:18.203Z"
 progress:
   total_phases: 24
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 100
-  completed_plans: 87
-  percent: 46
+  completed_plans: 88
+  percent: 50
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 Phase: 24 (atividades-avaliacao-capacidade-e-unidade) — EXECUTING
 Plan: 4 of 4
 
-- Status: Ready to execute
-- Progress: 2/4 plans
+- Status: Phase complete — ready for verification
+- Progress: 4/4 plans
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -221,6 +221,8 @@ Plan: 4 of 4
 - [Phase 24]: Missing atividadesAfetadas keeps .default({}) outside preprocess so parse({}) stays equal to emptyEvaluationFicha() — Absent bloco B must still parse
 - [Phase 24]: REQ-35 stays open after detail, catalog, and PDF: plan 04 owns the suite gate and UAT — Acceptance item 4 shipped in plan 03; plan 04 still lists REQ-35
 - [Phase 24]: Name-only PDF activity lines use drawText; lines with a miolo use drawLabeledValue — drawOptionalField drops an empty value, so a checked activity with no measure would disappear
+- [Phase 24]: REQ-35 closes after the green suite, phase gate, and approved hosted UAT — Plan 04 changed no source; the six bloco B steps were approved
+- [Phase 24]: Task 1 stayed uncommitted because the REQ-35 suite was already green — A green file is not edited, and the UAT approval did not require a code commit
 
 ### Pending user action
 
@@ -254,8 +256,8 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-05T02:16:40.087Z
-Stopped at: Completed 24-03-PLAN.md
+Last session: 2026-10-05T02:32:18.173Z
+Stopped at: Completed 24-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -320,3 +322,4 @@ Resume file: None
 | Phase 24 P01 | 6min | 2 tasks | 2 files |
 | Phase 24 P02 | 6min | 2 tasks | 4 files |
 | Phase 24 P03 | 5min | 2 tasks | 4 files |
+| Phase 24 P04 | 4min | 2 tasks | 0 files |
