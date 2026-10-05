@@ -1,5 +1,5 @@
 import { test } from 'node:test'
-import { deepEqual, equal } from 'node:assert/strict'
+import { equal } from 'node:assert/strict'
 import {
   ATIVIDADES,
   formatLinha,
