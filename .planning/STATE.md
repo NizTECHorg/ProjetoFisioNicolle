@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-10-05T00:34:27.292Z"
+stopped_at: Completed 23-03-PLAN.md
+last_updated: "2026-10-05T00:41:44.678Z"
 progress:
   total_phases: 23
   completed_phases: 11
   total_plans: 96
-  completed_plans: 82
+  completed_plans: 83
   percent: 48
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 23 (ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 - Status: Ready to execute
-- Progress: 2/5 plans
+- Progress: 3/5 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -210,6 +210,8 @@ Plan: 3 of 5
 - [Phase 23]: sessionsDone is the exact count of realizada sessions on the user client; a count error omits the key and never reads patients.sessions_done
 - [Phase 23]: The resumo response replaces Gemini focusRegionKeys with allowedFocusKeys on untruncated chart text plus the description, and does not union saved focus areas
 - [Phase 23]: buildPrompt treats the extra description as FONTE and states that it does not replace patient.sessionsDone; the evolucao hint stays untrusted
+- [Phase 23]: Each Resumo text field edits inside its card with one editingKey; Salvar calls diffSummaryEdits on all six resolved keys — An UPDATE replaces the whole summary_edits column
+- [Phase 23]: REQ-34 stays open after the inline editor — 34.1 is green; 34.5 scroll and composer label stay red for later plans
 
 ### Pending user action
 
@@ -242,8 +244,8 @@ Plan: 3 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T00:34:27.235Z
-Stopped at: Completed 23-02-PLAN.md
+Last session: 2026-10-05T00:41:44.510Z
+Stopped at: Completed 23-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -303,3 +305,4 @@ Resume file: None
 | Phase 22 P06 | 4min | 3 tasks | 4 files |
 | Phase 23 P01 | 5min | 2 tasks | 3 files |
 | Phase 23 P02 | 4min | 3 tasks | 2 files |
+| Phase 23 P03 | 6min | 2 tasks | 2 files |
