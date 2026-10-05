@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { deepEqual, equal, ok } from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
+import { emptyEvaluationFicha, evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 import {
   CATALOGO_MOBILIDADE,
   CATALOGO_PALPACAO,
@@ -1095,4 +1096,107 @@ test('REQ-36: Outro é o último item de cada região de teste', () => {
     equal(regiao.testes.at(-1)?.key, 'outro', regiao.label)
     ok(regiao.testes.length > 1, regiao.label)
   }
+})
+
+const FICHA_LEGADA = {
+  anamnese: { queixa: { oQueTrouxe: 'dor no joelho ao correr' } },
+  avaliacaoPlano: {
+    mobilidade: {
+      linhas: [{ movimento: 'Flexão de quadril', direito: '110°', esquerdo: '115°', dor: 'no fim', observacao: 'sem dor irradiada' }],
+      ativo: true,
+      passivo: true,
+      bilateral: true,
+    },
+    forca: { linhas: [{ grupo: 'quadríceps', direito: '4' }] },
+    palpacaoTestes: {
+      palpacao: 'tensão no trapézio',
+      testesClinicos: 'Schober: 5 cm',
+      resultados: 'medida 12 cm',
+      testeFuncional: 'agachar',
+      resultadoInicial: 'eva 6',
+    },
+  },
+}
+
+function semChave(valor: object, chave: string) {
+  equal(Object.prototype.hasOwnProperty.call(valor, chave), false, chave)
+}
+
+test('REQ-36: string de testesClinicos não derruba a ficha', () => {
+  const parsed = evaluationFichaSchema.parse({
+    avaliacaoPlano: {
+      palpacaoTestes: {
+        palpacao: 'tensão no trapézio',
+        testesClinicos: 'Schober: 5 cm',
+        resultados: 'medida 12 cm',
+        testeFuncional: 'agachar',
+        resultadoInicial: 'eva 6',
+      },
+    },
+  })
+  const bloco = parsed.avaliacaoPlano?.palpacaoTestes
+  ok(bloco)
+  equal(Array.isArray(bloco.testes), true)
+  equal(bloco.testes?.length, 0)
+  equal(bloco.testesRegistroAnterior, 'Schober: 5 cm')
+  equal(bloco.palpacaoRegistroAnterior, 'tensão no trapézio')
+  equal(bloco.resultados, 'medida 12 cm')
+  equal(bloco.testeFuncional, 'agachar')
+  equal(bloco.resultadoInicial, 'eva 6')
+  semChave(bloco, 'palpacao')
+  semChave(bloco, 'testesClinicos')
+})
+
+test('REQ-36: anamnese e força sobrevivem', () => {
+  const parsed = evaluationFichaSchema.parse(FICHA_LEGADA)
+  equal(parsed.anamnese?.queixa?.oQueTrouxe, 'dor no joelho ao correr')
+  equal(parsed.avaliacaoPlano?.forca?.linhas?.[0]?.grupo, 'quadríceps')
+  equal(parsed.avaliacaoPlano?.forca?.linhas?.[0]?.direito, '4')
+
+  const mobilidade = parsed.avaliacaoPlano?.mobilidade
+  ok(mobilidade)
+  semChave(mobilidade, 'linhas')
+  semChave(mobilidade, 'ativo')
+  semChave(mobilidade, 'passivo')
+  semChave(mobilidade, 'bilateral')
+  equal(mobilidade.regioes?.[0]?.regiao, 'quadril')
+  equal(mobilidade.regioes?.[0]?.tipo, 'ambos')
+  equal(mobilidade.regioes?.[0]?.comparacao, 'bilateral')
+  equal(mobilidade.regioes?.[0]?.movimentos?.[0]?.movimento, 'flexao')
+  equal(mobilidade.regioes?.[0]?.movimentos?.[0]?.valorDireito, '110°')
+  equal(mobilidade.regioes?.[0]?.movimentos?.[0]?.valorEsquerdo, '115°')
+  equal('dorDireito' in (mobilidade.regioes?.[0]?.movimentos?.[0] ?? {}), false)
+  equal('dorEsquerdo' in (mobilidade.regioes?.[0]?.movimentos?.[0] ?? {}), false)
+
+  const bloco = parsed.avaliacaoPlano?.palpacaoTestes
+  ok(bloco)
+  semChave(bloco, 'palpacao')
+  semChave(bloco, 'testesClinicos')
+  equal(Array.isArray(bloco.testes), true)
+})
+
+test('REQ-36: segundo parse é idêntico', () => {
+  const once = evaluationFichaSchema.parse(FICHA_LEGADA)
+  const twice = evaluationFichaSchema.parse(once)
+  deepEqual(twice, once)
+  const mobilidade = once.avaliacaoPlano?.mobilidade
+  const bloco = once.avaliacaoPlano?.palpacaoTestes
+  ok(mobilidade)
+  ok(bloco)
+  semChave(mobilidade, 'linhas')
+  semChave(mobilidade, 'ativo')
+  semChave(mobilidade, 'passivo')
+  semChave(mobilidade, 'bilateral')
+  semChave(bloco, 'palpacao')
+  semChave(bloco, 'testesClinicos')
+  equal(Array.isArray(bloco.testes), true)
+  equal(Array.isArray(mobilidade.regioes), true)
+})
+
+test('REQ-36: parse({}) continua válido', () => {
+  const parsed = evaluationFichaSchema.parse({})
+  deepEqual(parsed, emptyEvaluationFicha())
+  deepEqual(parsed.avaliacaoPlano?.mobilidade, { regioes: [] })
+  deepEqual(parsed.avaliacaoPlano?.palpacaoTestes, { achados: [], testes: [] })
+  equal(parsed.avaliacaoPlano?.forca?.linhas?.length, 0)
 })
