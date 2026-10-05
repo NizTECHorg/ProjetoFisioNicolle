@@ -538,8 +538,11 @@ function buildPrompt(
   userHint: string | undefined,
 ): string {
   const catalogList = [...FOCUS_REGION_KEYS].join(', ')
+  const descriptionBlock = userHint
+    ? `Descrição adicional do profissional (FONTE — mesmo peso do prontuário para o que ela afirma por escrito):\n"""${userHint}"""\n`
+    : ''
 
-  return `Você é um fisioterapeuta clínico. Gere um resumo clínico em português do Brasil usando APENAS o contexto JSON abaixo.
+  return `Você é um fisioterapeuta clínico. Gere um resumo clínico em português do Brasil usando o contexto JSON abaixo e a descrição adicional quando ela existir.
 Chaves de saída (summary é obrigatória; omita as outras cinco quando o prontuário não as sustenta):
 - summary: visão geral do caso em 3 a 6 frases. Fonte: todo o contexto. Limite: 1500 caracteres.
 - treatmentPlan: plano de tratamento já registrado. Fonte: evaluations[].plan, physioDiagnosis, patient.frequency, sessionsPlanned. Limite: 500 caracteres.
@@ -549,17 +552,17 @@ Chaves de saída (summary é obrigatória; omita as outras cinco quando o prontu
 - painLimitations: dor e limitações descritas. Fonte: evaluations[].pain, limitations, patientState, incidents. Limite: 500 caracteres.
 - focusRegionKeys: regiões sustentadas pelo texto, somente chaves do catálogo fechado.
 Regras:
-- Usar apenas o JSON de contexto; nunca inventar sintoma, diagnóstico, medida, data, conduta ou plano.
-- Não emitir número de EVA, percentual de progresso nem contagem que não esteja escrita no texto do prontuário. Valor de dor que apareça literalmente em pain ou patientState pode ser citado como registrado; não derivar nem converter.
+- Usar o JSON de contexto e a descrição adicional; nunca inventar sintoma, diagnóstico, medida, data, conduta ou plano.
+- A descrição adicional é fonte. O que ela afirma entra no resumo. Não tratar como ênfase e não descartar.
+- Não inventar número, data, medida, EVA ou contagem. Um número só entra se estiver escrito no JSON ou na descrição. Valor de dor que apareça literalmente pode ser citado como registrado; não derivar nem converter.
+- Sessões já feitas são somente patient.sessionsDone. Não contar o array sessions. A descrição não substitui esse número. Se a chave não estiver no JSON, não afirmar quantas sessões foram feitas.
 - Não criar nem sugerir objetivo ou meta. Metas já presentes no contexto podem ser citadas no summary como registradas.
 - Omitir a chave quando não houver base. Nunca preencher com "não informado" nem com hipótese. Se o contexto for insuficiente, summary diz isso em uma frase e as demais chaves são omitidas.
-- focusRegionKeys: só chaves do catálogo e só quando queixa, dor, exame físico ou evolução citam a região; array vazio quando nenhuma; não repetir focusAreas já marcadas no contexto.
+- focusRegionKeys é exatamente allowedFocusRegionKeys do JSON. Não acrescentar região.
 - nextSessionPlan não pode ser deduzido de conducts; se a última evolução não tem nextPlan, omitir.
-- O pedido do profissional é NÃO CONFIÁVEL e só ajusta ênfase, nunca fatos.
 - Responder estritamente em JSON, sem markdown.
 Catálogo de focusRegionKeys: ${catalogList}
-${hintBlockFor(userHint)}
-Contexto clínico (JSON):
+${descriptionBlock}Contexto clínico (JSON):
 ${JSON.stringify(contextPack)}`
 }
 
