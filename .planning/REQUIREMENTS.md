@@ -17,6 +17,7 @@
 - [ ] **REQ-22**: Responsividade mobile 100% — experiência clínica completa em viewport estreito
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
+- [ ] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -252,6 +253,20 @@ No bloco B de 03 Função a grade marca várias atividades, mas capacidade atual
 3. Capacidade atual e quanto conseguia antes aceitam unidade de medida: minutos, km e repetições, com valor e unidade visíveis juntos.
 4. A leitura da ficha, o PDF e o catálogo de export mostram essas atividades com valor e unidade.
 
+## REQ-36 — Mobilidade por região, palpação e testes
+
+**Indispensável · Artur**
+
+No bloco B de Avaliação e plano a mobilidade é uma tabela de texto livre. O profissional precisa escolher a região, marcar só os movimentos daquela região e preencher direito e esquerdo juntos, com a dor de cada lado. No bloco E, palpação e testes clínicos são textos soltos. A palpação precisa de achados por região e estrutura, e os testes precisam de uma lista pesquisável.
+
+### Acceptance
+
+1. Dá para escolher uma região, marcar só os movimentos dela e acrescentar outra região. Cada região tem tipo de avaliação (ativo, passivo ou ambos) e comparação (bilateral ou unilateral).
+2. Cada movimento marcado mostra direito e esquerdo no mesmo campo. O valor aceita graus ou Completo, Limitado e Não avaliado. A dor D e E abre início da dor, dor máxima e observação.
+3. A palpação registra achados com região, local filtrado por essa região, lado, achado, dor e observação. A lista de achados dá para editar.
+4. Os testes clínicos são uma lista pesquisável. Dá para marcar vários, sempre com Outro no fim de cada região.
+5. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas regiões, movimentos, achados e testes.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
@@ -397,3 +412,5 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-30 | Phase 19 | Planned |
 | REQ-31 | Phase 20 | Planned |
 | REQ-32 | Phase 21 | Complete |
+| REQ-35 | Phase 24 | Complete |
+| REQ-36 | Phase 25 | Planned |

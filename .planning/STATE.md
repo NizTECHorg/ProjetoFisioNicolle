@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Milestone complete (Phase 24 was final phase)
-last_updated: 2026-10-05T02:43:56.057Z
+status: planning
+stopped_at: Planning Phase 25 — mobilidade, palpação e testes
+last_updated: 2026-10-05T21:45:00.000Z
 progress:
-  total_phases: 24
+  total_phases: 25
   completed_phases: 12
   total_plans: 100
   completed_plans: 88
@@ -21,7 +21,7 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Milestone complete
+**Current focus:** Phase 25 — mobilidade, palpação e testes
 
 ## Current Position
 
@@ -253,6 +253,7 @@ Plan: Not started
 - Phase 22 added: Resumo do paciente editável e preenchido pela IA (REQ-33)
 - Phase 23 added: Ajustes do resumo IA e rolagem do Entenda o caso (REQ-34)
 - Phase 24 added: Atividades da avaliação com capacidade por item (REQ-35)
+- Phase 25 added: Mobilidade por região, palpação estruturada e testes clínicos (REQ-36)
 
 ## Session Continuity
 

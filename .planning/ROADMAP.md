@@ -31,6 +31,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 22: Resumo do paciente pela IA** — A IA preenche o resumo inteiro; o profissional edita na aba Resumo
 - [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
 - [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
+- [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
 
 ## Phase Details
 
@@ -745,3 +746,26 @@ Plans:
 2. Cada atividade mostra só capacidade atual e quanto conseguia antes. Não há campo Atividade nem Consigo por.
 3. Capacidade atual e quanto conseguia antes aceitam uma unidade de medida (minutos, km, repetições), com o par valor + unidade formatado de forma clara.
 4. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas atividades com valor e unidade.
+
+### Phase 25: Mobilidade, palpação e testes
+
+**Goal:** No bloco B de Avaliação e plano, o profissional escolhe a região e marca só os movimentos que vai medir, com direito e esquerdo no mesmo campo e a dor de cada lado. No bloco E, a palpação vira achados por região e estrutura, e os testes clínicos viram uma lista pesquisável.
+**Requirements**: REQ-36
+**Depends on:** Phase 12 (página 04 da ficha já existe)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 25 to break down)
+
+**Cross-cutting constraints:**
+- Só os blocos B e E da página 04 · Avaliação e plano. Blocos A, C–G e as páginas 01–03 ficam como estão
+- A ficha já é jsonb: sem SQL e sem `supabase db push`
+- Não editar `patient-ai-summary`; sem pacote npm novo
+- Leitura, catálogo de export e PDF mostram o que a ficha nova grava
+
+**Success Criteria** (what must be TRUE):
+1. Dá para escolher uma região, marcar só os movimentos dela e acrescentar outra região, cada uma com tipo (ativo, passivo ou ambos) e comparação (bilateral ou unilateral).
+2. Cada movimento marcado mostra direito e esquerdo no mesmo campo. O valor aceita graus ou Completo, Limitado e Não avaliado. A dor de cada lado abre início, intensidade e observação.
+3. A palpação registra achados com região, local filtrado por essa região, lado, achado, dor e observação, numa lista que dá para editar.
+4. Os testes clínicos são uma lista pesquisável, com vários por região e Outro no fim.
+5. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas regiões, movimentos, achados e testes.
