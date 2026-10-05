@@ -78,7 +78,7 @@ function hasLegacyText(row: EvaluationRow) {
  * Mapping: main_complaint→anamnese.queixa.oQueTrouxe; anamnesis→historiaAtual.comoComecou;
  * history→historicoPregresso.observacoes; pain→sintomas.piora.detalhe;
  * limitations→funcao.limitacaoFuncional.item1; goals→funcao.expectativas.boaMelhora;
- * physical_exam→inspecao.achados; tests→palpacaoTestes.testesClinicos;
+ * physical_exam→inspecao.achados; tests→palpacaoTestes.testesRegistroAnterior;
  * measurements→palpacaoTestes.resultados; physio_diagnosis→sintese.diagnosticoFisio;
  * plan→planejamento.criteriosProgressao.
  */
@@ -127,7 +127,7 @@ export function legacyToFicha(row: EvaluationRow): EvaluationFicha {
       },
       palpacaoTestes: {
         ...base.avaliacaoPlano.palpacaoTestes,
-        testesClinicos: emptyToNull(row.tests ?? undefined) ?? undefined,
+        testesRegistroAnterior: emptyToNull(row.tests ?? undefined) ?? undefined,
         resultados: emptyToNull(row.measurements ?? undefined) ?? undefined,
       },
       sintese: {

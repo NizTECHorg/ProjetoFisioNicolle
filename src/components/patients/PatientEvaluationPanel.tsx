@@ -47,7 +47,8 @@ function draftFromPdf(result: PhysicalEvaluationResult): EvaluationFormData {
         },
         palpacaoTestes: {
           ...base.ficha.avaliacaoPlano.palpacaoTestes,
-          testesClinicos: result.muscleForceAndTests,
+          testesRegistroAnterior: result.muscleForceAndTests,
+          testes: [],
         },
         sintese: {
           ...base.ficha.avaliacaoPlano.sintese,

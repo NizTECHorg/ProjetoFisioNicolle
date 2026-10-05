@@ -712,7 +712,7 @@ export function formatLinhaMovimento(movimento: MovimentoMedido, regiao: string)
     ['E', movimento.valorEsquerdo, movimento.dorEsquerdo],
   ]
 
-  for (const [lado, valor, dor] of lados) {
+  for (const [, valor, dor] of lados) {
     if (!texto(valor) || !texto(dor?.inicio)) continue
     const frase = formatFraseAdm(regiao, rotulo, valor ?? '', dor?.inicio ?? '')
     if (frase) partes.push(frase)
