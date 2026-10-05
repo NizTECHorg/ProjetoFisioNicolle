@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 22-06-PLAN.md
-last_updated: "2026-10-04T00:39:10.782Z"
+stopped_at: Phase 23 UI-SPEC approved
+last_updated: "2026-10-05T00:19:52.034Z"
 progress:
-  total_phases: 22
+  total_phases: 23
   completed_phases: 11
-  total_plans: 91
+  total_plans: 96
   completed_plans: 80
-  percent: 50
+  percent: 48
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 22 — resumo-paciente-ia
+**Current focus:** Phase 23 — ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso
 
 ## Current Position
 
-Phase: 22 (resumo-paciente-ia) — EXECUTING
-Plan: 7 of 7
+Phase: 23 (ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso) — PLANNED
+Plan: 0 of 5
 
 - Status: Ready to execute
-- Progress: 0/7 plans
+- Progress: 0/5 plans
 
-**Progress:** [█████████░] 88%
+**Progress:** [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -236,9 +236,9 @@ Plan: 7 of 7
 
 ## Session Continuity
 
-Last session: 2026-10-04T00:39:10.764Z
-Stopped at: Completed 22-06-PLAN.md
-Resume file: None
+Last session: 2026-10-05T00:04:20.642Z
+Stopped at: Phase 23 planned (5 plans)
+Resume file: .planning/phases/23-ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso/23-01-PLAN.md
 
 ## Performance Metrics
 

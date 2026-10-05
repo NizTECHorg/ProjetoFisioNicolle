@@ -680,10 +680,29 @@ Plans:
 **Goal:** Na aba Resumo cada caixa se edita no próprio texto, sem modal. A geração usa o número real de sessões feitas, marca só as áreas de foco do prontuário e da descrição extra, e trata essa descrição com o mesmo peso do prontuário. No Entenda o caso, queixa e diagnóstico longos rolam por um slider discreto em vez de cortar a página.
 **Requirements**: REQ-34
 **Depends on:** Phase 22 (cards, persistência original/edição e a função de resumo)
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 23 to break down)
+**Wave 1**
+
+- [ ] 23-01-PLAN.md — Matcher puro de rótulos (verde) e contratos REQ-34 (parte fica vermelha até os planos seguintes)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 23-02-PLAN.md — Edge Function: count de realizada, descrição como FONTE, focusRegionKeys pelo catálogo
+- [ ] 23-03-PLAN.md — Editor inline em cada caixa do Resumo e remoção do modal
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 23-04-PLAN.md — Rolagem de Queixa/Diagnóstico e rótulo da descrição adicional
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 23-05-PLAN.md — Suíte completa e UAT hospedado (colar o index.ts da fase 13)
+
+**Cross-cutting constraints:**
+- A aba Resumo IA continua só com o original da última geração, sem lápis
+- Salvar uma caixa grava o diff das seis chaves resolvidas; a descrição não substitui `patient.sessionsDone`
 
 **Success Criteria** (what must be TRUE):
 1. Cada campo de texto do Resumo do paciente se edita dentro da própria caixa. Não abre uma janela com todos os campos.
