@@ -23,6 +23,7 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 - ✓ REQ-16 — Atalhos no dashboard — Validated in Phase 4: Nova evolução / Nova avaliação no `/painel`, picker de pacientes graváveis, overlay reusa os editores da ficha
 - ✓ REQ-17 — Financeiro do autônomo — Validated in Phase 5: catálogo nome+R$, XOR avulso + Pago, snapshot, totais RPC mês/ano/sempre; só `autonomo`
 - ✓ REQ-27 — E-mail de confirmação Fluxo — Validated in Phase 15: origem de produção, fluxo implícito, CTA ConfirmationURL, UAT aprovado em 2026-09-23
+- ✓ REQ-35 — Atividades da avaliação com capacidade por item — Validated in Phase 24: grade revela uma linha por atividade; capacidade atual e quanto conseguia antes com unidade (minutos, km, repetições); detalhe, catálogo 03.B e PDF usam a mesma frase
 
 ### Active
 
@@ -73,4 +74,4 @@ Cada atendimento realizado fica documentado e a avaliação inicial estruturada 
 Após cada fase: mover Active → Validated quando shipado; atualizar decisões.
 
 ---
-*Last updated: 2026-09-23 — Phase 15 complete (REQ-27 e-mail Fluxo de confirmação)*
+*Last updated: 2026-10-05 — Phase 24 complete (REQ-35 atividades da avaliação, bloco B)*

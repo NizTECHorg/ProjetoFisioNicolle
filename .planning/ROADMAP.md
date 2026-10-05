@@ -30,7 +30,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 
 - [ ] **Phase 22: Resumo do paciente pela IA** — A IA preenche o resumo inteiro; o profissional edita na aba Resumo
 - [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
-- [ ] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade
+- [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
 
 ## Phase Details
 
