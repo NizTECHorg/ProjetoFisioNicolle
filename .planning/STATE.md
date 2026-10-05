@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 24-02-PLAN.md
-last_updated: "2026-10-05T02:09:40.748Z"
+stopped_at: Completed 24-03-PLAN.md
+last_updated: "2026-10-05T02:16:40.111Z"
 progress:
   total_phases: 24
   completed_phases: 11
   total_plans: 100
-  completed_plans: 86
+  completed_plans: 87
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 24 (atividades-avaliacao-capacidade-e-unidade) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 - Status: Ready to execute
 - Progress: 2/4 plans
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -219,6 +219,8 @@ Plan: 3 of 4
 - [Phase 24]: Free text such as 10 min is not parsed into a unit — Only minutos, km, and repeticoes are units
 - [Phase 24]: REQ-35 stays open after schema and bloco B: detail, catalog, and PDF remain plan 03 — Acceptance item 4 is still plan 03
 - [Phase 24]: Missing atividadesAfetadas keeps .default({}) outside preprocess so parse({}) stays equal to emptyEvaluationFicha() — Absent bloco B must still parse
+- [Phase 24]: REQ-35 stays open after detail, catalog, and PDF: plan 04 owns the suite gate and UAT — Acceptance item 4 shipped in plan 03; plan 04 still lists REQ-35
+- [Phase 24]: Name-only PDF activity lines use drawText; lines with a miolo use drawLabeledValue — drawOptionalField drops an empty value, so a checked activity with no measure would disappear
 
 ### Pending user action
 
@@ -252,8 +254,8 @@ Plan: 3 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-05T02:09:40.721Z
-Stopped at: Completed 24-02-PLAN.md
+Last session: 2026-10-05T02:16:40.087Z
+Stopped at: Completed 24-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -317,3 +319,4 @@ Resume file: None
 | Phase 23 P04 | 2min | 2 tasks | 3 files |
 | Phase 24 P01 | 6min | 2 tasks | 2 files |
 | Phase 24 P02 | 6min | 2 tasks | 4 files |
+| Phase 24 P03 | 5min | 2 tasks | 4 files |
