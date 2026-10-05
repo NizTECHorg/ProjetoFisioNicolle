@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-10-05T23:08:35.459Z"
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-10-05T23:20:23.076Z"
 progress:
   total_phases: 26
   completed_phases: 12
   total_plans: 105
-  completed_plans: 89
+  completed_plans: 90
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 25 (mobilidade-palpacao-e-testes) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 - Status: Ready to execute
 - Progress: 1/5 plans
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -225,6 +225,8 @@ Plan: 2 of 5
 - [Phase 24]: Task 1 stayed uncommitted because the REQ-35 suite was already green — A green file is not edited, and the UAT approval did not require a code commit
 - [Phase 25]: Rótulo ambíguo de mobilidade não escolhe a primeira região: Flexão vai para registroAnterior e Flexão de quadril marca só Quadril / Flexão — Match é rótulo inteiro único, depois segmento após barra, depois composição
 - [Phase 25]: resultados, testeFuncional e resultadoInicial cortam em 2000 no normalize da fase 25 — optionalText(2000) do plano 02 rejeitaria a ficha inteira
+- [Phase 25]: O preprocess de mobilidade e palpação fica fora do default({}) e o valor D/E continua texto — O strip do Zod apaga a chave velha depois do normalize
+- [Phase 25]: A coluna tests e os rascunhos deixam de gravar testesClinicos — emptyToNull só aceita string e a ficha é a fonte
 
 ### Pending user action
 
@@ -259,8 +261,8 @@ Plan: 2 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T23:08:35.417Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-10-05T23:20:23.058Z
+Stopped at: Completed 25-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -327,3 +329,4 @@ Resume file: None
 | Phase 24 P03 | 5min | 2 tasks | 4 files |
 | Phase 24 P04 | 4min | 2 tasks | 0 files |
 | Phase 25 P01 | 16min | 2 tasks | 2 files |
+| Phase 25 P02 | 9min | 2 tasks | 6 files |
