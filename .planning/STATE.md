@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 23-03-PLAN.md
-last_updated: "2026-10-05T00:41:44.678Z"
+stopped_at: Completed 23-04-PLAN.md
+last_updated: "2026-10-05T00:45:27.266Z"
 progress:
   total_phases: 23
   completed_phases: 11
   total_plans: 96
-  completed_plans: 83
+  completed_plans: 84
   percent: 48
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 23 (ajustes-do-resumo-ia-e-rolagem-do-entenda-o-caso) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 - Status: Ready to execute
 - Progress: 3/5 plans
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -212,6 +212,8 @@ Plan: 4 of 5
 - [Phase 23]: buildPrompt treats the extra description as FONTE and states that it does not replace patient.sessionsDone; the evolucao hint stays untrusted
 - [Phase 23]: Each Resumo text field edits inside its card with one editingKey; Salvar calls diffSummaryEdits on all six resolved keys — An UPDATE replaces the whole summary_edits column
 - [Phase 23]: REQ-34 stays open after the inline editor — 34.1 is green; 34.5 scroll and composer label stay red for later plans
+- [Phase 23]: Queixa and Diagnóstico scroll inside max-h 4.5rem; the article and the goal line-clamp-2 stay put — Overflow on the article would scroll metrics and goals with the complaint
+- [Phase 23]: REQ-34 stays open after 23-04; 34.5 is green and plan 05 still owns UAT — requirements.mark-complete was not called because the phase requirement is not finished
 
 ### Pending user action
 
@@ -244,8 +246,8 @@ Plan: 4 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T00:41:44.510Z
-Stopped at: Completed 23-03-PLAN.md
+Last session: 2026-10-05T00:45:27.219Z
+Stopped at: Completed 23-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -306,3 +308,4 @@ Resume file: None
 | Phase 23 P01 | 5min | 2 tasks | 3 files |
 | Phase 23 P02 | 4min | 3 tasks | 2 files |
 | Phase 23 P03 | 6min | 2 tasks | 2 files |
+| Phase 23 P04 | 2min | 2 tasks | 3 files |

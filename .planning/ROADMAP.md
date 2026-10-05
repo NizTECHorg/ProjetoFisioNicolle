@@ -680,7 +680,7 @@ Plans:
 **Goal:** Na aba Resumo cada caixa se edita no próprio texto, sem modal. A geração usa o número real de sessões feitas, marca só as áreas de foco do prontuário e da descrição extra, e trata essa descrição com o mesmo peso do prontuário. No Entenda o caso, queixa e diagnóstico longos rolam por um slider discreto em vez de cortar a página.
 **Requirements**: REQ-34
 **Depends on:** Phase 22 (cards, persistência original/edição e a função de resumo)
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -694,7 +694,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 23-04-PLAN.md — Rolagem de Queixa/Diagnóstico e rótulo da descrição adicional
+- [x] 23-04-PLAN.md — Rolagem de Queixa/Diagnóstico e rótulo da descrição adicional
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
