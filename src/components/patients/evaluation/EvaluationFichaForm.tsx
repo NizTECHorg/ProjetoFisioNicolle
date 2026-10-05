@@ -86,6 +86,7 @@ export function EvaluationFichaForm({
         <EvaluationPage04
           register={register}
           watch={watch}
+          setValue={setValue}
           control={control}
           readOnly={readOnly}
         />
