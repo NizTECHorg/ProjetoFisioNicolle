@@ -717,12 +717,12 @@ Plans:
 **Goal:** No bloco B de 03 Função, o profissional registra várias atividades. Cada uma tem capacidade atual e quanto conseguia antes, com unidade (minutos, km, repetições). Some o campo Atividade solto e o Consigo por separado.
 **Requirements**: REQ-35
 **Depends on:** Phase 12 (ficha 03 Função já existe)
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 24-01-PLAN.md — Helper puro de capacidade (catálogo, normalize, format) e testes verdes
+- [x] 24-01-PLAN.md — Helper puro de capacidade (catálogo, normalize, format) e testes verdes
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 24 planned (4 plans)
-last_updated: "2026-10-05T01:52:07.534Z"
+stopped_at: Completed 24-01-PLAN.md
+last_updated: "2026-10-05T02:00:25.530Z"
 progress:
   total_phases: 24
   completed_phases: 11
   total_plans: 100
-  completed_plans: 84
+  completed_plans: 85
   percent: 46
 ---
 
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 ## Current Position
 
-Phase: 24 (atividades-avaliacao-capacidade-e-unidade) — PLANNED
-Plan: 0 of 4
+Phase: 24 (atividades-avaliacao-capacidade-e-unidade) — EXECUTING
+Plan: 2 of 4
 
 - Status: Ready to execute
-- Progress: 0/4 plans
+- Progress: 1/4 plans
 
-**Progress:** [░░░░░░░░░░] 0%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -214,6 +214,9 @@ Plan: 0 of 4
 - [Phase 23]: REQ-34 stays open after the inline editor — 34.1 is green; 34.5 scroll and composer label stay red for later plans
 - [Phase 23]: Queixa and Diagnóstico scroll inside max-h 4.5rem; the article and the goal line-clamp-2 stay put — Overflow on the article would scroll metrics and goals with the complaint
 - [Phase 23]: REQ-34 stays open after 23-04; 34.5 is green and plan 05 still owns UAT — requirements.mark-complete was not called because the phase requirement is not finished
+- [Phase 24]: REQ-35 stays open after the capacity helper — Schema, page 03, and PDF still belong to plans 02-04
+- [Phase 24]: New-form normalize keeps textoLegado — A second pass must not erase the legacy paragraph
+- [Phase 24]: Free text such as 10 min is not parsed into a unit — Only minutos, km, and repeticoes are units
 
 ### Pending user action
 
@@ -247,9 +250,9 @@ Plan: 0 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-05T01:35:07.538Z
-Stopped at: Phase 24 planned (4 plans)
-Resume file: .planning/phases/24-atividades-avaliacao-capacidade-e-unidade/24-01-PLAN.md
+Last session: 2026-10-05T02:00:25.505Z
+Stopped at: Completed 24-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -310,3 +313,4 @@ Resume file: .planning/phases/24-atividades-avaliacao-capacidade-e-unidade/24-01
 | Phase 23 P02 | 4min | 3 tasks | 2 files |
 | Phase 23 P03 | 6min | 2 tasks | 2 files |
 | Phase 23 P04 | 2min | 2 tasks | 3 files |
+| Phase 24 P01 | 6min | 2 tasks | 2 files |
