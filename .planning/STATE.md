@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-10-05T23:20:23.076Z"
+stopped_at: Completed 25-03-PLAN.md
+last_updated: "2026-10-05T23:37:34.072Z"
 progress:
   total_phases: 26
   completed_phases: 12
   total_plans: 105
-  completed_plans: 90
+  completed_plans: 91
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 25 (mobilidade-palpacao-e-testes) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 - Status: Ready to execute
 - Progress: 1/5 plans
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -227,6 +227,9 @@ Plan: 3 of 5
 - [Phase 25]: resultados, testeFuncional e resultadoInicial cortam em 2000 no normalize da fase 25 — optionalText(2000) do plano 02 rejeitaria a ficha inteira
 - [Phase 25]: O preprocess de mobilidade e palpação fica fora do default({}) e o valor D/E continua texto — O strip do Zod apaga a chave velha depois do normalize
 - [Phase 25]: A coluna tests e os rascunhos deixam de gravar testesClinicos — emptyToNull só aceita string e a ficha é a fonte
+- [Phase 25]: Trocar a região da mobilidade chama replace([]) nos movimentos, para a chave do catálogo anterior não ficar no array — O array só deve ter o movimento marcado da região atual
+- [Phase 25]: O rascunho do achado e a busca de teste são useState; o Lado copia o markup do RadioRow sem virar campo da ficha — RadioRow exige register e o rascunho não é campo da ficha
+- [Phase 25]: Salvar achado fica desabilitado com a região vazia, no mesmo travamento de Adicionar achado — O schema exige região no achado
 
 ### Pending user action
 
@@ -261,8 +264,8 @@ Plan: 3 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T23:20:23.058Z
-Stopped at: Completed 25-02-PLAN.md
+Last session: 2026-10-05T23:37:24.523Z
+Stopped at: Completed 25-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -330,3 +333,4 @@ Resume file: None
 | Phase 24 P04 | 4min | 2 tasks | 0 files |
 | Phase 25 P01 | 16min | 2 tasks | 2 files |
 | Phase 25 P02 | 9min | 2 tasks | 6 files |
+| Phase 25 P03 | 14min | 2 tasks | 2 files |
