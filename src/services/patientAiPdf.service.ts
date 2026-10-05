@@ -9,6 +9,7 @@ import {
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
+import { ATIVIDADES, formatLinha, formatMiolo } from '@/lib/atividadeCapacidade'
 import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/lib/focusRegions'
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import type { PatientGoal, PatientFocusArea, SessionEvolution } from '@/types/patient'
@@ -1901,33 +1902,15 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     textFilled(funcao?.limitacaoFuncional?.item2) ||
     textFilled(funcao?.limitacaoFuncional?.item3)
 
-  const atividadeItems = checkedLabels(
-    funcao?.atividadesAfetadas as Record<string, unknown> | undefined,
-    {
-      caminhar: 'Caminhar',
-      correr: 'Correr',
-      escadas: 'Escadas',
-      agachar: 'Agachar',
-      sentar: 'Sentar',
-      levantar: 'Levantar',
-      dormir: 'Dormir',
-      dirigir: 'Dirigir',
-      trabalhar: 'Trabalhar',
-      estudar: 'Estudar',
-      cuidarCasa: 'Cuidar da casa',
-      vestirSe: 'Vestir-se',
-      esporte: 'Esporte',
-      lazer: 'Lazer',
-      autocuidado: 'Autocuidado',
-      outra: 'Outra',
-    },
-  )
+  const atividadesBloco = funcao?.atividadesAfetadas
   const hasAtividades =
-    atividadeItems.length > 0 ||
-    textFilled(funcao?.atividadesAfetadas?.capacidadeAtual) ||
-    textFilled(funcao?.atividadesAfetadas?.atividade) ||
-    textFilled(funcao?.atividadesAfetadas?.consigoPor) ||
-    textFilled(funcao?.atividadesAfetadas?.antesConseguiaPor)
+    ATIVIDADES.some((item) => {
+      const marcada = atividadesBloco?.[item.key] === true
+      const capacidade = atividadesBloco?.capacidades?.[item.key]
+      return marcada || Boolean(formatMiolo(capacidade?.atual, capacidade?.antes))
+    }) ||
+    textFilled(atividadesBloco?.outraDetalhe) ||
+    textFilled(atividadesBloco?.textoLegado)
 
   const trabalhoItems = checkedLabels(
     funcao?.rotina?.trabalho as Record<string, unknown> | undefined,
@@ -2018,11 +2001,27 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     }
     if (show03B) {
       drawFichaBlockFrame(ctx, 'B', 'Atividades afetadas', () => {
-        drawOptionalBullets(ctx, 'Atividades', atividadeItems)
-        drawOptionalField(ctx, 'Capacidade atual', funcao?.atividadesAfetadas?.capacidadeAtual)
-        drawOptionalField(ctx, 'Atividade', funcao?.atividadesAfetadas?.atividade)
-        drawOptionalField(ctx, 'Consigo por', funcao?.atividadesAfetadas?.consigoPor)
-        drawOptionalField(ctx, 'Antes conseguia por', funcao?.atividadesAfetadas?.antesConseguiaPor)
+        for (const item of ATIVIDADES) {
+          const marcada = atividadesBloco?.[item.key] === true
+          const capacidade = atividadesBloco?.capacidades?.[item.key]
+          const miolo = formatMiolo(capacidade?.atual, capacidade?.antes)
+          const linha = formatLinha(item.label, capacidade?.atual, capacidade?.antes)
+          if (!marcada && !miolo) continue
+          if (miolo) {
+            drawLabeledValue(ctx, item.label, miolo)
+          } else {
+            ensureSpace(ctx, LINE.body)
+            ctx.page.drawText(toWinAnsiSafe(linha), {
+              x: ctx.contentX,
+              y: ctx.y,
+              size: SIZE.body,
+              font: ctx.font,
+              color: COLORS.ink,
+            })
+            ctx.y -= LINE.body
+          }
+        }
+        drawOptionalField(ctx, 'Registro anterior', atividadesBloco?.textoLegado)
       })
     }
     if (show03C) {

@@ -1,4 +1,5 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
+import { ATIVIDADES, formatLinha } from '@/lib/atividadeCapacidade'
 
 export type PdfFieldId = string
 
@@ -365,43 +366,26 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     ),
   })
 
-  const atividadeItems = checkedLabels(
-    funcao?.atividadesAfetadas as Record<string, unknown> | undefined,
-    {
-      caminhar: 'Caminhar',
-      correr: 'Correr',
-      escadas: 'Escadas',
-      agachar: 'Agachar',
-      sentar: 'Sentar',
-      levantar: 'Levantar',
-      dormir: 'Dormir',
-      dirigir: 'Dirigir',
-      trabalhar: 'Trabalhar',
-      estudar: 'Estudar',
-      cuidarCasa: 'Cuidar da casa',
-      vestirSe: 'Vestir-se',
-      esporte: 'Esporte',
-      lazer: 'Lazer',
-      autocuidado: 'Autocuidado',
-      outra: 'Outra',
-    },
-  )
+  const atividades = funcao?.atividadesAfetadas
+  const linhasAtividade = ATIVIDADES.flatMap((item) => {
+    const marcada = atividades?.[item.key] === true
+    const capacidade = atividades?.capacidades?.[item.key]
+    const linha = formatLinha(item.label, capacidade?.atual, capacidade?.antes)
+    if (!marcada && linha === item.label) return []
+    return [linha]
+  })
+  const textoLegado = atividades?.textoLegado
+  const registroAnterior = textFilled(textoLegado) ? `Registro anterior: ${textoLegado.trim()}` : undefined
   const hasAtividades =
-    atividadeItems.length > 0 ||
-    textFilled(funcao?.atividadesAfetadas?.capacidadeAtual) ||
-    textFilled(funcao?.atividadesAfetadas?.atividade) ||
-    textFilled(funcao?.atividadesAfetadas?.consigoPor) ||
-    textFilled(funcao?.atividadesAfetadas?.antesConseguiaPor)
+    linhasAtividade.length > 0 ||
+    textFilled(atividades?.outraDetalhe) ||
+    textFilled(textoLegado)
   pushBlock(items, {
     id: '03.B',
     label: 'Atividades afetadas',
     groupLabel: '03 · Função · Bloco B',
     filled: hasAtividades,
-    preview: previewFrom(
-      atividadeItems[0],
-      funcao?.atividadesAfetadas?.capacidadeAtual,
-      funcao?.atividadesAfetadas?.atividade,
-    ),
+    preview: previewFrom(linhasAtividade[0], registroAnterior),
   })
 
   const trabalhoItems = checkedLabels(
