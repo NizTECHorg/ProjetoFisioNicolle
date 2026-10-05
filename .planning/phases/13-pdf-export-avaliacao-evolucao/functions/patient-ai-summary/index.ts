@@ -229,7 +229,7 @@ async function assembleContextPack(
   patientId: string,
 ): Promise<Record<string, unknown> | Response> {
   const patientSelect =
-    'id, full_name, code, birth_date, status, profession, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, complaint, diagnosis, last_visit_on'
+    'id, full_name, code, birth_date, status, profession, admin_notes, referral_source, treatment_started_on, sessions_planned, frequency, therapist_name, complaint, diagnosis, last_visit_on'
 
   const { data: patientData, error: patientError } = await client
     .from('patients')
@@ -246,7 +246,8 @@ async function assembleContextPack(
 
   const patient = patientData as PatientRow
 
-  const [goalsRes, focusRes, alertsRes, sessionsRes, evalsRes] = await Promise.all([
+  const [goalsRes, focusRes, alertsRes, sessionsRes, evalsRes, completedCountRes] =
+    await Promise.all([
     client
       .from('patient_goals')
       .select('title, status, is_done')
@@ -292,6 +293,11 @@ async function assembleContextPack(
       .eq('patient_id', patientId)
       .order('performed_on', { ascending: false })
       .limit(10),
+    client
+      .from('patient_sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('patient_id', patientId)
+      .eq('status', 'realizada'),
   ])
 
   // Soft-fail empty collections on secondary query errors (RLS may hide); patient already readable.
@@ -367,7 +373,7 @@ async function assembleContextPack(
       complaint: truncate(patient.complaint),
       diagnosis: truncate(patient.diagnosis),
       lastVisit: patient.last_visit_on ?? undefined,
-      sessionsDone: patient.sessions_done ?? undefined,
+      sessionsDone: completedCountRes.error ? undefined : (completedCountRes.count ?? 0),
       sessionsPlanned: patient.sessions_planned ?? undefined,
       frequency: truncate(patient.frequency, 80),
       therapist: truncate(patient.therapist_name, 120),
