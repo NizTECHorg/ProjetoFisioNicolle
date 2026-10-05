@@ -168,11 +168,23 @@ function EntendaOCaso({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-muted">Queixa</p>
-            <p className="mt-1 line-clamp-3 text-sm leading-6 text-ink">{clampText(patient.complaint)}</p>
+            <p
+              className="case-scroll mt-1 max-h-[4.5rem] overflow-y-auto overscroll-contain text-sm leading-6 text-ink"
+              tabIndex={0}
+              aria-label="Queixa"
+            >
+              {clampText(patient.complaint)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted">Diagnóstico</p>
-            <p className="mt-1 line-clamp-3 text-sm leading-6 text-ink">{clampText(patient.diagnosis)}</p>
+            <p
+              className="case-scroll mt-1 max-h-[4.5rem] overflow-y-auto overscroll-contain text-sm leading-6 text-ink"
+              tabIndex={0}
+              aria-label="Diagnóstico"
+            >
+              {clampText(patient.diagnosis)}
+            </p>
           </div>
         </div>
 

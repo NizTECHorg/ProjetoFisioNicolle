@@ -149,6 +149,24 @@
   border-radius: 999px;
 }
 
+.case-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 32, 56, 0.28) transparent;
+}
+
+.case-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.case-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.case-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(16, 32, 56, 0.28);
+  border-radius: 999px;
+}
+
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
