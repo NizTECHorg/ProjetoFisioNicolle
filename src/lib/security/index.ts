@@ -106,7 +106,7 @@ export function mapAuthError(error: {
     message.includes('email address has already been registered') ||
     message.includes('already exists')
   ) {
-    return 'Este e-mail já está cadastrado. Entre ou use outro e-mail.'
+    return 'Se já possuir uma conta cadastrada, acesse a página de login ou utilize a recuperação de senha.'
   }
 
   if (message.includes('password')) {

@@ -19,35 +19,11 @@ import { analyzePhysicalEvaluationPdf } from '@/services/aiPhysicalEvaluation.se
 import { useUpdatePatient } from '@/hooks/usePatients'
 import type { PhysicalEvaluationResult } from '@/types/evaluation'
 
-const INVENTED_DIAGNOSIS_FNV1A = 'd7513069ba374c9f'
-const FNV1A64_OFFSET = 0xcbf29ce484222325n
-const FNV1A64_PRIME = 0x100000001b3n
-const FNV1A64_MASK = 0xffffffffffffffffn
-
-function fnv1a64Hex(text: string): string {
-  const bytes = new TextEncoder().encode(text)
-  let hash = FNV1A64_OFFSET
-  for (const byte of bytes) {
-    hash ^= BigInt(byte)
-    hash = (hash * FNV1A64_PRIME) & FNV1A64_MASK
-  }
-  return hash.toString(16).padStart(16, '0')
-}
-
-function readStoredEvaluations(storageKey: string): PhysicalEvaluationResult[] {
+function cleanLegacyStorage(patientId: string): void {
   try {
-    const saved = localStorage.getItem(storageKey)
-    if (!saved) return []
-    const parsed: unknown = JSON.parse(saved)
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((item): item is PhysicalEvaluationResult => {
-      if (item === null || typeof item !== 'object') return true
-      const diagnosis = (item as { cinesiologicDiagnosis?: unknown }).cinesiologicDiagnosis
-      if (typeof diagnosis !== 'string') return true
-      return fnv1a64Hex(diagnosis) !== INVENTED_DIAGNOSIS_FNV1A
-    })
+    localStorage.removeItem(`fisio.evaluations.${patientId}`)
   } catch {
-    return []
+    /* ignore */
   }
 }
 
@@ -65,11 +41,10 @@ export function PatientPhysicalEvaluationPanel({
   onUseAsEvaluation,
 }: PatientPhysicalEvaluationPanelProps) {
   const updatePatient = useUpdatePatient()
-  const storageKey = `fisio.evaluations.${patientId}`
 
-  const [evaluations, setEvaluations] = useState<PhysicalEvaluationResult[]>(() =>
-    readStoredEvaluations(storageKey),
-  )
+  // Mantido em estado de memória seguro durante a sessão do usuário (em conformidade com LGPD).
+  // Laudos aplicados são salvos diretamente no banco de dados via updatePatient.
+  const [evaluations, setEvaluations] = useState<PhysicalEvaluationResult[]>([])
 
   const [selectedEvaluation, setSelectedEvaluation] = useState<PhysicalEvaluationResult | null>(
     null,
@@ -79,13 +54,10 @@ export function PatientPhysicalEvaluationPanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [appliedSuccess, setAppliedSuccess] = useState(false)
 
+  // Remove dados legados que possam ter sido gravados em localStorage em versões anteriores
   useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(evaluations))
-    } catch {
-      /* ignore */
-    }
-  }, [evaluations, storageKey])
+    cleanLegacyStorage(patientId)
+  }, [patientId])
 
   useEffect(() => {
     if (evaluations.length > 0 && !selectedEvaluation) {

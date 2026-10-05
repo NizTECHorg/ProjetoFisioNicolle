@@ -112,7 +112,7 @@ export async function signUpWithEmail(
 
   assertRateLimit([`auth:register:${email}`, 'auth:register:global'])
 
-  const { data: authData, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password: parsed.password,
     options: {
@@ -132,17 +132,11 @@ export async function signUpWithEmail(
     throw new Error(mapAuthError(error))
   }
 
-  // Com "Confirm email" ligado, o Supabase não retorna erro no e-mail duplicado:
-  // devolve um user ofuscado com identities vazias. Tratar como já cadastrado.
-  const identities = authData.user?.identities ?? []
-  const isDuplicateProbe = Boolean(authData.user) && identities.length === 0
-  if (isDuplicateProbe) {
-    throw new Error('Este e-mail já está cadastrado. Entre ou use outro e-mail.')
-  }
-
+  // Para evitar enumeração de contas (Account Enumeration) segundo as melhores práticas
+  // de segurança e privacidade (LGPD), não vazamos para o cliente se o e-mail já existe.
   resetRateLimit(`auth:register:${email}`)
 
-  return { needsEmailConfirmation: !authData.session }
+  return { needsEmailConfirmation: true }
 }
 
 export async function signOut(): Promise<void> {

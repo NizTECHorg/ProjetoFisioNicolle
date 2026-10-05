@@ -722,6 +722,100 @@ async function callGeminiEvolucao(
   return callGeminiWithParse(apiKey, prompt, parseEvolucaoJson)
 }
 
+function parsePdfEvaluationJson(text: string): {
+  summary: string
+  mainComplaint: string
+  postureAndMovement: string
+  muscleForceAndTests: string
+  cinesiologicDiagnosis: string
+  suggestedTreatmentPlan: string
+  suggestedGoals: string[]
+} | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    const match = text.match(/\{[\s\S]*\}/)
+    if (!match) return null
+    try {
+      parsed = JSON.parse(match[0])
+    } catch {
+      return null
+    }
+  }
+  if (!parsed || typeof parsed !== 'object') return null
+  const obj = parsed as Record<string, unknown>
+  return {
+    summary: typeof obj.summary === 'string' ? obj.summary.trim() : 'Avaliação física processada.',
+    mainComplaint: typeof obj.mainComplaint === 'string' ? obj.mainComplaint.trim() : 'Não especificada no PDF.',
+    postureAndMovement: typeof obj.postureAndMovement === 'string' ? obj.postureAndMovement.trim() : 'Sem observações.',
+    muscleForceAndTests: typeof obj.muscleForceAndTests === 'string' ? obj.muscleForceAndTests.trim() : 'Testes padrão realizados.',
+    cinesiologicDiagnosis: typeof obj.cinesiologicDiagnosis === 'string' ? obj.cinesiologicDiagnosis.trim() : 'Avaliação fisioterapêutica completa.',
+    suggestedTreatmentPlan: typeof obj.suggestedTreatmentPlan === 'string' ? obj.suggestedTreatmentPlan.trim() : 'Seguir plano recomendado.',
+    suggestedGoals: Array.isArray(obj.suggestedGoals) ? (obj.suggestedGoals.filter((g): g is string => typeof g === 'string')) : [],
+  }
+}
+
+async function callGeminiPdfEvaluation(
+  apiKey: string,
+  prompt: string,
+  pdfBase64: string,
+  mimeType: string,
+): Promise<
+  | NonNullable<ReturnType<typeof parsePdfEvaluationJson>>
+  | { error: 'ai_unavailable' | 'misconfigured' }
+> {
+  let sawKeyError = false
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  { inline_data: { mime_type: mimeType, data: pdfBase64 } },
+                ],
+              },
+            ],
+            generationConfig: {
+              response_mime_type: 'application/json',
+            },
+          }),
+        },
+      )
+      if (res.status === 400 || res.status === 401 || res.status === 403) {
+        const errText = await res.text().catch(() => '')
+        if (errText.toLowerCase().includes('api_key') || errText.toLowerCase().includes('permission')) {
+          sawKeyError = true
+        }
+        continue
+      }
+      if (res.status === 404 || res.status === 429 || res.status === 503 || !res.ok) {
+        continue
+      }
+      const data = (await res.json()) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+      }
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!rawText) continue
+      const parsed = parsePdfEvaluationJson(rawText)
+      if (parsed) return parsed
+    } catch {
+      continue
+    }
+  }
+  if (sawKeyError) return { error: 'misconfigured' }
+  return { error: 'ai_unavailable' }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return optionsResponse()
   if (req.method !== 'POST') {
@@ -737,6 +831,8 @@ Deno.serve(async (req: Request) => {
     userHint?: unknown
     mode?: unknown
     sessionIds?: unknown
+    pdfBase64?: unknown
+    mimeType?: unknown
   }
   try {
     body = (await req.json()) as typeof body
@@ -750,9 +846,13 @@ Deno.serve(async (req: Request) => {
   }
 
   const mode =
-    body.mode === 'evolucao' ? 'evolucao' : body.mode === 'resumo' || body.mode === undefined || body.mode === null
-      ? 'resumo'
-      : null
+    body.mode === 'evolucao'
+      ? 'evolucao'
+      : body.mode === 'avaliacao-fisica'
+        ? 'avaliacao-fisica'
+        : body.mode === 'resumo' || body.mode === undefined || body.mode === null
+          ? 'resumo'
+          : null
   if (mode === null) {
     return jsonResponse({ error: 'invalid_body', code: 'invalid_body' }, 400)
   }
@@ -813,6 +913,50 @@ Deno.serve(async (req: Request) => {
     }
 
     // Never write patients.ai_summary on evolucao (REQ-25.6) — return synthesis only.
+    return jsonResponse(result)
+  }
+
+  if (mode === 'avaliacao-fisica') {
+    const { data: patientData, error: patientError } = await userClient
+      .from('patients')
+      .select('id')
+      .eq('id', patientId)
+      .maybeSingle()
+
+    if (patientError || !patientData) {
+      return jsonResponse({ error: 'forbidden', code: 'forbidden' }, 403)
+    }
+
+    const pdfBase64 = typeof body.pdfBase64 === 'string' ? body.pdfBase64.trim() : ''
+    const mimeType =
+      typeof body.mimeType === 'string' && body.mimeType.trim()
+        ? body.mimeType.trim()
+        : 'application/pdf'
+
+    if (!pdfBase64) {
+      return jsonResponse({ error: 'invalid_body', code: 'invalid_body' }, 400)
+    }
+
+    const systemPrompt = `Você é um fisioterapeuta perito em avaliação física e funcional.
+Analise o documento PDF de Avaliação Física fornecido e responda estritamente em formato JSON válido com as seguintes chaves (em português):
+{
+  "summary": "Resumo executivo com os dados principais do paciente e motivo da avaliação",
+  "mainComplaint": "Queixa principal do paciente e histórico da lesão/dor",
+  "postureAndMovement": "Análise postural, amplitudes de movimento (ADM) e desvios identificados",
+  "muscleForceAndTests": "Força muscular (escala de 0 a 5), testes ortopédicos e funcionais aplicados",
+  "cinesiologicDiagnosis": "Diagnóstico Cinesiológico Funcional final",
+  "suggestedTreatmentPlan": "Plano de tratamento fisioterapêutico recomendado (condutas, frequência, recursos)",
+  "suggestedGoals": ["Objetivo 1", "Objetivo 2", "Objetivo 3"]
+}`
+
+    const result = await callGeminiPdfEvaluation(apiKey, systemPrompt, pdfBase64, mimeType)
+    if ('error' in result) {
+      if (result.error === 'misconfigured') {
+        return jsonResponse({ error: 'misconfigured', code: 'misconfigured' }, 500)
+      }
+      return jsonResponse({ error: 'ai_unavailable', code: 'ai_unavailable' }, 503)
+    }
+
     return jsonResponse(result)
   }
 

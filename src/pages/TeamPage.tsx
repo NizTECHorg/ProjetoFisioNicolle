@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { DataTable } from '@/components/ui/DataTable'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useAuth } from '@/hooks/useAuth'
-import { useDecideMembership, useTeam } from '@/hooks/useTeam'
+import { useDecideMembership, useRevokeMembership, useTeam } from '@/hooks/useTeam'
 import { canManageTeam } from '@/lib/accountAccess'
 import { toast } from '@/stores/toast.store'
 import type { TeamMember } from '@/types/account'
@@ -26,7 +26,9 @@ export function TeamPage() {
   const { profile } = useAuth()
   const { data, isLoading, isError } = useTeam()
   const decide = useDecideMembership()
+  const revoke = useRevokeMembership()
   const [pendingReject, setPendingReject] = useState<TeamMember | null>(null)
+  const [pendingRevoke, setPendingRevoke] = useState<TeamMember | null>(null)
 
   if (!canManageTeam(profile?.accountType)) {
     return <Navigate to="/pacientes" replace />
@@ -212,6 +214,22 @@ export function TeamPage() {
                     header: 'Status',
                     render: () => <Badge tone="info">Na equipe</Badge>,
                   },
+                  {
+                    key: 'actions',
+                    header: '',
+                    render: (row) => (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="text-xs text-error hover:bg-error/10 hover:text-error"
+                          onClick={() => setPendingRevoke(row)}
+                        >
+                          Remover da equipe
+                        </Button>
+                      </div>
+                    ),
+                  },
                 ]}
                 data={active}
                 rowKey={(row) => row.id}
@@ -225,8 +243,16 @@ export function TeamPage() {
                     <article key={member.id} className="rounded-2xl border border-line bg-surface p-4">
                       <p className="min-w-0 truncate text-sm font-semibold text-ink">{member.fullName || '—'}</p>
                       <p className="mt-0.5 min-w-0 truncate text-xs text-muted">{member.email || '—'}</p>
-                      <div className="mt-3">
+                      <div className="mt-3 flex items-center justify-between">
                         <Badge tone="info">Na equipe</Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="text-xs text-error hover:bg-error/10 hover:text-error"
+                          onClick={() => setPendingRevoke(member)}
+                        >
+                          Remover
+                        </Button>
                       </div>
                     </article>
                   ))}
@@ -248,6 +274,22 @@ export function TeamPage() {
                         key: 'status',
                         header: 'Status',
                         render: () => <Badge tone="info">Na equipe</Badge>,
+                      },
+                      {
+                        key: 'actions',
+                        header: '',
+                        render: (row) => (
+                          <div className="flex justify-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="text-xs text-error hover:bg-error/10 hover:text-error"
+                              onClick={() => setPendingRevoke(row)}
+                            >
+                              Remover da equipe
+                            </Button>
+                          </div>
+                        ),
                       },
                     ]}
                     data={active}
@@ -280,6 +322,28 @@ export function TeamPage() {
           decide.mutate(
             { membershipId: pendingReject.id, accept: false, fullName: pendingReject.fullName },
             { onSuccess: () => setPendingReject(null) },
+          )
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingRevoke)}
+        title="Remover fisioterapeuta da equipe"
+        description={
+          pendingRevoke
+            ? `Tem certeza que deseja remover ${memberName(pendingRevoke)} da equipe? O acesso desta conta aos prontuários e pacientes da clínica será revogado imediatamente.`
+            : ''
+        }
+        confirmLabel="Remover acesso"
+        cancelLabel="Cancelar"
+        tone="danger"
+        isLoading={revoke.isPending}
+        onClose={() => setPendingRevoke(null)}
+        onConfirm={() => {
+          if (!pendingRevoke) return
+          revoke.mutate(
+            { membershipId: pendingRevoke.id, fullName: pendingRevoke.fullName },
+            { onSuccess: () => setPendingRevoke(null) },
           )
         }}
       />

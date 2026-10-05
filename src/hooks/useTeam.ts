@@ -4,6 +4,7 @@ import {
   fetchMembership,
   fetchOwnerOrganization,
   listTeamMembers,
+  revokeMembership,
 } from '@/services/team.service'
 import { toast } from '@/stores/toast.store'
 import { useAccountScope } from '@/hooks/useAccountScope'
@@ -52,6 +53,24 @@ export function useDecideMembership() {
       } else {
         toast(`Pedido de ${nome} recusado. A conta foi cancelada.`, 'success')
       }
+      void qc.invalidateQueries({ queryKey: ['team'] })
+    },
+    onError,
+  })
+}
+
+export function useRevokeMembership() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      membershipId,
+    }: {
+      membershipId: string
+      fullName: string
+    }) => revokeMembership(membershipId),
+    onSuccess: (_data, variables) => {
+      const nome = variables.fullName.trim() || 'Fisioterapeuta'
+      toast(`${nome} foi removido da equipe.`, 'success')
       void qc.invalidateQueries({ queryKey: ['team'] })
     },
     onError,

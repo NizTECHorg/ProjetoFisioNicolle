@@ -534,13 +534,8 @@ export async function listEmployees() {
   return data ?? []
 }
 
-export async function adminUpdateProfile(userId: string, role: EmployeeRole, isActive: boolean) {
-  const { error } = await supabase.rpc('admin_update_profile', {
-    target_user_id: userId,
-    new_role: role,
-    new_is_active: isActive,
-  })
-  if (error) throwDb(error)
+export async function adminUpdateProfile(_userId: string, _role: EmployeeRole, _isActive: boolean) {
+  throw new Error('Operação desativada por motivos de segurança.')
 }
 
 export async function getCompanySettings(): Promise<CompanySettings | null> {

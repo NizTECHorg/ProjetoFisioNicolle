@@ -173,9 +173,12 @@ function emptyToNull(value?: string) {
 
 function generatePatientCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const randomBytes = new Uint8Array(6)
+  crypto.getRandomValues(randomBytes)
   let suffix = ''
   for (let i = 0; i < 6; i += 1) {
-    suffix += alphabet[Math.floor(Math.random() * alphabet.length)]
+    const byte = randomBytes[i] ?? 0
+    suffix += alphabet[byte % alphabet.length]
   }
   return `PAC-${suffix}`
 }

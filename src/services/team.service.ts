@@ -145,3 +145,10 @@ export async function decideMembership(membershipId: string, accept: boolean): P
   })
   if (error) throw new Error(mapDbError(error))
 }
+
+export async function revokeMembership(membershipId: string): Promise<void> {
+  const { error } = await supabase.rpc('revoke_membership', {
+    p_membership_id: membershipId,
+  })
+  if (error) throw new Error(mapDbError(error))
+}
