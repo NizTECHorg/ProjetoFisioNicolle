@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import { deepEqual, equal } from 'node:assert/strict'
+import { emptyEvaluationFicha, evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 import {
   ATIVIDADES,
   formatLinha,
@@ -284,4 +285,103 @@ test('REQ-35: valor, textoLegado e outraDetalhe respeitam o teto', () => {
   equal(legado.capacidades.caminhar, undefined)
   equal(legado.capacidades.correr, undefined)
   equal(legado.textoLegado?.length, 1200)
+})
+
+test('REQ-35: anamnese sobrevive ao parse de um bloco B legado', () => {
+  const parsed = evaluationFichaSchema.parse({
+    anamnese: { queixa: { oQueTrouxe: 'dor no joelho ao correr' } },
+    funcao: {
+      atividadesAfetadas: {
+        caminhar: true,
+        capacidadeAtual: '10',
+      },
+    },
+  })
+  equal(parsed.anamnese?.queixa?.oQueTrouxe, 'dor no joelho ao correr')
+  equal(parsed.funcao?.atividadesAfetadas?.caminhar, true)
+  equal(parsed.funcao?.atividadesAfetadas?.capacidades?.caminhar?.atual?.unidade, undefined)
+  deepEqual(parsed.funcao?.atividadesAfetadas?.capacidades?.caminhar, { atual: { valor: '10' } })
+})
+
+test('REQ-35: parse não devolve os quatro textos velhos', () => {
+  const parsed = evaluationFichaSchema.parse({
+    funcao: {
+      atividadesAfetadas: {
+        correr: true,
+        capacidadeAtual: '10',
+        atividade: 'Correr',
+        consigoPor: '5',
+        antesConseguiaPor: '40',
+      },
+    },
+  })
+  const bloco = parsed.funcao?.atividadesAfetadas ?? {}
+  equal('capacidadeAtual' in bloco, false)
+  equal('atividade' in bloco, false)
+  equal('consigoPor' in bloco, false)
+  equal('antesConseguiaPor' in bloco, false)
+})
+
+test('REQ-35: capacidade órfã com bool falsa sai do parse', () => {
+  const parsed = evaluationFichaSchema.parse({
+    funcao: {
+      atividadesAfetadas: {
+        correr: false,
+        caminhar: true,
+        capacidades: {
+          correr: { atual: { valor: '10', unidade: 'minutos' } },
+          caminhar: { atual: { valor: '3', unidade: 'km' } },
+        },
+      },
+    },
+  })
+  const bloco = parsed.funcao?.atividadesAfetadas
+  equal(bloco?.correr, false)
+  equal(bloco?.caminhar, true)
+  equal('capacidades' in (bloco ?? {}), true)
+  equal(bloco?.capacidades?.correr, undefined)
+  deepEqual(bloco?.capacidades?.caminhar, { atual: { valor: '3', unidade: 'km' } })
+})
+
+test('REQ-35: unidade fora do enum não quebra a ficha e não vira unidade', () => {
+  const parsed = evaluationFichaSchema.parse({
+    anamnese: { queixa: { oQueTrouxe: 'dor' } },
+    funcao: {
+      atividadesAfetadas: {
+        correr: true,
+        capacidades: {
+          correr: {
+            atual: { valor: '10', unidade: 'min' },
+            antes: { valor: '2km', unidade: 'livre' },
+          },
+        },
+      },
+    },
+  })
+  equal(parsed.anamnese?.queixa?.oQueTrouxe, 'dor')
+  const correr = parsed.funcao?.atividadesAfetadas?.capacidades?.correr
+  equal(correr?.atual?.unidade, undefined)
+  equal(correr?.antes?.unidade, undefined)
+  deepEqual(correr, { atual: { valor: '10' }, antes: { valor: '2km' } })
+})
+
+test('REQ-35: valor legado acima de 200 é cortado e a ficha parseia', () => {
+  const queixa = 'dor lombar'
+  const parsed = evaluationFichaSchema.parse({
+    anamnese: { queixa: { oQueTrouxe: queixa } },
+    funcao: {
+      atividadesAfetadas: {
+        caminhar: true,
+        capacidadeAtual: 'a'.repeat(250),
+      },
+    },
+  })
+  equal(parsed.anamnese?.queixa?.oQueTrouxe, queixa)
+  const valor = parsed.funcao?.atividadesAfetadas?.capacidades?.caminhar?.atual?.valor ?? ''
+  equal(valor.length <= 200, true)
+  equal(valor, 'a'.repeat(200))
+})
+
+test('REQ-35: parse({}) continua válido', () => {
+  deepEqual(evaluationFichaSchema.parse({}), emptyEvaluationFicha())
 })
