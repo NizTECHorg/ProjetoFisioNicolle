@@ -1,5 +1,6 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { DetailLeaf } from '@/components/patients/evaluation/fichaFormPrimitives'
+import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
 import { FOCUS_REGIONS } from '@/lib/focusRegions'
 
 const SYMBOL_GLYPH: Record<string, string> = {
@@ -45,6 +46,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
   const pregresso = ficha.anamnese?.historicoPregresso
   const sintomas = ficha.sintomas
   const funcao = ficha.funcao
+  const atividades = funcao?.atividadesAfetadas
   const plano = ficha.avaliacaoPlano
 
   const marks = sintomas?.mapa?.marks ?? []
@@ -114,6 +116,17 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Limitação 1" value={funcao?.limitacaoFuncional?.item1} />
         <DetailLeaf label="Limitação 2" value={funcao?.limitacaoFuncional?.item2} />
         <DetailLeaf label="Limitação 3" value={funcao?.limitacaoFuncional?.item3} />
+        {ATIVIDADES.map((item) => {
+          const marcada = atividades?.[item.key] === true
+          const capacidade = atividades?.capacidades?.[item.key]
+          const miolo = formatMiolo(capacidade?.atual, capacidade?.antes)
+          if (!marcada && !miolo) return null
+          return <DetailLeaf key={item.key} label={item.label} value={miolo || true} />
+        })}
+        <DetailLeaf
+          label="Registro anterior"
+          value={atividades?.textoLegado?.trim() ? atividades.textoLegado : undefined}
+        />
         <DetailLeaf label="Boa melhora" value={funcao?.expectativas?.boaMelhora} />
         <DetailLeaf label="Triagem — observações" value={funcao?.triagemSeguranca?.observacoes} />
         <DetailLeaf label="Medicamentos" value={funcao?.medicacoes?.medicamentos} />
