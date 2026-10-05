@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Planning Phase 25 — mobilidade, palpação e testes
-last_updated: 2026-10-05T21:45:00.000Z
+stopped_at: Phase 25 UI-SPEC approved
+last_updated: "2026-10-05T22:49:57.422Z"
 progress:
-  total_phases: 25
+  total_phases: 26
   completed_phases: 12
-  total_plans: 100
+  total_plans: 105
   completed_plans: 88
-  percent: 50
+  percent: 46
 ---
 
 # Project State
@@ -21,12 +21,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 25 — mobilidade, palpação e testes
+**Current focus:** Phase 25 — mobilidade-palpacao-e-testes
 
 ## Current Position
 
-Phase: 24
-Plan: Not started
+Phase: 25 (mobilidade-palpacao-e-testes) — EXECUTING
+Plan: 1 of 5
 
 - Status: Phase complete — ready for verification
 - Progress: 4/4 plans
@@ -257,9 +257,9 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-10-05T02:32:18.173Z
-Stopped at: Completed 24-04-PLAN.md
-Resume file: None
+Last session: 2026-10-05T22:16:14.355Z
+Stopped at: Phase 25 UI-SPEC approved
+Resume file: .planning/phases/25-mobilidade-palpacao-e-testes/25-UI-SPEC.md
 
 ## Performance Metrics
 

@@ -752,10 +752,14 @@ Plans:
 **Goal:** No bloco B de Avaliação e plano, o profissional escolhe a região e marca só os movimentos que vai medir, com direito e esquerdo no mesmo campo e a dor de cada lado. No bloco E, a palpação vira achados por região e estrutura, e os testes clínicos viram uma lista pesquisável.
 **Requirements**: REQ-36
 **Depends on:** Phase 12 (página 04 da ficha já existe)
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 25 to break down)
+- [ ] 25-01-PLAN.md — Catálogos, normalize e frases do helper
+- [ ] 25-02-PLAN.md — Preprocess no schema e escritores da coluna tests
+- [ ] 25-03-PLAN.md — Blocos B e E da página 04
+- [ ] 25-04-PLAN.md — Detalhe, catálogo, PDF e typecheck
+- [ ] 25-05-PLAN.md — Suíte completa e UAT hospedado
 
 **Cross-cutting constraints:**
 - Só os blocos B e E da página 04 · Avaliação e plano. Blocos A, C–G e as páginas 01–03 ficam como estão
