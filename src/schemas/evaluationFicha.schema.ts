@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
+import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadePalpacao.ts'
 
 /** Treat null / '' as absent so partial saves never fail on empty radios. */
 function emptyToUndefined(value: unknown) {
@@ -51,12 +52,61 @@ const bodyMapMarkSchema = z.object({
   symbol: z.preprocess(emptyToUndefined, bodyMapSymbolSchema.optional()),
 })
 
-const mobilityRowSchema = z.object({
-  movimento: optionalText(200),
-  direito: optionalText(80),
-  esquerdo: optionalText(80),
-  dor: optionalText(200),
+const dorLadoSchema = z.object({
+  inicio: optionalText(40),
+  maxima: evaScore,
   observacao: optionalText(400),
+})
+
+const movimentoSchema = z.object({
+  movimento: z.string().trim().min(1),
+  valorDireito: optionalText(80),
+  valorEsquerdo: optionalText(80),
+  dorDireito: dorLadoSchema.optional(),
+  dorEsquerdo: dorLadoSchema.optional(),
+  observacao: optionalText(400),
+})
+
+const mobilidadeSchema = z.object({
+  regioes: z
+    .array(
+      z.object({
+        regiao: z.string().trim().min(1),
+        tipo: optionalEnum(['ativo', 'passivo', 'ambos']),
+        comparacao: optionalEnum(['bilateral', 'unilateral']),
+        movimentos: z.array(movimentoSchema).default([]),
+      }),
+    )
+    .default([]),
+  registroAnterior: optionalText(4000),
+})
+
+const achadoSchema = z.object({
+  regiao: z.string().trim().min(1),
+  local: z.string().trim().min(1).max(80),
+  localOutro: optionalText(200),
+  lado: optionalEnum(['direito', 'esquerdo', 'bilateral', 'central', 'naoSeAplica']),
+  achado: optionalEnum(['semAlteracao', 'doloroso', 'edema', 'tensao', 'crepitacao', 'temperatura', 'outro']),
+  achadoOutro: optionalText(200),
+  dor: evaScore,
+  observacao: optionalText(400),
+})
+
+const testeMarcadoSchema = z.object({
+  regiao: z.string().trim().min(1),
+  teste: z.string().trim().min(1),
+  resultado: optionalText(200),
+  outroTexto: optionalText(200),
+})
+
+const palpacaoTestesSchema = z.object({
+  achados: z.array(achadoSchema).default([]),
+  testes: z.array(testeMarcadoSchema).default([]),
+  palpacaoRegistroAnterior: optionalText(4000),
+  testesRegistroAnterior: optionalText(4000),
+  resultados: optionalText(2000),
+  testeFuncional: optionalText(2000),
+  resultadoInicial: optionalText(2000),
 })
 
 const forcaRowSchema = z.object({
@@ -392,14 +442,7 @@ export const evaluationFichaSchema = z.object({
           achados: optionalText(4000),
         })
         .default({}),
-      mobilidade: z
-        .object({
-          linhas: z.array(mobilityRowSchema).default([]),
-          ativo: optionalBool,
-          passivo: optionalBool,
-          bilateral: optionalBool,
-        })
-        .default({}),
+      mobilidade: z.preprocess(normalizeMobilidade, mobilidadeSchema).default({}),
       forca: z
         .object({
           linhas: z.array(forcaRowSchema).default([]),
@@ -417,15 +460,7 @@ export const evaluationFichaSchema = z.object({
           achados: optionalText(4000),
         })
         .default({}),
-      palpacaoTestes: z
-        .object({
-          palpacao: optionalText(2000),
-          testesClinicos: optionalText(2000),
-          resultados: optionalText(2000),
-          testeFuncional: optionalText(2000),
-          resultadoInicial: optionalText(2000),
-        })
-        .default({}),
+      palpacaoTestes: z.preprocess(normalizePalpacaoTestes, palpacaoTestesSchema).default({}),
       sintese: z
         .object({
           problema1: optionalText(1000),
