@@ -27,17 +27,24 @@ import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
 import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
-import { PatientSummaryEditorModal } from '@/components/patients/PatientSummaryEditorModal'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Textarea } from '@/components/ui/Textarea'
 import { useAuth } from '@/hooks/useAuth'
-import { usePatient, usePatientDashboard, useUpdatePatient } from '@/hooks/usePatients'
+import { usePatient, usePatientDashboard, useSavePatientSummaryEdits, useUpdatePatient } from '@/hooks/usePatients'
 import { canWritePatient } from '@/lib/accountAccess'
 import { patientFichaPath } from '@/lib/dashboardShortcut'
-import { resolveSummaryFields } from '@/lib/patientSummary'
+import {
+  SUMMARY_FIELD_KEYS,
+  SUMMARY_FIELD_LABELS,
+  SUMMARY_FIELD_ROWS,
+  diffSummaryEdits,
+  resolveSummaryFields,
+  summaryEditsSchema,
+  type SummaryFieldKey,
+} from '@/lib/patientSummary'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import {
   caseUnderstandingSchema,
@@ -274,7 +281,24 @@ function ResumoDoPaciente({
   detail: Patient | null | undefined
   canWrite: boolean
 }) {
-  const [editOpen, setEditOpen] = useState(false)
+  const save = useSavePatientSummaryEdits(patientId)
+  const [editingKey, setEditingKey] = useState<SummaryFieldKey | null>(null)
+  const [draft, setDraft] = useState('')
+  const [fieldError, setFieldError] = useState<string | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const pencilRefs = useRef<Partial<Record<SummaryFieldKey, HTMLButtonElement | null>>>({})
+  const returnFocusKey = useRef<SummaryFieldKey | null>(null)
+
+  useEffect(() => {
+    if (editingKey) {
+      textareaRef.current?.focus()
+      return
+    }
+    const key = returnFocusKey.current
+    if (!key) return
+    returnFocusKey.current = null
+    pencilRefs.current[key]?.focus()
+  }, [editingKey])
 
   if (!detail) {
     return (
@@ -286,10 +310,129 @@ function ResumoDoPaciente({
     )
   }
 
-  const text = resolveSummaryFields(
-    { summary: detail.aiSummary, ...detail.aiSummaryFields },
-    detail.summaryEdits,
-  )
+  const original = { summary: detail.aiSummary, ...detail.aiSummaryFields }
+  const resolved = resolveSummaryFields(original, detail.summaryEdits)
+  const fieldIds: Record<SummaryFieldKey, { labelId: string; fieldId: string }> = {
+    summary: { labelId: 'resumo-summary-label', fieldId: 'resumo-summary' },
+    treatmentPlan: { labelId: 'resumo-treatment-plan-label', fieldId: 'resumo-treatment-plan' },
+    evolution: { labelId: 'resumo-evolution-label', fieldId: 'resumo-evolution' },
+    conducts: { labelId: 'resumo-conducts-label', fieldId: 'resumo-conducts' },
+    nextSessionPlan: {
+      labelId: 'resumo-next-session-plan-label',
+      fieldId: 'resumo-next-session-plan',
+    },
+    painLimitations: {
+      labelId: 'resumo-pain-limitations-label',
+      fieldId: 'resumo-pain-limitations',
+    },
+  }
+
+  function openEditor(key: SummaryFieldKey) {
+    if (!canWrite || save.isPending || key === editingKey) return
+    if (!SUMMARY_FIELD_KEYS.includes(key)) return
+    returnFocusKey.current = null
+    setFieldError(null)
+    setDraft(resolved[key] ?? '')
+    setEditingKey(key)
+  }
+
+  function closeEditor(key: SummaryFieldKey) {
+    returnFocusKey.current = key
+    setEditingKey(null)
+    setDraft('')
+    setFieldError(null)
+  }
+
+  function saveEditor(key: SummaryFieldKey) {
+    if (save.isPending) return
+    const parsed = summaryEditsSchema.shape[key].safeParse(draft)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      if (issue) setFieldError(issue.message)
+      return
+    }
+    setFieldError(null)
+    const diff = diffSummaryEdits(original, { ...resolved, [key]: draft })
+    save.mutate(diff, {
+      onSuccess: () => {
+        returnFocusKey.current = key
+        setEditingKey(null)
+        setDraft('')
+        setFieldError(null)
+      },
+    })
+  }
+
+  function pencilButton(key: SummaryFieldKey) {
+    if (!canWrite) return null
+    return (
+      <button
+        type="button"
+        ref={(node) => {
+          pencilRefs.current[key] = node
+        }}
+        aria-label={`Editar ${SUMMARY_FIELD_LABELS[key]}`}
+        onClick={() => openEditor(key)}
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+      >
+        <Pencil size={16} />
+      </button>
+    )
+  }
+
+  function fieldEditor(key: SummaryFieldKey, marginClass: string) {
+    const ids = fieldIds[key]
+    const invalid = fieldError != null
+    return (
+      <div className={marginClass}>
+        <textarea
+          ref={textareaRef}
+          id={ids.fieldId}
+          rows={SUMMARY_FIELD_ROWS[key]}
+          aria-labelledby={ids.labelId}
+          aria-invalid={invalid || undefined}
+          value={draft}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            if (fieldError) setFieldError(null)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && !save.isPending) {
+              event.preventDefault()
+              closeEditor(key)
+            }
+          }}
+          className={[
+            'min-h-24 w-full rounded-2xl border bg-canvas px-4 py-3 text-ink placeholder:text-muted/50',
+            'transition-colors duration-200',
+            'focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/25',
+            invalid ? 'border-error' : 'border-line hover:border-forest/25',
+          ].join(' ')}
+        />
+        {invalid ? (
+          <p role="alert" className="mt-2 text-xs text-error">
+            {fieldError}
+          </p>
+        ) : null}
+        <div className="mt-4 flex flex-col-reverse gap-4 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-11"
+            disabled={save.isPending}
+            onClick={() => closeEditor(key)}
+          >
+            Cancelar
+          </Button>
+          <Button type="button" className="min-h-11" isLoading={save.isPending} onClick={() => saveEditor(key)}>
+            Salvar
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const editing = (key: SummaryFieldKey) => canWrite && editingKey === key
 
   return (
     <article className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
@@ -297,24 +440,24 @@ function ResumoDoPaciente({
 
       <div className="group mt-4 rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Resumo IA</p>
+          <p
+            id={fieldIds.summary.labelId}
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+          >
+            Resumo IA
+          </p>
           <div className="flex items-center gap-1">
             <Sparkles size={16} className="text-accent" aria-hidden />
-            {canWrite ? (
-              <button
-                type="button"
-                aria-label={PATIENT_AI_COPY.editPencilLabel}
-                onClick={() => setEditOpen(true)}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
-              >
-                <Pencil size={16} />
-              </button>
-            ) : null}
+            {pencilButton('summary')}
           </div>
         </div>
-        <p className="mt-4 text-sm leading-7 text-ink/90 sm:text-base whitespace-pre-line break-words">
-          {text.summary || 'Sem resumo ainda.'}
-        </p>
+        {editing('summary') ? (
+          fieldEditor('summary', 'mt-4')
+        ) : (
+          <p className="mt-4 text-sm leading-7 text-ink/90 sm:text-base whitespace-pre-line break-words">
+            {resolved.summary || 'Sem resumo ainda.'}
+          </p>
+        )}
         {detail.aiSummary || detail.summaryEdits != null ? (
           <p className="mt-2 text-xs text-muted">
             {detail.summaryEdits != null
@@ -324,51 +467,96 @@ function ResumoDoPaciente({
         ) : null}
       </div>
 
-      {canWrite ? (
-        <PatientSummaryEditorModal
-          patientId={patientId}
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          original={{ summary: detail.aiSummary, ...detail.aiSummaryFields }}
-          edits={detail.summaryEdits}
-        />
-      ) : null}
-
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-3 lg:grid-flow-col lg:grid-rows-[auto_auto]">
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-            Plano de tratamento
-          </p>
-          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
-            {textOrDash(text.treatmentPlan)}
-          </p>
-        </div>
-
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
-          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
-            {textOrDash(text.evolution)}
-          </p>
-        </div>
-
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
-          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
-            {textOrDash(text.conducts)}
-          </p>
-          <div className="mt-auto pt-4">
-            <p className="text-xs text-muted">Plano próxima sessão</p>
-            <p className="mt-1 break-words whitespace-pre-line text-sm text-ink">
-              {textOrDash(text.nextSessionPlan)}
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.treatmentPlan.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Plano de tratamento
             </p>
+            {pencilButton('treatmentPlan')}
+          </div>
+          {editing('treatmentPlan') ? (
+            fieldEditor('treatmentPlan', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.treatmentPlan)}
+            </p>
+          )}
+        </div>
+
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.evolution.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Evolução geral
+            </p>
+            {pencilButton('evolution')}
+          </div>
+          {editing('evolution') ? (
+            fieldEditor('evolution', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.evolution)}
+            </p>
+          )}
+        </div>
+
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.conducts.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Condutas
+            </p>
+            {pencilButton('conducts')}
+          </div>
+          {editing('conducts') ? (
+            fieldEditor('conducts', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.conducts)}
+            </p>
+          )}
+          <div className="mt-auto pt-4">
+            <div className="flex items-center justify-between gap-2">
+              <p id={fieldIds.nextSessionPlan.labelId} className="text-xs text-muted">
+                Plano próxima sessão
+              </p>
+              {pencilButton('nextSessionPlan')}
+            </div>
+            {editing('nextSessionPlan') ? (
+              fieldEditor('nextSessionPlan', 'mt-1')
+            ) : (
+              <p className="mt-1 break-words whitespace-pre-line text-sm text-ink">
+                {textOrDash(resolved.nextSessionPlan)}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Dor e limitações</p>
-          <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
-            {textOrDash(text.painLimitations)}
-          </p>
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.painLimitations.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Dor e limitações
+            </p>
+            {pencilButton('painLimitations')}
+          </div>
+          {editing('painLimitations') ? (
+            fieldEditor('painLimitations', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.painLimitations)}
+            </p>
+          )}
           {detail.painSeries.length > 0 ? (
             <div className="mt-4">
               <p className="text-xs text-muted">Registros de dor (EVA)</p>
