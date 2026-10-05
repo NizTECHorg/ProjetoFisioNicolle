@@ -49,3 +49,9 @@ test('REQ-34.3: ordem do catálogo e chave única', () => {
   deepEqual(keys, catalogOrder)
   deepEqual(keys, ['front.head', 'front.knee_r', 'back.knee_r'])
 })
+
+test('REQ-34.3: palma da mão não marca a mão', () => {
+  const keys = allowedFocusKeys(['Palma da mão esquerda'])
+  ok(keys.includes('front.palm_l'))
+  ok(!keys.includes('back.hand_l'))
+})
