@@ -45,12 +45,20 @@ export function LoginPage() {
       title="Entrar"
       subtitle="Acesse sua conta para gerenciar a clínica"
       footer={
-        <p>
-          Não tem conta?{' '}
-          <Link to="/cadastro" className="font-medium text-forest hover:text-forest-mid">
-            Criar conta
+        <div className="space-y-3">
+          <p>
+            Não tem conta?{' '}
+            <Link to="/cadastro" className="font-medium text-forest hover:text-forest-mid">
+              Criar conta
+            </Link>
+          </p>
+          <Link
+            to="/esqueci-senha"
+            className="inline-flex min-h-11 items-center justify-center text-xs text-muted transition-colors hover:text-forest"
+          >
+            Esqueci minha senha
           </Link>
-        </p>
+        </div>
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate autoComplete="off">
@@ -77,16 +85,10 @@ export function LoginPage() {
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="text-xs text-muted transition-colors hover:text-forest"
+            className="block text-xs text-muted transition-colors hover:text-forest"
           >
             {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
           </button>
-          <Link
-            to="/esqueci-senha"
-            className="inline-flex min-h-11 items-center text-xs text-muted transition-colors hover:text-forest"
-          >
-            Esqueci minha senha
-          </Link>
         </div>
 
         <Button type="submit" fullWidth isLoading={isSubmitting}>

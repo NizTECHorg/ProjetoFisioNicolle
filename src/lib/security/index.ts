@@ -231,6 +231,14 @@ export function resetRateLimit(key: string): void {
   deleteEntry(key)
 }
 
+/** Zera todos os contadores deste browser (sessionStorage + memória). Não remove o rate limit. */
+export function clearAuthRateLimits(): void {
+  for (const key of Object.keys(memoryStore)) {
+    delete memoryStore[key]
+  }
+  writeStore({})
+}
+
 export function formatRetryAfter(ms: number): string {
   const minutes = Math.max(1, Math.ceil(ms / 60_000))
   if (minutes >= 60) {

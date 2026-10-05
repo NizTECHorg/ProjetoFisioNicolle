@@ -132,7 +132,7 @@ export function AuthConfirmPage() {
       title={showRecoveryChrome ? 'Nova senha' : 'Confirmar e-mail'}
       subtitle={
         showRecoveryChrome
-          ? 'Escolha uma senha nova para entrar na Fluxo.'
+          ? 'Você entrou pelo link do e-mail. Escolha a senha nova aqui no app.'
           : 'Validando o link enviado para sua caixa de entrada'
       }
     >

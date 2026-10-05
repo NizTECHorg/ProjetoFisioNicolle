@@ -30,6 +30,9 @@ import type { PatientListItem } from '@/types/patient'
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
+/** Integração permanece no código; a faixa e os CTAs ficam ocultos para o usuário. */
+const GOOGLE_CALENDAR_UI_VISIBLE = false
+
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
@@ -302,6 +305,7 @@ export function CalendarPage() {
         }
       />
 
+      {GOOGLE_CALENDAR_UI_VISIBLE ? (
       <article
         className="dash-in mb-4 rounded-2xl border border-line bg-surface p-4 sm:p-5"
         style={{ animationDelay: '40ms' }}
@@ -410,6 +414,7 @@ export function CalendarPage() {
           </div>
         </div>
       </article>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-4 sm:p-5" style={{ animationDelay: '80ms' }}>
@@ -786,6 +791,7 @@ export function CalendarPage() {
         </form>
       </Modal>
 
+      {GOOGLE_CALENDAR_UI_VISIBLE ? (
       <ConfirmDialog
         open={disconnectOpen}
         title={GOOGLE_CALENDAR_COPY.disconnectTitle}
@@ -797,6 +803,7 @@ export function CalendarPage() {
         onClose={() => setDisconnectOpen(false)}
         onConfirm={handleDisconnectConfirm}
       />
+      ) : null}
     </section>
   )
 }

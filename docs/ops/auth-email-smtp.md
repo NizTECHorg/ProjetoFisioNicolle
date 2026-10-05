@@ -75,9 +75,10 @@
    - Body: paste `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html`
    - The CTA **must** be the bare Go variable `{{ .ConfirmationURL }}` and nothing else. Do not append a path or a query string. Go templates are case-sensitive: the name is `ConfirmationURL`.
 3. **Reset password** (if recovery stays enabled):
-   - Subject: `Redefina sua senha Fluxo`
+   - Subject: `Abra a Fluxo para escolher uma senha nova`
    - Body: paste `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html`
    - Same rule: the CTA is the bare `{{ .ConfirmationURL }}`. GoTrue supplies the recovery type itself. Do not hand-write a type query parameter.
+   - Copy must say the e-mail only opens the app; the new password is chosen in the SPA (not by opening the mail alone).
 4. **Invite User:** leave untouched.
 5. Save. GoTrue renders `{{ .ConfirmationURL }}` as this project's `/auth/v1/verify` URL. It fills the confirmation timestamp while serving that request, then redirects to `https://fluxofisio.vercel.app/auth/confirm` when that address is on the allow-list.
 
@@ -196,7 +197,7 @@ Do **not** leave Custom SMTP ON with incomplete Host/Username/Password: that bre
 | Dashboard template | Repo file | Recommended subject |
 |--------------------|-----------|---------------------|
 | Confirm sign up | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/confirm-signup.html` | Confirme sua conta Fluxo |
-| Reset password | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html` | Redefina sua senha Fluxo |
+| Reset password | `.planning/phases/15-email-fluxo-confirmacao-conta/templates/reset-password.html` | Abra a Fluxo para escolher uma senha nova |
 
 ## References
 
