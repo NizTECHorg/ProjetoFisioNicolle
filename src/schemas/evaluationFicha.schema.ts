@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
 
 /** Treat null / '' as absent so partial saves never fail on empty radios. */
 function emptyToUndefined(value: unknown) {
@@ -32,6 +33,16 @@ const evaScore = z.preprocess((value) => {
 function optionalEnum<T extends [string, ...string[]]>(values: T) {
   return z.preprocess(emptyToUndefined, z.enum(values).optional())
 }
+
+const medidaLadoSchema = z.object({
+  valor: optionalText(200),
+  unidade: optionalEnum(['minutos', 'km', 'repeticoes']),
+})
+
+const capacidadeAtividadeSchema = z.object({
+  atual: medidaLadoSchema.optional(),
+  antes: medidaLadoSchema.optional(),
+})
 
 const bodyMapSymbolSchema = z.enum(['X', 'hatch', 'O', 'arrow', 'star'])
 
@@ -250,29 +261,49 @@ export const evaluationFichaSchema = z.object({
         })
         .default({}),
       atividadesAfetadas: z
-        .object({
-          caminhar: optionalBool,
-          correr: optionalBool,
-          escadas: optionalBool,
-          agachar: optionalBool,
-          sentar: optionalBool,
-          levantar: optionalBool,
-          dormir: optionalBool,
-          dirigir: optionalBool,
-          trabalhar: optionalBool,
-          estudar: optionalBool,
-          cuidarCasa: optionalBool,
-          vestirSe: optionalBool,
-          esporte: optionalBool,
-          lazer: optionalBool,
-          autocuidado: optionalBool,
-          outra: optionalBool,
-          outraDetalhe: optionalText(400),
-          capacidadeAtual: optionalText(200),
-          atividade: optionalText(200),
-          consigoPor: optionalText(200),
-          antesConseguiaPor: optionalText(200),
-        })
+        .preprocess(
+          normalizeAtividadesAfetadas,
+          z.object({
+            caminhar: optionalBool,
+            correr: optionalBool,
+            escadas: optionalBool,
+            agachar: optionalBool,
+            sentar: optionalBool,
+            levantar: optionalBool,
+            dormir: optionalBool,
+            dirigir: optionalBool,
+            trabalhar: optionalBool,
+            estudar: optionalBool,
+            cuidarCasa: optionalBool,
+            vestirSe: optionalBool,
+            esporte: optionalBool,
+            lazer: optionalBool,
+            autocuidado: optionalBool,
+            outra: optionalBool,
+            outraDetalhe: optionalText(400),
+            textoLegado: optionalText(1200),
+            capacidades: z
+              .object({
+                caminhar: capacidadeAtividadeSchema.optional(),
+                correr: capacidadeAtividadeSchema.optional(),
+                escadas: capacidadeAtividadeSchema.optional(),
+                agachar: capacidadeAtividadeSchema.optional(),
+                sentar: capacidadeAtividadeSchema.optional(),
+                levantar: capacidadeAtividadeSchema.optional(),
+                dormir: capacidadeAtividadeSchema.optional(),
+                dirigir: capacidadeAtividadeSchema.optional(),
+                trabalhar: capacidadeAtividadeSchema.optional(),
+                estudar: capacidadeAtividadeSchema.optional(),
+                cuidarCasa: capacidadeAtividadeSchema.optional(),
+                vestirSe: capacidadeAtividadeSchema.optional(),
+                esporte: capacidadeAtividadeSchema.optional(),
+                lazer: capacidadeAtividadeSchema.optional(),
+                autocuidado: capacidadeAtividadeSchema.optional(),
+                outra: capacidadeAtividadeSchema.optional(),
+              })
+              .default({}),
+          }),
+        )
         .default({}),
       rotina: z
         .object({
