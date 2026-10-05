@@ -105,6 +105,109 @@ const FOCUS_REGION_KEYS = new Set([
   'back.ankle_r',
 ])
 
+/** Labels mirror src/lib/focusRegions.ts. Self-contained — this file cannot import @/. */
+const FOCUS_REGION_CATALOG: readonly { key: string; label: string }[] = [
+  { key: 'front.head', label: 'Cabeça' },
+  { key: 'front.neck', label: 'Pescoço' },
+  { key: 'front.shoulder_l', label: 'Ombro esquerdo' },
+  { key: 'front.shoulder_r', label: 'Ombro direito' },
+  { key: 'front.chest', label: 'Tórax' },
+  { key: 'front.abdomen', label: 'Abdômen' },
+  { key: 'front.upper_arm_l', label: 'Braço esquerdo' },
+  { key: 'front.upper_arm_r', label: 'Braço direito' },
+  { key: 'front.forearm_l', label: 'Antebraço esquerdo' },
+  { key: 'front.forearm_r', label: 'Antebraço direito' },
+  { key: 'front.palm_l', label: 'Palma da mão esquerda' },
+  { key: 'front.palm_r', label: 'Palma da mão direita' },
+  { key: 'front.hip', label: 'Quadril' },
+  { key: 'front.thigh_l', label: 'Coxa esquerda' },
+  { key: 'front.thigh_r', label: 'Coxa direita' },
+  { key: 'front.knee_l', label: 'Joelho esquerdo' },
+  { key: 'front.knee_r', label: 'Joelho direito' },
+  { key: 'front.shin_l', label: 'Canela esquerda' },
+  { key: 'front.shin_r', label: 'Canela direita' },
+  { key: 'front.foot_l', label: 'Pé esquerdo' },
+  { key: 'front.foot_r', label: 'Pé direito' },
+  { key: 'back.neck', label: 'Cervical' },
+  { key: 'back.shoulder_l', label: 'Ombro esquerdo' },
+  { key: 'back.shoulder_r', label: 'Ombro direito' },
+  { key: 'back.upper', label: 'Dorsal' },
+  { key: 'back.lumbar', label: 'Lombar' },
+  { key: 'back.glute_l', label: 'Glúteo esquerdo' },
+  { key: 'back.glute_r', label: 'Glúteo direito' },
+  { key: 'back.upper_arm_l', label: 'Braço esquerdo' },
+  { key: 'back.upper_arm_r', label: 'Braço direito' },
+  { key: 'back.forearm_l', label: 'Antebraço esquerdo' },
+  { key: 'back.forearm_r', label: 'Antebraço direito' },
+  { key: 'back.hand_l', label: 'Mão esquerda' },
+  { key: 'back.hand_r', label: 'Mão direita' },
+  { key: 'back.thigh_l', label: 'Coxa esquerda' },
+  { key: 'back.thigh_r', label: 'Coxa direita' },
+  { key: 'back.knee_l', label: 'Joelho esquerdo' },
+  { key: 'back.knee_r', label: 'Joelho direito' },
+  { key: 'back.calf_l', label: 'Panturrilha esquerda' },
+  { key: 'back.calf_r', label: 'Panturrilha direita' },
+  { key: 'back.ankle_l', label: 'Tornozelo esquerdo' },
+  { key: 'back.ankle_r', label: 'Tornozelo direito' },
+]
+
+/** Depois do NFD, "antebraço" vira "antebraco"; a letra anterior bloqueia "braco". */
+const LEFT_BOUNDARY = '(?<![a-z])'
+
+type LabelHit = {
+  key: string
+  start: number
+  end: number
+}
+
+function fold(value: string): string {
+  return value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function isInsideLongerLabel(hit: LabelHit, hits: readonly LabelHit[]): boolean {
+  return hits.some(
+    (other) =>
+      other.key !== hit.key &&
+      other.start <= hit.start &&
+      other.end >= hit.end &&
+      other.end - other.start > hit.end - hit.start,
+  )
+}
+
+function allowedFocusKeys(texts: readonly string[]): string[] {
+  const haystack = fold(texts.join('\n'))
+  const hits: LabelHit[] = []
+
+  for (const region of FOCUS_REGION_CATALOG) {
+    const label = fold(region.label)
+    const pattern = new RegExp(`${LEFT_BOUNDARY}${escapeRegExp(label)}`, 'g')
+    for (const match of haystack.matchAll(pattern)) {
+      const start = match.index
+      if (start === undefined) continue
+      hits.push({ key: region.key, start, end: start + label.length })
+    }
+  }
+
+  const keys: string[] = []
+  const seen = new Set<string>()
+
+  for (const region of FOCUS_REGION_CATALOG) {
+    if (seen.has(region.key)) continue
+    const standsAlone = hits.some(
+      (hit) => hit.key === region.key && !isInsideLongerLabel(hit, hits),
+    )
+    if (!standsAlone) continue
+    seen.add(region.key)
+    keys.push(region.key)
+  }
+
+  return keys
+}
+
 /** Prefer current flash ids — 2.5/2.0 return 404 for new API keys (2026). */
 const GEMINI_MODELS = [
   'gemini-3.6-flash',
@@ -227,6 +330,7 @@ function ageFrom(isoDate: string | null): number | undefined {
 async function assembleContextPack(
   client: SupabaseClient,
   patientId: string,
+  userHint: string | undefined,
 ): Promise<Record<string, unknown> | Response> {
   const patientSelect =
     'id, full_name, code, birth_date, status, profession, admin_notes, referral_source, treatment_started_on, sessions_planned, frequency, therapist_name, complaint, diagnosis, last_visit_on'
@@ -344,6 +448,39 @@ async function assembleContextPack(
     })
   })
 
+  const focusSourceTexts: string[] = []
+  const pushFocusSource = (value: string | null | undefined) => {
+    if (typeof value !== 'string' || value.length === 0) return
+    focusSourceTexts.push(value)
+  }
+  pushFocusSource(patient.complaint)
+  pushFocusSource(patient.diagnosis)
+  for (const evaluation of (evalsRes.data ?? []) as EvaluationRow[]) {
+    pushFocusSource(evaluation.main_complaint)
+    pushFocusSource(evaluation.anamnesis)
+    pushFocusSource(evaluation.history)
+    pushFocusSource(evaluation.pain)
+    pushFocusSource(evaluation.limitations)
+    pushFocusSource(evaluation.physical_exam)
+    pushFocusSource(evaluation.tests)
+    pushFocusSource(evaluation.measurements)
+    pushFocusSource(evaluation.physio_diagnosis)
+    pushFocusSource(evaluation.plan)
+    pushFocusSource(evaluation.goals)
+  }
+  for (const session of (sessionsRes.data ?? []) as SessionRow[]) {
+    const evolution = pickEvolution(session.patient_session_evolutions)
+    if (!evolution) continue
+    pushFocusSource(evolution.patient_state)
+    pushFocusSource(evolution.changes_since_last)
+    pushFocusSource(evolution.conducts)
+    pushFocusSource(evolution.treatment_response)
+    pushFocusSource(evolution.incidents)
+    pushFocusSource(evolution.next_plan)
+  }
+  pushFocusSource(userHint)
+  const allowedFocusRegionKeys = allowedFocusKeys(focusSourceTexts)
+
   const evaluations = ((evalsRes.data ?? []) as EvaluationRow[]).map((e) =>
     omitEmpty({
       performedOn: e.performed_on,
@@ -386,6 +523,7 @@ async function assembleContextPack(
     alerts,
     sessions,
     evaluations,
+    allowedFocusRegionKeys,
   }
 }
 
@@ -1000,7 +1138,7 @@ Analise o documento PDF de Avaliação Física fornecido e responda estritamente
     return jsonResponse(result)
   }
 
-  const packOrError = await assembleContextPack(userClient, patientId)
+  const packOrError = await assembleContextPack(userClient, patientId, userHint)
   if (packOrError instanceof Response) return packOrError
 
   const prompt = buildPrompt(packOrError, userHint)
@@ -1016,5 +1154,12 @@ Analise o documento PDF de Avaliação Física fornecido e responda estritamente
     return jsonResponse({ error: 'ai_unavailable', code: 'ai_unavailable' }, 503)
   }
 
-  return jsonResponse({ ...result })
+  const allowedFocusRegionKeys = Array.isArray(packOrError.allowedFocusRegionKeys)
+    ? packOrError.allowedFocusRegionKeys.filter((key): key is string => typeof key === 'string')
+    : []
+
+  return jsonResponse({
+    ...result,
+    focusRegionKeys: allowedFocusRegionKeys,
+  })
 })

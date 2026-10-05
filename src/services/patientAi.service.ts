@@ -84,7 +84,8 @@ function throwMappedFunctionsError(payload: {
 }
 
 /**
- * Additive focus marks only — never deletes unmarked regions (Pitfall 7 / A3).
+ * Insere só as chaves que a Edge Function devolveu.
+ * Nunca apaga marca feita à mão.
  */
 export async function applyAiFocusRegionKeys(
   patientId: string,
