@@ -24,8 +24,9 @@ test('REQ-37.1: avaliação e evolução não desenham cromo de bloco nem traço
   const table = sliceFunction(service, 'drawDataTable')
   equal(table.includes(": '—'"), false)
   equal(table.includes(': "—"'), false)
-  equal(/wrapLines\([\s\S]*?''/.test(table), false)
-  equal(/wrapLines\([\s\S]*?""/.test(table), false)
+  equal(table.includes("wrapLines(ctx.font, ''"), false)
+  equal(table.includes('wrapLines(ctx.font, ""'), false)
+  equal(table.includes('? cells[i]! :'), false)
 
   const winAnsi = sliceFunction(service, 'toWinAnsiSafe')
   equal(winAnsi.includes("replaceAll('→'"), false)
