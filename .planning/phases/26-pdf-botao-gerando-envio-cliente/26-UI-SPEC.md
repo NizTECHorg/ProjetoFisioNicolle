@@ -1,10 +1,11 @@
 ---
 phase: 26
 slug: pdf-botao-gerando-envio-cliente
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-10-06
+reviewed_at: 2026-10-06T21:43:00Z
 ---
 
 # Phase 26 — UI Design Contract
