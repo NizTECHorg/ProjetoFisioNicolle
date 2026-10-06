@@ -32,6 +32,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
 - [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
 - [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
+- [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
 
 ## Phase Details
 
@@ -773,3 +774,24 @@ Plans:
 3. A palpação registra achados com região, local filtrado por essa região, lado, achado, dor e observação, numa lista que dá para editar.
 4. Os testes clínicos são uma lista pesquisável, com vários por região e Outro no fim.
 5. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas regiões, movimentos, achados e testes.
+
+### Phase 26: PDF, botão Gerando e envio ao cliente
+
+**Goal:** O PDF de avaliação e o de evolução ficam simples e mostram só o que foi preenchido. Todo botão que chama a IA, enquanto gera, mostra Gerando com uma estrela e um brilho azul. Dá para mandar essa avaliação ou evolução direto ao cliente por e-mail ou WhatsApp, com o logo de cada um.
+**Requirements**: REQ-37
+**Depends on:** Phase 13 (o PDF de avaliação e evolução já existe)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 26 to break down)
+
+**Cross-cutting constraints:**
+- Sem SQL e sem `supabase db push`. Segredos de e-mail só no Dashboard, no SMTP que o Fluxo já usa
+- Sem pacote npm novo. Não editar `patient-ai-summary`
+- Conta sem escrita não vê e-mail nem WhatsApp. O brilho azul fica só no botão que está gerando com IA
+
+**Success Criteria** (what must be TRUE):
+1. O PDF de avaliação e o de evolução mostram só informações preenchidas, com uma formatação simples e limpa.
+2. Enquanto a IA gera, o botão diz Gerando, mostra uma estrela e o fundo tem um brilho azul animado.
+3. Na exportação, e-mail e WhatsApp aparecem com os logos e enviam a avaliação ou a evolução para o contato do cliente.

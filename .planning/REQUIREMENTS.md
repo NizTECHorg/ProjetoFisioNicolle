@@ -18,6 +18,7 @@
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [x] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
+- [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -267,6 +268,20 @@ No bloco B de Avaliação e plano a mobilidade é uma tabela de texto livre. O p
 4. Os testes clínicos são uma lista pesquisável. Dá para marcar vários, sempre com Outro no fim de cada região.
 5. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas regiões, movimentos, achados e testes.
 
+## REQ-37 — PDF, botão Gerando e envio ao cliente
+
+**Indispensável · Artur**
+
+O PDF de extração da avaliação e da evolução precisa ficar simples e bonito, só com o que foi preenchido. Todo botão que chama a IA, enquanto gera, mostra Gerando com uma estrela e um brilho azul. Dá para mandar essa avaliação ou evolução direto ao cliente por e-mail ou WhatsApp, com o logo de cada um.
+
+### Acceptance
+
+1. O PDF de avaliação e o de evolução mostram só informações preenchidas, com formatação simples e limpa. Campo vazio não aparece.
+2. Enquanto a IA gera, o botão diz Gerando, mostra uma estrela e o fundo tem um brilho azul animado. Os outros botões do sistema não mudam.
+3. Na exportação, e-mail e WhatsApp aparecem com os logos e enviam a avaliação ou a evolução para o e-mail ou o telefone do cliente.
+4. Sem e-mail ou sem telefone, o botão correspondente explica em português e não finge que enviou.
+5. Conta sem escrita não vê os botões de envio.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
@@ -414,3 +429,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-32 | Phase 21 | Complete |
 | REQ-35 | Phase 24 | Complete |
 | REQ-36 | Phase 25 | Complete |
+| REQ-37 | Phase 26 | Planned |

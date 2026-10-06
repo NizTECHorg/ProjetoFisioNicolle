@@ -264,6 +264,7 @@ Plan: 5 of 5
 - Phase 23 added: Ajustes do resumo IA e rolagem do Entenda o caso (REQ-34)
 - Phase 24 added: Atividades da avaliação com capacidade por item (REQ-35)
 - Phase 25 added: Mobilidade por região, palpação estruturada e testes clínicos (REQ-36)
+- Phase 26 added: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio por e-mail e WhatsApp (REQ-37)
 
 ## Session Continuity
 
