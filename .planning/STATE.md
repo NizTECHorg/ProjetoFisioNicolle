@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 25-04-PLAN.md
-last_updated: "2026-10-05T23:48:31.993Z"
+stopped_at: Phase 26 plans ready
+last_updated: "2026-10-06T22:18:37.853Z"
 progress:
-  total_phases: 26
+  total_phases: 27
   completed_phases: 12
-  total_plans: 105
+  total_plans: 109
   completed_plans: 92
-  percent: 46
+  percent: 44
 ---
 
 # Project State
@@ -268,9 +268,9 @@ Plan: 5 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-05T23:48:16.654Z
-Stopped at: Completed 25-04-PLAN.md
-Resume file: None
+Last session: 2026-10-06T22:18:37.803Z
+Stopped at: Phase 26 plans ready
+Resume file: .planning/phases/26-pdf-botao-gerando-envio-cliente/26-01-PLAN.md
 
 ## Performance Metrics
 
