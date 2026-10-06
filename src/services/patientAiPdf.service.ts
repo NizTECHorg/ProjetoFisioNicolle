@@ -274,6 +274,10 @@ type DrawContext = {
   contentX: number
   contentW: number
   footerKind: 'fluxo' | 'ficha'
+  /** Filled evaluation date, when the ficha has one. */
+  fichaDate?: string
+  /** Filled therapist name, when the ficha has one. */
+  fichaTherapist?: string
 }
 
 function drawFooter(ctx: DrawContext) {
@@ -284,10 +288,26 @@ function drawFooter(ctx: DrawContext) {
     thickness: 0.5,
     color: COLORS.border,
   })
-  const left =
-    ctx.footerKind === 'ficha'
-      ? `${String(ctx.pageIndex).padStart(2, '0')} | Ficha de Anamnese e Evolução Musculoesquelética`
-      : 'FLUXO · Documento clínico'
+  if (ctx.footerKind === 'ficha') {
+    ctx.page.drawText('Fluxo', {
+      x: MARGIN_X,
+      y: footerY,
+      size: 14,
+      font: ctx.font,
+      color: COLORS.muted,
+    })
+    const pageLabel = String(ctx.pageIndex)
+    const pageW = ctx.font.widthOfTextAtSize(pageLabel, 14)
+    ctx.page.drawText(pageLabel, {
+      x: PAGE_WIDTH - MARGIN_X - pageW,
+      y: footerY,
+      size: 14,
+      font: ctx.font,
+      color: COLORS.muted,
+    })
+    return
+  }
+  const left = 'FLUXO · Documento clínico'
   ctx.page.drawText(toWinAnsiSafe(left), {
     x: MARGIN_X,
     y: footerY,
@@ -295,57 +315,77 @@ function drawFooter(ctx: DrawContext) {
     font: ctx.font,
     color: COLORS.muted,
   })
-  if (ctx.footerKind !== 'ficha') {
-    const pageLabel = `Pág. ${ctx.pageIndex}`
-    const pageW = ctx.font.widthOfTextAtSize(pageLabel, SIZE.footer)
-    ctx.page.drawText(pageLabel, {
-      x: PAGE_WIDTH - MARGIN_X - pageW,
-      y: footerY,
-      size: SIZE.footer,
-      font: ctx.font,
-      color: COLORS.muted,
-    })
-  }
+  const pageLabel = `Pág. ${ctx.pageIndex}`
+  const pageW = ctx.font.widthOfTextAtSize(pageLabel, SIZE.footer)
+  ctx.page.drawText(pageLabel, {
+    x: PAGE_WIDTH - MARGIN_X - pageW,
+    y: footerY,
+    size: SIZE.footer,
+    font: ctx.font,
+    color: COLORS.muted,
+  })
 }
 
 function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
-  // Ficha kinds: slim strip so chapter title (drawPageBanner) is the hero — D-03
   if (ctx.footerKind === 'ficha') {
-    const bandHeight = opts.isFirstPage ? 36 : 28
-    const logoH = 18
+    const logoH = 32
     const logoAspect = ctx.logo.width / ctx.logo.height
     const logoW = logoH * logoAspect
-    const logoY = PAGE_HEIGHT - bandHeight + (bandHeight - logoH) / 2
-
+    const logoBottom = PAGE_HEIGHT - 48 - logoH
     ctx.page.drawImage(ctx.logo, {
       x: MARGIN_X,
-      y: logoY,
+      y: logoBottom,
       width: logoW,
       height: logoH,
     })
 
-    ctx.page.drawRectangle({
-      x: 0,
-      y: PAGE_HEIGHT - bandHeight - 1.5,
-      width: PAGE_WIDTH,
-      height: 1.5,
-      color: COLORS.border,
+    const title = ctx.docTitle.startsWith('Evolução') ? 'Evolução' : 'Avaliação'
+    let cursor = logoBottom - 16 - 20
+    ctx.page.drawText(toWinAnsiSafe(title), {
+      x: MARGIN_X,
+      y: cursor,
+      size: 20,
+      font: ctx.bold,
+      color: COLORS.ink,
     })
+    const barH = 4
+    const barBottom = cursor - 8 - barH
+    ctx.page.drawRectangle({
+      x: MARGIN_X,
+      y: barBottom,
+      width: 48,
+      height: 4,
+      color: COLORS.accent,
+    })
+    cursor = barBottom
 
-    if (!opts.isFirstPage) {
-      const cont = toWinAnsiSafe(`${ctx.docTitle} (cont.)`)
-      const contW = ctx.font.widthOfTextAtSize(cont, SIZE.meta)
-      ctx.page.drawText(cont, {
-        x: PAGE_WIDTH - MARGIN_X - contW,
-        y: PAGE_HEIGHT - bandHeight / 2 - 3,
-        size: SIZE.meta,
-        font: ctx.font,
-        color: COLORS.muted,
-      })
+    if (opts.isFirstPage) {
+      const name = ctx.patientLine.trim()
+      if (name) {
+        cursor -= 8 + 16
+        ctx.page.drawText(toWinAnsiSafe(name), {
+          x: MARGIN_X,
+          y: cursor,
+          size: 16,
+          font: ctx.font,
+          color: COLORS.ink,
+        })
+      }
+      const metaParts = [ctx.fichaDate, ctx.fichaTherapist].filter((part) => part && part.trim())
+      if (metaParts.length > 0) {
+        cursor -= 8 + 14
+        ctx.page.drawText(toWinAnsiSafe(metaParts.join(' · ')), {
+          x: MARGIN_X,
+          y: cursor,
+          size: 14,
+          font: ctx.font,
+          color: COLORS.muted,
+        })
+      }
     }
 
     drawFooter(ctx)
-    ctx.y = PAGE_HEIGHT - bandHeight - 16
+    ctx.y = cursor - 32
     return
   }
 
@@ -1807,7 +1847,6 @@ function drawPlanoClinico(
  */
 function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   ctx.footerKind = 'ficha'
-  drawPatientCard(ctx)
 
   const metaFields: Array<[string, string | undefined]> = [
     ['Nome da avaliação', input.evaluationTitle ?? undefined],
@@ -2338,7 +2377,6 @@ const EVO_SOAP_LETTER_ORDER: Array<'S' | 'O' | 'A' | 'P'> = ['S', 'O', 'A', 'P']
  */
 function drawEvolucao(ctx: DrawContext, input: PatientAiEvolucaoPdfInput) {
   ctx.footerKind = 'ficha'
-  drawPatientCard(ctx)
   drawOptionalField(ctx, 'Sessões', input.sessionLabel)
 
   const selected = input.selectedFieldIds
@@ -2457,6 +2495,14 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
     contentX: MARGIN_X,
     contentW: CONTENT_WIDTH,
     footerKind: input.kind === 'avaliacao' || input.kind === 'evolucao' ? 'ficha' : 'fluxo',
+    fichaDate:
+      input.kind === 'avaliacao'
+        ? input.performedOnLabel.trim() || undefined
+        : input.kind === 'evolucao'
+          ? generatedAt
+          : undefined,
+    fichaTherapist:
+      input.kind === 'avaliacao' ? input.therapistName?.trim() || undefined : undefined,
   }
 
   drawHeaderBand(ctx, { isFirstPage: true })
