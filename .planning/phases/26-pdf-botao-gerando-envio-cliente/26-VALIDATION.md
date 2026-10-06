@@ -38,11 +38,14 @@ created: 2026-10-06
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 26-01-01 | 01 | 1 | REQ-37.1 | — | PDF omits empty fields; `toWinAnsiSafe` unchanged; drawn arrow becomes `->` | unit | `node --test --test-name-pattern "REQ-37.1" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
-| 26-02-01 | 02 | 2 | REQ-37.2 | — | `Button` still says Aguarde...; Gerando + star lives only on the AI control | unit | `node --test --test-name-pattern "REQ-37.2" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
-| 26-03-01 | 03 | 3 | REQ-37.4 | T-26-recipient | Missing email or phone is refused in Portuguese; destination is not taken from the request body | unit | `node --test src/lib/patientContact.test.ts` | ❌ W0 | ⬜ pending |
-| 26-03-02 | 03 | 3 | REQ-37.3 | T-26-link | Email function sends the PDF; WhatsApp is `wa.me` with the saved PDF link | unit | `node --test --test-name-pattern "REQ-37.3" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
-| 26-03-03 | 03 | 3 | REQ-37.5 | T-26-write | Send buttons render only when `canWrite`; function checks `created_by` | unit | `node --test --test-name-pattern "REQ-37.5" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
+| 26-01-01 | 01 | 1 | REQ-37.1 | T-26-01 | PDF omits empty fields and block chrome; empty table cell is blank | unit | `node --test --test-name-pattern "REQ-37.1" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
+| 26-01-02 | 01 | 1 | REQ-37.1 | T-26-02 | `toWinAnsiSafe` unchanged; drawn arrow becomes `->`; ficha header and footer | unit | `node --test --test-name-pattern "REQ-37.1" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
+| 26-03-01 | 03 | 1 | REQ-37.4 | T-26-04 | Missing email or phone is refused; `'—'` is not a destination | unit | `node --test src/lib/patientContact.test.ts` | ❌ W0 | ⬜ pending |
+| 26-03-02 | 03 | 1 | REQ-37.3 | T-26-05 | Function reads `patients.email` and checks `created_by`; body has no address | unit | `node --test --test-name-pattern "REQ-37.3" src/lib/patientContact.test.ts` | ❌ W0 | ⬜ pending |
+| 26-02-01 | 02 | 2 | REQ-37.2 | T-26-08 | `Button` still says Aguarde...; Gerando + star lives only on the AI control | unit | `node --test --test-name-pattern "REQ-37.2" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
+| 26-02-02 | 02 | 2 | REQ-37.1 | T-26-09 | Empty catalog does not build a PDF; export upload is not Gerando | unit | `node --test --test-name-pattern "REQ-37.2" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
+| 26-04-01 | 04 | 3 | REQ-37.3 | T-26-12 | WhatsApp is `wa.me` with a signed link; success requires a reachable file | unit | `node --test src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
+| 26-04-02 | 04 | 3 | REQ-37.5 | T-26-13 | Send buttons render only when `canWrite` and kind is avaliacao or evolucao | unit | `node --test --test-name-pattern "REQ-37.5" src/lib/phase26Contract.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

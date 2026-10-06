@@ -781,10 +781,13 @@ Plans:
 **Requirements**: REQ-37
 **Depends on:** Phase 13 (o PDF de avaliação e evolução já existe)
 **UI hint**: yes
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 26 to break down)
+- [ ] 26-01-PLAN.md — PDF de avaliação e evolução só com o preenchido
+- [ ] 26-03-PLAN.md — Contato do paciente e função de e-mail no SMTP do Fluxo
+- [ ] 26-02-PLAN.md — Botão Gerando com estrela e brilho azul
+- [ ] 26-04-PLAN.md — Envio por e-mail e WhatsApp na exportação e na lista
 
 **Cross-cutting constraints:**
 - Sem SQL e sem `supabase db push`. Segredos de e-mail só no Dashboard, no SMTP que o Fluxo já usa
