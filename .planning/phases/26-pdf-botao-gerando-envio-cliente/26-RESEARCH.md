@@ -437,17 +437,15 @@ O texto exato do assunto e do corpo fica na discrição do plano, em português,
 | A3 | O mesmo App Password do Custom SMTP autentica a partir da rede da Edge Function. | Pitfall 6 | O primeiro e-mail real falha. A fase não troca de provedor; o UAT mostra o erro. |
 | A4 | Assunto “Sua avaliação” / “Sua evolução” e corpo “Segue o documento da sua fisioterapia, em anexo.” bastam. | Code Examples | Discrição do CONTEXT. Trocar a frase não muda a arquitetura. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **O Gmail (ou o SMTP que estiver no Dashboard) aceita conexão vinda da Edge Function?**
+1. **O Gmail (ou o SMTP que estiver no Dashboard) aceita conexão vinda da Edge Function?** — RESOLVED
    - What we know: O Auth já usa esse SMTP para confirmação de conta. A função é outro cliente, na rede do Supabase.
-   - What's unclear: Não houve envio real nesta pesquisa.
-   - Recommendation: UAT humano com um paciente de teste. Falha vira erro em português, sem sucesso falso e sem provedor novo.
+   - Decision: Se o Gmail ou o SMTP do Dashboard recusar a conexão, a UI mostra a falha em português e não troca de provedor. O UAT cobre a caixa real. Não configurar o Send Email Hook.
 
-2. **A URL assinada tem teto de segundos?**
+2. **A URL assinada tem teto de segundos?** — RESOLVED
    - What we know: `expiresIn` é obrigatório, em segundos. O exemplo oficial usa 60 e o guia usa 3600. [CITED: https://supabase.com/docs/reference/javascript/file-buckets-createsignedurl]
-   - What's unclear: A página não declara máximo.
-   - Recommendation: 7 dias na mensagem de WhatsApp. Se a API recusar, cair para 24 horas e dizer isso na frase. Sem URL, não marcar enviado.
+   - Decision: Falhar fechado. `createSignedUrl` usa só 604800 segundos. Se essa chamada falhar ou a URL não for `https`, toast `sendFileUnavailable` e não mostrar toast de sucesso. Não acrescentar fallback de 24 horas.
 
 ## Environment Availability
 
