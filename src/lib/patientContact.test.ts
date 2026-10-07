@@ -1,5 +1,6 @@
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { deepEqual, equal } from 'node:assert/strict'
+import { deepEqual, equal, ok } from 'node:assert/strict'
 import { resolvePatientEmail, resolveWhatsAppDigits } from './patientContact.ts'
 import { PATIENT_AI_COPY, patientDocumentSendSchema } from '../schemas/patientAi.schema.ts'
 
@@ -101,4 +102,34 @@ test('cópia de envio usa as frases do UI-SPEC', () => {
   equal(PATIENT_AI_COPY.emailBody, 'Segue o documento da sua fisioterapia, em anexo.')
   equal(PATIENT_AI_COPY.ctaGenerate, 'Gerar resumo')
   equal(PATIENT_AI_COPY.ctaExport, 'Exportar PDF')
+})
+
+test('REQ-37.3: a função lê o e-mail do cadastro e não o body', () => {
+  const read = (rel: string) => readFileSync(new URL(rel, import.meta.url), 'utf8')
+  const fn = read(
+    '../../.planning/phases/26-pdf-botao-gerando-envio-cliente/functions/send-patient-document/index.ts',
+  )
+  const service = read('../services/patientDocumentSend.service.ts')
+
+  ok(fn.includes('created_by'))
+  ok(fn.includes('user.id'))
+  ok(fn.includes('patients'))
+  ok(fn.includes('patient-ai-reports'))
+  ok(fn.includes('.download('))
+  ok(fn.includes('FLUXO_SMTP_PASS'))
+  ok(fn.includes('https://deno.land/x/denomailer@1.6.0/mod.ts'))
+  ok(fn.includes('Sua avaliação'))
+  ok(fn.includes('Sua evolução'))
+  ok(fn.includes('Segue o documento da sua fisioterapia, em anexo.'))
+  ok(fn.includes('avaliacao.pdf'))
+  ok(fn.includes('evolucao.pdf'))
+  ok(!fn.includes('body.email'))
+  ok(!fn.includes("body['email']"))
+  ok(!fn.includes('body["email"]'))
+  ok(!fn.includes('SUPABASE_SERVICE_ROLE'))
+  ok(!fn.includes('service_role'))
+
+  ok(service.includes("functions.invoke('send-patient-document'"))
+  ok(!service.includes('email:'))
+  ok(!service.includes('phone:'))
 })
