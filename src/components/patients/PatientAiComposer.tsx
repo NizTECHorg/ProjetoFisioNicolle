@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { Mail } from 'lucide-react'
 import { PatientAiFieldPicker } from '@/components/patients/PatientAiFieldPicker'
 import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
@@ -18,6 +19,7 @@ import {
   buildEvolucaoFilledCatalog,
   type PdfFieldItem,
 } from '@/lib/pdfFieldCatalog'
+import { resolvePatientEmail, resolveWhatsAppDigits } from '@/lib/patientContact'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import type { EvolucaoSynthesis } from '@/schemas/patientAi.schema'
 import {
@@ -25,6 +27,11 @@ import {
   generatePatientAiSummary,
 } from '@/services/patientAi.service'
 import { buildPatientAiReportPdf } from '@/services/patientAiPdf.service'
+import {
+  openPatientDocumentWhatsApp,
+  sendPatientDocument,
+  signPatientDocumentUrl,
+} from '@/services/patientDocumentSend.service'
 import { toast } from '@/stores/toast.store'
 import type { PatientEvaluation } from '@/types/evaluation'
 import type { PatientSessionRecord } from '@/types/patient'
@@ -85,6 +92,12 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
   const [pickerSelectedIds, setPickerSelectedIds] = useState<Set<string>>(() => new Set())
   const [pendingExport, setPendingExport] = useState<PendingExport | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [savedReport, setSavedReport] = useState<{
+    id: string
+    storagePath: string
+    kind: 'avaliacao' | 'evolucao'
+  } | null>(null)
+  const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null)
 
   const sessionsForPicker = useMemo(() => {
     const withEvo: typeof sessions = []
@@ -317,7 +330,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
             blob,
           },
           {
-            onSuccess: () => {
+            onSuccess: (report) => {
+              if (report.kind === 'avaliacao' || report.kind === 'evolucao') {
+                setSavedReport({
+                  id: report.id,
+                  storagePath: report.storagePath,
+                  kind: report.kind,
+                })
+              }
               closePicker()
             },
           },
@@ -357,7 +377,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
           blob,
         },
         {
-          onSuccess: () => {
+          onSuccess: (report) => {
+            if (report.kind === 'avaliacao' || report.kind === 'evolucao') {
+              setSavedReport({
+                id: report.id,
+                storagePath: report.storagePath,
+                kind: report.kind,
+              })
+            }
             closePicker()
           },
         },
@@ -367,6 +394,69 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         error instanceof Error ? error.message : PATIENT_AI_COPY.exportError,
         'error',
       )
+    }
+  }
+
+  function reportForActiveScope() {
+    if (!savedReport || savedReport.kind !== pdfScope) return null
+    return savedReport
+  }
+
+  async function handleSendWhatsApp() {
+    if (sending) return
+    const phone = resolveWhatsAppDigits(detail?.phone)
+    if (!phone.ok) {
+      toast(
+        phone.reason === 'missing'
+          ? PATIENT_AI_COPY.sendNeedPhone
+          : PATIENT_AI_COPY.sendPhoneInvalid,
+        'error',
+      )
+      return
+    }
+    const report = reportForActiveScope()
+    if (!report) {
+      toast(PATIENT_AI_COPY.sendNeedExport, 'error')
+      return
+    }
+    setSending('whatsapp')
+    try {
+      const signed = await signPatientDocumentUrl(report.storagePath, report.kind)
+      if (!signed.ok || !signed.url.startsWith('https')) {
+        toast(PATIENT_AI_COPY.sendFileUnavailable, 'error')
+        return
+      }
+      const popup = openPatientDocumentWhatsApp(phone.digits, signed.url)
+      if (popup === null) {
+        toast(PATIENT_AI_COPY.sendWhatsAppBlocked, 'error')
+        return
+      }
+      toast(PATIENT_AI_COPY.sendWhatsAppSuccess, 'success')
+    } finally {
+      setSending(null)
+    }
+  }
+
+  async function handleSendEmail() {
+    if (sending) return
+    const email = resolvePatientEmail(detail?.email)
+    if (!email.ok) {
+      toast(PATIENT_AI_COPY.sendNeedEmail, 'error')
+      return
+    }
+    const report = reportForActiveScope()
+    if (!report) {
+      toast(PATIENT_AI_COPY.sendNeedExport, 'error')
+      return
+    }
+    setSending('email')
+    try {
+      await sendPatientDocument({ patientId, reportId: report.id })
+      toast(PATIENT_AI_COPY.sendEmailSuccess, 'success')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : PATIENT_AI_COPY.sendEmailError, 'error')
+    } finally {
+      setSending(null)
     }
   }
 
@@ -542,6 +632,36 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
               </p>
             </div>
           ) : null}
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-11 w-full sm:flex-1"
+              isLoading={sending === 'whatsapp'}
+              disabled={sending !== null}
+              onClick={() => void handleSendWhatsApp()}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="#25D366"
+                  d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.74.46 3.44 1.34 4.94L2 22l5.39-1.41a10.1 10.1 0 0 0 4.65 1.18h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.76 13.89c-.24.68-1.2 1.24-1.96 1.4-.52.11-1.2.2-3.48-.75-2.92-1.21-4.8-4.17-4.95-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.29.58-.36.77-.36h.55c.18 0 .41-.07.64.49.24.58.82 2 .89 2.15.07.14.12.32.02.51-.09.2-.14.32-.28.49-.14.17-.29.38-.42.51-.14.14-.28.29-.12.56.16.27.7 1.16 1.51 1.88 1.04.92 1.91 1.21 2.18 1.35.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.54.73 1.8.86.27.14.44.2.51.31.06.12.06.67-.18 1.35z"
+                />
+              </svg>
+              {PATIENT_AI_COPY.sendWhatsApp}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-11 w-full sm:flex-1"
+              isLoading={sending === 'email'}
+              disabled={sending !== null}
+              onClick={() => void handleSendEmail()}
+            >
+              <Mail size={16} aria-hidden />
+              {PATIENT_AI_COPY.sendEmail}
+            </Button>
+          </div>
         </div>
       )}
 

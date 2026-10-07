@@ -92,3 +92,35 @@ export async function sendPatientDocument(input: PatientDocumentSendInput): Prom
     throw new Error(messageFromSendPayload(payload))
   }
 }
+
+type SendableReportKind = 'avaliacao' | 'evolucao'
+
+export type SignedPatientDocument = { ok: true; url: string } | { ok: false }
+
+export async function signPatientDocumentUrl(
+  storagePath: string,
+  kind: SendableReportKind,
+): Promise<SignedPatientDocument> {
+  const download = kind === 'avaliacao' ? 'avaliacao.pdf' : 'evolucao.pdf'
+  try {
+    const { data, error } = await supabase.storage
+      .from('patient-ai-reports')
+      .createSignedUrl(storagePath, 604800, { download })
+    const url = data?.signedUrl
+    if (error || typeof url !== 'string' || !url.startsWith('https')) {
+      return { ok: false }
+    }
+    return { ok: true, url }
+  } catch {
+    return { ok: false }
+  }
+}
+
+export function openPatientDocumentWhatsApp(digits: string, signedUrl: string): Window | null {
+  if (!signedUrl.startsWith('https://')) return null
+  const text = `${PATIENT_AI_COPY.whatsappMessage} ${signedUrl}`
+  const href = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
+  const popup = window.open(href, '_blank', 'noopener,noreferrer')
+  if (popup === null) return null
+  return popup
+}
