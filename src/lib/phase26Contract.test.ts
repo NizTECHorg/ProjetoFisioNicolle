@@ -161,3 +161,73 @@ test('REQ-37.2: exportar avaliação e o seletor não usam Gerando', () => {
   equal(evoEmptyBranch.includes('buildPatientAiReportPdf'), false)
   equal(evoEmptyBranch.includes('createReport'), false)
 })
+
+const sendServicePath = fileURLToPath(
+  new URL('../services/patientDocumentSend.service.ts', import.meta.url),
+)
+
+function sliceNamed(source: string, name: string): string {
+  const start = source.indexOf(`function ${name}`)
+  if (start < 0) throw new Error(`função ausente: ${name}`)
+  const rest = source.slice(start + `function ${name}`.length)
+  const next = rest.search(/\n(?:export )?(?:async )?function /)
+  return next < 0 ? source.slice(start) : source.slice(start, start + `function ${name}`.length + next)
+}
+
+test('REQ-37.3: sucesso só com https e janela', () => {
+  const send = readFileSync(sendServicePath, 'utf8')
+  const composer = readFileSync(composerPath, 'utf8')
+
+  equal(send.includes('86400'), false)
+  equal(send.includes('sendWhatsAppSuccess'), false)
+
+  const sign = sliceNamed(send, 'signPatientDocumentUrl')
+  equal(sign.includes('createSignedUrl'), true)
+  equal(sign.includes('604800'), true)
+  equal(sign.includes('86400'), false)
+  equal(sign.includes("'patient-ai-reports'"), true)
+  equal(sign.includes("'avaliacao.pdf'"), true)
+  equal(sign.includes("'evolucao.pdf'"), true)
+  equal(/startsWith\(\s*['"]https/.test(sign), true)
+
+  const open = sliceNamed(send, 'openPatientDocumentWhatsApp')
+  equal(open.includes('https://wa.me/'), true)
+  equal(open.includes('whatsappMessage'), true)
+  equal(open.includes('encodeURIComponent'), true)
+  equal(open.includes("'_blank'"), true)
+  equal(open.includes("'noopener,noreferrer'"), true)
+  equal(open.includes('sendWhatsAppSuccess'), false)
+  const httpsGuard = open.search(/startsWith\(\s*['"]https:\/\//)
+  const openCall = open.indexOf('window.open')
+  equal(httpsGuard >= 0 && openCall > httpsGuard, true)
+  equal(/(?:===|!==)\s*null/.test(open.slice(openCall)), true)
+
+  const whatsApp = sliceNamed(composer, 'handleSendWhatsApp')
+  const successAt = whatsApp.indexOf('sendWhatsAppSuccess')
+  equal(successAt > 0, true)
+  const beforeSuccess = whatsApp.slice(0, successAt)
+  equal(/startsWith\(\s*['"]https/.test(beforeSuccess), true)
+  equal(beforeSuccess.includes('sendFileUnavailable'), true)
+  equal(beforeSuccess.includes('sendWhatsAppBlocked'), true)
+  equal(beforeSuccess.includes('openPatientDocumentWhatsApp'), true)
+  equal(/(?:===|!==)\s*null/.test(beforeSuccess), true)
+  equal(beforeSuccess.indexOf('sendNeedExport') < beforeSuccess.indexOf('signPatientDocumentUrl'), true)
+  equal(beforeSuccess.includes('window.open'), false)
+  equal(beforeSuccess.includes('emergencyPhone'), false)
+
+  const email = sliceNamed(composer, 'handleSendEmail')
+  equal(email.includes('sendNeedEmail'), true)
+  equal(email.indexOf('sendNeedExport') < email.indexOf('sendPatientDocument'), true)
+  equal(email.indexOf('sendPatientDocument') < email.indexOf('sendEmailSuccess'), true)
+  equal(email.includes('window.open'), false)
+  equal(email.includes('sendWhatsAppSuccess'), false)
+
+  equal(composer.includes('emergencyPhone'), false)
+  equal(composer.includes("if (!canWrite) return null"), true)
+  equal(composer.includes("sending === 'whatsapp'"), true)
+  equal(composer.includes("sending === 'email'"), true)
+  equal(composer.includes('sendWhatsApp'), true)
+  equal(composer.includes('sendEmail'), true)
+  equal(composer.includes('#25D366'), true)
+  equal(composer.includes('Mail'), true)
+})
