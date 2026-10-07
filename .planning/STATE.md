@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 26 plans ready
-last_updated: "2026-10-06T22:18:37.853Z"
+stopped_at: Completed 26-01-PLAN.md
+last_updated: "2026-10-07T00:00:22.964Z"
 progress:
   total_phases: 27
   completed_phases: 12
   total_plans: 109
-  completed_plans: 92
+  completed_plans: 93
   percent: 44
 ---
 
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 25 — mobilidade-palpacao-e-testes
+**Current focus:** Phase 26 — pdf-botao-gerando-envio-cliente
 
 ## Current Position
 
-Phase: 25 (mobilidade-palpacao-e-testes) — EXECUTING
-Plan: 5 of 5
+Phase: 26 (pdf-botao-gerando-envio-cliente) — EXECUTING
+Plan: 2 of 4
 
 - Status: Ready to execute
-- Progress: 1/5 plans
+- Progress: 1/4 plans complete
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 85%
 
 ## Accumulated Context
 
@@ -233,6 +233,8 @@ Plan: 5 of 5
 - [Phase 25]: O PDF troca → por -> só na string de 04.B e 04.E; toWinAnsiSafe permanece global — WinAnsi não tem U+2192; o detalhe e o preview no browser mantêm a seta
 - [Phase 25]: O preview usa a primeira linha formatada, com corte de 40 caracteres já existente — previewFrom corta em 40; a frase inteira fica no detalhe e no PDF
 - [Phase 25]: Tipo, comparação, lado e achado entram no formatador como string, porque o schema infere o enum assim — optionalEnum infere string; o mapa de rótulos ainda descarta valor fora do catálogo
+- [Phase 26]: Avaliação e evolução usam título de seção 20pt e campo 14pt; célula vazia da tabela não é desenhada — REQ-37.1 omite campo, bloco e célula vazios sem inventar texto
+- [Phase 26]: Cabeçalho da ficha é Avaliação ou Evolução a partir de docTitle; rodapé é Fluxo e o número da página — Geral e sessão permanecem com FLUXO · Documento clínico
 
 ### Pending user action
 
@@ -268,9 +270,9 @@ Plan: 5 of 5
 
 ## Session Continuity
 
-Last session: 2026-10-06T22:18:37.803Z
-Stopped at: Phase 26 plans ready
-Resume file: .planning/phases/26-pdf-botao-gerando-envio-cliente/26-01-PLAN.md
+Last session: 2026-10-07T00:00:22.832Z
+Stopped at: Completed 26-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -339,3 +341,4 @@ Resume file: .planning/phases/26-pdf-botao-gerando-envio-cliente/26-01-PLAN.md
 | Phase 25 P02 | 9min | 2 tasks | 6 files |
 | Phase 25 P03 | 14min | 2 tasks | 2 files |
 | Phase 25 P04 | 8min | 2 tasks | 5 files |
+| Phase 26 P01 | 14min | 2 tasks | 2 files |
