@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 26-01-PLAN.md
-last_updated: "2026-10-07T00:00:22.964Z"
+stopped_at: Completed 26-03-PLAN.md
+last_updated: "2026-10-07T00:11:45.586Z"
 progress:
   total_phases: 27
   completed_phases: 12
   total_plans: 109
-  completed_plans: 93
+  completed_plans: 94
   percent: 44
 ---
 
@@ -29,9 +29,9 @@ Phase: 26 (pdf-botao-gerando-envio-cliente) — EXECUTING
 Plan: 2 of 4
 
 - Status: Ready to execute
-- Progress: 1/4 plans complete
+- Progress: 2/4 plans complete
 
-**Progress:** [█████████░] 85%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -235,6 +235,11 @@ Plan: 2 of 4
 - [Phase 25]: Tipo, comparação, lado e achado entram no formatador como string, porque o schema infere o enum assim — optionalEnum infere string; o mapa de rótulos ainda descarta valor fora do catálogo
 - [Phase 26]: Avaliação e evolução usam título de seção 20pt e campo 14pt; célula vazia da tabela não é desenhada — REQ-37.1 omite campo, bloco e célula vazios sem inventar texto
 - [Phase 26]: Cabeçalho da ficha é Avaliação ou Evolução a partir de docTitle; rodapé é Fluxo e o número da página — Geral e sessão permanecem com FLUXO · Documento clínico
+- [Phase 26]: Contact helpers return missing or invalid so the screen can choose the Portuguese sentence — Placeholder dash is not a destination
+- [Phase 26]: send-patient-document reads patients.email with the user JWT and ignores any address in the JSON body — T-26-04 and T-26-05
+- [Phase 26]: SMTP password stays in FLUXO_SMTP_PASS; denomailer is pinned at 1.6.0 and is not an npm dependency — T-26-06 and T-26-SC
+- [Phase 26]: REQ-37 stays open after 26-03; plans 26-02 and 26-04 still own the Gerando button and the send screen — requirements.mark-complete was not called
+- [Phase 26]: Plan counter stays at 2 of 4 because 26-02 has no summary — state.advance-plan was not called
 
 ### Pending user action
 
@@ -270,8 +275,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-07T00:00:22.832Z
-Stopped at: Completed 26-01-PLAN.md
+Last session: 2026-10-07T00:11:45.565Z
+Stopped at: Completed 26-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -342,3 +347,4 @@ Resume file: None
 | Phase 25 P03 | 14min | 2 tasks | 2 files |
 | Phase 25 P04 | 8min | 2 tasks | 5 files |
 | Phase 26 P01 | 14min | 2 tasks | 2 files |
+| Phase 26 P03 | 8min | 2 tasks | 5 files |

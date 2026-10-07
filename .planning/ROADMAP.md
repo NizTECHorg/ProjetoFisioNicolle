@@ -781,11 +781,11 @@ Plans:
 **Requirements**: REQ-37
 **Depends on:** Phase 13 (o PDF de avaliação e evolução já existe)
 **UI hint**: yes
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [x] 26-01-PLAN.md — PDF de avaliação e evolução só com o preenchido
-- [ ] 26-03-PLAN.md — Contato do paciente e função de e-mail no SMTP do Fluxo
+- [x] 26-03-PLAN.md — Contato do paciente e função de e-mail no SMTP do Fluxo
 - [ ] 26-02-PLAN.md — Botão Gerando com estrela e brilho azul
 - [ ] 26-04-PLAN.md — Envio por e-mail e WhatsApp na exportação e na lista
 
