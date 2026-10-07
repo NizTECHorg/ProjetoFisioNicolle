@@ -40,6 +40,11 @@ function emptyToNull(value: string | undefined) {
   return trimmed === '' ? null : trimmed
 }
 
+/** Colunas de texto legadas não aceitam null. Campo clínico vazio grava ''. */
+function blankText(value: string | null | undefined) {
+  return value?.trim() ?? ''
+}
+
 function formatDateLabel(isoDate: string) {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -215,26 +220,24 @@ function toRow(input: UpsertPatientEvaluationInput) {
   const ficha = parsed.data
 
   const mirroredComplaint =
-    emptyToNull(input.mainComplaint) ??
-    emptyToNull(ficha.anamnese?.queixa?.oQueTrouxe) ??
-    null
+    blankText(input.mainComplaint) || blankText(ficha.anamnese?.queixa?.oQueTrouxe)
 
   return {
     performed_on: input.performedOn,
     ficha: ficha as unknown as Record<string, unknown>,
-    anamnesis: emptyToNull(input.anamnesis),
+    anamnesis: blankText(input.anamnesis),
     main_complaint: mirroredComplaint,
-    history: emptyToNull(input.history),
-    pain: emptyToNull(input.pain),
-    limitations: emptyToNull(input.limitations),
-    goals: emptyToNull(input.goals),
-    physical_exam: emptyToNull(input.physicalExam),
-    tests: emptyToNull(input.tests),
-    measurements: emptyToNull(input.measurements),
-    physio_diagnosis: emptyToNull(input.physioDiagnosis),
-    plan: emptyToNull(input.plan),
+    history: blankText(input.history),
+    pain: blankText(input.pain),
+    limitations: blankText(input.limitations),
+    goals: blankText(input.goals),
+    physical_exam: blankText(input.physicalExam),
+    tests: blankText(input.tests),
+    measurements: blankText(input.measurements),
+    physio_diagnosis: blankText(input.physioDiagnosis),
+    plan: blankText(input.plan),
     therapist_id: input.therapistId || null,
-    therapist_name: emptyToNull(input.therapistName ?? undefined),
+    therapist_name: blankText(input.therapistName),
   }
 }
 

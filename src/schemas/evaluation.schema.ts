@@ -10,7 +10,7 @@ const optionalText = (max: number) =>
     .trim()
     .max(max, `Máximo de ${max} caracteres`)
 
-/** Form contract: only performedOn required (D-03). Clinical content lives in ficha. */
+/** Só o nome da avaliação é obrigatório. A data continua preenchida com hoje. O restante da ficha pode ir em branco. */
 export const evaluationFormSchema = z.object({
   performedOn: z
     .string()
@@ -30,6 +30,14 @@ export const evaluationFormSchema = z.object({
   measurements: optionalText(4000).optional(),
   physioDiagnosis: optionalText(4000).optional(),
   plan: optionalText(8000).optional(),
+}).superRefine((value, ctx) => {
+  if (!value.ficha.titulo?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['ficha', 'titulo'],
+      message: 'Informe o nome da avaliação',
+    })
+  }
 })
 
 export type EvaluationFormData = z.infer<typeof evaluationFormSchema>

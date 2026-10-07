@@ -223,7 +223,7 @@ export function PatientEvaluationEditorForm({
               {editing ? 'Editar avaliação' : 'Nova avaliação'}
             </h3>
             <p className="mt-1 text-xs text-muted">
-              Só a data é obrigatória — salve parcial e complete depois.
+              Só o nome da avaliação é obrigatório. O restante pode ficar em branco.
             </p>
           </div>
         </div>
@@ -233,6 +233,7 @@ export function PatientEvaluationEditorForm({
         <Input
           label="Nome da avaliação"
           placeholder="Ex.: Avaliação inicial, Reavaliação 30 dias…"
+          error={form.formState.errors.ficha?.titulo?.message}
           {...form.register('ficha.titulo')}
         />
         <Input

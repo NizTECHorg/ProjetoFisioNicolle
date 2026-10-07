@@ -1,4 +1,5 @@
-import { useId, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
 import {
   useFieldArray,
   type Control,
@@ -1018,6 +1019,57 @@ function CamposTesteMarcado({
   )
 }
 
+function GrupoTestes({
+  label,
+  aberto,
+  onToggle,
+  children,
+}: {
+  label: string
+  aberto: boolean
+  onToggle: () => void
+  children: ReactNode
+}) {
+  const painelId = useId()
+
+  const rotuloId = useId()
+
+  return (
+    <div role="group" aria-labelledby={rotuloId} className="border-b border-line last:border-b-0">
+      <button
+        id={rotuloId}
+        type="button"
+        aria-expanded={aberto}
+        aria-controls={painelId}
+        onClick={onToggle}
+        className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm font-semibold leading-[1.2] text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/25"
+      >
+        <ChevronDown
+          size={18}
+          aria-hidden
+          className={[
+            'shrink-0 text-forest transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+            aberto ? 'rotate-0' : '-rotate-90',
+          ].join(' ')}
+        />
+        <span>{label}</span>
+      </button>
+      <div
+        id={painelId}
+        inert={aberto ? undefined : true}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          aberto ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        ].join(' ')}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="pb-2 pl-9 pr-3">{children}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ListaTestes({
   register,
   control,
@@ -1031,6 +1083,10 @@ function ListaTestes({
 }) {
   const idBusca = useId()
   const [busca, setBusca] = useState('')
+  const [manual, setManual] = useState<{ consulta: string; chaves: Record<string, boolean> }>({
+    consulta: '',
+    chaves: {},
+  })
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'ficha.avaliacaoPlano.palpacaoTestes.testes',
@@ -1050,6 +1106,23 @@ function ListaTestes({
     regioes.flatMap((regiao) => regiao.testes.map((item) => `${regiao.key}:${item.key}`)),
   )
   const escondidos = fields.some((item) => !visiveis.has(`${item.regiao}:${item.teste}`))
+  const chaves = manual.consulta === filtro ? manual.chaves : {}
+
+  function abertoDe(key: string, temMarcados: boolean) {
+    const escolhido = chaves[key]
+    if (escolhido !== undefined) return escolhido
+    return Boolean(filtro) || temMarcados
+  }
+
+  function alternar(key: string, atual: boolean) {
+    setManual((prev) => ({
+      consulta: filtro,
+      chaves: {
+        ...(prev.consulta === filtro ? prev.chaves : {}),
+        [key]: !atual,
+      },
+    }))
+  }
 
   return (
     <div className="space-y-4">
@@ -1082,44 +1155,56 @@ function ListaTestes({
           Nenhum teste com esse texto. Apague a busca para ver a lista inteira.
         </p>
       ) : (
-        regioes.map((regiao) => (
-          <fieldset key={regiao.key} className="space-y-2">
-            <legend className="text-sm font-semibold leading-[1.2] text-ink">{regiao.label}</legend>
-            <ul className="flex flex-col">
-              {regiao.testes.map((item) => {
-                const indice = fields.findIndex(
-                  (campo) => campo.regiao === regiao.key && campo.teste === item.key,
-                )
-                const marcado = indice >= 0
-                return (
-                  <li key={item.key}>
-                    <label className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
-                      <input
-                        type="checkbox"
-                        className="accent-forest"
-                        checked={marcado}
-                        disabled={disabled}
-                        onChange={() => {
-                          if (marcado) remove(indice)
-                          else append({ regiao: regiao.key, teste: item.key })
-                        }}
-                      />
-                      <span>{item.label}</span>
-                    </label>
-                    {marcado ? (
-                      <CamposTesteMarcado
-                        indice={indice}
-                        outro={item.key === 'outro'}
-                        register={register}
-                        disabled={disabled}
-                      />
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </fieldset>
-        ))
+        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        {regioes.map((regiao) => {
+          const temMarcados = regiao.testes.some((item) =>
+            fields.some((campo) => campo.regiao === regiao.key && campo.teste === item.key),
+          )
+          const aberto = abertoDe(regiao.key, temMarcados)
+          return (
+            <GrupoTestes
+              key={regiao.key}
+              label={regiao.label}
+              aberto={aberto}
+              onToggle={() => alternar(regiao.key, aberto)}
+            >
+              <ul className="flex flex-col">
+                {regiao.testes.map((item) => {
+                  const indice = fields.findIndex(
+                    (campo) => campo.regiao === regiao.key && campo.teste === item.key,
+                  )
+                  const marcado = indice >= 0
+                  return (
+                    <li key={item.key}>
+                      <label className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
+                        <input
+                          type="checkbox"
+                          className="accent-forest"
+                          checked={marcado}
+                          disabled={disabled}
+                          onChange={() => {
+                            if (marcado) remove(indice)
+                            else append({ regiao: regiao.key, teste: item.key })
+                          }}
+                        />
+                        <span>{item.label}</span>
+                      </label>
+                      {marcado ? (
+                        <CamposTesteMarcado
+                          indice={indice}
+                          outro={item.key === 'outro'}
+                          register={register}
+                          disabled={disabled}
+                        />
+                      ) : null}
+                    </li>
+                  )
+                })}
+              </ul>
+            </GrupoTestes>
+          )
+        })}
+        </div>
       )}
       <RegistroAnterior texto={registroAnterior} />
     </div>
