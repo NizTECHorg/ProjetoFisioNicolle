@@ -65,6 +65,26 @@ export const PATIENT_AI_COPY = {
   editModalCancel: 'Fechar sem salvar',
   editModalSubmit: 'Salvar edições',
   editPencilLabel: 'Editar resumo do paciente',
+  pdfEmptyHeading: 'Nada preenchido para este PDF.',
+  pdfEmptyBody: 'Preencha a avaliação ou a evolução e volte para exportar.',
+  sendWhatsApp: 'Enviar por WhatsApp',
+  sendEmail: 'Enviar por e-mail',
+  sendNeedExport: 'Exporte o PDF antes de enviar ao paciente.',
+  sendNeedEmail:
+    'Este paciente não tem e-mail no cadastro. Inclua o e-mail na ficha e tente de novo.',
+  sendNeedPhone:
+    'Este paciente não tem telefone no cadastro. Inclua o telefone na ficha e tente de novo.',
+  sendPhoneInvalid:
+    'Este telefone não abre no WhatsApp. Corrija o número na ficha e tente de novo.',
+  sendEmailError: 'Não foi possível enviar o e-mail. Tente de novo em instantes.',
+  sendWhatsAppBlocked: 'O WhatsApp não abriu. Permita a janela do navegador e tente de novo.',
+  sendFileUnavailable: 'O arquivo não ficou disponível. Exporte de novo e tente outra vez.',
+  sendEmailSuccess: 'E-mail enviado para o paciente.',
+  sendWhatsAppSuccess: 'Conversa aberta com o link do PDF.',
+  whatsappMessage: 'Segue o documento da sua fisioterapia. O link vale 7 dias.',
+  emailSubjectAvaliacao: 'Sua avaliação',
+  emailSubjectEvolucao: 'Sua evolução',
+  emailBody: 'Segue o documento da sua fisioterapia, em anexo.',
 } as const
 
 export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024
@@ -80,6 +100,14 @@ export const patientAiSummaryInvokeSchema = z.object({
 })
 
 export type PatientAiSummaryInvokeInput = z.infer<typeof patientAiSummaryInvokeSchema>
+
+/** Body of send-patient-document. Destination comes from patients.email, never this object. */
+export const patientDocumentSendSchema = z.object({
+  patientId: z.string().uuid(),
+  reportId: z.string().uuid(),
+})
+
+export type PatientDocumentSendInput = z.infer<typeof patientDocumentSendSchema>
 
 /** Evolução multi-sessão invoke (D-04) — cap 12 sessions. */
 export const patientAiEvolucaoInvokeSchema = z.object({
