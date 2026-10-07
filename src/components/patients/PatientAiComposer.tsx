@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { PatientAiFieldPicker } from '@/components/patients/PatientAiFieldPicker'
@@ -98,6 +98,13 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     kind: 'avaliacao' | 'evolucao'
   } | null>(null)
   const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null)
+  const patientIdRef = useRef(patientId)
+  patientIdRef.current = patientId
+
+  useEffect(() => {
+    setSavedReport(null)
+    setSending(null)
+  }, [patientId])
 
   const sessionsForPicker = useMemo(() => {
     const withEvo: typeof sessions = []
@@ -301,6 +308,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
       toast(PATIENT_AI_COPY.needFields, 'error')
       return
     }
+    const exportedFor = patientId
 
     try {
       if (pendingExport.kind === 'avaliacao') {
@@ -331,6 +339,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
           },
           {
             onSuccess: (report) => {
+              if (exportedFor !== patientIdRef.current) return
               if (report.kind === 'avaliacao' || report.kind === 'evolucao') {
                 setSavedReport({
                   id: report.id,
@@ -377,16 +386,17 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
           blob,
         },
         {
-          onSuccess: (report) => {
-            if (report.kind === 'avaliacao' || report.kind === 'evolucao') {
-              setSavedReport({
-                id: report.id,
-                storagePath: report.storagePath,
-                kind: report.kind,
-              })
-            }
-            closePicker()
-          },
+            onSuccess: (report) => {
+              if (exportedFor !== patientIdRef.current) return
+              if (report.kind === 'avaliacao' || report.kind === 'evolucao') {
+                setSavedReport({
+                  id: report.id,
+                  storagePath: report.storagePath,
+                  kind: report.kind,
+                })
+              }
+              closePicker()
+            },
         },
       )
     } catch (error) {
@@ -421,7 +431,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     }
     setSending('whatsapp')
     try {
-      const signed = await signPatientDocumentUrl(report.storagePath, report.kind)
+      const signed = await signPatientDocumentUrl(report.storagePath, report.kind, patientId)
       if (!signed.ok || !signed.url.startsWith('https')) {
         toast(PATIENT_AI_COPY.sendFileUnavailable, 'error')
         return

@@ -100,7 +100,10 @@ export type SignedPatientDocument = { ok: true; url: string } | { ok: false }
 export async function signPatientDocumentUrl(
   storagePath: string,
   kind: SendableReportKind,
+  patientId: string,
 ): Promise<SignedPatientDocument> {
+  const folder = storagePath.split('/')[0]?.toLowerCase() ?? ''
+  if (!patientId || folder !== patientId.toLowerCase()) return { ok: false }
   const download = kind === 'avaliacao' ? 'avaliacao.pdf' : 'evolucao.pdf'
   try {
     const { data, error } = await supabase.storage
@@ -120,7 +123,8 @@ export function openPatientDocumentWhatsApp(digits: string, signedUrl: string): 
   if (!signedUrl.startsWith('https://')) return null
   const text = `${PATIENT_AI_COPY.whatsappMessage} ${signedUrl}`
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
-  const popup = window.open(href, '_blank', 'noopener,noreferrer')
+  const popup = window.open(href, '_blank')
   if (popup === null) return null
+  popup.opener = null
   return popup
 }

@@ -116,6 +116,7 @@ test('REQ-37.3: a função lê o e-mail do cadastro e não o body', () => {
   ok(fn.includes('patients'))
   ok(fn.includes('patient-ai-reports'))
   ok(fn.includes('.download('))
+  ok(fn.includes('folder !== patientId.toLowerCase()'))
   ok(fn.includes('FLUXO_SMTP_PASS'))
   ok(fn.includes('https://deno.land/x/denomailer@1.6.0/mod.ts'))
   ok(fn.includes('Sua avaliação'))

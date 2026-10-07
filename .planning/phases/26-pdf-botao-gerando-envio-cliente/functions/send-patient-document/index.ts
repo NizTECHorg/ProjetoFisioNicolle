@@ -167,6 +167,10 @@ Deno.serve(async (req: Request) => {
   if (!report.storage_path) {
     return portugueseError(FILE_UNAVAILABLE, 404)
   }
+  const folder = report.storage_path.split('/')[0]?.toLowerCase() ?? ''
+  if (folder !== patientId.toLowerCase()) {
+    return portugueseError(FILE_UNAVAILABLE, 404)
+  }
 
   const { data: file, error: downloadError } = await userClient.storage
     .from(REPORT_BUCKET)

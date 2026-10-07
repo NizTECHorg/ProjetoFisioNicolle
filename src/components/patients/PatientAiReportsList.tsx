@@ -104,7 +104,7 @@ export function PatientAiReportsList({
     }
     setSending({ id: report.id, channel: 'whatsapp' })
     try {
-      const signed = await signPatientDocumentUrl(report.storagePath, report.kind)
+      const signed = await signPatientDocumentUrl(report.storagePath, report.kind, patientId)
       if (!signed.ok || !signed.url.startsWith('https')) {
         toast(PATIENT_AI_COPY.sendFileUnavailable, 'error')
         return
