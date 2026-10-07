@@ -18,7 +18,7 @@
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [x] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
-- [x] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
+- [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -429,4 +429,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-32 | Phase 21 | Complete |
 | REQ-35 | Phase 24 | Complete |
 | REQ-36 | Phase 25 | Complete |
-| REQ-37 | Phase 26 | Complete |
+| REQ-37 | Phase 26 | Planned |

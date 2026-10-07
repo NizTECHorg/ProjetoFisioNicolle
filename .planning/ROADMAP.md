@@ -32,7 +32,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
 - [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
 - [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
-- [x] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp (completed 2026-10-07)
+- [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
 
 ## Phase Details
 
