@@ -68,3 +68,54 @@ test('REQ-37.1: cabeçalho e rodapé da ficha são claros', () => {
   equal(footer.includes('FLUXO · Documento clínico'), true)
   equal(footer.includes('Pág.'), true)
 })
+
+const buttonPath = fileURLToPath(new URL('../components/ui/Button.tsx', import.meta.url))
+const aiButtonPath = fileURLToPath(
+  new URL('../components/ui/AiGeneratingButton.tsx', import.meta.url),
+)
+const cssPath = fileURLToPath(new URL('../index.css', import.meta.url))
+
+test('REQ-37.2: Gerando fica fora do Button', () => {
+  const button = readFileSync(buttonPath, 'utf8')
+  const ai = readFileSync(aiButtonPath, 'utf8')
+  const css = readFileSync(cssPath, 'utf8')
+
+  equal(button.includes('Aguarde...'), true)
+  equal(
+    button.includes(
+      'h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent',
+    ),
+    true,
+  )
+  equal(button.includes('Gerando'), false)
+  equal(button.includes('ai-generating'), false)
+
+  equal(ai.includes('Gerando'), true)
+  equal(ai.includes('Star'), true)
+  equal(ai.includes('aria-busy'), true)
+  equal(ai.includes('ai-generating'), true)
+  equal(ai.includes('rounded-2xl'), true)
+  equal(ai.includes('px-6 py-3.5'), true)
+  equal(ai.includes('bg-forest'), true)
+  equal(ai.includes('text-white'), true)
+  equal(ai.includes('min-h-11'), true)
+  equal(ai.includes('font-medium'), false)
+
+  const chrome = ai.match(/'([^']*rounded-2xl[^']*bg-forest[^']*)'/)
+  equal(chrome?.[1]?.includes('ai-generating') ?? true, false)
+  equal(/generating\s*\?\s*'ai-generating'/.test(ai), true)
+
+  equal(css.includes('.ai-generating'), true)
+  equal(css.includes('background-color: #2f7dff'), true)
+  equal(css.includes('animation: ai-glow 1.6s ease-in-out infinite'), true)
+  equal(css.includes('@keyframes ai-glow'), true)
+  equal(css.includes('0 0 0 0 rgba(47, 125, 255, 0.35)'), true)
+  equal(css.includes('0 0 16px 4px rgba(47, 125, 255, 0.55)'), true)
+
+  const reducedStart = css.lastIndexOf('@media (prefers-reduced-motion: reduce)')
+  equal(reducedStart >= 0, true)
+  const reduced = css.slice(reducedStart)
+  equal(reduced.includes('.ai-generating'), true)
+  equal(reduced.includes('animation: none'), true)
+  equal(reduced.includes('0 0 16px 4px rgba(47, 125, 255, 0.45)'), true)
+})
