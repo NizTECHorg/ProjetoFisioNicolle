@@ -32,7 +32,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
 - [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
 - [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
-- [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
+- [x] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp (completed 2026-10-07)
 
 ## Phase Details
 
@@ -781,13 +781,13 @@ Plans:
 **Requirements**: REQ-37
 **Depends on:** Phase 13 (o PDF de avaliação e evolução já existe)
 **UI hint**: yes
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 26-01-PLAN.md — PDF de avaliação e evolução só com o preenchido
 - [x] 26-03-PLAN.md — Contato do paciente e função de e-mail no SMTP do Fluxo
 - [x] 26-02-PLAN.md — Botão Gerando com estrela e brilho azul
-- [ ] 26-04-PLAN.md — Envio por e-mail e WhatsApp na exportação e na lista
+- [x] 26-04-PLAN.md — Envio por e-mail e WhatsApp na exportação e na lista
 
 **Cross-cutting constraints:**
 - Sem SQL e sem `supabase db push`. Segredos de e-mail só no Dashboard, no SMTP que o Fluxo já usa

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-10-07T00:25:43.457Z"
+stopped_at: Completed 26-04-PLAN.md
+last_updated: "2026-10-07T00:39:21.170Z"
 progress:
   total_phases: 27
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 109
-  completed_plans: 95
-  percent: 44
+  completed_plans: 96
+  percent: 48
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 Phase: 26 (pdf-botao-gerando-envio-cliente) — EXECUTING
 Plan: 4 of 4
 
-- Status: Ready to execute
-- Progress: 3/4 plans complete
+- Status: Phase complete — ready for verification
+- Progress: 4/4 plans complete
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -243,6 +243,10 @@ Plan: 4 of 4
 - [Phase 26]: Gerando, the star, and ai-generating live only on AiGeneratingButton; Button isLoading still says Aguarde...
 - [Phase 26]: generatingTarget splits resumo and evolução synthesis so export upload does not show the star
 - [Phase 26]: An empty filled catalog sets catalogEmpty and renders pdfEmptyHeading and pdfEmptyBody
+- [Phase 26]: WhatsApp success toast only after an https signed URL and a non-null window.open
+- [Phase 26]: Patient document signed URL uses only 604800 seconds; failure toasts sendFileUnavailable with no 24-hour fallback
+- [Phase 26]: Send buttons render only when canWrite and the PDF kind is avaliacao or evolucao
+- [Phase 26]: PatientResumoIaPanel passes detail phone and email from the existing usePatient
 
 ### Pending user action
 
@@ -278,8 +282,8 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-07T00:25:43.440Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-10-07T00:39:21.146Z
+Stopped at: Completed 26-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -352,3 +356,4 @@ Resume file: None
 | Phase 26 P01 | 14min | 2 tasks | 2 files |
 | Phase 26 P03 | 8min | 2 tasks | 5 files |
 | Phase 26 P02 | 6min | 2 tasks | 5 files |
+| Phase 26 P04 | 9min | 2 tasks | 6 files |
