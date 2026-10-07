@@ -231,3 +231,64 @@ test('REQ-37.3: sucesso só com https e janela', () => {
   equal(composer.includes('#25D366'), true)
   equal(composer.includes('Mail'), true)
 })
+
+const reportsListPath = fileURLToPath(
+  new URL('../components/patients/PatientAiReportsList.tsx', import.meta.url),
+)
+const resumoPanelPath = fileURLToPath(
+  new URL('../components/patients/PatientResumoIaPanel.tsx', import.meta.url),
+)
+const sendFunctionPath = fileURLToPath(
+  new URL(
+    '../../.planning/phases/26-pdf-botao-gerando-envio-cliente/functions/send-patient-document/index.ts',
+    import.meta.url,
+  ),
+)
+const userSetupPath = fileURLToPath(
+  new URL(
+    '../../.planning/phases/26-pdf-botao-gerando-envio-cliente/26-USER-SETUP.md',
+    import.meta.url,
+  ),
+)
+
+test('REQ-37.5: envio só com escrita e só em avaliação ou evolução', () => {
+  const list = readFileSync(reportsListPath, 'utf8')
+  const composer = readFileSync(composerPath, 'utf8')
+  const panel = readFileSync(resumoPanelPath, 'utf8')
+  const send = readFileSync(sendServicePath, 'utf8')
+  const edge = readFileSync(sendFunctionPath, 'utf8')
+  const setup = readFileSync(userSetupPath, 'utf8')
+
+  equal(composer.includes('if (!canWrite) return null'), true)
+  equal(list.includes('generatingConfirm'), false)
+  equal(list.includes('report.signedUrl'), true)
+
+  const label = 'PATIENT_AI_COPY.sendWhatsApp}'
+  const labelAt = list.indexOf(label)
+  equal(labelAt >= 0, true)
+  equal(list.indexOf(label, labelAt + label.length), -1)
+  const gateAt = list.lastIndexOf('canWrite', labelAt)
+  equal(gateAt >= 0, true)
+  const branch = list.slice(gateAt, labelAt)
+  equal(branch.includes("'geral'"), true)
+  equal(branch.includes("'sessao'"), true)
+  equal(branch.includes("'avaliacao'"), true)
+  equal(branch.includes("'evolucao'"), true)
+  equal(list.slice(0, gateAt).includes(label), false)
+
+  equal(send.includes('https://wa.me/'), true)
+  equal(send.includes('604800'), true)
+  equal(send.includes('86400'), false)
+  equal(/created_by\s*!==\s*user\.id/.test(edge), true)
+
+  equal(panel.includes('phone={detail?.phone}'), true)
+  equal(panel.includes('email={detail?.email}'), true)
+  equal((panel.match(/usePatient\(/g) ?? []).length, 1)
+
+  equal(setup.includes('FLUXO_SMTP_PASS'), true)
+  equal(setup.includes('send-patient-document'), true)
+  equal(setup.includes('supabase functions deploy'), true)
+  equal(setup.includes('Send Email Hook'), true)
+  equal(/smtp\.gmail\.com|smtp-relay\.brevo\.com|App Password/i.test(setup), false)
+  equal(/FLUXO_SMTP_PASS\s*[:=]\s*\S+/.test(setup), false)
+})
