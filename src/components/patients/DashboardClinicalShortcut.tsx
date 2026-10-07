@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, User, Users } from 'lucide-react'
+import { Plus, Users } from 'lucide-react'
+import userAddIcon from '@/assets/brand/icon.svg'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -140,7 +141,7 @@ export function DashboardClinicalShortcut() {
           onClick={openCreatePatient}
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink transition hover:border-forest/20 hover:bg-accent-soft hover:text-forest"
         >
-          <User size={18} aria-hidden="true" />
+          <img src={userAddIcon} alt="" width={24} height={24} aria-hidden="true" className="h-6 w-6" />
         </button>
         <Button type="button" variant="secondary" onClick={() => openPicker('avaliacao')}>
           <Plus size={16} />
