@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { PatientAiFieldPicker } from '@/components/patients/PatientAiFieldPicker'
+import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Select } from '@/components/ui/Select'
@@ -29,6 +30,7 @@ import type { PatientEvaluation } from '@/types/evaluation'
 import type { PatientSessionRecord } from '@/types/patient'
 
 type ComposerMode = 'resumo' | 'pdf'
+type GeneratingTarget = 'resumo' | 'sintese' | null
 /** PDF mode scopes — Avaliação | Evolução (D-01). */
 type PdfExportScope = 'avaliacao' | 'evolucao'
 
@@ -75,7 +77,8 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
   const [pdfScope, setPdfScope] = useState<PdfExportScope>('avaliacao')
   const [evaluationId, setEvaluationId] = useState(LATEST_EVAL_VALUE)
   const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(() => new Set())
-  const [generating, setGenerating] = useState(false)
+  const [generatingTarget, setGeneratingTarget] = useState<GeneratingTarget>(null)
+  const [catalogEmpty, setCatalogEmpty] = useState(false)
   const [scopeError, setScopeError] = useState<string | null>(null)
 
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -95,7 +98,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
   if (!canWrite) return null
 
-  const busy = generating || createReport.isPending
+  const busy = generatingTarget !== null || createReport.isPending
   const hasEvaluations = evaluations.length > 0
 
   const evaluationOptions = [
@@ -145,7 +148,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
   async function handleGenerate() {
     if (busy) return
-    setGenerating(true)
+    setGeneratingTarget('resumo')
     try {
       const hint = userHint.trim()
       await generatePatientAiSummary({
@@ -161,7 +164,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         'error',
       )
     } finally {
-      setGenerating(false)
+      setGeneratingTarget(null)
     }
   }
 
@@ -192,7 +195,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         return
       }
 
-      setGenerating(true)
+      setGeneratingTarget('sintese')
       try {
         const synthesis = await generateEvolucaoSynthesis({
           patientId,
@@ -218,9 +221,10 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         )
 
         if (items.length === 0) {
-          toast(PATIENT_AI_COPY.needFields, 'error')
+          setCatalogEmpty(true)
           return
         }
+        setCatalogEmpty(false)
 
         const sessionLabel = buildEvolucaoSessionLabel(selected)
         setPendingExport({
@@ -239,7 +243,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
           'error',
         )
       } finally {
-        setGenerating(false)
+        setGeneratingTarget(null)
       }
       return
     }
@@ -262,7 +266,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
     const items = buildEvaluationFilledCatalog(selected.ficha)
     if (items.length === 0) {
-      toast(PATIENT_AI_COPY.needFields, 'error')
+      setCatalogEmpty(true)
+      return
+    }
+    setCatalogEmpty(false)
+
+    const evaluationTitle = selected.title?.trim() || selected.ficha?.titulo?.trim() || ''
+    if (!evaluationTitle) {
+      toast('Informe o nome da avaliação', 'error')
       return
     }
 
@@ -407,15 +418,15 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
             value={userHint}
             onChange={(event) => setUserHint(event.target.value)}
           />
-          <Button
+          <AiGeneratingButton
             type="button"
             className="w-full sm:w-auto"
-            isLoading={generating}
+            generating={generatingTarget === 'resumo'}
             disabled={busy}
             onClick={() => requestGenerate()}
           >
             {PATIENT_AI_COPY.ctaGenerate}
-          </Button>
+          </AiGeneratingButton>
         </div>
       ) : (
         <div className="mt-4 space-y-4">
@@ -426,6 +437,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
               onClick={() => {
                 setPdfScope('avaliacao')
                 setScopeError(null)
+                setCatalogEmpty(false)
               }}
               className={scopeButtonClass(pdfScope === 'avaliacao')}
             >
@@ -437,6 +449,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
               onClick={() => {
                 setPdfScope('evolucao')
                 setScopeError(null)
+                setCatalogEmpty(false)
               }}
               className={scopeButtonClass(pdfScope === 'evolucao')}
             >
@@ -454,6 +467,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
                 onChange={(event) => {
                   setEvaluationId(event.target.value)
                   setScopeError(null)
+                  setCatalogEmpty(false)
                 }}
               />
             ) : (
@@ -499,15 +513,35 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
             </div>
           )}
 
-          <Button
-            type="button"
-            className="w-full sm:w-auto"
-            isLoading={generating || (createReport.isPending && !pickerOpen)}
-            disabled={exportDisabled}
-            onClick={() => void handleExport()}
-          >
-            {PATIENT_AI_COPY.ctaExport}
-          </Button>
+          {pdfScope === 'evolucao' && generatingTarget === 'sintese' ? (
+            <AiGeneratingButton
+              type="button"
+              generating
+              className="w-full sm:w-auto"
+              disabled={exportDisabled}
+              onClick={() => void handleExport()}
+            />
+          ) : (
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              isLoading={createReport.isPending && !pickerOpen}
+              disabled={exportDisabled}
+              onClick={() => void handleExport()}
+            >
+              {PATIENT_AI_COPY.ctaExport}
+            </Button>
+          )}
+          {catalogEmpty ? (
+            <div>
+              <h3 className="text-sm font-semibold leading-[1.2] text-ink">
+                {PATIENT_AI_COPY.pdfEmptyHeading}
+              </h3>
+              <p className="mt-2 text-sm leading-normal text-muted">
+                {PATIENT_AI_COPY.pdfEmptyBody}
+              </p>
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -529,7 +563,8 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         cancelLabel={PATIENT_AI_COPY.regenerateCancelLabel}
         tone="danger"
         autoFocusCancel
-        isLoading={generating}
+        generatingConfirm
+        isLoading={generatingTarget === 'resumo'}
         onClose={() => setConfirmOpen(false)}
         onConfirm={() => {
           void handleGenerate().finally(() => setConfirmOpen(false))

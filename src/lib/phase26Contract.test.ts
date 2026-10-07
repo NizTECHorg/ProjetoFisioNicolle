@@ -143,7 +143,7 @@ test('REQ-37.2: exportar avaliação e o seletor não usam Gerando', () => {
     false,
   )
 
-  const evalCatalog = composer.indexOf('buildEvaluationFilledCatalog')
+  const evalCatalog = composer.indexOf('buildEvaluationFilledCatalog(')
   equal(evalCatalog >= 0, true)
   const evalEmpty = composer.indexOf('items.length === 0', evalCatalog)
   equal(evalEmpty >= 0, true)
@@ -153,7 +153,7 @@ test('REQ-37.2: exportar avaliação e o seletor não usam Gerando', () => {
   equal(evalEmptyBranch.includes('buildPatientAiReportPdf'), false)
   equal(evalEmptyBranch.includes('createReport'), false)
 
-  const evoCatalog = composer.indexOf('buildEvolucaoFilledCatalog')
+  const evoCatalog = composer.indexOf('buildEvolucaoFilledCatalog(')
   equal(evoCatalog >= 0, true)
   const evoEmpty = composer.indexOf('items.length === 0', evoCatalog)
   equal(evoEmpty >= 0 && evoEmpty < evalCatalog, true)
