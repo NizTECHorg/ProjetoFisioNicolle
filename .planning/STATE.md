@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-10-07T00:11:45.586Z"
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-10-07T00:25:43.457Z"
 progress:
   total_phases: 27
   completed_phases: 12
   total_plans: 109
-  completed_plans: 94
+  completed_plans: 95
   percent: 44
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 26 (pdf-botao-gerando-envio-cliente) — EXECUTING
-Plan: 2 of 4
+Plan: 4 of 4
 
 - Status: Ready to execute
-- Progress: 2/4 plans complete
+- Progress: 3/4 plans complete
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -240,6 +240,9 @@ Plan: 2 of 4
 - [Phase 26]: SMTP password stays in FLUXO_SMTP_PASS; denomailer is pinned at 1.6.0 and is not an npm dependency — T-26-06 and T-26-SC
 - [Phase 26]: REQ-37 stays open after 26-03; plans 26-02 and 26-04 still own the Gerando button and the send screen — requirements.mark-complete was not called
 - [Phase 26]: Plan counter stays at 2 of 4 because 26-02 has no summary — state.advance-plan was not called
+- [Phase 26]: Gerando, the star, and ai-generating live only on AiGeneratingButton; Button isLoading still says Aguarde...
+- [Phase 26]: generatingTarget splits resumo and evolução synthesis so export upload does not show the star
+- [Phase 26]: An empty filled catalog sets catalogEmpty and renders pdfEmptyHeading and pdfEmptyBody
 
 ### Pending user action
 
@@ -275,8 +278,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-07T00:11:45.565Z
-Stopped at: Completed 26-03-PLAN.md
+Last session: 2026-10-07T00:25:43.440Z
+Stopped at: Completed 26-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -348,3 +351,4 @@ Resume file: None
 | Phase 25 P04 | 8min | 2 tasks | 5 files |
 | Phase 26 P01 | 14min | 2 tasks | 2 files |
 | Phase 26 P03 | 8min | 2 tasks | 5 files |
+| Phase 26 P02 | 6min | 2 tasks | 5 files |
