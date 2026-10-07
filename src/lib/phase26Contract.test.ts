@@ -119,3 +119,45 @@ test('REQ-37.2: Gerando fica fora do Button', () => {
   equal(reduced.includes('animation: none'), true)
   equal(reduced.includes('0 0 16px 4px rgba(47, 125, 255, 0.45)'), true)
 })
+
+const composerPath = fileURLToPath(
+  new URL('../components/patients/PatientAiComposer.tsx', import.meta.url),
+)
+const pickerPath = fileURLToPath(
+  new URL('../components/patients/PatientAiFieldPicker.tsx', import.meta.url),
+)
+
+test('REQ-37.2: exportar avaliação e o seletor não usam Gerando', () => {
+  const composer = readFileSync(composerPath, 'utf8')
+  const picker = readFileSync(pickerPath, 'utf8')
+
+  equal(composer.includes('AiGeneratingButton'), true)
+  equal(picker.includes('AiGeneratingButton'), false)
+  equal(composer.includes('pdfEmptyHeading'), true)
+  equal(composer.includes('pdfEmptyBody'), true)
+  equal(composer.includes("generatingTarget === 'resumo'"), true)
+  equal(composer.includes("generatingTarget === 'sintese'"), true)
+  equal(composer.includes('generatingConfirm'), true)
+  equal(
+    composer.includes('isLoading={generating || (createReport.isPending && !pickerOpen)}'),
+    false,
+  )
+
+  const evalCatalog = composer.indexOf('buildEvaluationFilledCatalog')
+  equal(evalCatalog >= 0, true)
+  const evalEmpty = composer.indexOf('items.length === 0', evalCatalog)
+  equal(evalEmpty >= 0, true)
+  const pickerConfirm = composer.indexOf('async function handlePickerConfirm', evalEmpty)
+  equal(pickerConfirm > evalEmpty, true)
+  const evalEmptyBranch = composer.slice(evalEmpty, pickerConfirm)
+  equal(evalEmptyBranch.includes('buildPatientAiReportPdf'), false)
+  equal(evalEmptyBranch.includes('createReport'), false)
+
+  const evoCatalog = composer.indexOf('buildEvolucaoFilledCatalog')
+  equal(evoCatalog >= 0, true)
+  const evoEmpty = composer.indexOf('items.length === 0', evoCatalog)
+  equal(evoEmpty >= 0 && evoEmpty < evalCatalog, true)
+  const evoEmptyBranch = composer.slice(evoEmpty, evalCatalog)
+  equal(evoEmptyBranch.includes('buildPatientAiReportPdf'), false)
+  equal(evoEmptyBranch.includes('createReport'), false)
+})
