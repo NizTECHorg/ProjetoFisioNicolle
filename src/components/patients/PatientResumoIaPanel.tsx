@@ -73,7 +73,12 @@ export function PatientResumoIaPanel({
         )}
       </section>
 
-      <PatientAiReportsList patientId={patientId} canWrite={canWrite} />
+      <PatientAiReportsList
+        patientId={patientId}
+        canWrite={canWrite}
+        phone={detail?.phone}
+        email={detail?.email}
+      />
     </div>
   )
 }
