@@ -1,3 +1,4 @@
+import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 
@@ -9,6 +10,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   tone?: 'danger' | 'default'
   isLoading?: boolean
+  /** When true and loading, the confirm control shows Gerando. Default keeps Button + Aguarde... */
+  generatingConfirm?: boolean
   /** When true, the cancel button receives initial focus. Default keeps existing callers unchanged. */
   autoFocusCancel?: boolean
   onConfirm: () => void
@@ -23,6 +26,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancelar',
   tone = 'default',
   isLoading = false,
+  generatingConfirm = false,
   autoFocusCancel = false,
   onConfirm,
   onClose,
@@ -40,19 +44,23 @@ export function ConfirmDialog({
         >
           {cancelLabel}
         </Button>
-        <Button
-          fullWidth
-          className={[
-            'sm:w-auto',
-            tone === 'danger' ? '!bg-error !text-white hover:!bg-error/90' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          onClick={onConfirm}
-          isLoading={isLoading}
-        >
-          {confirmLabel}
-        </Button>
+        {generatingConfirm && isLoading ? (
+          <AiGeneratingButton generating className="w-full sm:w-auto" onClick={onConfirm} />
+        ) : (
+          <Button
+            fullWidth
+            className={[
+              'sm:w-auto',
+              tone === 'danger' ? '!bg-error !text-white hover:!bg-error/90' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            onClick={onConfirm}
+            isLoading={isLoading}
+          >
+            {confirmLabel}
+          </Button>
+        )}
       </div>
     </Modal>
   )
