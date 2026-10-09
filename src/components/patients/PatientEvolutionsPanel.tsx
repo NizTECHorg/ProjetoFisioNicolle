@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { CalendarClock, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
+﻿import { useMemo, useState, useEffect } from 'react'
+import { Mic, Square, Loader2, CalendarClock, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import { SignedPhoto } from '@/components/patients/SignedPhoto'
 import { PatientSessionEditorForm } from '@/components/patients/PatientSessionEditorForm'
 import { Badge } from '@/components/ui/Badge'
@@ -9,6 +9,8 @@ import { Modal } from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
 import { useSessionCharges } from '@/hooks/useFinance'
 import { usePatientImages } from '@/hooks/usePatientImages'
+import { useVoiceCopilot } from '@/hooks/useVoiceCopilot'
+import { generateEvolutionFromAudio } from '@/services/ai.service'
 import { useDeletePatientSession, usePatientSessions } from '@/hooks/usePatients'
 import { canSeeFinance } from '@/lib/accountAccess'
 import { formatCurrency } from '@/lib/security'
@@ -149,6 +151,44 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   }, [images])
 
   const [editorOpen, setEditorOpen] = useState(false)
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false)
+  const { isRecording, duration, startRecording, stopRecording, audioBlob } = useVoiceCopilot()
+
+  // Handle auto-processing when audio stops
+  useEffect(() => {
+    if (audioBlob && !isRecording && !isProcessingAudio) {
+      const processAudio = async () => {
+        try {
+          setIsProcessingAudio(true)
+          const text = await generateEvolutionFromAudio(audioBlob)
+          setEditing({
+            id: '',
+            patientId,
+            dateLabel: new Date().toLocaleDateString('pt-BR'),
+            timeLabel: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            status: 'realizada',
+            type: 'Sessão',
+            place: 'Consultório',
+            therapistName: profile?.name || '',
+            evolution: {
+              patientState: '',
+              conducts: text,
+              changesSinceLast: '',
+              treatmentResponse: '',
+              incidents: '',
+              nextPlan: '',
+            }
+          })
+          setEditorOpen(true)
+        } catch (error) {
+          console.error(error)
+        } finally {
+          setIsProcessingAudio(false)
+        }
+      }
+      processAudio()
+    }
+  }, [audioBlob, isRecording])
   const [editing, setEditing] = useState<PatientSessionRecord | null>(null)
   const [viewing, setViewing] = useState<PatientSessionRecord | null>(null)
   const [openPhotoId, setOpenPhotoId] = useState<string | null>(null)
@@ -176,10 +216,27 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
             <p className="mt-1 text-sm text-muted">Sessões e registros clínicos deste paciente.</p>
           </div>
           {canWrite ? (
-            <Button type="button" onClick={() => { setEditing(null); setEditorOpen(true) }}>
-              <Plus size={16} />
-              Nova sessão
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {isRecording ? (
+                <Button type="button" variant="secondary" onClick={stopRecording} className="animate-pulse bg-error/10 text-error hover:bg-error/20">
+                  <Square size={16} className="fill-current" />
+                  {Math.floor(duration / 60).toString().padStart(2, "0")}:{(duration % 60).toString().padStart(2, "0")}
+                </Button>
+              ) : isProcessingAudio ? (
+                <Button type="button" variant="secondary" disabled>
+                  <Loader2 size={16} className="animate-spin" />
+                  Analisando...
+                </Button>
+              ) : (
+                <Button type="button" variant="secondary" onClick={startRecording} title="Gravar evolução por voz">
+                  <Mic size={16} />
+                </Button>
+              )}
+              <Button type="button" onClick={() => { setEditing(null); setEditorOpen(true) }}>
+                <Plus size={16} />
+                Nova sessão
+              </Button>
+            </div>
           ) : null}
         </div>
 
@@ -379,3 +436,8 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
     </>
   )
 }
+
+
+
+
+
