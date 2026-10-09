@@ -183,7 +183,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
           setEditorOpen(true)
         } catch (error: any) {
           console.error(error)
-          useToastStore.getState().showToast('Erro ao processar áudio', error.message || 'Chave da API ausente ou inválida', 'error')
+          useToastStore.getState().push('Erro ao processar áudio: ' + (error.message || 'Chave da API ausente ou inválida'), 'error')
         } finally {
           setIsProcessingAudio(false)
         }
@@ -438,6 +438,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
     </>
   )
 }
+
 
 
 

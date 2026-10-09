@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+ï»¿import { GoogleGenAI } from '@google/genai';
 
 function getClient() {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -26,11 +26,11 @@ export async function generateEvolutionFromAudio(audioBlob: Blob): Promise<strin
   const ai = getClient();
   const base64Data = await blobToBase64(audioBlob);
 
-  const prompt = \Você é um assistente de fisioterapia experiente. 
-Escute a gravação da consulta entre o fisioterapeuta e o paciente. 
-Extraia os dados clínicos relevantes, ignore conversas paralelas e cumprimentos informais.
-Escreva a Evolução do Paciente no formato SOAP (Subjetivo, Objetivo, Avaliação, Plano) estruturado em Markdown.
-Não inclua a transcrição literal, nem introduções ou finalizações. Retorne APENAS o prontuário final em texto Markdown puro.\;
+  const prompt = `Vocï¿½ ï¿½ um assistente de fisioterapia experiente. 
+Escute a gravaï¿½ï¿½o da consulta entre o fisioterapeuta e o paciente. 
+Extraia os dados clï¿½nicos relevantes, ignore conversas paralelas e cumprimentos informais.
+Escreva a Evoluï¿½ï¿½o do Paciente no formato SOAP (Subjetivo, Objetivo, Avaliaï¿½ï¿½o, Plano) estruturado em Markdown.
+Nï¿½o inclua a transcriï¿½ï¿½o literal, nem introduï¿½ï¿½es ou finalizaï¿½ï¿½es. Retorne APENAS o prontuï¿½rio final em texto Markdown puro.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-1.5-flash',
