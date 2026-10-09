@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSessionCharges } from '@/hooks/useFinance'
 import { usePatientImages } from '@/hooks/usePatientImages'
 import { useVoiceCopilot } from '@/hooks/useVoiceCopilot'
+import { useToastStore } from '@/stores/toast.store'
 import { generateEvolutionFromAudio } from '@/services/ai.service'
 import { useDeletePatientSession, usePatientSessions } from '@/hooks/usePatients'
 import { canSeeFinance } from '@/lib/accountAccess'
@@ -180,8 +181,9 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
             }
           })
           setEditorOpen(true)
-        } catch (error) {
+        } catch (error: any) {
           console.error(error)
+          useToastStore.getState().showToast('Erro ao processar áudio', error.message || 'Chave da API ausente ou inválida', 'error')
         } finally {
           setIsProcessingAudio(false)
         }
@@ -436,6 +438,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
     </>
   )
 }
+
 
 
 
