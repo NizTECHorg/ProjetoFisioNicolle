@@ -1,4 +1,4 @@
-ï»¿import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 
 function getClient() {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -33,7 +33,7 @@ Escreva a Evoluï¿½ï¿½o do Paciente no formato SOAP (Subjetivo, Objetivo, Avaliaï
 Nï¿½o inclua a transcriï¿½ï¿½o literal, nem introduï¿½ï¿½es ou finalizaï¿½ï¿½es. Retorne APENAS o prontuï¿½rio final em texto Markdown puro.`;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3.8-flash',
     contents: [
       prompt,
       {
