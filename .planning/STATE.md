@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 27 UI-SPEC approved
-last_updated: "2026-10-10T01:07:05.153Z"
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-10-10T01:18:31.518Z"
 progress:
   total_phases: 28
   completed_phases: 13
   total_plans: 113
-  completed_plans: 96
+  completed_plans: 97
   percent: 46
 ---
 
@@ -21,17 +21,17 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 26 — pdf-botao-gerando-envio-cliente
+**Current focus:** Phase 27 — analitica-financeiro
 
 ## Current Position
 
-Phase: 26 (pdf-botao-gerando-envio-cliente) — EXECUTING
-Plan: 4 of 4
+Phase: 27 (analitica-financeiro) — EXECUTING
+Plan: 2 of 4
 
-- Status: Phase complete — ready for verification
-- Progress: 4/4 plans complete
+- Status: Ready to execute
+- Progress: 1/4 plans executed
 
-**Progress:** [█████████░] 88%
+**Progress:** [█████████░] 86%
 
 ## Accumulated Context
 
@@ -247,6 +247,9 @@ Plan: 4 of 4
 - [Phase 26]: Patient document signed URL uses only 604800 seconds; failure toasts sendFileUnavailable with no 24-hour fallback
 - [Phase 26]: Send buttons render only when canWrite and the PDF kind is avaliacao or evolucao
 - [Phase 26]: PatientResumoIaPanel passes detail phone and email from the existing usePatient
+- [Phase 27]: Month key uses Intl formatToParts in America/Sao_Paulo; the window shifts by year*12+month — REQ-38 must not use getMonth or setMonth
+- [Phase 27]: Blank price names become Avulso and sums are integer cents; an empty list returns no bars — Pitfalls 4 and 5; amountBrl is cents divided by 100
+- [Phase 27]: REQ-38 stays open after 27-01; plans 27-02, 27-03, and 27-04 still own the read, charts, and tabs — requirements.mark-complete was not called
 
 ### Pending user action
 
@@ -283,9 +286,9 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-10T00:29:08.498Z
-Stopped at: Phase 27 UI-SPEC approved
-Resume file: .planning/phases/27-analitica-financeiro/27-UI-SPEC.md
+Last session: 2026-10-10T01:18:31.465Z
+Stopped at: Completed 27-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -358,3 +361,4 @@ Resume file: .planning/phases/27-analitica-financeiro/27-UI-SPEC.md
 | Phase 26 P03 | 8min | 2 tasks | 5 files |
 | Phase 26 P02 | 6min | 2 tasks | 5 files |
 | Phase 26 P04 | 9min | 2 tasks | 6 files |
+| Phase 27 P01 | 8min | 2 tasks | 2 files |

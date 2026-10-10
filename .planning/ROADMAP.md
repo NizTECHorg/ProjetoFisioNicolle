@@ -816,12 +816,12 @@ Plans:
 **Requirements**: REQ-38
 **Depends on:** Phase 5
 **UI hint**: yes
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 27-01-PLAN.md — Agregação pura dos pagamentos no fuso de São Paulo
+- [x] 27-01-PLAN.md — Agregação pura dos pagamentos no fuso de São Paulo
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
