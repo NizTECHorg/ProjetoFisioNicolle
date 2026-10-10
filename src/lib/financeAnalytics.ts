@@ -61,6 +61,28 @@ export function monthWindow(now: Date): string[] {
   return keys
 }
 
+/** Janeiro a dezembro do ano civil `year`. */
+export function yearWindow(year: number): string[] {
+  if (!Number.isInteger(year) || year < 1 || year > 9999) invalidDate()
+  const keys: string[] = []
+  for (let month = 1; month <= 12; month += 1) {
+    keys.push(`${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`)
+  }
+  return keys
+}
+
+/** Ano e mês (1–12) de uma chave YYYY-MM. */
+export function splitMonthKey(key: string): { year: number; month: number } {
+  return parseMonthKey(key)
+}
+
+/** Monta a chave YYYY-MM a partir de ano e mês (1–12). */
+export function joinMonthKey(year: number, month: number): string {
+  if (!Number.isInteger(year) || year < 1 || year > 9999) invalidDate()
+  if (!Number.isInteger(month) || month < 1 || month > 12) invalidDate()
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`
+}
+
 /** Dia 15 às 15:00 UTC fica dentro do mês civil em America/Sao_Paulo. */
 function monthAnchor(key: string): number {
   const { year, month } = parseMonthKey(key)
@@ -99,6 +121,30 @@ export interface PaidAnalyticsRow {
   scheduledAt: string
   priceName: string
   amountBrl: number
+  patientId: string | null
+}
+
+export interface FinanceAnalyticsFilters {
+  /** Só as cobranças desse paciente. Ausente ou nulo = todos. */
+  patientId?: string | null
+}
+
+/** Anos com pagamento mais o ano corrente, do mais novo ao mais antigo. */
+export function analyticsYears(rows: readonly PaidAnalyticsRow[], now: Date): number[] {
+  const years = new Set<number>([splitMonthKey(saoPauloMonthKey(now)).year])
+  for (const row of rows) {
+    years.add(splitMonthKey(saoPauloMonthKey(new Date(row.scheduledAt))).year)
+  }
+  return [...years].sort((left, right) => right - left)
+}
+
+/** Pacientes que têm ao menos uma cobrança paga, sem repetir. */
+export function analyticsPatientIds(rows: readonly PaidAnalyticsRow[]): string[] {
+  const ids = new Set<string>()
+  for (const row of rows) {
+    if (row.patientId) ids.add(row.patientId)
+  }
+  return [...ids]
 }
 
 export interface MonthBar {
@@ -107,15 +153,12 @@ export interface MonthBar {
   amountBrl: number
   axisLabel: string
   sentence: string
-  count: number
 }
 
 export interface PriceBar {
   name: string
   cents: number
   amountBrl: number
-  count: number
-  percentage: number
 }
 
 export interface MonthMoney {
@@ -123,29 +166,18 @@ export interface MonthMoney {
   sentence: string
   cents: number
   amountBrl: number
-  count: number
-}
-
-export interface AnalyticsPayment {
-  scheduledAt: string
-  priceName: string
-  amountBrl: number
 }
 
 export interface FinanceAnalytics {
   hasPayments: boolean
+  /** Há pagamento no histórico, mas nenhum depois do filtro de paciente. */
+  filteredOut: boolean
   currentKey: string
   selectedKey: string
   months: MonthBar[]
   prices: PriceBar[]
   selected: MonthMoney
   previous: MonthMoney
-  selectedCount: number
-  selectedAverageBrl: number
-  previousCount: number
-  deltaPercentage: number | null
-  deltaBrl: number
-  selectedPayments: AnalyticsPayment[]
 }
 
 function toCents(amountBrl: number): number {
@@ -157,75 +189,58 @@ function priceGroupName(priceName: string): string {
   return trimmed.length === 0 ? 'Avulso' : trimmed
 }
 
-function monthMoney(key: string, cents: number, count = 0): MonthMoney {
+function monthMoney(key: string, cents: number): MonthMoney {
   return {
     key,
     sentence: monthSentence(key),
     cents,
     amountBrl: cents / 100,
-    count,
   }
 }
 
-/** Agrega o histórico já pago. Sem linhas, não inventa doze barras zeradas. */
+/**
+ * Agrega o histórico já pago. Sem linhas, não inventa doze barras zeradas.
+ * Por mês mostra janeiro a dezembro do ano do mês selecionado.
+ */
 export function buildFinanceAnalytics(
-  rows: readonly PaidAnalyticsRow[],
+  allRows: readonly PaidAnalyticsRow[],
   now: Date,
   selectedKey?: string,
+  filters: FinanceAnalyticsFilters = {},
 ): FinanceAnalytics {
   const currentKey = saoPauloMonthKey(now)
   const activeKey = selectedKey ?? currentKey
   const previousKey = shiftMonthKey(activeKey, -1)
+  const patientId = filters.patientId ?? null
+  const rows = patientId ? allRows.filter((row) => row.patientId === patientId) : allRows
 
   if (rows.length === 0) {
     return {
       hasPayments: false,
+      filteredOut: allRows.length > 0,
       currentKey,
       selectedKey: activeKey,
       months: [],
       prices: [],
-      selected: monthMoney(activeKey, 0, 0),
-      previous: monthMoney(previousKey, 0, 0),
-      selectedCount: 0,
-      selectedAverageBrl: 0,
-      previousCount: 0,
-      deltaPercentage: null,
-      deltaBrl: 0,
-      selectedPayments: [],
+      selected: monthMoney(activeKey, 0),
+      previous: monthMoney(previousKey, 0),
     }
   }
 
   const monthCents = new Map<string, number>()
-  const monthCounts = new Map<string, number>()
   const priceCents = new Map<string, number>()
-  const priceCounts = new Map<string, number>()
-  const selectedPayments: AnalyticsPayment[] = []
 
   for (const row of rows) {
     const key = saoPauloMonthKey(new Date(row.scheduledAt))
     const cents = toCents(row.amountBrl)
     monthCents.set(key, (monthCents.get(key) ?? 0) + cents)
-    monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1)
     if (key === activeKey) {
       const name = priceGroupName(row.priceName)
       priceCents.set(name, (priceCents.get(name) ?? 0) + cents)
-      priceCounts.set(name, (priceCounts.get(name) ?? 0) + 1)
-      selectedPayments.push({
-        scheduledAt: row.scheduledAt,
-        priceName: name,
-        amountBrl: Number(row.amountBrl),
-      })
     }
   }
 
-  selectedPayments.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
-
-  const selectedTotalCents = monthCents.get(activeKey) ?? 0
-  const selectedCount = monthCounts.get(activeKey) ?? 0
-  const previousTotalCents = monthCents.get(previousKey) ?? 0
-  const previousCount = monthCounts.get(previousKey) ?? 0
-
-  const months: MonthBar[] = monthWindow(now).map((key, index) => {
+  const months: MonthBar[] = yearWindow(splitMonthKey(activeKey).year).map((key, index) => {
     const cents = monthCents.get(key) ?? 0
     return {
       key,
@@ -233,7 +248,6 @@ export function buildFinanceAnalytics(
       amountBrl: cents / 100,
       axisLabel: monthAxisLabel(key, index === 0),
       sentence: monthSentence(key),
-      count: monthCounts.get(key) ?? 0,
     }
   })
 
@@ -247,32 +261,16 @@ export function buildFinanceAnalytics(
       name,
       cents,
       amountBrl: cents / 100,
-      count: priceCounts.get(name) ?? 0,
-      percentage: selectedTotalCents > 0 ? Math.round((cents / selectedTotalCents) * 100) : 0,
     }))
-
-  const deltaBrl = (selectedTotalCents - previousTotalCents) / 100
-  let deltaPercentage: number | null = null
-  if (previousTotalCents > 0) {
-    deltaPercentage = Math.round(((selectedTotalCents - previousTotalCents) / previousTotalCents) * 100)
-  }
-
-  const selectedAverageBrl = selectedCount > 0 ? selectedTotalCents / selectedCount / 100 : 0
 
   return {
     hasPayments: true,
+    filteredOut: false,
     currentKey,
     selectedKey: activeKey,
     months,
     prices,
-    selected: monthMoney(activeKey, selectedTotalCents, selectedCount),
-    previous: monthMoney(previousKey, previousTotalCents, previousCount),
-    selectedCount,
-    selectedAverageBrl,
-    previousCount,
-    deltaPercentage,
-    deltaBrl,
-    selectedPayments,
+    selected: monthMoney(activeKey, monthCents.get(activeKey) ?? 0),
+    previous: monthMoney(previousKey, monthCents.get(previousKey) ?? 0),
   }
 }
-

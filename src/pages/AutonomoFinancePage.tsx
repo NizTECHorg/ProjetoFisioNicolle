@@ -3,7 +3,10 @@ import { Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Wallet } from 'lucide-react'
-import { FinanceAnalyticsCharts } from '@/components/finance/FinanceAnalyticsCharts'
+import {
+  FinanceAnalyticsCharts,
+  FinanceAnalyticsFilters,
+} from '@/components/finance/FinanceAnalyticsCharts'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -13,6 +16,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/hooks/useAuth'
+import { usePatients } from '@/hooks/usePatients'
 import {
   useArchivePrice,
   useCreatePrice,
@@ -61,6 +65,7 @@ export function AutonomoFinancePage() {
     isLoading: analyticsLoading,
     isError: analyticsError,
   } = useFinanceAnalytics()
+  const { data: patients = [] } = usePatients()
   const {
     data: realizadas = [],
     isLoading: realizadasLoading,
@@ -79,6 +84,7 @@ export function AutonomoFinancePage() {
   const [clock] = useState(() => new Date())
   const [tab, setTab] = useState<'totais' | 'analitica'>('totais')
   const [selectedMonthKey, setSelectedMonthKey] = useState(() => saoPauloMonthKey(clock))
+  const [analyticsPatientId, setAnalyticsPatientId] = useState<string | null>(null)
   const totalsTabRef = useRef<HTMLButtonElement>(null)
   const analyticsTabRef = useRef<HTMLButtonElement>(null)
 
@@ -94,6 +100,11 @@ export function AutonomoFinancePage() {
     resolver: zodResolver(sessionChargeFieldsSchema),
     defaultValues: emptySessionChargeFields(),
   })
+
+  const patientNames = useMemo(
+    () => new Map(patients.map((patient) => [patient.id, patient.name])),
+    [patients],
+  )
 
   const completePriceId = completeForm.watch('priceId')
   const catalogOptions = useMemo(
@@ -333,13 +344,32 @@ export function AutonomoFinancePage() {
                   <article className="rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
                     Não foi possível carregar a analítica. Tente de novo em instantes.
                   </article>
-                ) : (
+                ) : analyticsRows.length === 0 ? (
                   <FinanceAnalyticsCharts
                     rows={analyticsRows}
                     now={clock}
                     selectedMonthKey={selectedMonthKey}
                     onSelectMonth={setSelectedMonthKey}
                   />
+                ) : (
+                  <div className="space-y-6">
+                    <FinanceAnalyticsFilters
+                      rows={analyticsRows}
+                      now={clock}
+                      patientNames={patientNames}
+                      selectedMonthKey={selectedMonthKey}
+                      onSelectMonth={setSelectedMonthKey}
+                      patientId={analyticsPatientId}
+                      onSelectPatient={setAnalyticsPatientId}
+                    />
+                    <FinanceAnalyticsCharts
+                      rows={analyticsRows}
+                      now={clock}
+                      selectedMonthKey={selectedMonthKey}
+                      onSelectMonth={setSelectedMonthKey}
+                      patientId={analyticsPatientId}
+                    />
+                  </div>
                 )}
               </div>
             )}

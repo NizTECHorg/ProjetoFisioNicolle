@@ -275,6 +275,7 @@ const SESSION_ID_CHUNK = 200
 
 interface SessionEmbed {
   scheduled_at?: unknown
+  patient_id?: unknown
 }
 
 interface PaidEmbedRow {
@@ -292,6 +293,12 @@ interface PaidLookupRow {
 interface SessionWhenRow {
   id: string
   scheduled_at: unknown
+  patient_id: unknown
+}
+
+interface SessionWhen {
+  scheduledAt: string
+  patientId: string | null
 }
 
 function missingSessionRelationship(error: { message?: string; code?: string } | null): boolean {
@@ -301,21 +308,29 @@ function missingSessionRelationship(error: { message?: string; code?: string } |
   return message.includes('relationship') || message.includes('schema cache')
 }
 
-function scheduledAtFromEmbed(value: PaidEmbedRow['patient_sessions']): string | null {
+function sessionWhen(row: SessionEmbed | undefined): SessionWhen | null {
+  if (typeof row?.scheduled_at !== 'string') return null
+  return {
+    scheduledAt: row.scheduled_at,
+    patientId: typeof row.patient_id === 'string' ? row.patient_id : null,
+  }
+}
+
+function sessionFromEmbed(value: PaidEmbedRow['patient_sessions']): SessionWhen | null {
   if (!value) return null
-  const row = Array.isArray(value) ? value[0] : value
-  return typeof row?.scheduled_at === 'string' ? row.scheduled_at : null
+  return sessionWhen(Array.isArray(value) ? value[0] : value)
 }
 
 function paidAnalyticsRow(
   priceName: string,
   amountBrl: number | string,
-  scheduledAt: string,
+  session: SessionWhen,
 ): PaidAnalyticsRow {
   return {
-    scheduledAt,
+    scheduledAt: session.scheduledAt,
     priceName,
     amountBrl: Number(amountBrl),
+    patientId: session.patientId,
   }
 }
 
@@ -328,7 +343,7 @@ export async function listFinancePaidForAnalytics(): Promise<PaidAnalyticsRow[]>
   while (pageCount === PAID_PAGE && !missingEmbed) {
     const { data, error } = await supabase
       .from('autonomo_session_charges')
-      .select('id, price_name, amount_brl, is_paid, patient_sessions!inner(scheduled_at)')
+      .select('id, price_name, amount_brl, is_paid, patient_sessions!inner(scheduled_at, patient_id)')
       .eq('is_paid', true)
       .order('id', { ascending: true })
       .range(from, from + 999)
@@ -342,9 +357,9 @@ export async function listFinancePaidForAnalytics(): Promise<PaidAnalyticsRow[]>
     const page = (data ?? []) as PaidEmbedRow[]
     pageCount = page.length
     for (const row of page) {
-      const scheduledAt = scheduledAtFromEmbed(row.patient_sessions)
-      if (!scheduledAt) continue
-      embedded.push(paidAnalyticsRow(row.price_name, row.amount_brl, scheduledAt))
+      const session = sessionFromEmbed(row.patient_sessions)
+      if (!session) continue
+      embedded.push(paidAnalyticsRow(row.price_name, row.amount_brl, session))
     }
     if (pageCount === PAID_PAGE) from += PAID_PAGE
   }
@@ -369,27 +384,27 @@ export async function listFinancePaidForAnalytics(): Promise<PaidAnalyticsRow[]>
     if (pageCount === PAID_PAGE) from += PAID_PAGE
   }
 
-  const scheduledBySession = new Map<string, string>()
+  const sessionById = new Map<string, SessionWhen>()
   const sessionIds = [...new Set(charges.map((row) => row.session_id))]
   for (let index = 0; index < sessionIds.length; index += SESSION_ID_CHUNK) {
     const chunk = sessionIds.slice(index, index + SESSION_ID_CHUNK)
     const { data, error } = await supabase
       .from('patient_sessions')
-      .select('id, scheduled_at')
+      .select('id, scheduled_at, patient_id')
       .in('id', chunk)
 
     throwIfError(error)
     for (const row of (data ?? []) as SessionWhenRow[]) {
-      if (typeof row.scheduled_at !== 'string') continue
-      scheduledBySession.set(row.id, row.scheduled_at)
+      const session = sessionWhen(row)
+      if (session) sessionById.set(row.id, session)
     }
   }
 
   const lookedUp: PaidAnalyticsRow[] = []
   for (const charge of charges) {
-    const scheduledAt = scheduledBySession.get(charge.session_id)
-    if (!scheduledAt) continue
-    lookedUp.push(paidAnalyticsRow(charge.price_name, charge.amount_brl, scheduledAt))
+    const session = sessionById.get(charge.session_id)
+    if (!session) continue
+    lookedUp.push(paidAnalyticsRow(charge.price_name, charge.amount_brl, session))
   }
   return lookedUp
 }

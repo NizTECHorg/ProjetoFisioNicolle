@@ -6,8 +6,14 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
 } from 'react'
+import { Select } from '@/components/ui/Select'
 import {
+  analyticsPatientIds,
+  analyticsYears,
   buildFinanceAnalytics,
+  joinMonthKey,
+  monthSentence,
+  splitMonthKey,
   toggleSelectedMonth,
   type MonthBar,
   type MonthMoney,
@@ -16,30 +22,21 @@ import {
 } from '@/lib/financeAnalytics'
 import { formatCurrency } from '@/lib/security'
 
-const VIEW_W = 640
+const VIEW_W = 560
 const VIEW_H = 220
 const TOOLTIP_H = 32
 const TOOLTIP_GAP = 8
 const PLOT_TOP = TOOLTIP_H + TOOLTIP_GAP
-const PLOT_BOTTOM = 188
+const PLOT_BOTTOM = 192
 const PLOT_H = PLOT_BOTTOM - PLOT_TOP
-const PAD_X = 12
+const PAD_X = 8
 const PLOT_W = VIEW_W - PAD_X * 2
 const MIN_BAR = 4
 const HIT_H = 44
-const PRICE_ROW = 52
-const PRICE_NAME_W = 160
-const PRICE_TRACK_H = 10
-const PRICE_TRACK_X = PRICE_NAME_W + 16
-
-const PALETTE = [
-  '#2f7dff',
-  '#10b981',
-  '#8b5cf6',
-  '#f59e0b',
-  '#06b6d4',
-  '#64748b',
-] as const
+const PRICE_ROW = 44
+const PRICE_NAME_W = 176
+const PRICE_TRACK_H = 8
+const PRICE_TRACK_X = PRICE_NAME_W + TOOLTIP_GAP
 
 function moneyLabel(sentence: string, amountBrl: number): string {
   return `${sentence} · ${formatCurrency(amountBrl)}`
@@ -54,24 +51,19 @@ function priceFillWidth(cents: number, peak: number, trackW: number): number {
   return Math.min(trackW, Math.max(MIN_BAR, (cents / peak) * trackW))
 }
 
-function PriceName(props: { name: string; y: number; count: number }) {
+function PriceName(props: { name: string; y: number }) {
   return (
     <foreignObject x={0} y={props.y} width={PRICE_NAME_W} height={PRICE_ROW}>
       {createElement(
         'div',
         {
           xmlns: 'http://www.w3.org/1999/xhtml',
-          className: 'flex h-full flex-col justify-center overflow-hidden pr-2',
+          className: 'flex h-11 w-full items-center overflow-hidden',
         } as unknown as HTMLAttributes<HTMLDivElement>,
         createElement(
           'span',
-          { className: 'block truncate text-sm font-semibold text-ink' },
+          { className: 'block w-full truncate text-sm font-normal text-ink' },
           props.name,
-        ),
-        createElement(
-          'span',
-          { className: 'block text-xs text-muted font-normal' },
-          `${props.count} ${props.count === 1 ? 'sessão' : 'sessões'}`,
         ),
       )}
     </foreignObject>
@@ -79,7 +71,7 @@ function PriceName(props: { name: string; y: number; count: number }) {
 }
 
 function tooltipWidth(label: string): number {
-  return Math.ceil(label.length * 8) + 20
+  return Math.ceil(label.length * 8) + 16
 }
 
 function barPixelHeight(cents: number, peak: number): number {
@@ -89,7 +81,7 @@ function barPixelHeight(cents: number, peak: number): number {
 
 function verticalBarBox(index: number, count: number, cents: number, peak: number) {
   const slot = PLOT_W / count
-  const barW = Math.min(36, slot * 0.58)
+  const barW = slot * 0.6
   const x = PAD_X + index * slot + (slot - barW) / 2
   const visibleH = barPixelHeight(cents, peak)
   const y = PLOT_BOTTOM - visibleH
@@ -114,7 +106,7 @@ function ChartTooltip(props: {
   return (
     <g pointerEvents="none">
       <rect x={x} y={y} width={boxW} height={TOOLTIP_H} rx="8" fill="#0b1d36" />
-      <text x={x + boxW / 2} y={y + 21} textAnchor="middle" className="fill-white text-xs font-semibold">
+      <text x={x + boxW / 2} y={y + 21} textAnchor="middle" className="fill-white text-sm font-semibold">
         {props.label}
       </text>
     </g>
@@ -127,16 +119,7 @@ function GridLines() {
       {[0, 1, 2, 3].map((index) => {
         const y = PLOT_TOP + (PLOT_H * index) / 3
         return (
-          <line
-            key={index}
-            x1={PAD_X}
-            x2={VIEW_W - PAD_X}
-            y1={y}
-            y2={y}
-            stroke="#e1e8f0"
-            strokeWidth="1"
-            strokeDasharray={index === 3 ? undefined : '4 4'}
-          />
+          <line key={index} x1={PAD_X} x2={VIEW_W - PAD_X} y1={y} y2={y} stroke="#e1e8f0" strokeWidth="1" />
         )
       })}
     </>
@@ -184,7 +167,7 @@ function MonthBars(props: {
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="xMidYMid meet"
       overflow="visible"
-      className="mt-4 block h-64 w-full"
+      className="mt-4 block h-56 w-full"
     >
       <GridLines />
       {props.months.map((bar, index) => {
@@ -208,59 +191,14 @@ function MonthBars(props: {
             onBlur={() => setFocusId(null)}
           >
             {selected ? (
-              <g>
-                <rect
-                  x={box.x - 3}
-                  y={box.y - 3}
-                  width={box.barW + 6}
-                  height={box.visibleH + 6}
-                  rx="9"
-                  fill="#2f7dff"
-                  fillOpacity="0.18"
-                />
-                <rect
-                  x={box.x}
-                  y={box.y}
-                  width={box.barW}
-                  height={box.visibleH}
-                  rx="6"
-                  fill="#0b1d36"
-                />
-                <circle
-                  cx={box.centerX}
-                  cy={box.y + 6}
-                  r="2.5"
-                  fill="#2f7dff"
-                />
-              </g>
+              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#0b1d36" />
             ) : (
-              <rect
-                x={box.x}
-                y={box.y}
-                width={box.barW}
-                height={box.visibleH}
-                rx="6"
-                fill="#2f7dff"
-                fillOpacity={bar.cents === 0 ? '0.35' : '0.9'}
-              />
+              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#2f7dff" />
             )}
             {hitH > box.visibleH ? (
-              <rect
-                x={box.x - 4}
-                y={PLOT_BOTTOM - hitH}
-                width={box.barW + 8}
-                height={hitH}
-                fill="transparent"
-              />
+              <rect x={box.x} y={PLOT_BOTTOM - hitH} width={box.barW} height={hitH} fill="transparent" />
             ) : null}
-            <text
-              x={box.centerX}
-              y={PLOT_BOTTOM + 18}
-              textAnchor="middle"
-              className={`text-xs ${
-                selected ? 'fill-ink font-semibold' : 'fill-muted font-normal'
-              }`}
-            >
+            <text x={box.centerX} y={PLOT_BOTTOM + 16} textAnchor="middle" className="fill-muted text-sm font-normal">
               {bar.axisLabel}
             </text>
           </g>
@@ -280,171 +218,11 @@ function MonthBars(props: {
   )
 }
 
-function DonutChart(props: { prices: readonly PriceBar[]; totalAmountBrl: number }) {
-  const totalCents = props.prices.reduce((sum, p) => sum + p.cents, 0)
-  const radius = 58
-  const strokeWidth = 18
-  const circumference = 2 * Math.PI * radius
-  let accumulatedAngle = 0
-
-  if (totalCents === 0) return null
-
-  return (
-    <div className="relative flex items-center justify-center">
-      <svg
-        viewBox="0 0 160 160"
-        className="h-44 w-44 -rotate-90 transform"
-        role="img"
-        aria-label="Gráfico de distribuição por preço"
-      >
-        <circle
-          cx="80"
-          cy="80"
-          r={radius}
-          fill="transparent"
-          stroke="#e1e8f0"
-          strokeWidth={strokeWidth}
-        />
-        {props.prices.map((price, idx) => {
-          const ratio = price.cents / totalCents
-          const strokeDasharray = `${ratio * circumference} ${circumference}`
-          const strokeDashoffset = -accumulatedAngle * circumference
-          accumulatedAngle += ratio
-          const color = PALETTE[idx % PALETTE.length]
-
-          return (
-            <circle
-              key={price.name}
-              cx="80"
-              cy="80"
-              r={radius}
-              fill="transparent"
-              stroke={color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-            />
-          )
-        })}
-      </svg>
-      <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
-        <span className="text-xs font-normal text-muted">Total</span>
-        <span className="text-sm font-semibold text-ink">
-          {formatCurrency(props.totalAmountBrl)}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-function PriceBars(props: { prices: readonly PriceBar[]; totalAmountBrl?: number }) {
-  const { activeId, setHoverId, setFocusId } = useBarFocus()
-  const peak = props.prices.reduce((max, price) => Math.max(max, price.cents), 0)
-  const trackW = VIEW_W - PRICE_TRACK_X - PAD_X
-  const viewHeight = props.prices.length * PRICE_ROW
-  const activeIndex = props.prices.findIndex((price) => price.name === activeId)
-  const active = activeIndex >= 0 ? props.prices[activeIndex] : undefined
-
-  function onPriceClick(event: ReactMouseEvent<SVGGElement>) {
-    event.preventDefault()
-  }
-
-  function onPriceKeyDown(event: ReactKeyboardEvent<SVGGElement>) {
-    if (event.key === ' ') event.preventDefault()
-  }
-
-  if (props.prices.length === 0) return null
-
-  const activeFillW = active ? priceFillWidth(active.cents, peak, trackW) : 0
-  const activeTrackY = activeIndex * PRICE_ROW + (PRICE_ROW - PRICE_TRACK_H) / 2
-
-  return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-      {props.totalAmountBrl !== undefined ? (
-        <div className="flex shrink-0 justify-center">
-          <DonutChart prices={props.prices} totalAmountBrl={props.totalAmountBrl} />
-        </div>
-      ) : null}
-      <div className="min-w-0 flex-1">
-        <svg
-          viewBox={`0 0 ${VIEW_W} ${viewHeight}`}
-          preserveAspectRatio="xMidYMid meet"
-          overflow="visible"
-          className="block w-full"
-          height={viewHeight}
-          role="img"
-          aria-label="Distribuição dos preços praticados"
-        >
-          {props.prices.map((price, index) => {
-            const rowY = index * PRICE_ROW
-            const trackY = rowY + (PRICE_ROW - PRICE_TRACK_H) / 2
-            const fillW = priceFillWidth(price.cents, peak, trackW)
-            const color = PALETTE[index % PALETTE.length]
-            return (
-              <g
-                key={price.name}
-                role="img"
-                tabIndex={0}
-                aria-label={priceLabel(price.name, price.amountBrl)}
-                onClick={onPriceClick}
-                onKeyDown={onPriceKeyDown}
-                onMouseEnter={() => setHoverId(price.name)}
-                onMouseLeave={() => setHoverId(null)}
-                onFocus={() => setFocusId(price.name)}
-                onBlur={() => setFocusId(null)}
-              >
-                <rect x={0} y={rowY} width={VIEW_W} height={PRICE_ROW} fill="transparent" />
-                <circle cx={6} cy={rowY + PRICE_ROW / 2} r="4" fill={color} />
-                <PriceName name={price.name} y={rowY} count={price.count} />
-                <rect
-                  x={PRICE_TRACK_X}
-                  y={trackY}
-                  width={trackW}
-                  height={PRICE_TRACK_H}
-                  rx="5"
-                  fill="#e1e8f0"
-                />
-                <rect
-                  x={PRICE_TRACK_X}
-                  y={trackY}
-                  width={fillW}
-                  height={PRICE_TRACK_H}
-                  rx="5"
-                  fill="#2f7dff"
-                />
-                <text
-                  x={VIEW_W - PAD_X}
-                  y={trackY - 4}
-                  textAnchor="end"
-                  className="fill-ink text-xs font-semibold"
-                >
-                  {formatCurrency(price.amountBrl)}
-                </text>
-              </g>
-            )
-          })}
-          {active ? (
-            <ChartTooltip
-              label={priceLabel(active.name, active.amountBrl)}
-              centerX={PRICE_TRACK_X + activeFillW / 2}
-              barTop={activeTrackY}
-              barBottom={activeTrackY + PRICE_TRACK_H}
-              viewWidth={VIEW_W}
-              viewHeight={viewHeight}
-            />
-          ) : null}
-        </svg>
-      </div>
-    </div>
-  )
-}
-
 function CompareBars(props: { selected: MonthMoney; previous: MonthMoney }) {
   const { activeId, setHoverId, setFocusId } = useBarFocus()
   const bars = [
-    { id: 'selected', money: props.selected, selected: true, subtitle: 'Mês selecionado' },
-    { id: 'previous', money: props.previous, selected: false, subtitle: 'Mês anterior' },
+    { id: 'selected', money: props.selected, selected: true },
+    { id: 'previous', money: props.previous, selected: false },
   ] as const
   const peak = Math.max(props.selected.cents, props.previous.cents)
   const activeIndex = bars.findIndex((bar) => bar.id === activeId)
@@ -482,52 +260,13 @@ function CompareBars(props: { selected: MonthMoney; previous: MonthMoney }) {
             onBlur={() => setFocusId(null)}
           >
             {bar.selected ? (
-              <g>
-                <rect
-                  x={box.x - 3}
-                  y={box.y - 3}
-                  width={box.barW + 6}
-                  height={box.visibleH + 6}
-                  rx="9"
-                  fill="#2f7dff"
-                  fillOpacity="0.18"
-                />
-                <rect
-                  x={box.x}
-                  y={box.y}
-                  width={box.barW}
-                  height={box.visibleH}
-                  rx="6"
-                  fill="#0b1d36"
-                />
-              </g>
+              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#0b1d36" />
             ) : (
-              <rect
-                x={box.x}
-                y={box.y}
-                width={box.barW}
-                height={box.visibleH}
-                rx="6"
-                fill="#2f7dff"
-              />
+              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#2f7dff" />
             )}
             {hitH > box.visibleH ? (
-              <rect
-                x={box.x - 4}
-                y={PLOT_BOTTOM - hitH}
-                width={box.barW + 8}
-                height={hitH}
-                fill="transparent"
-              />
+              <rect x={box.x} y={PLOT_BOTTOM - hitH} width={box.barW} height={hitH} fill="transparent" />
             ) : null}
-            <text
-              x={box.centerX}
-              y={PLOT_BOTTOM + 18}
-              textAnchor="middle"
-              className="fill-ink text-xs font-semibold"
-            >
-              {bar.subtitle}
-            </text>
           </g>
         )
       })}
@@ -545,151 +284,138 @@ function CompareBars(props: { selected: MonthMoney; previous: MonthMoney }) {
   )
 }
 
-function MoneyCaption(props: { money: MonthMoney }) {
-  return (
-    <div className="rounded-xl border border-line bg-surface-subtle p-3 text-center">
-      <p className="text-xs font-normal text-muted capitalize">{props.money.sentence}</p>
-      <p className="mt-1 text-base font-semibold leading-tight text-ink">
-        {formatCurrency(props.money.amountBrl)}
-      </p>
-      <p className="mt-0.5 text-xs text-muted font-normal">
-        {props.money.count} {props.money.count === 1 ? 'sessão paga' : 'sessões pagas'}
-      </p>
-    </div>
-  )
-}
+function PriceBars(props: { prices: readonly PriceBar[] }) {
+  const { activeId, setHoverId, setFocusId } = useBarFocus()
+  const peak = props.prices.reduce((max, price) => Math.max(max, price.cents), 0)
+  const trackW = VIEW_W - PRICE_TRACK_X - PAD_X
+  const viewHeight = props.prices.length * PRICE_ROW
+  const activeIndex = props.prices.findIndex((price) => price.name === activeId)
+  const active = activeIndex >= 0 ? props.prices[activeIndex] : undefined
 
-function SummaryCards(props: {
-  selected: MonthMoney
-  previous: MonthMoney
-  averageBrl: number
-  deltaPercentage: number | null
-  deltaBrl: number
-}) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Receitas */}
-      <article className="rounded-2xl border border-line bg-surface p-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-normal text-muted">Receita no mês</span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs">
-            $
-          </span>
-        </div>
-        <p className="mt-2 text-2xl font-bold leading-tight text-ink">
-          {formatCurrency(props.selected.amountBrl)}
-        </p>
-        <div className="mt-2 flex items-center gap-1.5 text-xs">
-          {props.deltaPercentage !== null ? (
-            props.deltaPercentage >= 0 ? (
-              <span className="inline-flex items-center font-semibold text-emerald-600">
-                ↑ +{props.deltaPercentage}%
-              </span>
-            ) : (
-              <span className="inline-flex items-center font-semibold text-rose-600">
-                ↓ {props.deltaPercentage}%
-              </span>
-            )
-          ) : (
-            <span className="font-normal text-muted">Primeiro registro</span>
-          )}
-          <span className="text-muted font-normal">vs. mês anterior</span>
-        </div>
-      </article>
-
-      {/* Mês Anterior */}
-      <article className="rounded-2xl border border-line bg-surface p-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-normal text-muted">Mês anterior</span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold text-xs">
-            ←
-          </span>
-        </div>
-        <p className="mt-2 text-2xl font-bold leading-tight text-ink">
-          {formatCurrency(props.previous.amountBrl)}
-        </p>
-        <p className="mt-2 text-xs text-muted font-normal capitalize truncate">
-          {props.previous.sentence}
-        </p>
-      </article>
-
-      {/* Ticket Médio */}
-      <article className="rounded-2xl border border-line bg-surface p-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-normal text-muted">Ticket médio</span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 font-bold text-xs">
-            ⌀
-          </span>
-        </div>
-        <p className="mt-2 text-2xl font-bold leading-tight text-ink">
-          {formatCurrency(props.averageBrl)}
-        </p>
-        <p className="mt-2 text-xs text-muted font-normal">
-          Por sessão realizada e paga
-        </p>
-      </article>
-
-      {/* Volume de Atendimentos */}
-      <article className="rounded-2xl border border-line bg-surface p-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-normal text-muted">Sessões pagas</span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-50 text-purple-600 font-bold text-xs">
-            #
-          </span>
-        </div>
-        <p className="mt-2 text-2xl font-bold leading-tight text-ink">
-          {props.selected.count}
-        </p>
-        <p className="mt-2 text-xs text-muted font-normal">
-          {props.selected.count === 1 ? 'atendimento no mês' : 'atendimentos no mês'}
-        </p>
-      </article>
-    </div>
-  )
-}
-
-function RecentPaymentsList(props: { payments: readonly { scheduledAt: string; priceName: string; amountBrl: number }[] }) {
-  if (props.payments.length === 0) return null
-
-  function formatDate(iso: string): string {
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return ''
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+  function onPriceClick(event: ReactMouseEvent<SVGGElement>) {
+    event.preventDefault()
   }
 
-  return (
-    <article className="rounded-2xl border border-line bg-surface p-4 md:p-6 shadow-xs">
-      <div className="flex items-center justify-between border-b border-line pb-3">
-        <div>
-          <h3 className="text-sm font-semibold leading-tight text-ink">Últimas sessões do mês</h3>
-          <p className="mt-1 text-xs text-muted font-normal">
-            Histórico das sessões pagas registradas neste período
-          </p>
-        </div>
-        <span className="rounded-full bg-surface-subtle px-2.5 py-0.5 text-xs font-semibold text-muted">
-          {props.payments.length} {props.payments.length === 1 ? 'item' : 'itens'}
-        </span>
-      </div>
+  function onPriceKeyDown(event: ReactKeyboardEvent<SVGGElement>) {
+    if (event.key === ' ') event.preventDefault()
+  }
 
-      <div className="mt-3 divide-y divide-line/60">
-        {props.payments.slice(0, 6).map((item, idx) => (
-          <div key={`${item.scheduledAt}-${idx}`} className="flex items-center justify-between py-2.5 text-sm">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-semibold text-xs">
-                ✓
-              </span>
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-ink leading-tight">{item.priceName}</p>
-                <p className="text-xs text-muted font-normal">{formatDate(item.scheduledAt)}</p>
-              </div>
-            </div>
-            <span className="font-semibold text-emerald-600 shrink-0 pl-2">
-              + {formatCurrency(item.amountBrl)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </article>
+  if (props.prices.length === 0) return null
+
+  const activeFillW = active ? priceFillWidth(active.cents, peak, trackW) : 0
+  const activeTrackY = activeIndex * PRICE_ROW + (PRICE_ROW - PRICE_TRACK_H) / 2
+
+  return (
+    <svg
+      viewBox={`0 0 ${VIEW_W} ${viewHeight}`}
+      preserveAspectRatio="xMidYMid meet"
+      overflow="visible"
+      className="mt-4 block w-full"
+      height={viewHeight}
+    >
+      {props.prices.map((price, index) => {
+        const rowY = index * PRICE_ROW
+        const trackY = rowY + (PRICE_ROW - PRICE_TRACK_H) / 2
+        const fillW = priceFillWidth(price.cents, peak, trackW)
+        return (
+          <g
+            key={price.name}
+            role="img"
+            tabIndex={0}
+            aria-label={priceLabel(price.name, price.amountBrl)}
+            onClick={onPriceClick}
+            onKeyDown={onPriceKeyDown}
+            onMouseEnter={() => setHoverId(price.name)}
+            onMouseLeave={() => setHoverId(null)}
+            onFocus={() => setFocusId(price.name)}
+            onBlur={() => setFocusId(null)}
+          >
+            <rect x={0} y={rowY} width={VIEW_W} height={PRICE_ROW} fill="transparent" />
+            <PriceName name={price.name} y={rowY} />
+            <rect x={PRICE_TRACK_X} y={trackY} width={trackW} height={PRICE_TRACK_H} fill="#e1e8f0" />
+            <rect x={PRICE_TRACK_X} y={trackY} width={fillW} height={PRICE_TRACK_H} fill="#2f7dff" />
+          </g>
+        )
+      })}
+      {active ? (
+        <ChartTooltip
+          label={priceLabel(active.name, active.amountBrl)}
+          centerX={PRICE_TRACK_X + activeFillW / 2}
+          barTop={activeTrackY}
+          barBottom={activeTrackY + PRICE_TRACK_H}
+          viewWidth={VIEW_W}
+          viewHeight={viewHeight}
+        />
+      ) : null}
+    </svg>
+  )
+}
+
+function MoneyCaption(props: { money: MonthMoney }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold leading-tight text-ink">{props.money.sentence}</p>
+      <p className="mt-2 text-sm text-muted">{formatCurrency(props.money.amountBrl)}</p>
+    </div>
+  )
+}
+
+const ALL_PATIENTS = ''
+
+function monthName(month: number): string {
+  return monthSentence(joinMonthKey(2000, month)).replace(/ de 2000$/, '')
+}
+
+/** Mês, ano e paciente. O mês e o ano mexem no mesmo mês selecionado das barras. */
+export function FinanceAnalyticsFilters(props: {
+  rows: readonly PaidAnalyticsRow[]
+  now: Date
+  patientNames: ReadonlyMap<string, string>
+  selectedMonthKey: string
+  onSelectMonth: (key: string) => void
+  patientId: string | null
+  onSelectPatient: (patientId: string | null) => void
+}): ReactElement {
+  const { year, month } = splitMonthKey(props.selectedMonthKey)
+  const years = analyticsYears(props.rows, props.now)
+  if (!years.includes(year)) years.unshift(year)
+
+  const monthOptions = Array.from({ length: 12 }, (_, index) => ({
+    value: String(index + 1),
+    label: monthName(index + 1),
+  }))
+  const yearOptions = years.map((item) => ({ value: String(item), label: String(item) }))
+  const patientOptions = [
+    { value: ALL_PATIENTS, label: 'Todos os pacientes' },
+    ...analyticsPatientIds(props.rows)
+      .map((id) => ({ value: id, label: props.patientNames.get(id) ?? 'Paciente removido' }))
+      .sort((left, right) => left.label.localeCompare(right.label, 'pt-BR')),
+  ]
+
+  return (
+    <div className="grid gap-4 rounded-2xl border border-line bg-surface p-4 sm:grid-cols-3 md:p-6">
+      <Select
+        id="finance-analytics-month"
+        label="Mês"
+        value={String(month)}
+        options={monthOptions}
+        onChange={(event) => props.onSelectMonth(joinMonthKey(year, Number(event.target.value)))}
+      />
+      <Select
+        id="finance-analytics-year"
+        label="Ano"
+        value={String(year)}
+        options={yearOptions}
+        onChange={(event) => props.onSelectMonth(joinMonthKey(Number(event.target.value), month))}
+      />
+      <Select
+        id="finance-analytics-patient"
+        label="Paciente"
+        value={props.patientId ?? ALL_PATIENTS}
+        options={patientOptions}
+        onChange={(event) => props.onSelectPatient(event.target.value || null)}
+      />
+    </div>
   )
 }
 
@@ -698,8 +424,19 @@ export function FinanceAnalyticsCharts(props: {
   now: Date
   selectedMonthKey: string
   onSelectMonth: (key: string) => void
+  patientId?: string | null
 }): ReactElement {
-  const view = buildFinanceAnalytics(props.rows, props.now, props.selectedMonthKey)
+  const view = buildFinanceAnalytics(props.rows, props.now, props.selectedMonthKey, {
+    patientId: props.patientId,
+  })
+
+  if (view.filteredOut) {
+    return (
+      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-line bg-surface px-6 py-10 text-center text-sm font-semibold leading-tight text-ink">
+        Nenhum pagamento deste paciente para analisar.
+      </div>
+    )
+  }
 
   if (!view.hasPayments) {
     return (
@@ -711,28 +448,8 @@ export function FinanceAnalyticsCharts(props: {
 
   return (
     <div className="space-y-6">
-      {/* 4 Cards de Resumo */}
-      <SummaryCards
-        selected={view.selected}
-        previous={view.previous}
-        averageBrl={view.selectedAverageBrl}
-        deltaPercentage={view.deltaPercentage}
-        deltaBrl={view.deltaBrl}
-      />
-
-      {/* Gráfico 1: Evolução Mensal */}
-      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-          <div>
-            <h3 className="text-sm font-semibold leading-tight text-ink">Por mês</h3>
-            <p className="mt-1 text-xs text-muted font-normal">
-              Histórico dos últimos 12 meses · Selecione um mês para filtrar as demais visões
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-line bg-surface-subtle px-3 py-1 text-xs font-semibold text-ink capitalize">
-            Filtro ativo: {view.selected.sentence}
-          </span>
-        </div>
+      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+        <h3 className="text-sm font-semibold leading-tight text-ink">Por mês</h3>
         <MonthBars
           months={view.months}
           selectedKey={view.selectedKey}
@@ -740,46 +457,23 @@ export function FinanceAnalyticsCharts(props: {
           onSelectMonth={props.onSelectMonth}
         />
       </article>
-
-      {/* Grid de Gráficos Secundários: Por Preço e Comparativo */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Gráfico 2: Por Preço / Serviços */}
-        <article className="rounded-2xl border border-line bg-surface p-4 md:p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-semibold leading-tight text-ink">Por preço</h3>
-            <p className="mt-1 text-xs text-muted font-normal capitalize">
-              {view.selected.sentence}
-            </p>
-            {view.selected.cents === 0 ? (
-              <p className="mt-8 text-center text-sm text-muted font-normal">
-                Nenhum pagamento neste mês.
-              </p>
-            ) : (
-              <div className="mt-4">
-                <PriceBars prices={view.prices} totalAmountBrl={view.selected.amountBrl} />
-              </div>
-            )}
-          </div>
-        </article>
-
-        {/* Gráfico 3: Comparativo com o mês anterior */}
-        <article className="rounded-2xl border border-line bg-surface p-4 md:p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-semibold leading-tight text-ink">Contra o mês anterior</h3>
-            <p className="mt-1 text-xs text-muted font-normal">
-              Comparativo direto de arrecadação entre o mês selecionado e o imediatamente anterior
-            </p>
-            <CompareBars selected={view.selected} previous={view.previous} />
-          </div>
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <MoneyCaption money={view.selected} />
-            <MoneyCaption money={view.previous} />
-          </div>
-        </article>
-      </div>
-
-      {/* Lista de Atendimentos do Mês */}
-      <RecentPaymentsList payments={view.selectedPayments} />
+      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+        <h3 className="text-sm font-semibold leading-tight text-ink">Por preço</h3>
+        <p className="mt-4 text-sm font-semibold leading-tight text-ink">{view.selected.sentence}</p>
+        {view.selected.cents === 0 ? (
+          <p className="mt-4 text-sm text-muted">Nenhum pagamento neste mês.</p>
+        ) : (
+          <PriceBars prices={view.prices} />
+        )}
+      </article>
+      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+        <h3 className="text-sm font-semibold leading-tight text-ink">Contra o mês anterior</h3>
+        <CompareBars selected={view.selected} previous={view.previous} />
+        <div className="mt-4 grid grid-cols-2 text-center">
+          <MoneyCaption money={view.selected} />
+          <MoneyCaption money={view.previous} />
+        </div>
+      </article>
     </div>
   )
 }
