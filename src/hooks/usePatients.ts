@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import {
   createPatient,
   createPatientAlert,
@@ -27,6 +28,7 @@ import {
   listPatientEvaluations,
   updatePatientEvaluation,
 } from '@/services/evaluations.service'
+import { deletePatientCompletely } from '@/services/patientDeletion.service'
 import { upsertSessionCharge } from '@/services/finance.service'
 import type {
   CreatePatientAlertInput,
@@ -438,5 +440,28 @@ export function useDeletePatientEvaluation(patientId: string) {
       toast('Avaliação removida', 'success')
     },
     onError,
+  })
+}
+
+export function useDeletePatient(patientId: string) {
+  const qc = useQueryClient()
+  const navigate = useNavigate()
+  return useMutation({
+    mutationFn: () => deletePatientCompletely(patientId),
+    onSuccess: () => {
+      navigate('/pacientes', { replace: true })
+      void qc.cancelQueries({ queryKey: ['patients', patientId] })
+      qc.removeQueries({ queryKey: ['patients', patientId] })
+      void qc.invalidateQueries({ queryKey: ['patients'], refetchType: 'none' })
+      void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
+      void qc.invalidateQueries({ queryKey: ['board'] })
+      void qc.invalidateQueries({ queryKey: ['board-dues'] })
+      void qc.invalidateQueries({ queryKey: ['finance'] })
+      void qc.invalidateQueries({ queryKey: ['search'] })
+      toast('Paciente excluído.', 'success')
+    },
+    onError: () => {
+      toast('Não foi possível excluir o paciente. Tente de novo em instantes.', 'error')
+    },
   })
 }

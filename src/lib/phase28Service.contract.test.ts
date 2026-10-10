@@ -42,7 +42,7 @@ const hooksSource = read('../hooks/usePatients.ts')
 
 test('hook: useDeletePatient navega, limpa cache, invalida e usa copy fixa', () => {
   ok(hooksSource.includes("from '@/services/patientDeletion.service'"))
-  const body = sliceFrom(hooksSource, 'export function useDeletePatient')
+  const body = sliceFrom(hooksSource, 'export function useDeletePatient(')
   const iNav = body.indexOf("navigate('/pacientes', { replace: true })")
   const iRemove = body.indexOf("removeQueries({ queryKey: ['patients', patientId] })")
   const iInvalidate = body.indexOf('invalidateQueries')
