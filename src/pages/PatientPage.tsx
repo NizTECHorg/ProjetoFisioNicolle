@@ -4,13 +4,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
+  Images,
   Pencil,
   Plus,
   Sparkles,
   Stethoscope,
   Target,
   Trash2,
+  UserRound,
 } from 'lucide-react'
 import { AttendanceCounts, plannedCount } from '@/components/patients/AttendanceCounts'
 import {
@@ -59,6 +62,9 @@ import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPain
 const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
   { label: 'Sessões', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
+  { label: 'Avaliações', detail: 'Ficha de avaliação', icon: ClipboardCheck, tab: 'avaliacoes' as const },
+  { label: 'Imagens', detail: 'Fotos e anexos', icon: Images, tab: 'imagens' as const },
+  { label: 'Dados cadastrais', detail: 'Contato e cadastro', icon: UserRound, tab: 'cadastro' as const },
   { label: 'Agenda', detail: 'Abrir agenda', icon: CalendarDays, to: '/agenda' },
 ] as const
 
@@ -608,7 +614,7 @@ function ResumoPanel({
   onDeletePatient?: () => void
 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       {/* Desktop 80/20; mobile empilha */}
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
         <EntendaOCaso patient={patient} detail={detail} canWrite={canWrite} />
