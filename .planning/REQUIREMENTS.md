@@ -20,6 +20,7 @@
 - [x] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
 - [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
 - [ ] **REQ-38**: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos
+- [ ] **REQ-39**: Excluir paciente por completo — some do banco e do storage, sem deixar linha nem arquivo
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -345,7 +346,22 @@ Não muda o catálogo, a lista de realizadas, o valor na sessão nem quem pode v
 4. Os números vêm das sessões pagas que já entram nos totais, inclusive pré-pagas agendadas. Sem mock.
 5. Empresa e fisioterapeuta continuam sem ver Financeiro. Sem SQL novo e sem pacote novo.
 
-## REQ-15 — Tipos de conta e equipe
+## REQ-39 — Excluir paciente por completo
+
+**Indispensável · Artur**
+
+Na ficha do paciente, quem pode editar o paciente consegue excluí-lo. A exclusão é definitiva: o paciente e tudo que é dele saem 100% do banco de dados e do storage.
+
+### Acceptance
+
+1. A ficha tem a ação **Excluir paciente**, visível só para quem pode editar o paciente (`canWritePatient`).
+2. A confirmação é um diálogo de perigo que diz o que será apagado e só libera o botão depois de digitar o nome do paciente.
+3. Depois de excluir, nenhuma linha do paciente fica no banco: paciente, sessões, cobranças, avaliações, evoluções, metas, alertas, áreas de foco, registros de dor, imagens, relatórios e PDFs da IA, vínculos do Google Agenda e qualquer outra tabela que aponte para ele.
+4. Os arquivos do paciente no storage (foto, imagens, PDFs) também são apagados.
+5. A exclusão é atômica no banco: ou sai tudo ou nada sai. Um usuário não consegue excluir paciente de outra conta.
+6. Ao concluir, volta para a lista de pacientes, e as listas, o dashboard, a agenda e o financeiro já não mostram o paciente.
+
+
 
 **Indispensável · Artur**
 
@@ -448,3 +464,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-36 | Phase 25 | Complete |
 | REQ-37 | Phase 26 | Planned |
 | REQ-38 | Phase 27 | Planned |
+| REQ-39 | Phase 28 | Planned |

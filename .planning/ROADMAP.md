@@ -34,6 +34,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
 - [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
 - [ ] **Phase 27: Analítica no Financeiro** — Duas abas nos totais: a de hoje e uma analítica com gráficos simples e interativos
+- [ ] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage
 
 ## Phase Details
 
@@ -838,3 +839,22 @@ Plans:
 2. A Analítica mostra arrecadado por mês, mistura por preço e o mês contra o anterior.
 3. Passar o mouse ou o foco mostra o valor em R$. Clicar num mês seleciona esse mês e as outras visões acompanham.
 4. Os números vêm dos mesmos pagamentos dos totais, inclusive sessão pré-paga. Sem mock, sem SQL novo e sem pacote novo.
+
+### Phase 28: Excluir paciente por completo
+
+**Goal:** Na ficha, quem pode editar o paciente consegue excluí-lo de vez. Depois de confirmar digitando o nome, o paciente e todos os dados ligados a ele saem do banco e os arquivos saem do storage.
+**Requirements**: REQ-39
+**Depends on:** Phase 27
+**UI hint**: yes
+
+**Success Criteria** (what must be TRUE):
+
+1. A ficha mostra Excluir paciente só para quem pode editar.
+2. O botão de confirmar só funciona depois de digitar o nome do paciente.
+3. Depois de excluir, nenhuma tabela tem linha ligada ao paciente e nenhum arquivo dele fica no storage.
+4. Ninguém exclui paciente de outra conta; a exclusão no banco é tudo ou nada.
+5. A tela volta para a lista e o paciente some da lista, dashboard, agenda e financeiro.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 28 to break down)
