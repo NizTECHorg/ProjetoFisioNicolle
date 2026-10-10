@@ -20,7 +20,7 @@
 - [x] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
 - [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
 - [ ] **REQ-38**: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos
-- [x] **REQ-39**: Excluir paciente por completo — some do banco e do storage, sem deixar linha nem arquivo
+- [ ] **REQ-39**: Excluir paciente por completo — some do banco e do storage, sem deixar linha nem arquivo
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
