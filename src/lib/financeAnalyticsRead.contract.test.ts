@@ -4,9 +4,10 @@ import { equal } from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 
 const servicePath = fileURLToPath(new URL('../services/finance.service.ts', import.meta.url))
+const hookPath = fileURLToPath(new URL('../hooks/useFinance.ts', import.meta.url))
 
 function sliceExport(source: string, name: string): string {
-  const marker = `export async function ${name}`
+  const marker = `function ${name}`
   const start = source.indexOf(marker)
   if (start < 0) throw new Error(`função ausente: ${name}`)
   const next = source.indexOf('\nexport ', start + marker.length)
@@ -27,4 +28,15 @@ test('REQ-38: leitura da analítica pede cobrança paga com scheduled_at e pagin
 
   const realizadas = sliceExport(service, 'listFinanceRealizadas')
   equal(realizadas.includes(".eq('status', 'realizada')"), true)
+})
+
+test('REQ-38: useFinanceAnalytics fica no prefixo finance sem exact', () => {
+  const hook = readFileSync(hookPath, 'utf8')
+  const body = sliceExport(hook, 'useFinanceAnalytics')
+
+  equal(body.includes("['finance', 'analytics', userId]"), true)
+  equal(body.includes('queryFn: listFinancePaidForAnalytics'), true)
+  equal(body.includes('enabled: signedIn'), true)
+  equal(body.includes('staleTime: 60_000'), true)
+  equal(hook.includes('exact: true'), false)
 })
