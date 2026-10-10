@@ -37,7 +37,7 @@ Plan: 4 of 4 (all verified)
 
 ### Decisions
 
-- [Phase 27]: Analítica do Financeiro redesenhada com 4 KPI cards (Receita, Mês anterior com delta %, Ticket Médio, Sessões pagas), gráfico de barras dos 12 meses, Donut Chart de distribuição por preço, comparativo mensal e feed de últimas sessões do período filtrado. SVG puro sem bibliotecas externas.
+- [Phase 27]: Refeita conforme UI-SPEC (Por mês, Por preço, Contra o mês anterior; sem KPI cards/donut/percentual). Filtros Mês, Ano e Paciente na aba Analítica: mês e ano movem o mesmo mês selecionado; Por mês mostra jan–dez do ano escolhido; Paciente filtra as três visões (leitura traz só patient_id; nome vem de usePatients)
 - Avaliação estruturada em `patient_evaluations` (Supabase) — Phase 1
 - REQ-05 adiado: código existe; SQL/UAT ficam para depois
 - Metas no Resumo; clique no card = concluído / em andamento — Phase 2

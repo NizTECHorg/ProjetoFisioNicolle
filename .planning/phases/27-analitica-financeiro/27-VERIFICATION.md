@@ -38,3 +38,10 @@ human_verification:
 - `node --test src/lib/financeAnalytics*.test.ts`: **22 tests passing (0 failures)**.
 - `npm run typecheck`: **0 errors**.
 - `npm run build`: **Produção compilada com sucesso**.
+
+## Refeita em 2026-10-10
+
+- O redesenho 57424de (KPI cards, donut, delta %, feed de sessões) saiu da UI-SPEC; a analítica voltou às três visões travadas.
+- Acrescentados os filtros Mês, Ano e Paciente (ver 27-CONTEXT.md › Filtros).
+- `node --test src/lib/financeAnalytics*.test.ts`: verde (27 testes, inclui 5 novos dos filtros). `npm run typecheck` e eslint limpos.
+- Pendente: conferência humana na tela `/financeiro` › Analítica com dados reais.

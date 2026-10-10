@@ -42,6 +42,13 @@ Não muda o catálogo de preços, a lista de realizadas, o valor na sessão nem 
 - Se Por preço, no mês selecionado, vira lista com barra ou barras horizontais, desde que o hover e o valor em R$ existam.
 - O texto curto do tooltip, em português, sem dado de paciente.
 
+### Filtros (adicionados ao refazer a fase, 2026-10-10)
+- Três filtros na aba Analítica, acima dos gráficos: **Mês**, **Ano** e **Paciente**.
+- Mês e Ano movem o mesmo mês selecionado das barras. Por mês passa a mostrar janeiro a dezembro do ano escolhido.
+- Ano lista os anos com pagamento mais o ano corrente.
+- Paciente: `Todos os pacientes` ou um paciente com cobrança paga. As três visões obedecem. Sem pagamento do paciente: `Nenhum pagamento deste paciente para analisar.`
+- A leitura traz só `patient_id`; o nome vem da lista de pacientes já carregada (sem `full_name` na consulta financeira).
+
 </decisions>
 
 <canonical_refs>
@@ -81,7 +88,6 @@ Não muda o catálogo de preços, a lista de realizadas, o valor na sessão nem 
 
 - Exportar a analítica em PDF ou planilha.
 - Meta de faturamento, despesa, imposto ou lucro.
-- Filtrar por paciente.
 - Mudar o significado de Este mês, Este ano e Sempre.
 
 </deferred>
