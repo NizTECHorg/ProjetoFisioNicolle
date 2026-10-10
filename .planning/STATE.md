@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 27-02-PLAN.md
-last_updated: "2026-10-10T01:28:13.271Z"
+stopped_at: Completed 27-03-PLAN.md
+last_updated: "2026-10-10T01:44:40.846Z"
 progress:
   total_phases: 28
   completed_phases: 13
   total_plans: 113
-  completed_plans: 98
+  completed_plans: 99
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 27 (analitica-financeiro) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 - Status: Ready to execute
-- Progress: 2/4 plans executed
+- Progress: 3/4 plans executed
 
-**Progress:** [█████████░] 87%
+**Progress:** [█████████░] 88%
 
 ## Accumulated Context
 
@@ -254,6 +254,9 @@ Plan: 3 of 4
 - [Phase 27]: A missing session embed discards partial rows and restarts as two queries in chunks of 200 — PGRST200 or a relationship/schema-cache message; no new foreign key and no SQL
 - [Phase 27]: useFinanceAnalytics uses the finance prefix so existing invalidation covers it — invalidateFinance already matches the finance prefix without exact
 - [Phase 27]: REQ-38 stays open after 27-02; plans 27-03 and 27-04 still own the charts and the tabs — requirements.mark-complete was not called
+- [Phase 27]: Charts stay hand-drawn SVG; a short bar is 4px tall with a 44px transparent hit target — UI-SPEC reserves accent for unselected month bars, price bars, and the previous month
+- [Phase 27]: Price names render as React text inside foreignObject so CSS ellipsis can clip them; the full name stays on aria-label — No dangerouslySetInnerHTML and no patient name in the tooltip
+- [Phase 27]: REQ-38 stays open after 27-03; plan 27-04 still owns the Totais and Analítica tabs — requirements.mark-complete was not called
 
 ### Pending user action
 
@@ -290,8 +293,8 @@ Plan: 3 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-10T01:28:13.212Z
-Stopped at: Completed 27-02-PLAN.md
+Last session: 2026-10-10T01:44:40.812Z
+Stopped at: Completed 27-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -367,3 +370,4 @@ Resume file: None
 | Phase 26 P04 | 9min | 2 tasks | 6 files |
 | Phase 27 P01 | 8min | 2 tasks | 2 files |
 | Phase 27 P02 | 7min | 2 tasks | 3 files |
+| Phase 27 P03 | 12min | 2 tasks | 2 files |
