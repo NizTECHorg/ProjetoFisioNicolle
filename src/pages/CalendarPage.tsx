@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { useAuth } from '@/hooks/useAuth'
 import { useCalendarSessions, useCreateSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
 import {
   useDisconnectGoogleCalendar,
@@ -16,6 +18,8 @@ import {
   useLinkGoogleCalendar,
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
+import { useTeam } from '@/hooks/useTeam'
+import { canManageTeam } from '@/lib/accountAccess'
 import { filterPatientsByName } from '@/lib/dashboardShortcut'
 import {
   MAX_SERIES_WEEKS,
@@ -73,6 +77,7 @@ export function CalendarPage() {
   const [weekdaysTouched, setWeekdaysTouched] = useState(false)
   const [type, setType] = useState('Sessão')
   const [place, setPlace] = useState('Sala 1')
+  const [therapistId, setTherapistId] = useState('')
   const [disconnectOpen, setDisconnectOpen] = useState(false)
   const [needsReconnect, setNeedsReconnect] = useState(false)
 
@@ -88,6 +93,24 @@ export function CalendarPage() {
     [patients, patientQuery],
   )
   const create = useCreateSession()
+  const { profile } = useAuth()
+  const isCompany = canManageTeam(profile?.accountType)
+  const { data: team } = useTeam()
+  const therapists = useMemo(
+    () =>
+      (team?.members ?? [])
+        .filter((member) => member.role === 'therapist' && member.status === 'active')
+        .map((member) => ({ id: member.profileId, name: member.fullName || member.email || 'Fisioterapeuta' }))
+        .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR')),
+    [team],
+  )
+  const therapistOptions = useMemo(
+    () => [
+      { value: '', label: 'Sem fisioterapeuta' },
+      ...therapists.map((item) => ({ value: item.id, label: item.name })),
+    ],
+    [therapists],
+  )
   const updateStatus = useUpdateSessionStatus()
 
   const connectionQuery = useGoogleCalendarConnection()
@@ -171,6 +194,7 @@ export function CalendarPage() {
     setRepeatWeeks('1')
     setWeekdays([selected.getDay()])
     setWeekdaysTouched(false)
+    setTherapistId('')
     setOpen(true)
   }
 
@@ -236,6 +260,7 @@ export function CalendarPage() {
     const when = seriesStartAt()
     if (series.length === 0) return
     const scheduledAts = series.map((date) => date.toISOString())
+    const therapist = isCompany ? therapists.find((item) => item.id === therapistId) : undefined
     create.mutate(
       {
         patientId,
@@ -243,6 +268,8 @@ export function CalendarPage() {
         scheduledAts,
         type,
         place,
+        therapistId: therapist?.id,
+        therapistName: therapist?.name,
       },
       {
         onSuccess: () => {
@@ -554,6 +581,7 @@ export function CalendarPage() {
                           new Date(session.scheduledAt),
                         )}{' '}
                         · {session.type} · {session.place}
+                        {session.therapistName ? ` · ${session.therapistName}` : ''}
                       </span>
                     </span>
                   </Link>
@@ -785,6 +813,22 @@ export function CalendarPage() {
           ) : null}
           <Input label="Tipo" value={type} onChange={(event) => setType(event.target.value)} />
           <Input label="Sala" value={place} onChange={(event) => setPlace(event.target.value)} />
+          {isCompany ? (
+            <div>
+              <Select
+                id="calendar-session-therapist"
+                label="Fisioterapeuta"
+                value={therapistId}
+                options={therapistOptions}
+                onChange={(event) => setTherapistId(event.target.value)}
+              />
+              {therapists.length === 0 ? (
+                <p className="mt-2 text-xs text-muted">
+                  Nenhum fisioterapeuta ativo na equipe. Aprove convites em Equipe para anexar aqui.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <Button type="submit" fullWidth isLoading={create.isPending} disabled={!patientId}>
             {ctaLabel}
           </Button>
