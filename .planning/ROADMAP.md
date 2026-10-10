@@ -855,13 +855,13 @@ Plans:
 4. Ninguém exclui paciente de outra conta; a exclusão no banco é tudo ou nada.
 5. A tela volta para a lista e o paciente some da lista, dashboard, agenda e financeiro.
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 28-01-PLAN.md — SQL da exclusão (passo 0, tombstone, delete_patient_full, policies de limpeza de storage) + contrato
-- [ ] 28-02-PLAN.md — Helpers de confirmação, service deletePatientCompletely e hook useDeletePatient
+- [x] 28-02-PLAN.md — Helpers de confirmação, service deletePatientCompletely e hook useDeletePatient
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
