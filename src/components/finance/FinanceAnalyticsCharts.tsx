@@ -1,10 +1,18 @@
-import { useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
+import {
+  createElement,
+  useState,
+  type HTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement,
+} from 'react'
 import {
   buildFinanceAnalytics,
   toggleSelectedMonth,
   type MonthBar,
   type MonthMoney,
   type PaidAnalyticsRow,
+  type PriceBar,
 } from '@/lib/financeAnalytics'
 import { formatCurrency } from '@/lib/security'
 
@@ -19,9 +27,41 @@ const PAD_X = 8
 const PLOT_W = VIEW_W - PAD_X * 2
 const MIN_BAR = 4
 const HIT_H = 44
+const PRICE_ROW = 44
+const PRICE_NAME_W = 176
+const PRICE_TRACK_H = 8
+const PRICE_TRACK_X = PRICE_NAME_W + TOOLTIP_GAP
 
 function moneyLabel(sentence: string, amountBrl: number): string {
   return `${sentence} · ${formatCurrency(amountBrl)}`
+}
+
+function priceLabel(name: string, amountBrl: number): string {
+  return `${name} · ${formatCurrency(amountBrl)}`
+}
+
+function priceFillWidth(cents: number, peak: number, trackW: number): number {
+  if (cents <= 0 || peak <= 0) return 0
+  return Math.min(trackW, Math.max(MIN_BAR, (cents / peak) * trackW))
+}
+
+function PriceName(props: { name: string; y: number }) {
+  return (
+    <foreignObject x={0} y={props.y} width={PRICE_NAME_W} height={PRICE_ROW}>
+      {createElement(
+        'div',
+        {
+          xmlns: 'http://www.w3.org/1999/xhtml',
+          className: 'flex h-11 w-full items-center overflow-hidden',
+        } as unknown as HTMLAttributes<HTMLDivElement>,
+        createElement(
+          'span',
+          { className: 'block w-full truncate text-sm font-normal text-ink' },
+          props.name,
+        ),
+      )}
+    </foreignObject>
+  )
 }
 
 function tooltipWidth(label: string): number {
@@ -238,6 +278,73 @@ function CompareBars(props: { selected: MonthMoney; previous: MonthMoney }) {
   )
 }
 
+function PriceBars(props: { prices: readonly PriceBar[] }) {
+  const { activeId, setHoverId, setFocusId } = useBarFocus()
+  const peak = props.prices.reduce((max, price) => Math.max(max, price.cents), 0)
+  const trackW = VIEW_W - PRICE_TRACK_X - PAD_X
+  const viewHeight = props.prices.length * PRICE_ROW
+  const activeIndex = props.prices.findIndex((price) => price.name === activeId)
+  const active = activeIndex >= 0 ? props.prices[activeIndex] : undefined
+
+  function onPriceClick(event: ReactMouseEvent<SVGGElement>) {
+    event.preventDefault()
+  }
+
+  function onPriceKeyDown(event: ReactKeyboardEvent<SVGGElement>) {
+    if (event.key === ' ') event.preventDefault()
+  }
+
+  if (props.prices.length === 0) return null
+
+  const activeFillW = active ? priceFillWidth(active.cents, peak, trackW) : 0
+  const activeTrackY = activeIndex * PRICE_ROW + (PRICE_ROW - PRICE_TRACK_H) / 2
+
+  return (
+    <svg
+      viewBox={`0 0 ${VIEW_W} ${viewHeight}`}
+      preserveAspectRatio="xMidYMid meet"
+      overflow="visible"
+      className="mt-4 block w-full"
+      height={viewHeight}
+    >
+      {props.prices.map((price, index) => {
+        const rowY = index * PRICE_ROW
+        const trackY = rowY + (PRICE_ROW - PRICE_TRACK_H) / 2
+        const fillW = priceFillWidth(price.cents, peak, trackW)
+        return (
+          <g
+            key={price.name}
+            role="img"
+            tabIndex={0}
+            aria-label={priceLabel(price.name, price.amountBrl)}
+            onClick={onPriceClick}
+            onKeyDown={onPriceKeyDown}
+            onMouseEnter={() => setHoverId(price.name)}
+            onMouseLeave={() => setHoverId(null)}
+            onFocus={() => setFocusId(price.name)}
+            onBlur={() => setFocusId(null)}
+          >
+            <rect x={0} y={rowY} width={VIEW_W} height={PRICE_ROW} fill="transparent" />
+            <PriceName name={price.name} y={rowY} />
+            <rect x={PRICE_TRACK_X} y={trackY} width={trackW} height={PRICE_TRACK_H} fill="#e1e8f0" />
+            <rect x={PRICE_TRACK_X} y={trackY} width={fillW} height={PRICE_TRACK_H} fill="#2f7dff" />
+          </g>
+        )
+      })}
+      {active ? (
+        <ChartTooltip
+          label={priceLabel(active.name, active.amountBrl)}
+          centerX={PRICE_TRACK_X + activeFillW / 2}
+          barTop={activeTrackY}
+          barBottom={activeTrackY + PRICE_TRACK_H}
+          viewWidth={VIEW_W}
+          viewHeight={viewHeight}
+        />
+      ) : null}
+    </svg>
+  )
+}
+
 function MoneyCaption(props: { money: MonthMoney }) {
   return (
     <div>
@@ -273,6 +380,15 @@ export function FinanceAnalyticsCharts(props: {
           currentKey={view.currentKey}
           onSelectMonth={props.onSelectMonth}
         />
+      </article>
+      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+        <h3 className="text-sm font-semibold leading-tight text-ink">Por preço</h3>
+        <p className="mt-4 text-sm font-semibold leading-tight text-ink">{view.selected.sentence}</p>
+        {view.selected.cents === 0 ? (
+          <p className="mt-4 text-sm text-muted">Nenhum pagamento neste mês.</p>
+        ) : (
+          <PriceBars prices={view.prices} />
+        )}
       </article>
       <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
         <h3 className="text-sm font-semibold leading-tight text-ink">Contra o mês anterior</h3>
