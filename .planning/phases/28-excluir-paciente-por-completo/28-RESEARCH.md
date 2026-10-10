@@ -375,14 +375,15 @@ Ambiente do agente não acessa o banco vivo: passo 0 e testes de policy são man
 | A6 | Apagar só vínculo local do Google Agenda é aceitável | Google | Evento fantasma no calendário externo |
 | A7 | Tabelas listadas como "DESCONHECIDO" têm coluna `patient_id` | Inventário | Função falha ao criar (erro cedo, seguro) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **FKs reais do banco vivo.**
    - Sabemos: 5 tabelas sem DDL no repo.
    - Falta: ON DELETE e possíveis tabelas extras.
    - Recomendação: passo 0 antes de fechar o `.sql`; a função explícita é robusta de qualquer forma.
-2. **Aviso sobre Google Agenda no diálogo?** Recomendação: frase curta opcional; aguardar aprovação (A6).
-3. **Sweep de limpeza pendente nesta fase?** Recomendação: incluir só se couber em uma task pequena; senão registrar como dívida.
+   - RESOLVED: checkpoint de descoberta no plano 28-04 (Tasks 1–2).
+2. **Aviso sobre Google Agenda no diálogo?** Recomendação: frase curta opcional; aguardar aprovação (A6). RESOLVED: CONTEXT › Padrões fechados — o diálogo mostra `Eventos já enviados ao Google Agenda continuam lá.`
+3. **Sweep de limpeza pendente nesta fase?** Recomendação: incluir só se couber em uma task pequena; senão registrar como dívida. RESOLVED: adiado (CONTEXT › Deferred); retry via tombstone na próxima exclusão.
 
 ## Sources
 

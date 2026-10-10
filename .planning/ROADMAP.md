@@ -854,7 +854,20 @@ Plans:
 3. Depois de excluir, nenhuma tabela tem linha ligada ao paciente e nenhum arquivo dele fica no storage.
 4. Ninguém exclui paciente de outra conta; a exclusão no banco é tudo ou nada.
 5. A tela volta para a lista e o paciente some da lista, dashboard, agenda e financeiro.
-**Plans:** 0 plans
+
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 28 to break down)
+**Wave 1**
+
+- [ ] 28-01-PLAN.md — SQL da exclusão (passo 0, tombstone, delete_patient_full, policies de limpeza de storage) + contrato
+- [ ] 28-02-PLAN.md — Helpers de confirmação, service deletePatientCompletely e hook useDeletePatient
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 28-03-PLAN.md — Botão Excluir paciente na ficha e diálogo com confirmação por nome
+- [ ] 28-04-PLAN.md — Passo 0 no banco vivo, reconciliar e aplicar o SQL pelo SQL Editor (humano)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 28-05-PLAN.md — Suite completa e verificação ponta a ponta no Supabase real (humano)
