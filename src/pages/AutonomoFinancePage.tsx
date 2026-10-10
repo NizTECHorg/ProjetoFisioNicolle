@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Wallet } from 'lucide-react'
+import { FinanceAnalyticsCharts } from '@/components/finance/FinanceAnalyticsCharts'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -15,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   useArchivePrice,
   useCreatePrice,
+  useFinanceAnalytics,
   useFinancePrices,
   useFinanceRealizadas,
   useFinanceTotals,
@@ -23,6 +25,7 @@ import {
   useUpsertCharge,
 } from '@/hooks/useFinance'
 import { canSeeFinance } from '@/lib/accountAccess'
+import { saoPauloMonthKey } from '@/lib/financeAnalytics'
 import { formatCurrency, formatDate } from '@/lib/security'
 import {
   emptyPriceForm,
@@ -54,6 +57,11 @@ export function AutonomoFinancePage() {
   const { data: prices = [], isLoading: pricesLoading, isError: pricesError } = useFinancePrices()
   const { data: totals, isLoading: totalsLoading, isError: totalsError } = useFinanceTotals()
   const {
+    data: analyticsRows = [],
+    isLoading: analyticsLoading,
+    isError: analyticsError,
+  } = useFinanceAnalytics()
+  const {
     data: realizadas = [],
     isLoading: realizadasLoading,
     isError: realizadasError,
@@ -68,6 +76,11 @@ export function AutonomoFinancePage() {
   const [editing, setEditing] = useState<AutonomoPrice | null>(null)
   const [pendingArchive, setPendingArchive] = useState<AutonomoPrice | null>(null)
   const [completing, setCompleting] = useState<FinanceRealizadaRow | null>(null)
+  const [clock] = useState(() => new Date())
+  const [tab, setTab] = useState<'totais' | 'analitica'>('totais')
+  const [selectedMonthKey, setSelectedMonthKey] = useState(() => saoPauloMonthKey(clock))
+  const totalsTabRef = useRef<HTMLButtonElement>(null)
+  const analyticsTabRef = useRef<HTMLButtonElement>(null)
 
   const createForm = useForm<PriceFormData>({
     resolver: zodResolver(priceFormSchema),
@@ -200,6 +213,25 @@ export function AutonomoFinancePage() {
     return <Badge tone="muted">Sem pagamento</Badge>
   }
 
+  function onTotalsTabKeyDown(event: KeyboardEvent<HTMLElement>) {
+    const key = event.key
+    if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Home' && key !== 'End') return
+    event.preventDefault()
+    const next =
+      key === 'Home' ? 'totais' : key === 'End' ? 'analitica' : tab === 'totais' ? 'analitica' : 'totais'
+    setTab(next)
+    const node = next === 'totais' ? totalsTabRef.current : analyticsTabRef.current
+    node?.focus()
+  }
+
+  const tabClass = (selected: boolean) =>
+    [
+      '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-semibold transition-colors',
+      selected
+        ? 'border-forest text-forest'
+        : 'border-transparent text-muted hover:border-line hover:text-ink',
+    ].join(' ')
+
   return (
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
@@ -230,23 +262,87 @@ export function AutonomoFinancePage() {
         <div className="space-y-6">
           <section className="dash-in">
             <h2 className="mb-4 text-xl font-semibold leading-tight text-ink">Totais</h2>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-                <p className="text-sm text-muted">Este mês</p>
-                <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{monthTotal}</p>
-              </article>
-              <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-                <p className="text-sm text-muted">Este ano</p>
-                <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{yearTotal}</p>
-              </article>
-              <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-                <p className="text-sm text-muted">Sempre</p>
-                <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{alwaysTotal}</p>
-              </article>
-            </div>
-            <p className="mt-3 text-xs text-muted">
-              Soma das sessões pagas, inclusive pré-pagas agendadas.
-            </p>
+            <nav
+              className="flex min-w-0 items-end gap-4 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line [-ms-overflow-style:auto] [scrollbar-width:thin]"
+              aria-label="Visões dos totais"
+              role="tablist"
+              onKeyDown={onTotalsTabKeyDown}
+            >
+              <button
+                ref={totalsTabRef}
+                type="button"
+                role="tab"
+                id="finance-totals-tab"
+                aria-selected={tab === 'totais'}
+                aria-controls="finance-totals-panel"
+                className={tabClass(tab === 'totais')}
+                onClick={() => setTab('totais')}
+              >
+                Totais
+              </button>
+              <button
+                ref={analyticsTabRef}
+                type="button"
+                role="tab"
+                id="finance-analytics-tab"
+                aria-selected={tab === 'analitica'}
+                aria-controls="finance-analytics-panel"
+                className={tabClass(tab === 'analitica')}
+                onClick={() => setTab('analitica')}
+              >
+                Analítica
+              </button>
+            </nav>
+            {tab === 'totais' ? (
+              <div
+                id="finance-totals-panel"
+                role="tabpanel"
+                aria-labelledby="finance-totals-tab"
+                className="mt-4"
+              >
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+                    <p className="text-sm text-muted">Este mês</p>
+                    <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{monthTotal}</p>
+                  </article>
+                  <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+                    <p className="text-sm text-muted">Este ano</p>
+                    <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{yearTotal}</p>
+                  </article>
+                  <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+                    <p className="text-sm text-muted">Sempre</p>
+                    <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{alwaysTotal}</p>
+                  </article>
+                </div>
+                <p className="mt-3 text-xs text-muted">
+                  Soma das sessões pagas, inclusive pré-pagas agendadas.
+                </p>
+              </div>
+            ) : (
+              <div
+                id="finance-analytics-panel"
+                role="tabpanel"
+                aria-labelledby="finance-analytics-tab"
+                className="mt-4"
+              >
+                {analyticsLoading ? (
+                  <div className="flex min-h-48 items-center justify-center">
+                    <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+                  </div>
+                ) : analyticsError ? (
+                  <article className="rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
+                    Não foi possível carregar a analítica. Tente de novo em instantes.
+                  </article>
+                ) : (
+                  <FinanceAnalyticsCharts
+                    rows={analyticsRows}
+                    now={clock}
+                    selectedMonthKey={selectedMonthKey}
+                    onSelectMonth={setSelectedMonthKey}
+                  />
+                )}
+              </div>
+            )}
           </section>
 
           <section className="dash-in" style={{ animationDelay: '80ms' }}>
