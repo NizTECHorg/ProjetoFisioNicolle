@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 27-03-PLAN.md
-last_updated: "2026-10-10T01:44:40.846Z"
+stopped_at: Completed 27-04-PLAN.md
+last_updated: "2026-10-10T01:56:00.011Z"
 progress:
   total_phases: 28
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 113
-  completed_plans: 99
-  percent: 46
+  completed_plans: 100
+  percent: 50
 ---
 
 # Project State
@@ -29,7 +29,7 @@ Phase: 27 (analitica-financeiro) — EXECUTING
 Plan: 4 of 4
 
 - Status: Ready to execute
-- Progress: 3/4 plans executed
+- Progress: 4/4 plans executed
 
 **Progress:** [█████████░] 88%
 
@@ -257,6 +257,9 @@ Plan: 4 of 4
 - [Phase 27]: Charts stay hand-drawn SVG; a short bar is 4px tall with a 44px transparent hit target — UI-SPEC reserves accent for unselected month bars, price bars, and the previous month
 - [Phase 27]: Price names render as React text inside foreignObject so CSS ellipsis can clip them; the full name stays on aria-label — No dangerouslySetInnerHTML and no patient name in the tooltip
 - [Phase 27]: REQ-38 stays open after 27-03; plan 27-04 still owns the Totais and Analítica tabs — requirements.mark-complete was not called
+- [Phase 27]: The two tabs stay in the Totais section. Selected month is React state, not a query string or localStorage — REQ-38 keeps one route; the month must survive switching back to Totais
+- [Phase 27]: Analytics loading and error stay inside the Analítica panel. Page isError remains pricesError or totalsError — T-27-13: an analytics failure must not hide the three cards, the catalog, or realizadas
+- [Phase 27]: REQ-38 stays unchecked after 27-04. The phase overview checkbox was not checked and requirements.mark-complete was not called — Plan progress for 27-04 is recorded; phase sign-off and the on-screen human check stay open
 
 ### Pending user action
 
@@ -293,8 +296,8 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-10T01:44:40.812Z
-Stopped at: Completed 27-03-PLAN.md
+Last session: 2026-10-10T01:55:59.957Z
+Stopped at: Completed 27-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -371,3 +374,4 @@ Resume file: None
 | Phase 27 P01 | 8min | 2 tasks | 2 files |
 | Phase 27 P02 | 7min | 2 tasks | 3 files |
 | Phase 27 P03 | 12min | 2 tasks | 2 files |
+| Phase 27 P04 | 10min | 2 tasks | 2 files |

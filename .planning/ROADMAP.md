@@ -816,7 +816,7 @@ Plans:
 **Requirements**: REQ-38
 **Depends on:** Phase 5
 **UI hint**: yes
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -830,7 +830,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 27-04-PLAN.md — Abas Totais e Analítica na seção de totais
+- [x] 27-04-PLAN.md — Abas Totais e Analítica na seção de totais
 
 **Success Criteria** (what must be TRUE):
 
