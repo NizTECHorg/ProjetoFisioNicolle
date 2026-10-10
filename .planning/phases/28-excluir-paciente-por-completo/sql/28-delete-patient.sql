@@ -2,9 +2,27 @@
 -- Rodar no SQL Editor do Supabase (idempotente). Não é migration.
 
 -- ============================================================
--- Bloco 0 — Saída do passo 0 (preencher no plano 28-04)
+-- Bloco 0 — Saída do passo 0 (banco vivo, colada em 2026-10-10)
 -- ============================================================
-
+-- Detalhe completo em 28-DB-DISCOVERY.md. Só schema, sem dados de paciente.
+-- FKs (tabela | referência | on delete):
+--   patient_sessions | patients | cascade
+--   patient_session_evolutions | patients (patient_id) | cascade
+--   patient_session_evolutions | patient_sessions (session_id) | cascade
+--   patient_alerts | patients | cascade
+--   patient_goals | patients | cascade
+--   patient_focus_areas | patients | cascade
+--   patient_pain_logs | patients | cascade
+--   patient_evaluations | patients | cascade
+--   patient_images | patients | cascade; patient_sessions (session_id) | set null
+--   patient_ai_reports | patients | cascade; patient_sessions (session_id) | set null
+--   autonomo_session_charges | patient_sessions (session_id) | cascade
+--   google_calendar_session_links | patient_sessions (session_id) | cascade
+--   board_cards | patients (patient_id) | SET NULL (delete explícito obrigatório)
+-- Nenhuma FK restrict/no action; nenhuma FK para patient_evaluations; nenhuma tabela extra.
+-- Colunas: patient_pain_logs e patient_session_evolutions têm patient_id.
+-- RLS: FORCE RLS em 17 tabelas (inclui as do plano); dono da função = postgres,
+--   rolbypassrls = true, então a função security definer apaga mesmo com FORCE RLS.
 
 -- ============================================================
 -- Bloco 1 — Tombstone (sem PII: só UUIDs e data)
