@@ -38,13 +38,21 @@ const header = read('../components/patients/PatientProfileHeader.tsx')
 const page = read('../pages/PatientPage.tsx')
 const list = read('../pages/PatientsPage.tsx')
 
-test('header: botão só com canWrite && onDeletePatient', () => {
-  ok(header.includes('onDeletePatient?: () => void'))
-  ok(header.includes('Trash2'))
-  ok(header.includes('text-error'))
-  const at = header.indexOf('Excluir paciente')
-  ok(at >= 0)
-  ok(header.slice(Math.max(0, at - 600), at).includes('canWrite && onDeletePatient'))
+test('header: não tem mais o botão de excluir', () => {
+  ok(!header.includes('Excluir paciente'))
+  ok(!header.includes('onDeletePatient'))
+})
+
+test('Resumo: área sensível abaixo dos atalhos, só com canWrite && onDeletePatient', () => {
+  const shortcutsAt = page.indexOf('>Atalhos<')
+  const zoneAt = page.indexOf('Área sensível')
+  ok(shortcutsAt >= 0 && zoneAt > shortcutsAt, 'área sensível depois dos atalhos')
+  ok(page.slice(shortcutsAt, zoneAt).includes('canWrite && onDeletePatient'))
+  ok(page.includes('border-error/25'))
+})
+
+test('atalhos: só os que funcionam, sem Em breve', () => {
+  ok(!page.includes('Em breve'))
 })
 
 test('PatientPage: liga diálogo e hook antes dos returns antecipados', () => {

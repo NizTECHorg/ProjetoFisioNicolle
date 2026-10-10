@@ -5,15 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CalendarDays,
   ClipboardList,
-  CreditCard,
-  Dumbbell,
-  FileText,
   Pencil,
   Plus,
-  RefreshCw,
   Sparkles,
   Stethoscope,
   Target,
+  Trash2,
 } from 'lucide-react'
 import { AttendanceCounts, plannedCount } from '@/components/patients/AttendanceCounts'
 import {
@@ -62,10 +59,6 @@ import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPain
 const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
   { label: 'Sessões', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
-  { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
-  { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
-  { label: 'Documentos', detail: 'Em breve', icon: FileText, path: 'documentos' },
-  { label: 'Financeiro', detail: 'Em breve', icon: CreditCard, path: 'financeiro' },
   { label: 'Agenda', detail: 'Abrir agenda', icon: CalendarDays, to: '/agenda' },
 ] as const
 
@@ -607,10 +600,12 @@ function ResumoPanel({
   patient,
   detail,
   canWrite,
+  onDeletePatient,
 }: {
   patient: PatientDashboard
   detail: Patient | null | undefined
   canWrite: boolean
+  onDeletePatient?: () => void
 }) {
   return (
     <div className="space-y-6">
@@ -629,12 +624,7 @@ function ResumoPanel({
         <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {shortcuts.map((item) => {
             const Icon = item.icon
-            const to =
-              'to' in item
-                ? item.to
-                : 'tab' in item
-                  ? `/pacientes/${patient.id}?aba=${item.tab}`
-                  : `/pacientes/${patient.id}/${item.path}`
+            const to = 'to' in item ? item.to : `/pacientes/${patient.id}?aba=${item.tab}`
             return (
               <Link
                 key={item.label}
@@ -653,6 +643,34 @@ function ResumoPanel({
           })}
         </div>
       </div>
+
+      {canWrite && onDeletePatient ? (
+        <section
+          aria-labelledby="patient-danger-zone"
+          className="min-w-0 rounded-2xl border border-error/25 bg-error/5 p-4 sm:p-5"
+        >
+          <p id="patient-danger-zone" className="text-xs font-semibold uppercase tracking-[0.16em] text-error">
+            Área sensível
+          </p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">Excluir paciente</p>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                Apaga o paciente e tudo dele: sessões, avaliações, evoluções, imagens, PDFs e cobranças. Não dá para
+                desfazer.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onDeletePatient}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-error/30 bg-surface px-4 text-sm font-semibold text-error transition-colors hover:bg-error hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/30"
+            >
+              <Trash2 size={16} aria-hidden />
+              Excluir paciente
+            </button>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }
@@ -778,7 +796,6 @@ export function PatientPage() {
         meta={meta}
         activeTab={tab}
         onTabChange={setTab}
-        onDeletePatient={canWrite ? () => setDeleteOpen(true) : undefined}
         topRightAction={
           canWrite && tab === 'resumo' ? (
             <Button
@@ -816,7 +833,12 @@ export function PatientPage() {
 
       <div className="mt-5 sm:mt-6">
         {tab === 'resumo' ? (
-          <ResumoPanel patient={dashboard} detail={detail} canWrite={canWrite} />
+          <ResumoPanel
+            patient={dashboard}
+            detail={detail}
+            canWrite={canWrite}
+            onDeletePatient={canWrite ? () => setDeleteOpen(true) : undefined}
+          />
         ) : tab === 'secoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} canWrite={canWrite} />
         ) : tab === 'avaliacoes' ? (
