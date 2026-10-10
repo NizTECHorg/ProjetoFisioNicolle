@@ -816,7 +816,7 @@ Plans:
 **Requirements**: REQ-38
 **Depends on:** Phase 5
 **UI hint**: yes
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -825,7 +825,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 27-02-PLAN.md — Leitura paginada das cobranças pagas e hook
+- [x] 27-02-PLAN.md — Leitura paginada das cobranças pagas e hook
 - [ ] 27-03-PLAN.md — Gráficos SVG das três visões
 
 **Wave 3** *(blocked on Wave 2 completion)*

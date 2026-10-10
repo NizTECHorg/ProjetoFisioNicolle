@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 27-01-PLAN.md
-last_updated: "2026-10-10T01:18:31.518Z"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-10-10T01:28:13.271Z"
 progress:
   total_phases: 28
   completed_phases: 13
   total_plans: 113
-  completed_plans: 97
+  completed_plans: 98
   percent: 46
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 ## Current Position
 
 Phase: 27 (analitica-financeiro) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 - Status: Ready to execute
-- Progress: 1/4 plans executed
+- Progress: 2/4 plans executed
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 87%
 
 ## Accumulated Context
 
@@ -250,6 +250,10 @@ Plan: 2 of 4
 - [Phase 27]: Month key uses Intl formatToParts in America/Sao_Paulo; the window shifts by year*12+month — REQ-38 must not use getMonth or setMonth
 - [Phase 27]: Blank price names become Avulso and sums are integer cents; an empty list returns no bars — Pitfalls 4 and 5; amountBrl is cents divided by 100
 - [Phase 27]: REQ-38 stays open after 27-01; plans 27-02, 27-03, and 27-04 still own the read, charts, and tabs — requirements.mark-complete was not called
+- [Phase 27]: Paid analytics selects is_paid charges with scheduled_at and does not use the realizadas list — REQ-38 includes prepaid scheduled sessions; the realizadas list filters that status
+- [Phase 27]: A missing session embed discards partial rows and restarts as two queries in chunks of 200 — PGRST200 or a relationship/schema-cache message; no new foreign key and no SQL
+- [Phase 27]: useFinanceAnalytics uses the finance prefix so existing invalidation covers it — invalidateFinance already matches the finance prefix without exact
+- [Phase 27]: REQ-38 stays open after 27-02; plans 27-03 and 27-04 still own the charts and the tabs — requirements.mark-complete was not called
 
 ### Pending user action
 
@@ -286,8 +290,8 @@ Plan: 2 of 4
 
 ## Session Continuity
 
-Last session: 2026-10-10T01:18:31.465Z
-Stopped at: Completed 27-01-PLAN.md
+Last session: 2026-10-10T01:28:13.212Z
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -362,3 +366,4 @@ Resume file: None
 | Phase 26 P02 | 6min | 2 tasks | 5 files |
 | Phase 26 P04 | 9min | 2 tasks | 6 files |
 | Phase 27 P01 | 8min | 2 tasks | 2 files |
+| Phase 27 P02 | 7min | 2 tasks | 3 files |
