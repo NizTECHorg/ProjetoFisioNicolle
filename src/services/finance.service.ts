@@ -1,3 +1,4 @@
+import type { PaidAnalyticsRow } from '@/lib/financeAnalytics'
 import { supabase } from '@/lib/supabase/client'
 import { mapDbError, sanitizeText } from '@/lib/security'
 import type {
@@ -267,4 +268,128 @@ export async function listFinanceRealizadas(): Promise<FinanceRealizadaRow[]> {
       charge: chargesBySession.get(row.id) ?? null,
     }
   })
+}
+
+const PAID_PAGE = 1000
+const SESSION_ID_CHUNK = 200
+
+interface SessionEmbed {
+  scheduled_at?: unknown
+}
+
+interface PaidEmbedRow {
+  price_name: string
+  amount_brl: number | string
+  patient_sessions: SessionEmbed | SessionEmbed[] | null
+}
+
+interface PaidLookupRow {
+  price_name: string
+  amount_brl: number | string
+  session_id: string
+}
+
+interface SessionWhenRow {
+  id: string
+  scheduled_at: unknown
+}
+
+function missingSessionRelationship(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false
+  if (error.code === 'PGRST200') return true
+  const message = (error.message ?? '').toLowerCase()
+  return message.includes('relationship') || message.includes('schema cache')
+}
+
+function scheduledAtFromEmbed(value: PaidEmbedRow['patient_sessions']): string | null {
+  if (!value) return null
+  const row = Array.isArray(value) ? value[0] : value
+  return typeof row?.scheduled_at === 'string' ? row.scheduled_at : null
+}
+
+function paidAnalyticsRow(
+  priceName: string,
+  amountBrl: number | string,
+  scheduledAt: string,
+): PaidAnalyticsRow {
+  return {
+    scheduledAt,
+    priceName,
+    amountBrl: Number(amountBrl),
+  }
+}
+
+export async function listFinancePaidForAnalytics(): Promise<PaidAnalyticsRow[]> {
+  const embedded: PaidAnalyticsRow[] = []
+  let from = 0
+  let pageCount = PAID_PAGE
+  let missingEmbed = false
+
+  while (pageCount === PAID_PAGE && !missingEmbed) {
+    const { data, error } = await supabase
+      .from('autonomo_session_charges')
+      .select('id, price_name, amount_brl, is_paid, patient_sessions!inner(scheduled_at)')
+      .eq('is_paid', true)
+      .order('id', { ascending: true })
+      .range(from, from + 999)
+
+    if (missingSessionRelationship(error)) {
+      missingEmbed = true
+      break
+    }
+    throwIfError(error)
+
+    const page = (data ?? []) as PaidEmbedRow[]
+    pageCount = page.length
+    for (const row of page) {
+      const scheduledAt = scheduledAtFromEmbed(row.patient_sessions)
+      if (!scheduledAt) continue
+      embedded.push(paidAnalyticsRow(row.price_name, row.amount_brl, scheduledAt))
+    }
+    if (pageCount === PAID_PAGE) from += PAID_PAGE
+  }
+
+  if (!missingEmbed) return embedded
+
+  const charges: PaidLookupRow[] = []
+  from = 0
+  pageCount = PAID_PAGE
+  while (pageCount === PAID_PAGE) {
+    const { data, error } = await supabase
+      .from('autonomo_session_charges')
+      .select('id, price_name, amount_brl, is_paid, session_id')
+      .eq('is_paid', true)
+      .order('id', { ascending: true })
+      .range(from, from + 999)
+
+    throwIfError(error)
+    const page = (data ?? []) as PaidLookupRow[]
+    pageCount = page.length
+    charges.push(...page)
+    if (pageCount === PAID_PAGE) from += PAID_PAGE
+  }
+
+  const scheduledBySession = new Map<string, string>()
+  const sessionIds = [...new Set(charges.map((row) => row.session_id))]
+  for (let index = 0; index < sessionIds.length; index += SESSION_ID_CHUNK) {
+    const chunk = sessionIds.slice(index, index + SESSION_ID_CHUNK)
+    const { data, error } = await supabase
+      .from('patient_sessions')
+      .select('id, scheduled_at')
+      .in('id', chunk)
+
+    throwIfError(error)
+    for (const row of (data ?? []) as SessionWhenRow[]) {
+      if (typeof row.scheduled_at !== 'string') continue
+      scheduledBySession.set(row.id, row.scheduled_at)
+    }
+  }
+
+  const lookedUp: PaidAnalyticsRow[] = []
+  for (const charge of charges) {
+    const scheduledAt = scheduledBySession.get(charge.session_id)
+    if (!scheduledAt) continue
+    lookedUp.push(paidAnalyticsRow(charge.price_name, charge.amount_brl, scheduledAt))
+  }
+  return lookedUp
 }
