@@ -17,7 +17,7 @@ Fora desta fase: excluir a conta de login do profissional, excluir membro da equ
 ## Implementation Decisions
 
 ### Quem pode excluir
-- Quem pode editar o paciente hoje (`canWritePatient` em `src/lib/accountAccess.ts`). Autônomo e dono da empresa; fisioterapeuta da equipe só se já pode editar aquele paciente.
+- Quem pode editar o paciente hoje (`canWritePatient` em `src/lib/accountAccess.ts` = quem criou o paciente; no banco, `private.can_write_patient`, que também barra membership pending/rejected). O dono da empresa **não** exclui ficha criada por colega — a mesma regra de edição de hoje.
 - A regra vale também no banco: a exclusão no servidor rejeita paciente de outra conta ou de quem não pode escrever, mesmo que alguém chame a API direto.
 
 ### Onde fica
@@ -42,6 +42,11 @@ Fora desta fase: excluir a conta de login do profissional, excluir membro da equ
 - Navega para `/pacientes`.
 - Invalida os caches que mostram o paciente: lista e ficha de pacientes, dashboard, agenda/calendário, quadro, financeiro.
 - Erro: toast `Não foi possível excluir o paciente. Tente de novo em instantes.` e nada muda na tela.
+
+### Padrões fechados após a pesquisa
+- Cards do quadro (`board_cards`) ligados ao paciente são apagados junto.
+- Google Agenda: apaga só o vínculo local (`google_calendar_session_links`). O evento já exportado continua na agenda Google do profissional. O diálogo avisa numa linha: `Eventos já enviados ao Google Agenda continuam lá.`
+- Limpeza de storage que falhar fica registrada (tombstone) e é refeita na próxima tentativa; sweep automático fica para depois.
 
 ### Claude's Discretion
 - SQL via função `security definer` com checagem de dono vs. `on delete cascade` nas FKs, ou combinação — escolher o mais seguro dado o schema atual.
@@ -90,6 +95,8 @@ Fora desta fase: excluir a conta de login do profissional, excluir membro da equ
 - Excluir pela lista de pacientes / em lote.
 - Excluir a conta do profissional e membros da equipe.
 - Exportar os dados do paciente antes de excluir (LGPD — portabilidade).
+- Apagar o evento remoto no Google Agenda.
+- Sweep automático de limpezas de storage pendentes.
 
 </deferred>
 
