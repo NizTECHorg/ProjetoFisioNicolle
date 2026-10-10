@@ -705,10 +705,12 @@ Plans:
 - [ ] 23-05-PLAN.md — Suíte completa e UAT hospedado (colar o index.ts da fase 13)
 
 **Cross-cutting constraints:**
+
 - A aba Resumo IA continua só com o original da última geração, sem lápis
 - Salvar uma caixa grava o diff das seis chaves resolvidas; a descrição não substitui `patient.sessionsDone`
 
 **Success Criteria** (what must be TRUE):
+
 1. Cada campo de texto do Resumo do paciente se edita dentro da própria caixa. Não abre uma janela com todos os campos.
 2. O número de sessões feitas que a IA usa é o das sessões concluídas do prontuário, não um campo desatualizado.
 3. As áreas de foco geradas são exatamente as que o prontuário e a descrição extra sustentam.
@@ -740,10 +742,12 @@ Plans:
 - [x] 24-04-PLAN.md — Suíte completa e UAT hospedado do bloco B
 
 **Cross-cutting constraints:**
+
 - Só o bloco B de 03 Função; ficha já é jsonb, sem SQL e sem `supabase db push`
 - Não editar `patient-ai-summary`; não inventar EVA nem metas; sem pacote npm novo
 
 **Success Criteria** (what must be TRUE):
+
 1. Dá para marcar mais de uma atividade (correr, depois agachar) e preencher a capacidade de cada uma.
 2. Cada atividade mostra só capacidade atual e quanto conseguia antes. Não há campo Atividade nem Consigo por.
 3. Capacidade atual e quanto conseguia antes aceitam uma unidade de medida (minutos, km, repetições), com o par valor + unidade formatado de forma clara.
@@ -757,6 +761,7 @@ Plans:
 **Plans:** 4/5 plans executed
 
 Plans:
+
 - [x] 25-01-PLAN.md — Catálogos, normalize e frases do helper
 - [x] 25-02-PLAN.md — Preprocess no schema e escritores da coluna tests
 - [x] 25-03-PLAN.md — Blocos B e E da página 04
@@ -764,12 +769,14 @@ Plans:
 - [ ] 25-05-PLAN.md — Suíte completa e UAT hospedado
 
 **Cross-cutting constraints:**
+
 - Só os blocos B e E da página 04 · Avaliação e plano. Blocos A, C–G e as páginas 01–03 ficam como estão
 - A ficha já é jsonb: sem SQL e sem `supabase db push`
 - Não editar `patient-ai-summary`; sem pacote npm novo
 - Leitura, catálogo de export e PDF mostram o que a ficha nova grava
 
 **Success Criteria** (what must be TRUE):
+
 1. Dá para escolher uma região, marcar só os movimentos dela e acrescentar outra região, cada uma com tipo (ativo, passivo ou ambos) e comparação (bilateral ou unilateral).
 2. Cada movimento marcado mostra direito e esquerdo no mesmo campo. O valor aceita graus ou Completo, Limitado e Não avaliado. A dor de cada lado abre início, intensidade e observação.
 3. A palpação registra achados com região, local filtrado por essa região, lado, achado, dor e observação, numa lista que dá para editar.
@@ -785,17 +792,20 @@ Plans:
 **Plans:** 4/4 plans complete
 
 Plans:
+
 - [x] 26-01-PLAN.md — PDF de avaliação e evolução só com o preenchido
 - [x] 26-03-PLAN.md — Contato do paciente e função de e-mail no SMTP do Fluxo
 - [x] 26-02-PLAN.md — Botão Gerando com estrela e brilho azul
 - [x] 26-04-PLAN.md — Envio por e-mail e WhatsApp na exportação e na lista
 
 **Cross-cutting constraints:**
+
 - Sem SQL e sem `supabase db push`. Segredos de e-mail só no Dashboard, no SMTP que o Fluxo já usa
 - Sem pacote npm novo. Não editar `patient-ai-summary`
 - Conta sem escrita não vê e-mail nem WhatsApp. O brilho azul fica só no botão que está gerando com IA
 
 **Success Criteria** (what must be TRUE):
+
 1. O PDF de avaliação e o de evolução mostram só informações preenchidas, com uma formatação simples e limpa.
 2. Enquanto a IA gera, o botão diz Gerando, mostra uma estrela e o fundo tem um brilho azul animado.
 3. Na exportação, e-mail e WhatsApp aparecem com os logos e enviam a avaliação ou a evolução para o contato do cliente.
@@ -806,12 +816,24 @@ Plans:
 **Requirements**: REQ-38
 **Depends on:** Phase 5
 **UI hint**: yes
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 27 to break down)
+**Wave 1**
+
+- [ ] 27-01-PLAN.md — Agregação pura dos pagamentos no fuso de São Paulo
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 27-02-PLAN.md — Leitura paginada das cobranças pagas e hook
+- [ ] 27-03-PLAN.md — Gráficos SVG das três visões
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 27-04-PLAN.md — Abas Totais e Analítica na seção de totais
 
 **Success Criteria** (what must be TRUE):
+
 1. Onde estão os três totais, dá para trocar entre Totais e Analítica. Totais continua igual.
 2. A Analítica mostra arrecadado por mês, mistura por preço e o mês contra o anterior.
 3. Passar o mouse ou o foco mostra o valor em R$. Clicar num mês seleciona esse mês e as outras visões acompanham.
