@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 27-04-PLAN.md
-last_updated: "2026-10-10T01:56:00.011Z"
+status: ready
+stopped_at: Completed and verified Phase 27 (analitica-financeiro)
+last_updated: "2026-10-10T20:30:00.000Z"
 progress:
   total_phases: 28
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 113
   completed_plans: 100
-  percent: 50
+  percent: 54
 ---
 
 # Project State
@@ -21,22 +21,23 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 27 — analitica-financeiro
+**Current focus:** Phase 27 — analitica-financeiro (COMPLETE)
 
 ## Current Position
 
-Phase: 27 (analitica-financeiro) — EXECUTING
-Plan: 4 of 4
+Phase: 27 (analitica-financeiro) — COMPLETE
+Plan: 4 of 4 (all verified)
 
-- Status: Ready to execute
-- Progress: 4/4 plans executed
+- Status: Verified
+- Progress: 4/4 plans executed and verified
 
-**Progress:** [█████████░] 88%
+**Progress:** [██████████] 100%
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 27]: Analítica do Financeiro redesenhada com 4 KPI cards (Receita, Mês anterior com delta %, Ticket Médio, Sessões pagas), gráfico de barras dos 12 meses, Donut Chart de distribuição por preço, comparativo mensal e feed de últimas sessões do período filtrado. SVG puro sem bibliotecas externas.
 - Avaliação estruturada em `patient_evaluations` (Supabase) — Phase 1
 - REQ-05 adiado: código existe; SQL/UAT ficam para depois
 - Metas no Resumo; clique no card = concluído / em andamento — Phase 2
