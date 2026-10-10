@@ -107,18 +107,28 @@ export interface MonthBar {
   amountBrl: number
   axisLabel: string
   sentence: string
+  count: number
 }
 
 export interface PriceBar {
   name: string
   cents: number
   amountBrl: number
+  count: number
+  percentage: number
 }
 
 export interface MonthMoney {
   key: string
   sentence: string
   cents: number
+  amountBrl: number
+  count: number
+}
+
+export interface AnalyticsPayment {
+  scheduledAt: string
+  priceName: string
   amountBrl: number
 }
 
@@ -130,6 +140,12 @@ export interface FinanceAnalytics {
   prices: PriceBar[]
   selected: MonthMoney
   previous: MonthMoney
+  selectedCount: number
+  selectedAverageBrl: number
+  previousCount: number
+  deltaPercentage: number | null
+  deltaBrl: number
+  selectedPayments: AnalyticsPayment[]
 }
 
 function toCents(amountBrl: number): number {
@@ -141,12 +157,13 @@ function priceGroupName(priceName: string): string {
   return trimmed.length === 0 ? 'Avulso' : trimmed
 }
 
-function monthMoney(key: string, cents: number): MonthMoney {
+function monthMoney(key: string, cents: number, count = 0): MonthMoney {
   return {
     key,
     sentence: monthSentence(key),
     cents,
     amountBrl: cents / 100,
+    count,
   }
 }
 
@@ -167,23 +184,46 @@ export function buildFinanceAnalytics(
       selectedKey: activeKey,
       months: [],
       prices: [],
-      selected: monthMoney(activeKey, 0),
-      previous: monthMoney(previousKey, 0),
+      selected: monthMoney(activeKey, 0, 0),
+      previous: monthMoney(previousKey, 0, 0),
+      selectedCount: 0,
+      selectedAverageBrl: 0,
+      previousCount: 0,
+      deltaPercentage: null,
+      deltaBrl: 0,
+      selectedPayments: [],
     }
   }
 
   const monthCents = new Map<string, number>()
+  const monthCounts = new Map<string, number>()
   const priceCents = new Map<string, number>()
+  const priceCounts = new Map<string, number>()
+  const selectedPayments: AnalyticsPayment[] = []
 
   for (const row of rows) {
     const key = saoPauloMonthKey(new Date(row.scheduledAt))
     const cents = toCents(row.amountBrl)
     monthCents.set(key, (monthCents.get(key) ?? 0) + cents)
+    monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1)
     if (key === activeKey) {
       const name = priceGroupName(row.priceName)
       priceCents.set(name, (priceCents.get(name) ?? 0) + cents)
+      priceCounts.set(name, (priceCounts.get(name) ?? 0) + 1)
+      selectedPayments.push({
+        scheduledAt: row.scheduledAt,
+        priceName: name,
+        amountBrl: Number(row.amountBrl),
+      })
     }
   }
+
+  selectedPayments.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+
+  const selectedTotalCents = monthCents.get(activeKey) ?? 0
+  const selectedCount = monthCounts.get(activeKey) ?? 0
+  const previousTotalCents = monthCents.get(previousKey) ?? 0
+  const previousCount = monthCounts.get(previousKey) ?? 0
 
   const months: MonthBar[] = monthWindow(now).map((key, index) => {
     const cents = monthCents.get(key) ?? 0
@@ -193,6 +233,7 @@ export function buildFinanceAnalytics(
       amountBrl: cents / 100,
       axisLabel: monthAxisLabel(key, index === 0),
       sentence: monthSentence(key),
+      count: monthCounts.get(key) ?? 0,
     }
   })
 
@@ -206,7 +247,17 @@ export function buildFinanceAnalytics(
       name,
       cents,
       amountBrl: cents / 100,
+      count: priceCounts.get(name) ?? 0,
+      percentage: selectedTotalCents > 0 ? Math.round((cents / selectedTotalCents) * 100) : 0,
     }))
+
+  const deltaBrl = (selectedTotalCents - previousTotalCents) / 100
+  let deltaPercentage: number | null = null
+  if (previousTotalCents > 0) {
+    deltaPercentage = Math.round(((selectedTotalCents - previousTotalCents) / previousTotalCents) * 100)
+  }
+
+  const selectedAverageBrl = selectedCount > 0 ? selectedTotalCents / selectedCount / 100 : 0
 
   return {
     hasPayments: true,
@@ -214,7 +265,14 @@ export function buildFinanceAnalytics(
     selectedKey: activeKey,
     months,
     prices,
-    selected: monthMoney(activeKey, monthCents.get(activeKey) ?? 0),
-    previous: monthMoney(previousKey, monthCents.get(previousKey) ?? 0),
+    selected: monthMoney(activeKey, selectedTotalCents, selectedCount),
+    previous: monthMoney(previousKey, previousTotalCents, previousCount),
+    selectedCount,
+    selectedAverageBrl,
+    previousCount,
+    deltaPercentage,
+    deltaBrl,
+    selectedPayments,
   }
 }
+
