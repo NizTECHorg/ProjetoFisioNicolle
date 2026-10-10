@@ -33,7 +33,14 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Textarea } from '@/components/ui/Textarea'
 import { useAuth } from '@/hooks/useAuth'
-import { usePatient, usePatientDashboard, useSavePatientSummaryEdits, useUpdatePatient } from '@/hooks/usePatients'
+import {
+  useDeletePatient,
+  usePatient,
+  usePatientDashboard,
+  useSavePatientSummaryEdits,
+  useUpdatePatient,
+} from '@/hooks/usePatients'
+import { DeletePatientDialog } from '@/components/patients/DeletePatientDialog'
 import { canWritePatient } from '@/lib/accountAccess'
 import { patientFichaPath } from '@/lib/dashboardShortcut'
 import {
@@ -656,6 +663,8 @@ export function PatientPage() {
   const { user, profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const openIdentityRef = useRef<(() => void) | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const deletePatient = useDeletePatient(id ?? '')
 
   const aba = searchParams.get('aba')
   const openCreateOnMount = searchParams.get('nova') === '1'
@@ -769,6 +778,7 @@ export function PatientPage() {
         meta={meta}
         activeTab={tab}
         onTabChange={setTab}
+        onDeletePatient={canWrite ? () => setDeleteOpen(true) : undefined}
         topRightAction={
           canWrite && tab === 'resumo' ? (
             <Button
@@ -794,6 +804,14 @@ export function PatientPage() {
             </button>
           ) : undefined
         }
+      />
+
+      <DeletePatientDialog
+        open={deleteOpen && canWrite}
+        patientName={dashboard.name}
+        isPending={deletePatient.isPending}
+        onConfirm={() => deletePatient.mutate()}
+        onClose={() => setDeleteOpen(false)}
       />
 
       <div className="mt-5 sm:mt-6">

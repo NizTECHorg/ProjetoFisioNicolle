@@ -34,3 +34,30 @@ test('dialog: não fecha durante pending e não usa ConfirmDialog', () => {
   ok(!dialog.includes('ConfirmDialog'))
 })
 
+const header = read('../components/patients/PatientProfileHeader.tsx')
+const page = read('../pages/PatientPage.tsx')
+const list = read('../pages/PatientsPage.tsx')
+
+test('header: botão só com canWrite && onDeletePatient', () => {
+  ok(header.includes('onDeletePatient?: () => void'))
+  ok(header.includes('Trash2'))
+  ok(header.includes('text-error'))
+  const at = header.indexOf('Excluir paciente')
+  ok(at >= 0)
+  ok(header.slice(Math.max(0, at - 600), at).includes('canWrite && onDeletePatient'))
+})
+
+test('PatientPage: liga diálogo e hook antes dos returns antecipados', () => {
+  ok(page.includes("import { DeletePatientDialog }"))
+  ok(page.includes('onDeletePatient='))
+  ok(page.includes('patientName={dashboard.name}'))
+  const hook = page.indexOf('useDeletePatient(')
+  const early = page.indexOf('if (dashboardLoading)')
+  ok(hook >= 0 && early >= 0 && hook < early)
+})
+
+test('lista de pacientes não ganha ação de excluir', () => {
+  ok(!list.includes('Excluir paciente'))
+  ok(!list.includes('useDeletePatient'))
+  ok(!list.includes('DeletePatientDialog'))
+})

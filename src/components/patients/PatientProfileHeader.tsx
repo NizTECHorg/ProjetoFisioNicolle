@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import {
   PatientPhotoControl,
@@ -32,6 +32,8 @@ type PatientProfileHeaderProps = {
   identityAction?: ReactNode
   /** Ação no topo à direita (ex.: Nova avaliação no Resumo). */
   topRightAction?: ReactNode
+  /** Abre o diálogo de exclusão; só aparece com canWrite. */
+  onDeletePatient?: () => void
 }
 
 const avatarClassName = '!h-14 !w-14 !text-base sm:!h-16 sm:!w-16 sm:!text-lg'
@@ -49,6 +51,7 @@ export function PatientProfileHeader({
   onTabChange,
   identityAction,
   topRightAction,
+  onDeletePatient,
 }: PatientProfileHeaderProps) {
   return (
     <>
@@ -116,6 +119,16 @@ export function PatientProfileHeader({
               ) : (
                 <span className="text-xs text-muted">{statusLabels[status]}</span>
               )}
+              {canWrite && onDeletePatient ? (
+                <button
+                  type="button"
+                  onClick={onDeletePatient}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-error transition-colors hover:bg-error/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/30"
+                >
+                  <Trash2 size={14} aria-hidden />
+                  Excluir paciente
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
