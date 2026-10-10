@@ -279,6 +279,7 @@ Plan: 4 of 4
 - Phase 24 added: Atividades da avaliação com capacidade por item (REQ-35)
 - Phase 25 added: Mobilidade por região, palpação estruturada e testes clínicos (REQ-36)
 - Phase 26 added: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio por e-mail e WhatsApp (REQ-37)
+- Phase 27 added: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos (REQ-38)
 
 ## Session Continuity
 

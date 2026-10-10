@@ -19,6 +19,7 @@
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
 - [x] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
 - [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
+- [ ] **REQ-38**: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -328,6 +329,22 @@ Não reutilizar a tela bakery de despesas (`FinancePage` caramel/dark, `canManag
 4. Totais de arrecadação: mês corrente, ano corrente e acumulado (sempre), derivados das sessões com valor — sem mock.
 5. Persistido no Supabase; RLS impede empresa/fisio de ler/escrever esses dados.
 
+## REQ-38 — Analítica no Financeiro
+
+**Desejável · Artur**
+
+Na aba Financeiro, a seção Totais vira duas abas. **Totais** continua com Este mês, Este ano e Sempre. **Analítica** mostra visões e gráficos simples, interativos, feitos com os mesmos pagamentos.
+
+Não muda o catálogo, a lista de realizadas, o valor na sessão nem quem pode ver Financeiro. Sem SQL novo e sem pacote npm novo.
+
+### Acceptance
+
+1. Na seção Totais há duas abas, Totais e Analítica. Totais mostra Este mês, Este ano e Sempre como hoje.
+2. Analítica mostra arrecadado por mês, mistura por preço e a comparação do mês selecionado com o anterior.
+3. Hover ou foco mostra o valor em R$. Clicar num mês seleciona esse mês e as outras visões acompanham.
+4. Os números vêm das sessões pagas que já entram nos totais, inclusive pré-pagas agendadas. Sem mock.
+5. Empresa e fisioterapeuta continuam sem ver Financeiro. Sem SQL novo e sem pacote novo.
+
 ## REQ-15 — Tipos de conta e equipe
 
 **Indispensável · Artur**
@@ -430,3 +447,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-35 | Phase 24 | Complete |
 | REQ-36 | Phase 25 | Complete |
 | REQ-37 | Phase 26 | Planned |
+| REQ-38 | Phase 27 | Planned |

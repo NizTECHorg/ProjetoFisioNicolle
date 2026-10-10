@@ -33,6 +33,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
 - [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
 - [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
+- [ ] **Phase 27: Analítica no Financeiro** — Duas abas nos totais: a de hoje e uma analítica com gráficos simples e interativos
 
 ## Phase Details
 
@@ -798,3 +799,20 @@ Plans:
 1. O PDF de avaliação e o de evolução mostram só informações preenchidas, com uma formatação simples e limpa.
 2. Enquanto a IA gera, o botão diz Gerando, mostra uma estrela e o fundo tem um brilho azul animado.
 3. Na exportação, e-mail e WhatsApp aparecem com os logos e enviam a avaliação ou a evolução para o contato do cliente.
+
+### Phase 27: Analítica no Financeiro
+
+**Goal:** Na seção Totais do Financeiro, duas abas. Uma continua com Este mês, Este ano e Sempre. A outra é a Analítica, com visões e gráficos simples e interativos sobre os mesmos pagamentos.
+**Requirements**: REQ-38
+**Depends on:** Phase 5
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 27 to break down)
+
+**Success Criteria** (what must be TRUE):
+1. Onde estão os três totais, dá para trocar entre Totais e Analítica. Totais continua igual.
+2. A Analítica mostra arrecadado por mês, mistura por preço e o mês contra o anterior.
+3. Passar o mouse ou o foco mostra o valor em R$. Clicar num mês seleciona esse mês e as outras visões acompanham.
+4. Os números vêm dos mesmos pagamentos dos totais, inclusive sessão pré-paga. Sem mock, sem SQL novo e sem pacote novo.
