@@ -28,7 +28,7 @@ test('REQ-38: a página troca Totais e Analítica sem rota e sem alargar o erro'
     'Não foi possível carregar a analítica. Tente de novo em instantes.',
     'const isError = pricesError || totalsError',
     'Catálogo de preços',
-    'Sessões realizadas',
+    'Sessões pagas',
     'Soma das sessões pagas, inclusive pré-pagas agendadas.',
     'canSeeFinance',
     'Home',

@@ -1,11 +1,4 @@
-import {
-  createElement,
-  useState,
-  type HTMLAttributes,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
-  type ReactElement,
-} from 'react'
+import { useId, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react'
 import { Select } from '@/components/ui/Select'
 import {
   analyticsPatientIds,
@@ -24,19 +17,18 @@ import { formatCurrency } from '@/lib/security'
 
 const VIEW_W = 560
 const VIEW_H = 220
+const PAD = { l: 64, r: 16, t: 36, b: 36 }
+const INNER_W = VIEW_W - PAD.l - PAD.r
+const INNER_H = VIEW_H - PAD.t - PAD.b
 const TOOLTIP_H = 32
-const TOOLTIP_GAP = 8
-const PLOT_TOP = TOOLTIP_H + TOOLTIP_GAP
-const PLOT_BOTTOM = 192
-const PLOT_H = PLOT_BOTTOM - PLOT_TOP
-const PAD_X = 8
-const PLOT_W = VIEW_W - PAD_X * 2
-const MIN_BAR = 4
-const HIT_H = 44
-const PRICE_ROW = 44
-const PRICE_NAME_W = 176
-const PRICE_TRACK_H = 8
-const PRICE_TRACK_X = PRICE_NAME_W + TOOLTIP_GAP
+const HIT_W_MIN = 28
+
+const compactBrl = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
 
 function moneyLabel(sentence: string, amountBrl: number): string {
   return `${sentence} · ${formatCurrency(amountBrl)}`
@@ -46,109 +38,54 @@ function priceLabel(name: string, amountBrl: number): string {
   return `${name} · ${formatCurrency(amountBrl)}`
 }
 
-function priceFillWidth(cents: number, peak: number, trackW: number): number {
-  if (cents <= 0 || peak <= 0) return 0
-  return Math.min(trackW, Math.max(MIN_BAR, (cents / peak) * trackW))
-}
-
-function PriceName(props: { name: string; y: number }) {
-  return (
-    <foreignObject x={0} y={props.y} width={PRICE_NAME_W} height={PRICE_ROW}>
-      {createElement(
-        'div',
-        {
-          xmlns: 'http://www.w3.org/1999/xhtml',
-          className: 'flex h-11 w-full items-center overflow-hidden',
-        } as unknown as HTMLAttributes<HTMLDivElement>,
-        createElement(
-          'span',
-          { className: 'block w-full truncate text-sm font-normal text-ink' },
-          props.name,
-        ),
-      )}
-    </foreignObject>
-  )
-}
-
 function tooltipWidth(label: string): number {
-  return Math.ceil(label.length * 8) + 16
+  return Math.ceil(label.length * 7.2) + 24
 }
 
-function barPixelHeight(cents: number, peak: number): number {
-  if (cents <= 0 || peak <= 0) return MIN_BAR
-  return Math.max(MIN_BAR, (cents / peak) * PLOT_H)
+/** Teto do eixo em centavos, arredondado para um número redondo em reais. */
+function axisCeiling(peakCents: number): number {
+  if (peakCents <= 0) return 10000
+  const reais = peakCents / 100
+  const magnitude = 10 ** Math.floor(Math.log10(reais))
+  const step = magnitude / 2
+  return Math.ceil(reais / step) * step * 100
 }
 
-function verticalBarBox(index: number, count: number, cents: number, peak: number) {
-  const slot = PLOT_W / count
-  const barW = slot * 0.6
-  const x = PAD_X + index * slot + (slot - barW) / 2
-  const visibleH = barPixelHeight(cents, peak)
-  const y = PLOT_BOTTOM - visibleH
-  return { x, barW, visibleH, y, centerX: x + barW / 2 }
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  const first = parts[0]?.[0] ?? '?'
+  const second = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : (parts[0]?.[1] ?? '')
+  return `${first}${second}`.toUpperCase()
 }
 
-function ChartTooltip(props: {
-  label: string
-  centerX: number
-  barTop: number
-  barBottom: number
-  viewWidth: number
-  viewHeight: number
-}) {
-  const boxW = tooltipWidth(props.label)
-  const maxX = Math.max(0, props.viewWidth - boxW)
-  const x = Math.min(Math.max(0, props.centerX - boxW / 2), maxX)
-  let y = props.barTop - TOOLTIP_H - TOOLTIP_GAP
-  if (y < 0) y = props.barBottom + TOOLTIP_GAP
-  if (y + TOOLTIP_H > props.viewHeight) y = Math.max(0, props.viewHeight - TOOLTIP_H)
-
-  return (
-    <g pointerEvents="none">
-      <rect x={x} y={y} width={boxW} height={TOOLTIP_H} rx="8" fill="#0b1d36" />
-      <text x={x + boxW / 2} y={y + 21} textAnchor="middle" className="fill-white text-sm font-semibold">
-        {props.label}
-      </text>
-    </g>
-  )
-}
-
-function GridLines() {
-  return (
-    <>
-      {[0, 1, 2, 3].map((index) => {
-        const y = PLOT_TOP + (PLOT_H * index) / 3
-        return (
-          <line key={index} x1={PAD_X} x2={VIEW_W - PAD_X} y1={y} y2={y} stroke="#e1e8f0" strokeWidth="1" />
-        )
-      })}
-    </>
-  )
-}
-
-function useBarFocus() {
-  const [hoverId, setHoverId] = useState<string | null>(null)
-  const [focusId, setFocusId] = useState<string | null>(null)
-  return {
-    activeId: hoverId ?? focusId,
-    setHoverId,
-    setFocusId,
-  }
-}
-
-function MonthBars(props: {
+function MonthLine(props: {
   months: readonly MonthBar[]
   selectedKey: string
   currentKey: string
   onSelectMonth: (key: string) => void
 }) {
-  const { activeId, setHoverId, setFocusId } = useBarFocus()
+  const gradientId = useId()
+  const [hoverKey, setHoverKey] = useState<string | null>(null)
+  const [focusKey, setFocusKey] = useState<string | null>(null)
   const peak = props.months.reduce((max, bar) => Math.max(max, bar.cents), 0)
-  const activeIndex = props.months.findIndex((bar) => bar.key === activeId)
-  const active = activeIndex >= 0 ? props.months[activeIndex] : undefined
-  const activeBox = active
-    ? verticalBarBox(activeIndex, props.months.length, active.cents, peak)
-    : null
+  const ceiling = axisCeiling(peak)
+  const step = INNER_W / Math.max(props.months.length - 1, 1)
+  const points = props.months.map((bar, index) => ({
+    bar,
+    x: PAD.l + index * step,
+    y: PAD.t + INNER_H - (bar.cents / ceiling) * INNER_H,
+  }))
+  const first = points[0]
+  const last = points[points.length - 1]
+  if (!first || !last) return null
+
+  const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+  const area = `${line} L ${last.x} ${PAD.t + INNER_H} L ${first.x} ${PAD.t + INNER_H} Z`
+  const ticks = [0, 1 / 3, 2 / 3, 1].map((ratio) => Math.round(ceiling * ratio))
+  const activeKey = hoverKey ?? focusKey
+  const active = points.find((point) => point.bar.key === activeKey)
+  const selected = points.find((point) => point.bar.key === props.selectedKey)
+  const hitW = Math.max(HIT_W_MIN, step)
 
   function choose(key: string) {
     props.onSelectMonth(toggleSelectedMonth(props.selectedKey, key, props.currentKey))
@@ -162,201 +99,186 @@ function MonthBars(props: {
     }
   }
 
+  const tooltip = active ? moneyLabel(active.bar.sentence, active.bar.amountBrl) : ''
+  const tooltipW = tooltipWidth(tooltip)
+  const tooltipX = active ? Math.max(4, Math.min(active.x - tooltipW / 2, VIEW_W - tooltipW - 4)) : 0
+  const tooltipY = active ? Math.max(0, active.y - TOOLTIP_H - 12) : 0
+
   return (
     <svg
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="xMidYMid meet"
       overflow="visible"
-      className="mt-4 block h-56 w-full"
+      className="block h-64 w-full overflow-visible"
     >
-      <GridLines />
-      {props.months.map((bar, index) => {
-        const box = verticalBarBox(index, props.months.length, bar.cents, peak)
-        const selected = bar.key === props.selectedKey
-        const label = moneyLabel(bar.sentence, bar.amountBrl)
-        const hitH = Math.max(HIT_H, box.visibleH)
+      <defs>
+        <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#2f7dff" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#2f7dff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {ticks.map((tick) => {
+        const y = PAD.t + INNER_H - (tick / ceiling) * INNER_H
         return (
-          <g
-            key={bar.key}
-            role="button"
-            tabIndex={0}
-            aria-pressed={selected}
-            aria-label={label}
-            className="cursor-pointer"
-            onClick={() => choose(bar.key)}
-            onKeyDown={(event) => onKeyDown(event, bar.key)}
-            onMouseEnter={() => setHoverId(bar.key)}
-            onMouseLeave={() => setHoverId(null)}
-            onFocus={() => setFocusId(bar.key)}
-            onBlur={() => setFocusId(null)}
-          >
-            {selected ? (
-              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#0b1d36" />
-            ) : (
-              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#2f7dff" />
-            )}
-            {hitH > box.visibleH ? (
-              <rect x={box.x} y={PLOT_BOTTOM - hitH} width={box.barW} height={hitH} fill="transparent" />
-            ) : null}
-            <text x={box.centerX} y={PLOT_BOTTOM + 16} textAnchor="middle" className="fill-muted text-sm font-normal">
-              {bar.axisLabel}
+          <g key={tick}>
+            <line x1={PAD.l} x2={VIEW_W - PAD.r} y1={y} y2={y} stroke="#e1e8f0" strokeWidth="1" />
+            <text x={PAD.l - 12} y={y + 4} textAnchor="end" className="fill-muted text-[11px]">
+              {compactBrl.format(tick / 100)}
             </text>
           </g>
         )
       })}
-      {active && activeBox ? (
-        <ChartTooltip
-          label={moneyLabel(active.sentence, active.amountBrl)}
-          centerX={activeBox.centerX}
-          barTop={activeBox.y}
-          barBottom={activeBox.y + activeBox.visibleH}
-          viewWidth={VIEW_W}
-          viewHeight={VIEW_H}
+      {selected ? (
+        <line
+          x1={selected.x}
+          x2={selected.x}
+          y1={PAD.t}
+          y2={PAD.t + INNER_H}
+          stroke="#0b1d36"
+          strokeOpacity="0.25"
+          strokeWidth="1"
+          strokeDasharray="4 4"
         />
       ) : null}
-    </svg>
-  )
-}
-
-function CompareBars(props: { selected: MonthMoney; previous: MonthMoney }) {
-  const { activeId, setHoverId, setFocusId } = useBarFocus()
-  const bars = [
-    { id: 'selected', money: props.selected, selected: true },
-    { id: 'previous', money: props.previous, selected: false },
-  ] as const
-  const peak = Math.max(props.selected.cents, props.previous.cents)
-  const activeIndex = bars.findIndex((bar) => bar.id === activeId)
-  const active = activeIndex >= 0 ? bars[activeIndex] : undefined
-  const activeBox = active
-    ? verticalBarBox(activeIndex, bars.length, active.money.cents, peak)
-    : null
-
-  function onKeyDown(event: ReactKeyboardEvent<SVGGElement>) {
-    if (event.key === 'Enter' || event.key === ' ') event.preventDefault()
-  }
-
-  return (
-    <svg
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-      preserveAspectRatio="xMidYMid meet"
-      overflow="visible"
-      className="mt-4 block h-56 w-full"
-    >
-      <GridLines />
-      {bars.map((bar, index) => {
-        const box = verticalBarBox(index, bars.length, bar.money.cents, peak)
-        const label = moneyLabel(bar.money.sentence, bar.money.amountBrl)
-        const hitH = Math.max(HIT_H, box.visibleH)
+      <path d={area} fill={`url(#${gradientId})`} />
+      <path d={line} fill="none" stroke="#2f7dff" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+      {points.map((point) => {
+        const isSelected = point.bar.key === props.selectedKey
+        const isActive = point.bar.key === activeKey
+        const label = moneyLabel(point.bar.sentence, point.bar.amountBrl)
         return (
           <g
-            key={bar.id}
-            role="img"
+            key={point.bar.key}
+            role="button"
             tabIndex={0}
+            aria-pressed={isSelected}
             aria-label={label}
-            onKeyDown={onKeyDown}
-            onMouseEnter={() => setHoverId(bar.id)}
-            onMouseLeave={() => setHoverId(null)}
-            onFocus={() => setFocusId(bar.id)}
-            onBlur={() => setFocusId(null)}
+            className="cursor-pointer outline-none"
+            onClick={() => choose(point.bar.key)}
+            onKeyDown={(event) => onKeyDown(event, point.bar.key)}
+            onMouseEnter={() => setHoverKey(point.bar.key)}
+            onMouseLeave={() => setHoverKey(null)}
+            onFocus={() => setFocusKey(point.bar.key)}
+            onBlur={() => setFocusKey(null)}
           >
-            {bar.selected ? (
-              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#0b1d36" />
+            <rect x={point.x - hitW / 2} y={PAD.t - 8} width={hitW} height={INNER_H + 16} fill="transparent" />
+            {isSelected ? (
+              <>
+                <circle cx={point.x} cy={point.y} r="10" fill="#0b1d36" fillOpacity="0.12" />
+                <circle cx={point.x} cy={point.y} r="6" fill="#0b1d36" stroke="#ffffff" strokeWidth="2" />
+              </>
             ) : (
-              <rect x={box.x} y={box.y} width={box.barW} height={box.visibleH} fill="#2f7dff" />
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={isActive ? 5.5 : 3.5}
+                fill="#2f7dff"
+                stroke="#ffffff"
+                strokeWidth={isActive ? 2 : 0}
+              />
             )}
-            {hitH > box.visibleH ? (
-              <rect x={box.x} y={PLOT_BOTTOM - hitH} width={box.barW} height={hitH} fill="transparent" />
-            ) : null}
+            <text
+              x={point.x}
+              y={VIEW_H - 10}
+              textAnchor="middle"
+              className={isSelected ? 'fill-forest text-[11px] font-semibold' : 'fill-muted text-[11px]'}
+            >
+              {point.bar.axisLabel}
+            </text>
           </g>
         )
       })}
-      {active && activeBox ? (
-        <ChartTooltip
-          label={moneyLabel(active.money.sentence, active.money.amountBrl)}
-          centerX={activeBox.centerX}
-          barTop={activeBox.y}
-          barBottom={activeBox.y + activeBox.visibleH}
-          viewWidth={VIEW_W}
-          viewHeight={VIEW_H}
-        />
+      {active ? (
+        <g pointerEvents="none">
+          <rect x={tooltipX} y={tooltipY} width={tooltipW} height={TOOLTIP_H} rx="10" fill="#0b1d36" />
+          <text
+            x={tooltipX + tooltipW / 2}
+            y={tooltipY + 20}
+            textAnchor="middle"
+            className="fill-white text-[11px] font-semibold"
+          >
+            {tooltip}
+          </text>
+        </g>
       ) : null}
     </svg>
   )
 }
 
 function PriceBars(props: { prices: readonly PriceBar[] }) {
-  const { activeId, setHoverId, setFocusId } = useBarFocus()
   const peak = props.prices.reduce((max, price) => Math.max(max, price.cents), 0)
-  const trackW = VIEW_W - PRICE_TRACK_X - PAD_X
-  const viewHeight = props.prices.length * PRICE_ROW
-  const activeIndex = props.prices.findIndex((price) => price.name === activeId)
-  const active = activeIndex >= 0 ? props.prices[activeIndex] : undefined
-
-  function onPriceClick(event: ReactMouseEvent<SVGGElement>) {
-    event.preventDefault()
-  }
-
-  function onPriceKeyDown(event: ReactKeyboardEvent<SVGGElement>) {
-    if (event.key === ' ') event.preventDefault()
-  }
-
-  if (props.prices.length === 0) return null
-
-  const activeFillW = active ? priceFillWidth(active.cents, peak, trackW) : 0
-  const activeTrackY = activeIndex * PRICE_ROW + (PRICE_ROW - PRICE_TRACK_H) / 2
 
   return (
-    <svg
-      viewBox={`0 0 ${VIEW_W} ${viewHeight}`}
-      preserveAspectRatio="xMidYMid meet"
-      overflow="visible"
-      className="mt-4 block w-full"
-      height={viewHeight}
-    >
-      {props.prices.map((price, index) => {
-        const rowY = index * PRICE_ROW
-        const trackY = rowY + (PRICE_ROW - PRICE_TRACK_H) / 2
-        const fillW = priceFillWidth(price.cents, peak, trackW)
+    <ul className="space-y-4">
+      {props.prices.map((price) => {
+        const width = peak > 0 ? Math.max(4, (price.cents / peak) * 100) : 0
         return (
-          <g
-            key={price.name}
-            role="img"
-            tabIndex={0}
-            aria-label={priceLabel(price.name, price.amountBrl)}
-            onClick={onPriceClick}
-            onKeyDown={onPriceKeyDown}
-            onMouseEnter={() => setHoverId(price.name)}
-            onMouseLeave={() => setHoverId(null)}
-            onFocus={() => setFocusId(price.name)}
-            onBlur={() => setFocusId(null)}
-          >
-            <rect x={0} y={rowY} width={VIEW_W} height={PRICE_ROW} fill="transparent" />
-            <PriceName name={price.name} y={rowY} />
-            <rect x={PRICE_TRACK_X} y={trackY} width={trackW} height={PRICE_TRACK_H} fill="#e1e8f0" />
-            <rect x={PRICE_TRACK_X} y={trackY} width={fillW} height={PRICE_TRACK_H} fill="#2f7dff" />
-          </g>
+          <li key={price.name} role="img" tabIndex={0} aria-label={priceLabel(price.name, price.amountBrl)}>
+            <div className="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-semibold text-white"
+              >
+                {initials(price.name)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="truncate text-sm font-semibold text-ink">{price.name}</p>
+                  <p className="shrink-0 text-sm font-semibold text-forest">{formatCurrency(price.amountBrl)}</p>
+                </div>
+                <svg viewBox="0 0 100 6" preserveAspectRatio="none" className="mt-2 block h-1.5 w-full" aria-hidden="true">
+                  <rect x="0" y="0" width="100" height="6" rx="3" fill="#e7f0fb" />
+                  <rect x="0" y="0" width={width} height="6" rx="3" fill="#2f7dff" />
+                </svg>
+              </div>
+            </div>
+          </li>
         )
       })}
-      {active ? (
-        <ChartTooltip
-          label={priceLabel(active.name, active.amountBrl)}
-          centerX={PRICE_TRACK_X + activeFillW / 2}
-          barTop={activeTrackY}
-          barBottom={activeTrackY + PRICE_TRACK_H}
-          viewWidth={VIEW_W}
-          viewHeight={viewHeight}
-        />
-      ) : null}
-    </svg>
+    </ul>
   )
 }
 
-function MoneyCaption(props: { money: MonthMoney }) {
+function CompareCard(props: { money: MonthMoney; peakCents: number; selected: boolean; title: string }) {
+  const width = props.peakCents > 0 ? Math.max(4, (props.money.cents / props.peakCents) * 100) : 4
   return (
-    <div>
-      <p className="text-sm font-semibold leading-tight text-ink">{props.money.sentence}</p>
-      <p className="mt-2 text-sm text-muted">{formatCurrency(props.money.amountBrl)}</p>
+    <div
+      role="img"
+      tabIndex={0}
+      aria-label={moneyLabel(props.money.sentence, props.money.amountBrl)}
+      className={[
+        'dash-card flex h-full min-w-0 flex-col justify-between rounded-2xl px-4 py-4',
+        props.selected ? 'bg-forest text-white' : 'bg-surface text-ink',
+      ].join(' ')}
+    >
+      <div>
+        <p className={props.selected ? 'text-xs text-white/70' : 'text-xs text-muted'}>{props.title}</p>
+        <p className="mt-1 truncate text-sm font-semibold">{props.money.sentence}</p>
+      </div>
+      <div className="mt-5">
+        <p className="text-2xl font-semibold leading-none tracking-tight">{formatCurrency(props.money.amountBrl)}</p>
+        <svg viewBox="0 0 100 6" preserveAspectRatio="none" className="mt-3 block h-1.5 w-full" aria-hidden="true">
+          <rect x="0" y="0" width="100" height="6" rx="3" fill={props.selected ? '#163056' : '#e7f0fb'} />
+          {props.selected ? (
+            <rect x="0" y="0" width={width} height="6" rx="3" fill="#ffffff" />
+          ) : (
+            <rect x="0" y="0" width={width} height="6" rx="3" fill="#2f7dff" />
+          )}
+        </svg>
+      </div>
     </div>
+  )
+}
+
+function SummaryCard(props: { label: string; value: string; hint?: string }) {
+  return (
+    <article className="dash-card flex min-h-32 min-w-0 flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5">
+      <p className="text-sm font-semibold text-forest">{props.label}</p>
+      <div>
+        <p className="truncate text-3xl font-semibold leading-none tracking-tight text-ink">{props.value}</p>
+        {props.hint ? <p className="mt-2 truncate text-xs text-forest/70">{props.hint}</p> : null}
+      </div>
+    </article>
   )
 }
 
@@ -366,7 +288,7 @@ function monthName(month: number): string {
   return monthSentence(joinMonthKey(2000, month)).replace(/ de 2000$/, '')
 }
 
-/** Mês, ano e paciente. O mês e o ano mexem no mesmo mês selecionado das barras. */
+/** Mês, ano e paciente. O mês e o ano mexem no mesmo mês selecionado do gráfico. */
 export function FinanceAnalyticsFilters(props: {
   rows: readonly PaidAnalyticsRow[]
   now: Date
@@ -393,7 +315,7 @@ export function FinanceAnalyticsFilters(props: {
   ]
 
   return (
-    <div className="grid gap-4 rounded-2xl border border-line bg-surface p-4 sm:grid-cols-3 md:p-6">
+    <div className="grid gap-4 rounded-[1.5rem] border border-line bg-surface p-5 sm:grid-cols-3">
       <Select
         id="finance-analytics-month"
         label="Mês"
@@ -432,7 +354,7 @@ export function FinanceAnalyticsCharts(props: {
 
   if (view.filteredOut) {
     return (
-      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-line bg-surface px-6 py-10 text-center text-sm font-semibold leading-tight text-ink">
+      <div className="flex min-h-40 items-center justify-center rounded-[1.5rem] border border-line bg-surface px-6 py-10 text-center text-sm font-semibold leading-tight text-ink">
         Nenhum pagamento deste paciente para analisar.
       </div>
     )
@@ -440,38 +362,73 @@ export function FinanceAnalyticsCharts(props: {
 
   if (!view.hasPayments) {
     return (
-      <div className="flex min-h-40 items-center justify-center rounded-2xl border border-line bg-surface px-6 py-10 text-center text-sm font-semibold leading-tight text-ink">
+      <div className="flex min-h-40 items-center justify-center rounded-[1.5rem] border border-line bg-surface px-6 py-10 text-center text-sm font-semibold leading-tight text-ink">
         Ainda não há pagamentos para analisar.
       </div>
     )
   }
 
+  const { year } = splitMonthKey(view.selectedKey)
+  const yearCents = view.months.reduce((sum, bar) => sum + bar.cents, 0)
+  const bestMonth = view.months.reduce<MonthBar | null>(
+    (best, bar) => (bar.cents > (best?.cents ?? 0) ? bar : best),
+    null,
+  )
+  const comparePeak = Math.max(view.selected.cents, view.previous.cents)
+
   return (
-    <div className="space-y-6">
-      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-        <h3 className="text-sm font-semibold leading-tight text-ink">Por mês</h3>
-        <MonthBars
-          months={view.months}
-          selectedKey={view.selectedKey}
-          currentKey={view.currentKey}
-          onSelectMonth={props.onSelectMonth}
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <SummaryCard label="Arrecadado no mês" value={formatCurrency(view.selected.amountBrl)} hint={view.selected.sentence} />
+        <SummaryCard label={`Arrecadado em ${year}`} value={formatCurrency(yearCents / 100)} hint="Janeiro a dezembro" />
+        <SummaryCard
+          label="Melhor mês do ano"
+          value={bestMonth ? formatCurrency(bestMonth.amountBrl) : formatCurrency(0)}
+          hint={bestMonth ? bestMonth.sentence : 'Nenhum pagamento neste ano'}
         />
-      </article>
-      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-        <h3 className="text-sm font-semibold leading-tight text-ink">Por preço</h3>
-        <p className="mt-4 text-sm font-semibold leading-tight text-ink">{view.selected.sentence}</p>
-        {view.selected.cents === 0 ? (
-          <p className="mt-4 text-sm text-muted">Nenhum pagamento neste mês.</p>
-        ) : (
-          <PriceBars prices={view.prices} />
-        )}
-      </article>
-      <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-        <h3 className="text-sm font-semibold leading-tight text-ink">Contra o mês anterior</h3>
-        <CompareBars selected={view.selected} previous={view.previous} />
-        <div className="mt-4 grid grid-cols-2 text-center">
-          <MoneyCaption money={view.selected} />
-          <MoneyCaption money={view.previous} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
+        <article className="flex min-w-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5">
+          <h3 className="text-lg font-semibold text-ink">Por mês</h3>
+          <p className="mt-1 text-xs text-muted">
+            Arrecadado em {year} · clique num mês para ver os detalhes
+          </p>
+          <div className="mt-3">
+            <MonthLine
+              months={view.months}
+              selectedKey={view.selectedKey}
+              currentKey={view.currentKey}
+              onSelectMonth={props.onSelectMonth}
+            />
+          </div>
+        </article>
+
+        <article className="flex min-w-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5">
+          <h3 className="text-lg font-semibold text-ink">Por preço</h3>
+          <p className="mt-1 text-xs text-muted">{view.selected.sentence}</p>
+          <div className="mt-5 min-h-0 flex-1">
+            {view.selected.cents === 0 ? (
+              <p className="text-sm text-muted">Nenhum pagamento neste mês.</p>
+            ) : (
+              <PriceBars prices={view.prices} />
+            )}
+          </div>
+        </article>
+      </div>
+
+      <article className="rounded-[1.5rem] bg-accent-soft p-5 sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
+          <div className="min-w-0 lg:w-56 lg:shrink-0">
+            <h3 className="text-lg font-semibold text-forest">Contra o mês anterior</h3>
+            <p className="mt-1 text-xs leading-5 text-forest/70">
+              O mês selecionado ao lado do mês imediatamente anterior.
+            </p>
+          </div>
+          <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+            <CompareCard money={view.selected} peakCents={comparePeak} selected title="Mês selecionado" />
+            <CompareCard money={view.previous} peakCents={comparePeak} selected={false} title="Mês anterior" />
+          </div>
         </div>
       </article>
     </div>
