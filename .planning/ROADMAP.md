@@ -36,6 +36,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 27: Analítica no Financeiro** — Duas abas nos totais: a de hoje e uma analítica com gráficos simples e interativos
 - [ ] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage
 - [ ] **Phase 29: Fisio anexado na sessão da agenda** — Empresa anexa um fisio da equipe na nova sessão; só ele e a empresa veem a sessão
+- [ ] **Phase 30: Assinatura desenhada na avaliação** — Desenhar a assinatura com traço preto no fim da avaliação, apagar e refazer; sai no PDF
 
 ## Phase Details
 
@@ -888,3 +889,19 @@ Plans:
 3. O fisio anexado abre a ficha do paciente em modo leitura.
 4. O fisio anexado muda o status; qualquer outra alteração da sessão é recusada pelo banco.
 5. O banco recusa anexar quem não é fisio ativo da equipe da empresa.
+
+### Phase 30: Assinatura desenhada na avaliação
+
+**Goal:** No bloco Identificação profissional da avaliação (página 04), o campo Assinatura vira um quadro onde o profissional desenha a assinatura com traço preto, com um botão que apaga tudo para refazer. A assinatura desenhada é salva na avaliação e aparece no PDF.
+**Requirements**: REQ-41
+**Depends on:** Phase 29
+**UI hint**: yes
+
+**Success Criteria** (what must be TRUE):
+
+1. O quadro aceita desenho com mouse, dedo e caneta, em traço preto, sem rolar a página enquanto desenha.
+2. `Apagar assinatura` limpa o quadro e permite desenhar de novo.
+3. Ao salvar e reabrir a avaliação, a assinatura desenhada volta igual.
+4. O PDF da avaliação mostra a assinatura desenhada.
+5. Avaliação antiga com assinatura em texto mostra o texto; desenhar substitui o texto.
+6. Sem pacote npm novo e sem SQL novo.
