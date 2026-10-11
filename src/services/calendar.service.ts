@@ -1,3 +1,4 @@
+import { mapDbError } from '@/lib/security'
 import { supabase } from '@/lib/supabase/client'
 import { signPatientPhotoUrls } from '@/services/patientPhoto.service'
 import type { SessionStatus } from '@/types/patient'
@@ -33,8 +34,8 @@ function photoUrlFrom(path: string | null | undefined, urls: Map<string, string>
   return urls.get(path) ?? null
 }
 
-function throwIfError(error: { message: string } | null) {
-  if (error) throw new Error(error.message)
+function throwIfError(error: { message: string; code?: string } | null) {
+  if (error) throw new Error(mapDbError(error))
 }
 
 export async function listSessionsInRange(fromIso: string, toIso: string): Promise<CalendarSession[]> {

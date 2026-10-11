@@ -21,6 +21,7 @@
 - [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
 - [ ] **REQ-38**: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos
 - [ ] **REQ-39**: Excluir paciente por completo — some do banco e do storage, sem deixar linha nem arquivo
+- [ ] **REQ-40**: Fisio anexado na sessão da agenda — só empresa anexa; só o fisio anexado e a empresa veem a sessão
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -465,3 +466,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-37 | Phase 26 | Planned |
 | REQ-38 | Phase 27 | Planned |
 | REQ-39 | Phase 28 | Planned |
+| REQ-40 | Phase 29 | In Progress |

@@ -260,6 +260,12 @@ export function mapDbError(error: { message?: string; code?: string }): string {
   const message = error.message?.toLowerCase() ?? ''
   const code = error.code ?? ''
 
+  if (message.includes('therapist_not_in_team')) {
+    return 'Escolha um fisioterapeuta ativo da sua equipe.'
+  }
+  if (message.includes('only_status_allowed')) {
+    return 'Você só pode alterar o status desta sessão.'
+  }
   if (code === '42501' || message.includes('operation_not_permitted')) {
     return 'Você não tem permissão para esta ação.'
   }

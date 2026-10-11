@@ -35,6 +35,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
 - [ ] **Phase 27: Analítica no Financeiro** — Duas abas nos totais: a de hoje e uma analítica com gráficos simples e interativos
 - [ ] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage
+- [ ] **Phase 29: Fisio anexado na sessão da agenda** — Empresa anexa um fisio da equipe na nova sessão; só ele e a empresa veem a sessão
 
 ## Phase Details
 
@@ -871,3 +872,19 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 28-05-PLAN.md — Suite completa e verificação ponta a ponta no Supabase real (humano)
+
+### Phase 29: Fisio anexado na sessão da agenda
+
+**Goal:** Na agenda, a conta de empresa anexa um fisioterapeuta ativo da equipe à nova sessão. A sessão fica visível só para o fisio anexado e para a empresa. O fisio lê a ficha do paciente (sem editar) e muda só o status da sessão.
+**Requirements**: REQ-40
+**Depends on:** Phase 28
+**UI hint**: yes
+**Plans:** executada direto (sem PLAN.md), SQL em `sql/29-session-therapist-access.sql`
+
+**Success Criteria** (what must be TRUE):
+
+1. O campo Fisioterapeuta aparece em Nova sessão só para conta empresa, com os fisios ativos da equipe.
+2. O fisio anexado vê a sessão na agenda dele; outro fisio da equipe não vê.
+3. O fisio anexado abre a ficha do paciente em modo leitura.
+4. O fisio anexado muda o status; qualquer outra alteração da sessão é recusada pelo banco.
+5. O banco recusa anexar quem não é fisio ativo da equipe da empresa.

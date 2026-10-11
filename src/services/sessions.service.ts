@@ -1,3 +1,4 @@
+import { mapDbError } from '@/lib/security'
 import { supabase } from '@/lib/supabase/client'
 import type {
   PatientSessionRecord,
@@ -53,8 +54,8 @@ const SESSION_LIST_COLUMNS = `
   )
 `
 
-function throwIfError(error: { message: string } | null) {
-  if (error) throw new Error(error.message)
+function throwIfError(error: { message: string; code?: string } | null) {
+  if (error) throw new Error(mapDbError(error))
 }
 
 function emptyToNull(value: string | undefined) {
