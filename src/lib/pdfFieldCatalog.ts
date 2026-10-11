@@ -669,7 +669,8 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     textFilled(plano?.profissional?.fisioterapeuta) ||
     textFilled(plano?.profissional?.crefito) ||
     textFilled(plano?.profissional?.data) ||
-    textFilled(plano?.profissional?.assinatura)
+    textFilled(plano?.profissional?.assinatura) ||
+    textFilled(plano?.profissional?.assinaturaTraco)
   pushBlock(items, {
     id: '04.ID',
     label: 'Identificação profissional',

@@ -2,6 +2,7 @@ import {
   PDFDocument,
   StandardFonts,
   rgb,
+  LineCapStyle,
   type PDFFont,
   type PDFImage,
   type PDFPage,
@@ -18,6 +19,7 @@ import {
 } from '@/lib/mobilidadePalpacao'
 import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/lib/focusRegions'
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
+import { isSafeSignaturePath, signaturePdfScale } from '@/lib/signaturePath'
 import type { PatientGoal, PatientFocusArea, SessionEvolution } from '@/types/patient'
 
 /** A4 */
@@ -853,6 +855,36 @@ function drawClearSectionTitle(ctx: DrawContext, title: string): void {
   ctx.y -= titleH + 8
 }
 
+const SIGNATURE_BOX_W = 180
+const SIGNATURE_BOX_H = 48
+
+/** Label 14pt bold + drawn signature stroke (black, ~180x48pt box). Path must already be validated. */
+function drawSignatureStroke(ctx: DrawContext, label: string, path: string): void {
+  const labelSize = 14
+  const labelH = Math.round(labelSize * 1.2)
+  const scale = signaturePdfScale(SIGNATURE_BOX_W, SIGNATURE_BOX_H)
+
+  ensureSpace(ctx, labelH + 8 + SIGNATURE_BOX_H + 12)
+  ctx.page.drawText(toWinAnsiSafe(label), {
+    x: ctx.contentX,
+    y: ctx.y,
+    size: labelSize,
+    font: ctx.bold,
+    color: COLORS.ink,
+  })
+  ctx.y -= labelH + 8
+
+  ctx.page.drawSvgPath(path, {
+    x: ctx.contentX,
+    y: ctx.y,
+    scale,
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1.2 / scale,
+    borderLineCap: LineCapStyle.Round,
+  })
+  ctx.y -= SIGNATURE_BOX_H + 12
+}
+
 /** Label 14pt bold, value 14pt, 8pt between them, 16pt before the next field. Skips empty. */
 function drawOptionalField(
   ctx: DrawContext,
@@ -1333,7 +1365,8 @@ function drawPlanoClinico(
     textFilled(plano?.profissional?.fisioterapeuta) ||
     textFilled(plano?.profissional?.crefito) ||
     textFilled(plano?.profissional?.data) ||
-    textFilled(plano?.profissional?.assinatura)
+    textFilled(plano?.profissional?.assinatura) ||
+    textFilled(plano?.profissional?.assinaturaTraco)
 
   const show04A = hasInspecao && isFieldSelected(selected, '04.A')
   const show04B = hasMob && isFieldSelected(selected, '04.B')
@@ -1456,12 +1489,15 @@ function drawPlanoClinico(
   if (show04ID) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Identificação profissional')
+    const traco = plano?.profissional?.assinaturaTraco
+    const temTraco = isSafeSignaturePath(traco)
     drawTwoColumnFields(ctx, [
       ['Fisioterapeuta', plano?.profissional?.fisioterapeuta],
       ['CREFITO', plano?.profissional?.crefito],
       ['Data', plano?.profissional?.data],
-      ['Assinatura', plano?.profissional?.assinatura],
+      ['Assinatura', temTraco ? undefined : plano?.profissional?.assinatura],
     ])
+    if (temTraco) drawSignatureStroke(ctx, 'Assinatura', traco)
   }
 
   return anyContent
