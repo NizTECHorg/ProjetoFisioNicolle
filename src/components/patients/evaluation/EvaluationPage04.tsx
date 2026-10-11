@@ -700,16 +700,19 @@ function FormularioAchado({
           }
         />
         {rascunho.regiao ? (
-          <ul className="flex flex-col gap-1">
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {locais.map((item) => {
               const ativo = rascunho.local === item.key
               return (
-                <li key={item.key}>
+                <li key={item.key} className="min-w-0">
                   <button
                     type="button"
                     disabled={disabled}
                     aria-pressed={ativo}
-                    className={`${CHIP} w-full justify-start ${ativo ? CHIP_ATIVO : CHIP_INATIVO}`}
+                    title={item.label}
+                    className={`flex h-full min-h-10 w-full items-center rounded-xl border px-3 py-2 text-left text-xs font-semibold leading-snug transition-colors disabled:opacity-100 ${
+                      ativo ? CHIP_ATIVO : `${CHIP_INATIVO} hover:border-forest/30 hover:bg-canvas`
+                    }`}
                     onClick={() =>
                       setRascunho((atual) => ({
                         ...atual,
@@ -1107,11 +1110,23 @@ function ListaTestes({
   )
   const escondidos = fields.some((item) => !visiveis.has(`${item.regiao}:${item.teste}`))
   const chaves = manual.consulta === filtro ? manual.chaves : {}
+  const [listaAberta, setListaAberta] = useState(false)
+  const idLista = useId()
 
-  function abertoDe(key: string, temMarcados: boolean) {
+  function abertoDe(key: string) {
     const escolhido = chaves[key]
     if (escolhido !== undefined) return escolhido
-    return Boolean(filtro) || temMarcados
+    return Boolean(filtro)
+  }
+
+  const todasAbertas = regioes.length > 0 && regioes.every((regiao) => abertoDe(regiao.key))
+
+  function alternarTodas() {
+    const proximo = !todasAbertas
+    setManual({
+      consulta: filtro,
+      chaves: Object.fromEntries(regioes.map((regiao) => [regiao.key, proximo])),
+    })
   }
 
   function alternar(key: string, atual: boolean) {
@@ -1126,7 +1141,34 @@ function ListaTestes({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm font-semibold leading-[1.2] text-ink">Testes clínicos</p>
+      <button
+        type="button"
+        aria-expanded={listaAberta}
+        aria-controls={idLista}
+        onClick={() => setListaAberta((atual) => !atual)}
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 text-left transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+      >
+        <span className="flex items-center gap-2">
+          <ChevronDown
+            size={18}
+            aria-hidden
+            className={[
+              'shrink-0 text-forest transition-transform duration-300 motion-reduce:transition-none',
+              listaAberta ? 'rotate-0' : '-rotate-90',
+            ].join(' ')}
+          />
+          <span className="text-sm font-semibold leading-[1.2] text-ink">Testes clínicos</span>
+        </span>
+        <span className="text-xs text-muted">
+          {fields.length === 0
+            ? 'Nenhum marcado'
+            : fields.length === 1
+              ? '1 marcado'
+              : `${fields.length} marcados`}
+        </span>
+      </button>
+      {listaAberta ? (
+      <div id={idLista} className="space-y-4">
       <div className="space-y-2">
         <label htmlFor={idBusca} className={ROTULO}>
           Buscar teste
@@ -1155,12 +1197,19 @@ function ListaTestes({
           Nenhum teste com esse texto. Apague a busca para ver a lista inteira.
         </p>
       ) : (
+        <div className="space-y-2">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={alternarTodas}
+            className="min-h-11 rounded-xl px-3 text-sm font-semibold text-forest transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          >
+            {todasAbertas ? 'Fechar todas as regiões' : 'Abrir todas as regiões'}
+          </button>
+        </div>
         <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         {regioes.map((regiao) => {
-          const temMarcados = regiao.testes.some((item) =>
-            fields.some((campo) => campo.regiao === regiao.key && campo.teste === item.key),
-          )
-          const aberto = abertoDe(regiao.key, temMarcados)
+          const aberto = abertoDe(regiao.key)
           return (
             <GrupoTestes
               key={regiao.key}
@@ -1205,7 +1254,10 @@ function ListaTestes({
           )
         })}
         </div>
+        </div>
       )}
+      </div>
+      ) : null}
       <RegistroAnterior texto={registroAnterior} />
     </div>
   )
