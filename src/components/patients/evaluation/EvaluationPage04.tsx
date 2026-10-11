@@ -19,6 +19,7 @@ import {
   type LadoAchado,
 } from '@/lib/mobilidadePalpacao'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
+import { SignaturePad } from '@/components/patients/evaluation/SignaturePad'
 import {
   BoolCheck,
   CheckboxGrid,
@@ -1597,7 +1598,26 @@ export function EvaluationPage04({ register, watch, setValue, control, readOnly 
           <LineField label="Fisioterapeuta" name="ficha.avaliacaoPlano.profissional.fisioterapeuta" register={register} disabled={disabled} />
           <LineField label="CREFITO" name="ficha.avaliacaoPlano.profissional.crefito" register={register} disabled={disabled} />
           <LineField label="Data" name="ficha.avaliacaoPlano.profissional.data" register={register} disabled={disabled} />
-          <LineField label="Assinatura" name="ficha.avaliacaoPlano.profissional.assinatura" register={register} disabled={disabled} />
+          <div className="sm:col-span-2">
+            <SignaturePad
+              label="Assinatura"
+              value={watch('ficha.avaliacaoPlano.profissional.assinaturaTraco')}
+              legacyText={watch('ficha.avaliacaoPlano.profissional.assinatura')}
+              disabled={disabled}
+              onChange={(next) => {
+                setValue('ficha.avaliacaoPlano.profissional.assinaturaTraco', next, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+                if (next && watch('ficha.avaliacaoPlano.profissional.assinatura')?.trim()) {
+                  setValue('ficha.avaliacaoPlano.profissional.assinatura', '', {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              }}
+            />
+          </div>
         </div>
       </FichaBlock>
     </div>
