@@ -896,7 +896,7 @@ Plans:
 **Requirements**: REQ-41
 **Depends on:** Phase 29
 **UI hint**: yes
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 **Success Criteria** (what must be TRUE):
 
@@ -911,7 +911,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 30-01-PLAN.md — Helpers do path, campo assinaturaTraco, SignaturePad em SVG e troca no bloco ID
+- [x] 30-01-PLAN.md — Helpers do path, campo assinaturaTraco, SignaturePad em SVG e troca no bloco ID
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
