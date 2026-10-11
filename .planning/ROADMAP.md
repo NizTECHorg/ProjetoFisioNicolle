@@ -896,6 +896,7 @@ Plans:
 **Requirements**: REQ-41
 **Depends on:** Phase 29
 **UI hint**: yes
+**Plans:** 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -905,3 +906,13 @@ Plans:
 4. O PDF da avaliação mostra a assinatura desenhada.
 5. Avaliação antiga com assinatura em texto mostra o texto; desenhar substitui o texto.
 6. Sem pacote npm novo e sem SQL novo.
+
+Plans:
+
+**Wave 1**
+
+- [ ] 30-01-PLAN.md — Helpers do path, campo assinaturaTraco, SignaturePad em SVG e troca no bloco ID
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 30-02-PLAN.md — Assinatura desenhada no PDF (drawSvgPath) e verificação humana
