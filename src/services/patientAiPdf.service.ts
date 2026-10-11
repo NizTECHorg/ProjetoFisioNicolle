@@ -239,7 +239,7 @@ function wrapLines(font: PDFFont, text: string, size: number, maxWidth: number):
           }
           current = chunk
         } else {
-          current = word
+        current = word
         }
       }
     }
@@ -343,11 +343,11 @@ function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
 
     const title = ctx.docTitle.startsWith('Evolução') ? 'Evolução' : 'Avaliação'
     let cursor = logoBottom - 16 - 20
-    ctx.page.drawText(toWinAnsiSafe(title), {
+  ctx.page.drawText(toWinAnsiSafe(title), {
       x: MARGIN_X,
       y: cursor,
       size: 20,
-      font: ctx.bold,
+    font: ctx.bold,
       color: COLORS.ink,
     })
     const barH = 4

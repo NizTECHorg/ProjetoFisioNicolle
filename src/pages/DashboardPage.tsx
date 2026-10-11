@@ -263,7 +263,6 @@ export function DashboardPage() {
     ranges.to.toISOString(),
   )
 
-  const isCurrentWeek = weekOffset === 0
   const isLoading = patientsLoading || sessionsLoading
   const isError = patientsError || sessionsError
 
@@ -434,6 +433,20 @@ export function DashboardPage() {
                 <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
+                    onClick={() => setWeekOffset(0)}
+                    aria-label="Voltar para a semana atual"
+                    aria-hidden={weekOffset === 0}
+                    tabIndex={weekOffset === 0 ? -1 : 0}
+                    className={`overflow-hidden whitespace-nowrap rounded-full border text-xs text-forest transition-all duration-300 motion-reduce:transition-none ${
+                      weekOffset === 0
+                        ? 'pointer-events-none max-w-0 border-transparent px-0 py-1 opacity-0'
+                        : 'max-w-16 border-line px-2.5 py-1 opacity-100 hover:bg-canvas'
+                    }`}
+                  >
+                    Hoje
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setWeekOffset((current) => current + 1)}
                     className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-forest transition hover:bg-canvas"
                     aria-label="Semana anterior"
@@ -445,9 +458,8 @@ export function DashboardPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setWeekOffset((current) => Math.max(0, current - 1))}
-                    disabled={isCurrentWeek}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-forest transition hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+                    onClick={() => setWeekOffset((current) => current - 1)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-forest transition hover:bg-canvas"
                     aria-label="Semana seguinte"
                   >
                     <ChevronRight size={16} />

@@ -141,7 +141,7 @@ export function DashboardClinicalShortcut() {
           onClick={openCreatePatient}
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink transition hover:border-forest/20 hover:bg-accent-soft hover:text-forest"
         >
-          <img src={userAddIcon} alt="" width={24} height={24} aria-hidden="true" className="h-6 w-6" />
+          <img src={userAddIcon} alt="" width={24} height={24} aria-hidden="true" className="h-6 w-6 -translate-x-[2px]" />
         </button>
         <Button type="button" variant="secondary" onClick={() => openPicker('avaliacao')}>
           <Plus size={16} />
