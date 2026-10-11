@@ -856,7 +856,7 @@ Plans:
 4. Ninguém exclui paciente de outra conta; a exclusão no banco é tudo ou nada.
 5. A tela volta para a lista e o paciente some da lista, dashboard, agenda e financeiro.
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -867,7 +867,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 28-03-PLAN.md — Botão Excluir paciente na ficha e diálogo com confirmação por nome
-- [ ] 28-04-PLAN.md — Passo 0 no banco vivo, reconciliar e aplicar o SQL pelo SQL Editor (humano)
+- [x] 28-04-PLAN.md — Passo 0 no banco vivo, reconciliar e aplicar o SQL pelo SQL Editor (humano)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
