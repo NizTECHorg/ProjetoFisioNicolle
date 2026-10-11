@@ -2,8 +2,8 @@
 phase: 28
 slug: excluir-paciente-por-completo
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-10-10
 ---
 
@@ -19,7 +19,7 @@ created: 2026-10-10
 |----------|-------|
 | **Framework** | node:test + node:assert/strict (TypeScript por type-stripping) |
 | **Config file** | none |
-| **Quick run command** | `node --test src/lib/patientDeleteConfirm.test.ts src/lib/phase28Contract.test.ts && npm run typecheck` |
+| **Quick run command** | `node --test src/lib/patientDeleteConfirm.test.ts src/lib/phase28Sql.contract.test.ts src/lib/phase28Service.contract.test.ts src/lib/phase28Ui.contract.test.ts && npm run typecheck` |
 | **Full suite command** | `node --test src/lib/*.test.ts && npm run typecheck` |
 | **Estimated runtime** | ~15 seconds |
 
@@ -36,16 +36,18 @@ created: 2026-10-10
 
 ## Per-Task Verification Map
 
-Filled by the planner per task. Required coverage:
-
-| Req | Behavior | Test Type | Automated Command | File Exists |
-|-----|----------|-----------|-------------------|-------------|
-| REQ-39.2 | `isDeleteNameMatch`: trim, caixa, vazio, parcial, acentos | unit | `node --test src/lib/patientDeleteConfirm.test.ts` | ❌ W0 |
-| REQ-39.1 | Ação `Excluir paciente` só com `canWrite`, `text-error`, ausente na lista | contract | `node --test src/lib/phase28Contract.test.ts` | ❌ W0 |
-| REQ-39.2 | Diálogo: `Excluir paciente?`, `Voltar sem excluir`, botão desabilitado sem match, não fecha durante pending | contract | idem | ❌ W0 |
-| REQ-39.3/5 | `.sql`: todas as tabelas ligadas, `security definer`, `search_path = ''`, `can_write_patient`, revoke/grant, `patients` por último | contract | idem | ❌ W0 |
-| REQ-39.4 | Service lista os 3 buckets, chama `delete_patient_full` antes do `remove` | contract | idem | ❌ W0 |
-| REQ-39.6 | Hook invalida caches e navega para `/pacientes`; copy exata | contract | idem | ❌ W0 |
+| Task | Req | Behavior | Automated Command | Status |
+|------|-----|----------|-------------------|--------|
+| 28-01-T1 | REQ-39.3/5 | Tombstone e `delete_patient_full` (security definer, search_path vazio, can_write_patient, patients por último) | `node --test src/lib/phase28Sql.contract.test.ts` | ✅ |
+| 28-01-T2 | REQ-39.4/5 | Policies de limpeza de storage, finalização e pendências | `node --test src/lib/phase28Sql.contract.test.ts` | ✅ |
+| 28-02-T1 | REQ-39.2 | `isDeleteNameMatch` (trim, caixa, vazio, parcial, acentos) e caminhos | `node --test src/lib/patientDeleteConfirm.test.ts` | ✅ |
+| 28-02-T2 | REQ-39.4 | Service lista 3 buckets, RPC antes do remove, finish | `node --test src/lib/phase28Service.contract.test.ts` | ✅ |
+| 28-02-T3 | REQ-39.6 | Hook invalida caches, navega para `/pacientes`, copy fixa | `node --test src/lib/phase28Service.contract.test.ts` | ✅ |
+| 28-03-T1 | REQ-39.2 | Diálogo: título, `Voltar sem excluir`, botão desabilitado sem match, não fecha em pending | `node --test src/lib/phase28Ui.contract.test.ts` | ✅ |
+| 28-03-T2 | REQ-39.1 | Ação `Excluir paciente` só com `canWrite` (hoje no bloco Área sensível da aba Resumo), ausente na lista | `node --test src/lib/phase28Ui.contract.test.ts` | ✅ |
+| 28-04-T1 | REQ-39.3 | Descoberta de FKs no banco vivo | manual (28-DB-DISCOVERY.md) | ✅ |
+| 28-04-T2 | REQ-39.3 | Reconciliação da função com a saída real | `node --test src/lib/phase28Sql.contract.test.ts` | ✅ |
+| 28-04-T3 | REQ-39.5 | SQL aplicado e grants conferidos | manual (28-04-SUMMARY.md) | ✅ |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,8 +55,8 @@ Filled by the planner per task. Required coverage:
 
 ## Wave 0 Requirements
 
-- [ ] `src/lib/patientDeleteConfirm.ts` + `src/lib/patientDeleteConfirm.test.ts`
-- [ ] `src/lib/phase28Contract.test.ts` (lê fontes e o `.sql` da fase)
+- [x] `src/lib/patientDeleteConfirm.ts` + `src/lib/patientDeleteConfirm.test.ts`
+- [x] Contrato dividido em `phase28Sql.contract.test.ts`, `phase28Service.contract.test.ts` e `phase28Ui.contract.test.ts` (um por plano, cada wave fica verde sozinha) em vez do único `phase28Contract.test.ts`
 
 ---
 
@@ -73,11 +75,11 @@ Filled by the planner per task. Required coverage:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
