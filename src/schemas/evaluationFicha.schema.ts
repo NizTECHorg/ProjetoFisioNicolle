@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
 import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadePalpacao.ts'
+import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
 
 /** Treat null / '' as absent so partial saves never fail on empty radios. */
 function emptyToUndefined(value: unknown) {
@@ -502,6 +503,7 @@ export const evaluationFichaSchema = z.object({
           crefito: optionalText(80),
           data: optionalText(20),
           assinatura: optionalText(200),
+          assinaturaTraco: optionalText(SIGNATURE_MAX_CHARS),
         })
         .default({}),
     })
