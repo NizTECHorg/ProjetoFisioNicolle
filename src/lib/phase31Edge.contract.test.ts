@@ -56,7 +56,7 @@ test('REQ-42: ordem senha, secret Google, rpc, revogar, storage, deleteUser, fin
     handler.indexOf("rpc('finish_account_deletion'"),
   ]
   idx.forEach((v) => ok(v >= 0, 'passo ausente no handler'))
-  for (let i = 1; i < idx.length; i++) ok(idx[i] > idx[i - 1], `ordem quebrada no passo ${i}`)
+  for (let i = 1; i < idx.length; i++) ok((idx[i] ?? -1) > (idx[i - 1] ?? 0), `ordem quebrada no passo ${i}`)
 })
 
 test('REQ-42: purgeFolder lista e remove', () => {
