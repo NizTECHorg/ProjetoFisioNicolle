@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready
-stopped_at: Completed 27-04-PLAN.md
-last_updated: "2026-10-12T18:18:49.686Z"
+status: ready_to_plan
+stopped_at: Phase 30 complete (2/2) — ready to discuss Phase 31
+last_updated: 2026-10-12T18:21:06.652Z
 progress:
   total_phases: 32
   completed_phases: 14
   total_plans: 125
-  completed_plans: 105
+  completed_plans: 107
   percent: 44
 ---
 
@@ -21,12 +21,12 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 27 — analitica-financeiro (COMPLETE)
+**Current focus:** Phase 31 — excluir a pr pria conta
 
 ## Current Position
 
-Phase: 27 (analitica-financeiro) — COMPLETE
-Plan: 4 of 4 (all verified)
+Phase: 31
+Plan: Not started
 
 - Status: Verified
 - Progress: 4/4 plans executed and verified

@@ -82,4 +82,4 @@ created: 2026-10-10
 - [x] Feedback latency < 15s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-10-12 (confirmação do usuário)

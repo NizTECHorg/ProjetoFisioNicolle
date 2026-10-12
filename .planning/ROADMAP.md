@@ -34,9 +34,9 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
 - [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
 - [ ] **Phase 27: Analítica no Financeiro** — Duas abas nos totais: a de hoje e uma analítica com gráficos simples e interativos
-- [ ] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage
-- [ ] **Phase 29: Fisio anexado na sessão da agenda** — Empresa anexa um fisio da equipe na nova sessão; só ele e a empresa veem a sessão
-- [ ] **Phase 30: Assinatura desenhada na avaliação** — Desenhar a assinatura com traço preto no fim da avaliação, apagar e refazer; sai no PDF
+- [x] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage (completed 2026-10-12)
+- [x] **Phase 29: Fisio anexado na sessão da agenda** — Empresa anexa um fisio da equipe na nova sessão; só ele e a empresa veem a sessão (completed 2026-10-12)
+- [x] **Phase 30: Assinatura desenhada na avaliação** — Desenhar a assinatura com traço preto no fim da avaliação, apagar e refazer; sai no PDF (completed 2026-10-12)
 - [ ] **Phase 31: Excluir a própria conta** — Em Minha conta, excluir a conta de vez (Auth + dados + arquivos), com aviso, EXCLUIR e senha; fisio de empresa entrega os pacientes à empresa
 
 ## Phase Details
@@ -858,7 +858,7 @@ Plans:
 4. Ninguém exclui paciente de outra conta; a exclusão no banco é tudo ou nada.
 5. A tela volta para a lista e o paciente some da lista, dashboard, agenda e financeiro.
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -873,7 +873,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 28-05-PLAN.md — Suite completa e verificação ponta a ponta no Supabase real (humano)
+- [x] 28-05-PLAN.md — Suite completa e verificação ponta a ponta no Supabase real (humano)
 
 ### Phase 29: Fisio anexado na sessão da agenda
 
@@ -881,7 +881,7 @@ Plans:
 **Requirements**: REQ-40
 **Depends on:** Phase 28
 **UI hint**: yes
-**Plans:** executada direto (sem PLAN.md), SQL em `sql/29-session-therapist-access.sql`
+**Plans:** 0/0 plans complete
 
 **Success Criteria** (what must be TRUE):
 
@@ -897,7 +897,7 @@ Plans:
 **Requirements**: REQ-41
 **Depends on:** Phase 29
 **UI hint**: yes
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 **Success Criteria** (what must be TRUE):
 
@@ -916,7 +916,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 30-02-PLAN.md — Assinatura desenhada no PDF (drawSvgPath) e verificação humana
+- [x] 30-02-PLAN.md — Assinatura desenhada no PDF (drawSvgPath) e verificação humana
 
 ### Phase 31: Excluir a própria conta
 
