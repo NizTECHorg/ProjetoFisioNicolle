@@ -1,6 +1,7 @@
 import {
   CalendarDays,
-  Construction,
+  ClipboardCheck,
+  FileText,
   Home,
   LayoutDashboard,
   SquareKanban,
@@ -24,8 +25,8 @@ export const navigationItems: NavigationItem[] = [
   { label: 'Quadro', path: '/quadro', icon: SquareKanban },
   { label: 'Equipe', path: '/equipe', icon: UserPlus },
   { label: 'Financeiro', path: '/financeiro', icon: Wallet },
-  { label: 'Termos', path: '/termos', icon: Construction },
-  { label: 'Testes especiais', path: '/testes-especiais', icon: Construction },
+  { label: 'Termos', path: '/termos', icon: FileText },
+  { label: 'Testes especiais', path: '/testes-especiais', icon: ClipboardCheck },
 ]
 
 export function clinicNavigationItems(accountType: AccountType | null | undefined): NavigationItem[] {

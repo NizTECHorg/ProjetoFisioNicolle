@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { Activity, ChevronDown, ClipboardCheck, Hand, type LucideIcon } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import {
   useFieldArray,
@@ -1158,7 +1158,7 @@ function ListaTestes({
               listaAberta ? 'rotate-0' : '-rotate-90',
             ].join(' ')}
           />
-          <span className="text-sm font-semibold leading-[1.2] text-ink">Testes clínicos</span>
+          <span className="text-sm font-semibold leading-[1.2] text-ink">Lista de testes</span>
         </span>
         <span className="text-xs text-muted">
           {fields.length === 0
@@ -1264,6 +1264,41 @@ function ListaTestes({
   )
 }
 
+function SubSecao({
+  numero,
+  icon: Icon,
+  titulo,
+  descricao,
+  children,
+}: {
+  numero: number
+  icon: LucideIcon
+  titulo: string
+  descricao: string
+  children: ReactNode
+}) {
+  const tituloId = useId()
+  return (
+    <section aria-labelledby={tituloId} className="rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
+      <header className="mb-4 flex items-start gap-3 border-b border-line pb-3">
+        <span
+          aria-hidden
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest text-white"
+        >
+          <Icon size={18} />
+        </span>
+        <div className="min-w-0">
+          <h3 id={tituloId} className="text-base font-semibold leading-tight text-ink">
+            <span className="text-muted">{numero}.</span> {titulo}
+          </h3>
+          <p className="mt-1 text-sm leading-snug text-muted">{descricao}</p>
+        </div>
+      </header>
+      <div className="space-y-4">{children}</div>
+    </section>
+  )
+}
+
 function PalpacaoBloco({
   register,
   watch,
@@ -1318,7 +1353,13 @@ function PalpacaoBloco({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      <SubSecao
+        numero={1}
+        icon={Hand}
+        titulo="Palpação"
+        descricao="O que você encontrou ao tocar: região, estrutura, lado, achado e dor."
+      >
       <FormularioAchado
         rascunho={rascunho}
         setRascunho={setRascunho}
@@ -1351,6 +1392,13 @@ function PalpacaoBloco({
         onAskRemove={setPendente}
       />
       <RegistroAnterior texto={typeof palpacaoRegistro === 'string' ? palpacaoRegistro : ''} />
+      </SubSecao>
+      <SubSecao
+        numero={2}
+        icon={ClipboardCheck}
+        titulo="Testes clínicos"
+        descricao="Testes especiais aplicados e o resultado de cada um."
+      >
       <ListaTestes
         register={register}
         control={control}
@@ -1358,12 +1406,19 @@ function PalpacaoBloco({
         registroAnterior={typeof testesRegistro === 'string' ? testesRegistro : ''}
       />
       <TextField
-        label="Resultados relevantes"
+        label="Resultados relevantes dos testes"
         name="ficha.avaliacaoPlano.palpacaoTestes.resultados"
         register={register}
         rows={2}
         disabled={disabled}
       />
+      </SubSecao>
+      <SubSecao
+        numero={3}
+        icon={Activity}
+        titulo="Função"
+        descricao="Como o paciente se sai em tarefas: teste funcional ou medida de desempenho e o resultado inicial."
+      >
       <TextField
         label="Teste funcional / medida de desempenho"
         name="ficha.avaliacaoPlano.palpacaoTestes.testeFuncional"
@@ -1378,6 +1433,7 @@ function PalpacaoBloco({
         rows={2}
         disabled={disabled}
       />
+      </SubSecao>
       {!disabled ? (
         <ConfirmDialog
           open={pendente !== null}
@@ -1530,7 +1586,7 @@ export function EvaluationPage04({ register, watch, setValue, control, readOnly 
         <TextField label="Achados" name="ficha.avaliacaoPlano.neurologico.achados" register={register} rows={3} disabled={disabled} />
       </FichaBlock>
 
-      <FichaBlock letter="E" title="Palpação / testes / função">
+      <FichaBlock letter="E" title="Palpação, testes e função">
         <PalpacaoBloco register={register} watch={watch} control={control} disabled={disabled} />
       </FichaBlock>
 
