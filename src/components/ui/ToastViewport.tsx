@@ -14,7 +14,7 @@ export function ToastViewport() {
   if (toasts.length === 0) return null
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[80] flex justify-center px-4 lg:bottom-4 lg:justify-end lg:px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[110] flex justify-center px-4 lg:bottom-4 lg:justify-end lg:px-4">
       <div className="flex w-full max-w-sm flex-col gap-2">
         {toasts.map((item) => (
           <div

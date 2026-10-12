@@ -39,6 +39,12 @@ export async function deleteOwnAccount(userId: string, password: string): Promis
 
   if (error) {
     const payload = await readFunctionsErrorPayload(error, data)
+    // Diagnóstico sem PII: só status HTTP, código fixo e o tipo do erro do supabase-js.
+    console.error('[delete-account]', {
+      status: payload.status ?? null,
+      code: payload.code ?? null,
+      kind: (error as { name?: string }).name ?? null,
+    })
     throw new Error(accountDeletionErrorMessage(payload.code, payload.status))
   }
   if ((data as { ok?: unknown } | null)?.ok !== true) {
