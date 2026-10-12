@@ -122,7 +122,7 @@ export function PatientProfileHeader({
         </div>
 
         <nav
-          className="col-start-2 mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
+          className="col-start-2 mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
           aria-label="Sessões do paciente"
           role="tablist"
         >
@@ -131,10 +131,10 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'resumo'}
               className={[
-                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
                 activeTab === 'resumo'
-                  ? 'border-forest text-forest'
-                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
               ].join(' ')}
               onClick={() => onTabChange('resumo')}
             >
@@ -145,10 +145,10 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'cadastro'}
               className={[
-                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
                 activeTab === 'cadastro'
-                  ? 'border-forest text-forest'
-                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
               ].join(' ')}
               onClick={() => onTabChange('cadastro')}
             >
@@ -159,10 +159,10 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'secoes'}
               className={[
-                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
                 activeTab === 'secoes'
-                  ? 'border-forest text-forest'
-                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
               ].join(' ')}
               onClick={() => onTabChange('secoes')}
             >
@@ -173,10 +173,10 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'avaliacoes'}
               className={[
-                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
                 activeTab === 'avaliacoes'
-                  ? 'border-forest text-forest'
-                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
               ].join(' ')}
               onClick={() => onTabChange('avaliacoes')}
             >
@@ -187,10 +187,10 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'resumo-ia' || activeTab === 'avaliacao'}
               className={[
-                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
                 activeTab === 'resumo-ia' || activeTab === 'avaliacao'
-                  ? 'border-forest text-forest'
-                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
               ].join(' ')}
               onClick={() => onTabChange('resumo-ia')}
             >
@@ -201,10 +201,10 @@ export function PatientProfileHeader({
               role="tab"
               aria-selected={activeTab === 'imagens'}
               className={[
-                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
                 activeTab === 'imagens'
-                  ? 'border-forest text-forest'
-                  : 'border-transparent text-muted hover:border-line hover:text-ink',
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
               ].join(' ')}
               onClick={() => onTabChange('imagens')}
             >
