@@ -1,5 +1,5 @@
-import { Activity, ChevronDown, ClipboardCheck, Hand, type LucideIcon } from 'lucide-react'
-import { useId, useState, type ReactNode } from 'react'
+import { Activity, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Hand, Plus, type LucideIcon } from 'lucide-react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import {
   useFieldArray,
   type Control,
@@ -412,49 +412,151 @@ function MobilidadeRegioes({
     name: 'ficha.avaliacaoPlano.mobilidade.regioes',
   })
   const [pendente, setPendente] = useState<number | null>(null)
+  const [ativaBruta, setAtivaBruta] = useState(0)
+  const topoRef = useRef<HTMLDivElement>(null)
   const regioes = watch('ficha.avaliacaoPlano.mobilidade.regioes')
+  const lista = Array.isArray(regioes) ? regioes : []
   const escolhidas = new Set(
-    (Array.isArray(regioes) ? regioes : [])
+    lista
       .map((item) => (typeof item?.regiao === 'string' ? item.regiao : ''))
       .filter((key) => key.length > 0),
   )
   const podeAcrescentar = !disabled && escolhidas.size < CATALOGO_MOBILIDADE.length
   const registro = watch('ficha.avaliacaoPlano.mobilidade.registroAnterior')
   const registroAnterior = typeof registro === 'string' ? registro : ''
+  const ativa = fields.length === 0 ? -1 : Math.min(Math.max(ativaBruta, 0), fields.length - 1)
+
+  function rotuloRegiao(index: number) {
+    const chave = lista[index]?.regiao
+    const item = CATALOGO_MOBILIDADE.find((entrada) => entrada.key === chave)
+    return item?.label ?? 'Nova região'
+  }
+
+  function totalMovimentos(index: number) {
+    const movimentos = lista[index]?.movimentos
+    return Array.isArray(movimentos) ? movimentos.length : 0
+  }
+
+  function irPara(index: number) {
+    setAtivaBruta(index)
+    topoRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }
 
   function acrescentar() {
     append({ regiao: '', movimentos: [] })
+    irPara(fields.length)
   }
+
+  const anterior = ativa > 0 ? ativa - 1 : null
+  const proxima = ativa >= 0 && ativa < fields.length - 1 ? ativa + 1 : null
+  const field = ativa >= 0 ? fields[ativa] : undefined
 
   return (
     <div className="space-y-4">
+      <div ref={topoRef} className="scroll-mt-24 lg:scroll-mt-4" aria-hidden />
       {fields.length === 0 ? (
-        <p className="text-sm font-normal leading-normal text-muted">
-          {disabled
-            ? 'Nenhuma região escolhida.'
-            : 'Nenhuma região escolhida. Escolha a região para ver só os movimentos dela. Toque em Adicionar outra região.'}
-        </p>
-      ) : null}
-      {fields.length === 0 && podeAcrescentar ? (
-        <Button type="button" variant="secondary" onClick={acrescentar}>
-          Adicionar outra região
-        </Button>
-      ) : null}
-      {fields.map((field, index) => (
+        <>
+          <p className="text-sm font-normal leading-normal text-muted">
+            {disabled
+              ? 'Nenhuma região escolhida.'
+              : 'Nenhuma região escolhida. Adicione uma região para ver só os movimentos dela.'}
+          </p>
+          {podeAcrescentar ? (
+            <Button type="button" variant="secondary" onClick={acrescentar}>
+              <Plus size={16} aria-hidden />
+              Adicionar região
+            </Button>
+          ) : null}
+        </>
+      ) : (
+        <div className="sticky top-[4.5rem] z-10 space-y-2 rounded-2xl border border-line bg-surface/95 p-3 shadow-sm backdrop-blur lg:top-2">
+          <p className="truncate text-sm text-muted" aria-live="polite">
+            Mobilidade <span aria-hidden>›</span>{' '}
+            <span className="font-semibold text-forest">{rotuloRegiao(ativa)}</span>
+            {' · '}
+            {totalMovimentos(ativa) === 1 ? '1 movimento' : `${totalMovimentos(ativa)} movimentos`}
+            {fields.length > 1 ? ` · região ${ativa + 1} de ${fields.length}` : ''}
+          </p>
+          <div
+            role="tablist"
+            aria-label="Regiões da mobilidade"
+            className="flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain pb-0.5 [scrollbar-width:thin]"
+          >
+            {fields.map((item, index) => {
+              const selecionada = index === ativa
+              const total = totalMovimentos(index)
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selecionada}
+                  onClick={() => irPara(index)}
+                  className={[
+                    'inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm transition-colors',
+                    selecionada
+                      ? 'border-forest bg-forest font-semibold text-white'
+                      : 'border-line bg-canvas text-ink hover:border-forest/30',
+                  ].join(' ')}
+                >
+                  {rotuloRegiao(index)}
+                  <span
+                    className={[
+                      'rounded-full px-1.5 text-xs',
+                      selecionada ? 'bg-white/20 text-white' : 'bg-accent-soft text-forest',
+                    ].join(' ')}
+                  >
+                    {total}
+                  </span>
+                </button>
+              )
+            })}
+            {podeAcrescentar ? (
+              <button
+                type="button"
+                onClick={acrescentar}
+                className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-forest/30 px-3 text-sm font-semibold text-forest transition-colors hover:bg-accent-soft"
+              >
+                <Plus size={14} aria-hidden />
+                Região
+              </button>
+            ) : null}
+          </div>
+        </div>
+      )}
+      {field ? (
         <CartaoRegiao
           key={field.id}
-          index={index}
+          index={ativa}
           escolhidas={escolhidas}
-          podeAcrescentar={podeAcrescentar}
+          podeAcrescentar={false}
           register={register}
           watch={watch}
           setValue={setValue}
           control={control}
           disabled={disabled}
           onAdd={acrescentar}
-          onAskRemove={() => setPendente(index)}
+          onAskRemove={() => setPendente(ativa)}
         />
-      ))}
+      ) : null}
+      {anterior !== null || proxima !== null ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {anterior !== null ? (
+            <Button type="button" variant="ghost" onClick={() => irPara(anterior)}>
+              <ChevronLeft size={16} aria-hidden />
+              {rotuloRegiao(anterior)}
+            </Button>
+          ) : (
+            <span />
+          )}
+          {proxima !== null ? (
+            <Button type="button" variant="secondary" onClick={() => irPara(proxima)}>
+              Próxima região: {rotuloRegiao(proxima)}
+              <ChevronRight size={16} aria-hidden />
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
       {registroAnterior.trim() ? (
         <p className="text-sm font-normal leading-normal text-ink whitespace-pre-wrap">
           <span className="font-semibold">Registro anterior</span>
@@ -470,7 +572,10 @@ function MobilidadeRegioes({
           cancelLabel="Manter região"
           tone="danger"
           onConfirm={() => {
-            if (pendente !== null) remove(pendente)
+            if (pendente !== null) {
+              remove(pendente)
+              setAtivaBruta((atual) => Math.max(0, atual - (pendente <= atual ? 1 : 0)))
+            }
             setPendente(null)
           }}
           onClose={() => setPendente(null)}
