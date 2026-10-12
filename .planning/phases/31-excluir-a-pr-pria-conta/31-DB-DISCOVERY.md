@@ -2,9 +2,34 @@
 
 Coladas pelo usuário em 2026-10-12.
 
-## (a) FKs para auth.users / profiles / organizations
+## (a) FKs para auth.users / profiles / organizations (colada em 2026-10-12)
 
-_pendente (primeira tentativa falhou por cópia parcial do comentário)_
+Schema `auth.*` (identities, sessions, mfa, one_time_tokens, oauth, webauthn) → `auth.users` cascade (scim_users set null). Nada a fazer.
+
+| tabela.coluna | referência | ON DELETE | Efeito ao apagar o usuário |
+|---|---|---|---|
+| profiles.id | auth.users | cascade | some junto com o login |
+| google_calendar_connections.user_id | auth.users | cascade | some junto |
+| google_calendar_secrets.user_id | auth.users | cascade | some junto |
+| google_calendar_session_links.user_id | auth.users | cascade | some junto |
+| organization_memberships.profile_id | profiles | cascade | some junto |
+| organization_memberships.organization_id | organizations | cascade | some com a organização |
+| **patients.created_by** | auth.users | **no action** | **BLOQUEIA** — apagar ou transferir antes |
+| **patient_ai_reports.created_by** | auth.users | **no action** | **BLOQUEIA** — apagar ou reatribuir antes |
+| **patient_images.created_by** | profiles | **no action** | **BLOQUEIA** — apagar ou reatribuir antes |
+| **autonomo_prices.owner_id** | profiles | **no action** | **BLOQUEIA** — apagar antes (charges primeiro) |
+| **autonomo_session_charges.owner_id** | profiles | **no action** | **BLOQUEIA** — apagar antes |
+| **board_cards.owner_id** / **board_columns.owner_id** | profiles | **no action** | **BLOQUEIA** — apagar ou reatribuir antes |
+| **board_cards.organization_id** / **board_columns.organization_id** | organizations | **no action** | **BLOQUEIA** apagar organização — tratar antes |
+| **organizations.owner_id** | profiles | **no action** | **BLOQUEIA** — apagar organização antes |
+| patient_alerts.created_by | auth.users | set null | ok |
+| patient_evaluations.created_by | auth.users | set null | ok |
+| patient_evaluations.therapist_id | profiles | set null | ok (nome em texto fica) |
+| patient_session_evolutions.created_by | profiles | set null | ok (created_by_name fica) |
+| patient_sessions.created_by | profiles | set null | ok |
+| patient_sessions.therapist_id | profiles | set null | ok (therapist_name fica) |
+
+Conclusão: profiles some em cascata com `auth.admin.deleteUser`. Antes disso, a função SQL precisa eliminar todas as linhas **no action** que apontam para o usuário (apagar no caso autônomo/empresa; reatribuir ao dono no caso fisio de empresa: patients.created_by, patient_ai_reports.created_by, patient_images.created_by, board_* owner_id) e apagar a organização (com board_* daquela organização tratados antes).
 
 ## (b) Colunas de autoria/dono em public
 
