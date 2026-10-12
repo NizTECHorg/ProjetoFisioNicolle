@@ -1,5 +1,7 @@
-import type { UseFormRegister, UseFormWatch } from 'react-hook-form'
+import { useEffect, useRef } from 'react'
+import type { FieldPath, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
+import { ATIVIDADES, type AtividadeKey } from '@/lib/atividadeCapacidade'
 import {
   BoolCheck,
   CheckboxGrid,
@@ -12,11 +14,92 @@ import {
 type PageProps = {
   register: UseFormRegister<EvaluationFormData>
   watch: UseFormWatch<EvaluationFormData>
+  setValue: UseFormSetValue<EvaluationFormData>
   readOnly?: boolean
 }
 
-export function EvaluationPage03({ register, watch, readOnly }: PageProps) {
+type Lado = 'atual' | 'antes'
+
+function boolPath(key: AtividadeKey): FieldPath<EvaluationFormData> {
+  return `ficha.funcao.atividadesAfetadas.${key}`
+}
+
+function capacidadePath(key: AtividadeKey): FieldPath<EvaluationFormData> {
+  return `ficha.funcao.atividadesAfetadas.capacidades.${key}`
+}
+
+function valorPath(key: AtividadeKey, lado: Lado): FieldPath<EvaluationFormData> {
+  return `ficha.funcao.atividadesAfetadas.capacidades.${key}.${lado}.valor`
+}
+
+function unidadePath(key: AtividadeKey, lado: Lado): FieldPath<EvaluationFormData> {
+  return `ficha.funcao.atividadesAfetadas.capacidades.${key}.${lado}.unidade`
+}
+
+function MedidaGrupo({
+  legend,
+  valorName,
+  unidadeName,
+  valorLabel,
+  unidadeLabel,
+  register,
+  disabled,
+}: {
+  legend: string
+  valorName: FieldPath<EvaluationFormData>
+  unidadeName: FieldPath<EvaluationFormData>
+  valorLabel: string
+  unidadeLabel: string
+  register: UseFormRegister<EvaluationFormData>
+  disabled?: boolean
+}) {
+  return (
+    <fieldset disabled={disabled} className="space-y-2">
+      <legend className="text-sm font-semibold leading-[1.2] text-ink">{legend}</legend>
+      <div className="flex min-h-11 overflow-hidden rounded-2xl border border-line bg-canvas">
+        <input
+          type="text"
+          className="min-w-0 flex-1 bg-transparent px-4 py-2 text-base font-normal leading-normal text-ink"
+          aria-label={valorLabel}
+          {...register(valorName)}
+          disabled={disabled}
+        />
+        <select
+          className="border-l border-line bg-canvas px-4 text-base font-normal leading-normal text-ink"
+          aria-label={unidadeLabel}
+          {...register(unidadeName)}
+          disabled={disabled}
+        >
+          <option value="">Unidade</option>
+          <option value="minutos">minutos</option>
+          <option value="km">km</option>
+          <option value="repeticoes">repetições</option>
+        </select>
+      </div>
+    </fieldset>
+  )
+}
+
+export function EvaluationPage03({ register, watch, setValue, readOnly }: PageProps) {
   const disabled = readOnly
+  const markedKey = ATIVIDADES.map((item) =>
+    watch(boolPath(item.key)) === true ? '1' : '0',
+  ).join('')
+  const previousMarked = useRef<string | null>(null)
+  const textoLegado = watch('ficha.funcao.atividadesAfetadas.textoLegado')
+  const legado = typeof textoLegado === 'string' ? textoLegado.trim() : ''
+
+  useEffect(() => {
+    const previous = previousMarked.current
+    if (previous) {
+      for (const [index, item] of ATIVIDADES.entries()) {
+        if (previous[index] === '1' && markedKey[index] !== '1') {
+          setValue(capacidadePath(item.key), undefined, { shouldDirty: true, shouldValidate: true })
+        }
+      }
+    }
+    previousMarked.current = markedKey
+  }, [markedKey, setValue])
 
   return (
     <div className="space-y-4">
@@ -31,32 +114,59 @@ export function EvaluationPage03({ register, watch, readOnly }: PageProps) {
 
       <FichaBlock letter="B" title="Atividades afetadas">
         <CheckboxGrid>
-          <BoolCheck label="Caminhar" name="ficha.funcao.atividadesAfetadas.caminhar" register={register} disabled={disabled} />
-          <BoolCheck label="Correr" name="ficha.funcao.atividadesAfetadas.correr" register={register} disabled={disabled} />
-          <BoolCheck label="Escadas" name="ficha.funcao.atividadesAfetadas.escadas" register={register} disabled={disabled} />
-          <BoolCheck label="Agachar" name="ficha.funcao.atividadesAfetadas.agachar" register={register} disabled={disabled} />
-          <BoolCheck label="Sentar" name="ficha.funcao.atividadesAfetadas.sentar" register={register} disabled={disabled} />
-          <BoolCheck label="Levantar" name="ficha.funcao.atividadesAfetadas.levantar" register={register} disabled={disabled} />
-          <BoolCheck label="Dormir" name="ficha.funcao.atividadesAfetadas.dormir" register={register} disabled={disabled} />
-          <BoolCheck label="Dirigir" name="ficha.funcao.atividadesAfetadas.dirigir" register={register} disabled={disabled} />
-          <BoolCheck label="Trabalhar" name="ficha.funcao.atividadesAfetadas.trabalhar" register={register} disabled={disabled} />
-          <BoolCheck label="Estudar" name="ficha.funcao.atividadesAfetadas.estudar" register={register} disabled={disabled} />
-          <BoolCheck label="Cuidar da casa" name="ficha.funcao.atividadesAfetadas.cuidarCasa" register={register} disabled={disabled} />
-          <BoolCheck label="Vestir-se" name="ficha.funcao.atividadesAfetadas.vestirSe" register={register} disabled={disabled} />
-          <BoolCheck label="Esporte" name="ficha.funcao.atividadesAfetadas.esporte" register={register} disabled={disabled} />
-          <BoolCheck label="Lazer" name="ficha.funcao.atividadesAfetadas.lazer" register={register} disabled={disabled} />
-          <BoolCheck label="Autocuidado" name="ficha.funcao.atividadesAfetadas.autocuidado" register={register} disabled={disabled} />
-          <BoolCheck label="Outra" name="ficha.funcao.atividadesAfetadas.outra" register={register} disabled={disabled} />
+          {ATIVIDADES.map((item) => (
+            <BoolCheck
+              key={item.key}
+              label={item.label}
+              name={boolPath(item.key)}
+              register={register}
+              disabled={disabled}
+            />
+          ))}
         </CheckboxGrid>
-        {watch('ficha.funcao.atividadesAfetadas.outra') ? (
-          <LineField label="Outra (detalhe)" name="ficha.funcao.atividadesAfetadas.outraDetalhe" register={register} disabled={disabled} />
+        {markedKey.includes('1') ? null : (
+          <p className="text-sm font-normal leading-normal text-muted">
+            Nenhuma atividade marcada. Marque uma atividade na grade. A capacidade atual e o quanto conseguia antes aparecem na linha dessa atividade.
+          </p>
+        )}
+        {ATIVIDADES.map((item, index) =>
+          markedKey[index] === '1' ? (
+            <div key={item.key} className="space-y-2">
+              <p className="text-sm font-semibold leading-[1.2] text-ink">{item.label}</p>
+              {item.key === 'outra' ? (
+                <LineField
+                  label="Outra (detalhe)"
+                  name="ficha.funcao.atividadesAfetadas.outraDetalhe"
+                  register={register}
+                  disabled={disabled}
+                />
+              ) : null}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MedidaGrupo
+                  legend="Capacidade atual"
+                  valorName={valorPath(item.key, 'atual')}
+                  unidadeName={unidadePath(item.key, 'atual')}
+                  valorLabel={`Capacidade atual de ${item.label}`}
+                  unidadeLabel={`Unidade da capacidade atual de ${item.label}`}
+                  register={register}
+                  disabled={disabled}
+                />
+                <MedidaGrupo
+                  legend="Quanto conseguia antes"
+                  valorName={valorPath(item.key, 'antes')}
+                  unidadeName={unidadePath(item.key, 'antes')}
+                  valorLabel={`Quanto conseguia antes de ${item.label}`}
+                  unidadeLabel={`Unidade de quanto conseguia antes de ${item.label}`}
+                  register={register}
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+          ) : null,
+        )}
+        {legado ? (
+          <p className="text-sm font-normal leading-normal text-ink">Registro anterior: {legado}</p>
         ) : null}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <LineField label="Capacidade atual" name="ficha.funcao.atividadesAfetadas.capacidadeAtual" register={register} disabled={disabled} />
-          <LineField label="Atividade" name="ficha.funcao.atividadesAfetadas.atividade" register={register} disabled={disabled} />
-          <LineField label="Consigo por" name="ficha.funcao.atividadesAfetadas.consigoPor" register={register} disabled={disabled} />
-          <LineField label="Antes conseguia por" name="ficha.funcao.atividadesAfetadas.antesConseguiaPor" register={register} disabled={disabled} />
-        </div>
       </FichaBlock>
 
       <FichaBlock letter="C" title="Rotina e demanda">

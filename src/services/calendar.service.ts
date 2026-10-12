@@ -1,3 +1,4 @@
+import { mapDbError } from '@/lib/security'
 import { supabase } from '@/lib/supabase/client'
 import { signPatientPhotoUrls } from '@/services/patientPhoto.service'
 import type { SessionStatus } from '@/types/patient'
@@ -13,6 +14,7 @@ export interface CalendarSession {
   type: string
   place: string
   status: SessionStatus
+  therapistName: string | null
 }
 
 type CalendarPatient = {
@@ -32,15 +34,15 @@ function photoUrlFrom(path: string | null | undefined, urls: Map<string, string>
   return urls.get(path) ?? null
 }
 
-function throwIfError(error: { message: string } | null) {
-  if (error) throw new Error(error.message)
+function throwIfError(error: { message: string; code?: string } | null) {
+  if (error) throw new Error(mapDbError(error))
 }
 
 export async function listSessionsInRange(fromIso: string, toIso: string): Promise<CalendarSession[]> {
   const { data, error } = await supabase
     .from('patient_sessions')
     .select(
-      'id, patient_id, scheduled_at, session_type, place, status, patients(full_name, code, photo_tone, photo_path)',
+      'id, patient_id, scheduled_at, session_type, place, status, therapist_name, patients(full_name, code, photo_tone, photo_path)',
     )
     .gte('scheduled_at', fromIso)
     .lt('scheduled_at', toIso)
@@ -55,6 +57,7 @@ export async function listSessionsInRange(fromIso: string, toIso: string): Promi
     session_type: string | null
     place: string | null
     status: SessionStatus
+    therapist_name: string | null
     patients: CalendarPatient | CalendarPatient[] | null
   }>).filter((row) => row.scheduled_at)
 
@@ -73,6 +76,7 @@ export async function listSessionsInRange(fromIso: string, toIso: string): Promi
       type: row.session_type ?? 'Sessão',
       place: row.place ?? '—',
       status: row.status,
+      therapistName: row.therapist_name?.trim() || null,
     }
   })
 }

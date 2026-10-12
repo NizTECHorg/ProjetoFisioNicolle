@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
+import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadePalpacao.ts'
+import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
 
 /** Treat null / '' as absent so partial saves never fail on empty radios. */
 function emptyToUndefined(value: unknown) {
@@ -33,6 +36,16 @@ function optionalEnum<T extends [string, ...string[]]>(values: T) {
   return z.preprocess(emptyToUndefined, z.enum(values).optional())
 }
 
+const medidaLadoSchema = z.object({
+  valor: optionalText(200),
+  unidade: optionalEnum(['minutos', 'km', 'repeticoes']),
+})
+
+const capacidadeAtividadeSchema = z.object({
+  atual: medidaLadoSchema.optional(),
+  antes: medidaLadoSchema.optional(),
+})
+
 const bodyMapSymbolSchema = z.enum(['X', 'hatch', 'O', 'arrow', 'star'])
 
 const bodyMapMarkSchema = z.object({
@@ -40,12 +53,61 @@ const bodyMapMarkSchema = z.object({
   symbol: z.preprocess(emptyToUndefined, bodyMapSymbolSchema.optional()),
 })
 
-const mobilityRowSchema = z.object({
-  movimento: optionalText(200),
-  direito: optionalText(80),
-  esquerdo: optionalText(80),
-  dor: optionalText(200),
+const dorLadoSchema = z.object({
+  inicio: optionalText(40),
+  maxima: evaScore,
   observacao: optionalText(400),
+})
+
+const movimentoSchema = z.object({
+  movimento: z.string().trim().min(1),
+  valorDireito: optionalText(80),
+  valorEsquerdo: optionalText(80),
+  dorDireito: dorLadoSchema.optional(),
+  dorEsquerdo: dorLadoSchema.optional(),
+  observacao: optionalText(400),
+})
+
+const mobilidadeSchema = z.object({
+  regioes: z
+    .array(
+      z.object({
+        regiao: z.string().trim().min(1),
+        tipo: optionalEnum(['ativo', 'passivo', 'ambos']),
+        comparacao: optionalEnum(['bilateral', 'unilateral']),
+        movimentos: z.array(movimentoSchema).default([]),
+      }),
+    )
+    .default([]),
+  registroAnterior: optionalText(4000),
+})
+
+const achadoSchema = z.object({
+  regiao: z.string().trim().min(1),
+  local: z.string().trim().min(1).max(80),
+  localOutro: optionalText(200),
+  lado: optionalEnum(['direito', 'esquerdo', 'bilateral', 'central', 'naoSeAplica']),
+  achado: optionalEnum(['semAlteracao', 'doloroso', 'edema', 'tensao', 'crepitacao', 'temperatura', 'outro']),
+  achadoOutro: optionalText(200),
+  dor: evaScore,
+  observacao: optionalText(400),
+})
+
+const testeMarcadoSchema = z.object({
+  regiao: z.string().trim().min(1),
+  teste: z.string().trim().min(1),
+  resultado: optionalText(200),
+  outroTexto: optionalText(200),
+})
+
+const palpacaoTestesSchema = z.object({
+  achados: z.array(achadoSchema).default([]),
+  testes: z.array(testeMarcadoSchema).default([]),
+  palpacaoRegistroAnterior: optionalText(4000),
+  testesRegistroAnterior: optionalText(4000),
+  resultados: optionalText(2000),
+  testeFuncional: optionalText(2000),
+  resultadoInicial: optionalText(2000),
 })
 
 const forcaRowSchema = z.object({
@@ -250,29 +312,49 @@ export const evaluationFichaSchema = z.object({
         })
         .default({}),
       atividadesAfetadas: z
-        .object({
-          caminhar: optionalBool,
-          correr: optionalBool,
-          escadas: optionalBool,
-          agachar: optionalBool,
-          sentar: optionalBool,
-          levantar: optionalBool,
-          dormir: optionalBool,
-          dirigir: optionalBool,
-          trabalhar: optionalBool,
-          estudar: optionalBool,
-          cuidarCasa: optionalBool,
-          vestirSe: optionalBool,
-          esporte: optionalBool,
-          lazer: optionalBool,
-          autocuidado: optionalBool,
-          outra: optionalBool,
-          outraDetalhe: optionalText(400),
-          capacidadeAtual: optionalText(200),
-          atividade: optionalText(200),
-          consigoPor: optionalText(200),
-          antesConseguiaPor: optionalText(200),
-        })
+        .preprocess(
+          normalizeAtividadesAfetadas,
+          z.object({
+            caminhar: optionalBool,
+            correr: optionalBool,
+            escadas: optionalBool,
+            agachar: optionalBool,
+            sentar: optionalBool,
+            levantar: optionalBool,
+            dormir: optionalBool,
+            dirigir: optionalBool,
+            trabalhar: optionalBool,
+            estudar: optionalBool,
+            cuidarCasa: optionalBool,
+            vestirSe: optionalBool,
+            esporte: optionalBool,
+            lazer: optionalBool,
+            autocuidado: optionalBool,
+            outra: optionalBool,
+            outraDetalhe: optionalText(400),
+            textoLegado: optionalText(1200),
+            capacidades: z
+              .object({
+                caminhar: capacidadeAtividadeSchema.optional(),
+                correr: capacidadeAtividadeSchema.optional(),
+                escadas: capacidadeAtividadeSchema.optional(),
+                agachar: capacidadeAtividadeSchema.optional(),
+                sentar: capacidadeAtividadeSchema.optional(),
+                levantar: capacidadeAtividadeSchema.optional(),
+                dormir: capacidadeAtividadeSchema.optional(),
+                dirigir: capacidadeAtividadeSchema.optional(),
+                trabalhar: capacidadeAtividadeSchema.optional(),
+                estudar: capacidadeAtividadeSchema.optional(),
+                cuidarCasa: capacidadeAtividadeSchema.optional(),
+                vestirSe: capacidadeAtividadeSchema.optional(),
+                esporte: capacidadeAtividadeSchema.optional(),
+                lazer: capacidadeAtividadeSchema.optional(),
+                autocuidado: capacidadeAtividadeSchema.optional(),
+                outra: capacidadeAtividadeSchema.optional(),
+              })
+              .default({}),
+          }),
+        )
         .default({}),
       rotina: z
         .object({
@@ -361,14 +443,7 @@ export const evaluationFichaSchema = z.object({
           achados: optionalText(4000),
         })
         .default({}),
-      mobilidade: z
-        .object({
-          linhas: z.array(mobilityRowSchema).default([]),
-          ativo: optionalBool,
-          passivo: optionalBool,
-          bilateral: optionalBool,
-        })
-        .default({}),
+      mobilidade: z.preprocess(normalizeMobilidade, mobilidadeSchema).default({}),
       forca: z
         .object({
           linhas: z.array(forcaRowSchema).default([]),
@@ -386,15 +461,7 @@ export const evaluationFichaSchema = z.object({
           achados: optionalText(4000),
         })
         .default({}),
-      palpacaoTestes: z
-        .object({
-          palpacao: optionalText(2000),
-          testesClinicos: optionalText(2000),
-          resultados: optionalText(2000),
-          testeFuncional: optionalText(2000),
-          resultadoInicial: optionalText(2000),
-        })
-        .default({}),
+      palpacaoTestes: z.preprocess(normalizePalpacaoTestes, palpacaoTestesSchema).default({}),
       sintese: z
         .object({
           problema1: optionalText(1000),
@@ -436,6 +503,7 @@ export const evaluationFichaSchema = z.object({
           crefito: optionalText(80),
           data: optionalText(20),
           assinatura: optionalText(200),
+          assinaturaTraco: optionalText(SIGNATURE_MAX_CHARS),
         })
         .default({}),
     })

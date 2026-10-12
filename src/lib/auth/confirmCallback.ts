@@ -12,7 +12,7 @@ const OTP_TYPES = new Set<EmailOtpType>([
 ])
 
 export type ConfirmCallbackResult =
-  | { ok: true }
+  | { ok: true; mode: 'signup' | 'recovery' }
   | { ok: false; message: string; consumed?: true }
   | { ok: false; ignored: true }
 
@@ -63,6 +63,13 @@ function parseHref(href: string): AuthParams {
 
 const initialParams = parseHref(initialHref)
 
+function resolveSuccessMode(verifiedType?: EmailOtpType | null): 'signup' | 'recovery' {
+  if (verifiedType === 'recovery' || initialParams.type === 'recovery') {
+    return 'recovery'
+  }
+  return 'signup'
+}
+
 export function initialUrlHasAuthCallback() {
   return Boolean(
     initialParams.tokenHash ||
@@ -109,7 +116,7 @@ async function verifyTokenHash(tokenHash: string, hint: EmailOtpType | null): Pr
 
   for (const type of typesToTry(hint)) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
-    if (!error) return { ok: true }
+    if (!error) return { ok: true, mode: resolveSuccessMode(type) }
     lastError = error
     if (!canTryAnotherType(error)) break
   }
@@ -152,13 +159,17 @@ async function runConfirm(): Promise<ConfirmCallbackResult> {
   }
 
   if (await sessionExists()) {
-    if (initialParams.accessToken || initialParams.code) return { ok: true }
+    if (initialParams.accessToken || initialParams.code) {
+      return { ok: true, mode: resolveSuccessMode() }
+    }
     return { ok: false, ignored: true }
   }
 
   if (initialParams.code) {
     const { error } = await supabase.auth.exchangeCodeForSession(initialParams.code)
-    if (!error || (await sessionExists())) return { ok: true }
+    if (!error || (await sessionExists())) {
+      return { ok: true, mode: resolveSuccessMode() }
+    }
     return { ok: false, message: mapAuthError(error) }
   }
 

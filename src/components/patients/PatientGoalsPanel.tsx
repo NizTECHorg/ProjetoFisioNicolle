@@ -116,7 +116,7 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Flag size={14} className="text-accent" />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
               Todos os objetivos
             </p>
           </div>
@@ -125,7 +125,7 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
               type="button"
               aria-label="Adicionar meta"
               onClick={openCreate}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-forest transition hover:bg-accent-soft"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-forest transition hover:bg-accent-soft"
             >
               <Plus size={14} />
               Nova
@@ -166,15 +166,15 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
                       </p>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                             goal.isDone ? 'bg-white text-forest' : 'bg-amber-50 text-amber-800'
                           }`}
                         >
                           {goalStatusLabels[goal.status]}
                         </span>
-                        <span className="text-[10px] text-muted">Criada {formatGoalDate(goal.createdOn)}</span>
+                        <span className="text-xs text-muted">Criada {formatGoalDate(goal.createdOn)}</span>
                         {goal.achievedOn ? (
-                          <span className="text-[10px] text-muted">Concluída {formatGoalDate(goal.achievedOn)}</span>
+                          <span className="text-xs text-muted">Concluída {formatGoalDate(goal.achievedOn)}</span>
                         ) : null}
                       </div>
                     </button>
@@ -185,15 +185,15 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
                       </p>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                             goal.isDone ? 'bg-white text-forest' : 'bg-amber-50 text-amber-800'
                           }`}
                         >
                           {goalStatusLabels[goal.status]}
                         </span>
-                        <span className="text-[10px] text-muted">Criada {formatGoalDate(goal.createdOn)}</span>
+                        <span className="text-xs text-muted">Criada {formatGoalDate(goal.createdOn)}</span>
                         {goal.achievedOn ? (
-                          <span className="text-[10px] text-muted">Concluída {formatGoalDate(goal.achievedOn)}</span>
+                          <span className="text-xs text-muted">Concluída {formatGoalDate(goal.achievedOn)}</span>
                         ) : null}
                       </div>
                     </div>

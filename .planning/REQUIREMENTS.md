@@ -17,12 +17,20 @@
 - [ ] **REQ-22**: Responsividade mobile 100% — experiência clínica completa em viewport estreito
 - [ ] **REQ-23**: Resumo IA — gerar resumo clínico e PDFs salvos (geral / por sessão)
 - [ ] **REQ-24**: Aba Avaliações — ficha musculoesquelética completa (criar/salvar N avaliações; dashboard → nova)
+- [x] **REQ-36**: Mobilidade por região, palpação estruturada e testes clínicos pesquisáveis
+- [ ] **REQ-37**: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio da avaliação ou evolução por e-mail e WhatsApp
+- [ ] **REQ-38**: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos
+- [ ] **REQ-39**: Excluir paciente por completo — some do banco e do storage, sem deixar linha nem arquivo
+- [ ] **REQ-40**: Fisio anexado na sessão da agenda — só empresa anexa; só o fisio anexado e a empresa veem a sessão
+- [ ] **REQ-41**: Assinatura desenhada na avaliação — traço preto, apagar e refazer, salva na ficha e sai no PDF
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
 - [x] **REQ-28**: Isolamento por conta — cada conta vê só os próprios dados; sem mocks
 - [ ] **REQ-29**: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **REQ-30**: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
+- [x] **REQ-31**: Esqueci minha senha — no login, e-mail para redefinir a senha
+- [x] **REQ-32**: Agendar sessões futuras em vários dias da semana, com repetição
 - [ ] **REQ-14**: Metas do tratamento — objetivos por paciente com status e datas
 - [ ] **REQ-05**: Registro da avaliação inicial estruturada *(superseded by REQ-24 — campos simples Phase 1)*
 
@@ -181,6 +189,103 @@ Refatorar a silhueta já entregue em REQ-18. A paciente pediu divisões nos bra�
 4. Se o boneco atual não eliminar o scroll, ele é substituído e a seleção continua sem scroll.
 5. O que já está salvo em `patient_focus_areas` continua visível; regiões novas entram no mesmo fluxo de marcar e desmarcar.
 
+## REQ-31 — Esqueci minha senha
+
+**Indispensável · Artur**
+
+Na tela de login, a pessoa que não lembra a senha pede um e-mail de redefinição. O e-mail usa a marca Fluxo (template Reset password da fase 15). O link abre o app para definir uma senha nova. Depois disso, só a senha nova entra.
+
+### Acceptance
+
+1. Na tela de login há um caminho claro Esqueci minha senha.
+2. Informar o e-mail dispara o envio da mensagem de redefinição (mesmo se a conta não existir, a UI não revela se o e-mail está cadastrado).
+3. O link do e-mail abre o app e permite gravar uma senha nova.
+4. Depois do sucesso, a senha antiga deixa de entrar e a nova entra.
+5. A troca de senha logada em Minha conta (com senha atual) continua como está — este fluxo é só para quem não está logado.
+
+## REQ-32 — Agendar sessões em vários dias da semana
+
+**Indispensável · Artur**
+
+Hoje o agendamento futuro escolhe uma data (por exemplo sexta) e quantas vezes repetir: a série cai sempre no mesmo dia da semana. O profissional precisa escolher vários dias (segunda, quarta e sábado) e quantas vezes essa combinação se repete. Cada ocorrência é uma sessão agendada, no mesmo horário.
+
+### Acceptance
+
+1. No agendamento, dá para selecionar um ou mais dias da semana na mesma série.
+2. Dá para informar quantas vezes a série se repete.
+3. O app cria as sessões agendadas nesses dias, no horário escolhido.
+4. Continua possível repetir um único dia, como hoje.
+
+## REQ-33 — Resumo do paciente preenchido e editável
+
+**Indispensável · Artur**
+
+A geração atual só escreve o bloco Resumo IA. O profissional precisa que a mesma geração preencha o resumo inteiro, com um conjunto de campos igual para todo paciente, e que possa corrigir o texto na aba Resumo. A aba Resumo IA guarda só o original da última geração. Só o último resumo fica salvo.
+
+### Acceptance
+
+1. Cada nova geração substitui o resumo anterior. Não há lista de versões.
+2. A aba Resumo IA mostra o texto original da última geração, sem edição.
+3. A aba Resumo permite editar o texto do resumo, e essa edição fica salva.
+4. A geração preenche os campos do resumo definidos nesta fase, os mesmos para todos os pacientes, incluindo as áreas de foco.
+5. Se um card atual não puder ser preenchido com honestidade a partir do prontuário, ele é trocado agora, de forma global, por um campo que a IA consiga preencher.
+6. O system prompt da função descreve esses campos e o que a IA não deve inventar.
+
+## REQ-34 — Ajustes do resumo IA e rolagem do Entenda o caso
+
+**Indispensável · Artur**
+
+A edição do resumo hoje abre um modal com todos os textos. O profissional precisa corrigir cada caixa no próprio card. A geração ainda usa contagens e áreas de foco erradas e trata a descrição extra como texto sem peso. No Entenda o caso, queixa e diagnóstico longos cortam o card.
+
+### Acceptance
+
+1. Na aba Resumo, cada campo de texto gerado se edita dentro da própria caixa. Não abre uma janela listando todos os campos.
+2. A geração usa o número de sessões já feitas contado das sessões concluídas do prontuário.
+3. As áreas de foco marcadas pela geração são as que o prontuário sustenta, mais as que a descrição adicional pede. Nada além disso.
+4. A descrição adicional escrita antes de gerar é fonte da geração, com o mesmo peso do restante do prontuário.
+5. No Entenda o caso, queixa e diagnóstico longos rolam no card por um slider simples, de baixa opacidade, de cima para baixo. O card não cresce até cortar a página.
+
+## REQ-35 — Atividades da avaliação com capacidade por item
+
+**Indispensável · Artur**
+
+No bloco B de 03 Função a grade marca várias atividades, mas capacidade atual, atividade, consigo por e quanto conseguia antes são um único conjunto para todas. O profissional precisa preencher cada atividade à parte, sem o campo Atividade e sem Consigo por separado, e escolher uma unidade (minutos, km, repetições).
+
+### Acceptance
+
+1. Dá para registrar mais de uma atividade no bloco B e preencher a capacidade de cada uma.
+2. Cada atividade mostra só capacidade atual e quanto conseguia antes. Não existe campo Atividade nem Consigo por.
+3. Capacidade atual e quanto conseguia antes aceitam unidade de medida: minutos, km e repetições, com valor e unidade visíveis juntos.
+4. A leitura da ficha, o PDF e o catálogo de export mostram essas atividades com valor e unidade.
+
+## REQ-36 — Mobilidade por região, palpação e testes
+
+**Indispensável · Artur**
+
+No bloco B de Avaliação e plano a mobilidade é uma tabela de texto livre. O profissional precisa escolher a região, marcar só os movimentos daquela região e preencher direito e esquerdo juntos, com a dor de cada lado. No bloco E, palpação e testes clínicos são textos soltos. A palpação precisa de achados por região e estrutura, e os testes precisam de uma lista pesquisável.
+
+### Acceptance
+
+1. Dá para escolher uma região, marcar só os movimentos dela e acrescentar outra região. Cada região tem tipo de avaliação (ativo, passivo ou ambos) e comparação (bilateral ou unilateral).
+2. Cada movimento marcado mostra direito e esquerdo no mesmo campo. O valor aceita graus ou Completo, Limitado e Não avaliado. A dor D e E abre início da dor, dor máxima e observação.
+3. A palpação registra achados com região, local filtrado por essa região, lado, achado, dor e observação. A lista de achados dá para editar.
+4. Os testes clínicos são uma lista pesquisável. Dá para marcar vários, sempre com Outro no fim de cada região.
+5. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas regiões, movimentos, achados e testes.
+
+## REQ-37 — PDF, botão Gerando e envio ao cliente
+
+**Indispensável · Artur**
+
+O PDF de extração da avaliação e da evolução precisa ficar simples e bonito, só com o que foi preenchido. Todo botão que chama a IA, enquanto gera, mostra Gerando com uma estrela e um brilho azul. Dá para mandar essa avaliação ou evolução direto ao cliente por e-mail ou WhatsApp, com o logo de cada um.
+
+### Acceptance
+
+1. O PDF de avaliação e o de evolução mostram só informações preenchidas, com formatação simples e limpa. Campo vazio não aparece.
+2. Enquanto a IA gera, o botão diz Gerando, mostra uma estrela e o fundo tem um brilho azul animado. Os outros botões do sistema não mudam.
+3. Na exportação, e-mail e WhatsApp aparecem com os logos e enviam a avaliação ou a evolução para o e-mail ou o telefone do cliente.
+4. Sem e-mail ou sem telefone, o botão correspondente explica em português e não finge que enviou.
+5. Conta sem escrita não vê os botões de envio.
+
 ## REQ-18 — Silhueta de áreas de foco
 
 **Indispensável · Artur**
@@ -227,7 +332,38 @@ Não reutilizar a tela bakery de despesas (`FinancePage` caramel/dark, `canManag
 4. Totais de arrecadação: mês corrente, ano corrente e acumulado (sempre), derivados das sessões com valor — sem mock.
 5. Persistido no Supabase; RLS impede empresa/fisio de ler/escrever esses dados.
 
-## REQ-15 — Tipos de conta e equipe
+## REQ-38 — Analítica no Financeiro
+
+**Desejável · Artur**
+
+Na aba Financeiro, a seção Totais vira duas abas. **Totais** continua com Este mês, Este ano e Sempre. **Analítica** mostra visões e gráficos simples, interativos, feitos com os mesmos pagamentos.
+
+Não muda o catálogo, a lista de realizadas, o valor na sessão nem quem pode ver Financeiro. Sem SQL novo e sem pacote npm novo.
+
+### Acceptance
+
+1. Na seção Totais há duas abas, Totais e Analítica. Totais mostra Este mês, Este ano e Sempre como hoje.
+2. Analítica mostra arrecadado por mês, mistura por preço e a comparação do mês selecionado com o anterior.
+3. Hover ou foco mostra o valor em R$. Clicar num mês seleciona esse mês e as outras visões acompanham.
+4. Os números vêm das sessões pagas que já entram nos totais, inclusive pré-pagas agendadas. Sem mock.
+5. Empresa e fisioterapeuta continuam sem ver Financeiro. Sem SQL novo e sem pacote novo.
+
+## REQ-39 — Excluir paciente por completo
+
+**Indispensável · Artur**
+
+Na ficha do paciente, quem pode editar o paciente consegue excluí-lo. A exclusão é definitiva: o paciente e tudo que é dele saem 100% do banco de dados e do storage.
+
+### Acceptance
+
+1. A ficha tem a ação **Excluir paciente**, visível só para quem pode editar o paciente (`canWritePatient`).
+2. A confirmação é um diálogo de perigo que diz o que será apagado e só libera o botão depois de digitar o nome do paciente.
+3. Depois de excluir, nenhuma linha do paciente fica no banco: paciente, sessões, cobranças, avaliações, evoluções, metas, alertas, áreas de foco, registros de dor, imagens, relatórios e PDFs da IA, vínculos do Google Agenda e qualquer outra tabela que aponte para ele.
+4. Os arquivos do paciente no storage (foto, imagens, PDFs) também são apagados.
+5. A exclusão é atômica no banco: ou sai tudo ou nada sai. Um usuário não consegue excluir paciente de outra conta.
+6. Ao concluir, volta para a lista de pacientes, e as listas, o dashboard, a agenda e o financeiro já não mostram o paciente.
+
+
 
 **Indispensável · Artur**
 
@@ -324,3 +460,12 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-28 | Phase 17 | Complete |
 | REQ-29 | Phase 18 | Human verification pending |
 | REQ-30 | Phase 19 | Planned |
+| REQ-31 | Phase 20 | Planned |
+| REQ-32 | Phase 21 | Complete |
+| REQ-35 | Phase 24 | Complete |
+| REQ-36 | Phase 25 | Complete |
+| REQ-37 | Phase 26 | Planned |
+| REQ-38 | Phase 27 | Planned |
+| REQ-39 | Phase 28 | Planned |
+| REQ-40 | Phase 29 | In Progress |
+| REQ-41 | Phase 30 | Planned |

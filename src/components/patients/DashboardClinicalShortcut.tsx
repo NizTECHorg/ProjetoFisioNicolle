@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Users } from 'lucide-react'
+import userAddIcon from '@/assets/brand/icon.svg'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { PatientSessionEditorForm } from '@/components/patients/PatientSessionEditorForm'
 import { useAuth } from '@/hooks/useAuth'
-import { usePatients } from '@/hooks/usePatients'
+import { useCreatePatient, usePatients } from '@/hooks/usePatients'
 import { canWritePatient } from '@/lib/accountAccess'
 import {
   PATIENT_SEARCH_THRESHOLD,
@@ -15,12 +18,14 @@ import {
   patientFichaPath,
   writablePatients,
 } from '@/lib/dashboardShortcut'
+import { createPatientSchema, type CreatePatientFormData } from '@/schemas/patient.schema'
 import { statusLabels, type PatientListItem } from '@/types/patient'
 
 type ShortcutKind = 'evolucao' | 'avaliacao'
 
 type ShortcutState =
   | { step: 'closed' }
+  | { step: 'create-patient' }
   | { step: 'picker'; kind: ShortcutKind }
   | { step: 'editor'; kind: 'evolucao'; patientId: string; patientName: string }
 
@@ -30,10 +35,27 @@ export function DashboardClinicalShortcut() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { data: patients = [], isLoading, isError } = usePatients()
+  const createPatient = useCreatePatient()
   const [state, setState] = useState<ShortcutState>({ step: 'closed' })
   const [query, setQuery] = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
   const firstRowRef = useRef<HTMLButtonElement>(null)
+  const createForm = useForm<CreatePatientFormData>({
+    resolver: zodResolver(createPatientSchema),
+    defaultValues: {
+      fullName: '',
+      phone: '',
+      email: '',
+      birthDate: '',
+      profession: '',
+      emergencyName: '',
+      emergencyPhone: '',
+      emergencyRelation: '',
+      adminNotes: '',
+      referralSource: '',
+      therapistName: '',
+    },
+  })
 
   const writable = useMemo(
     () => writablePatients(patients, user?.id),
@@ -54,6 +76,28 @@ export function DashboardClinicalShortcut() {
   function openPicker(kind: ShortcutKind) {
     setQuery('')
     setState({ step: 'picker', kind })
+  }
+
+  function openCreatePatient() {
+    createForm.reset()
+    setState({ step: 'create-patient' })
+  }
+
+  function submitCreatePatient(values: CreatePatientFormData) {
+    createPatient.mutate(
+      {
+        fullName: values.fullName,
+        phone: values.phone,
+        email: values.email,
+        birthDate: values.birthDate,
+      },
+      {
+        onSuccess: ({ id }) => {
+          closeShortcut()
+          navigate(`/pacientes/${id}`)
+        },
+      },
+    )
   }
 
   function goToPatients() {
@@ -89,16 +133,60 @@ export function DashboardClinicalShortcut() {
 
   return (
     <>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <Button type="button" onClick={() => openPicker('evolucao')}>
-          <Plus size={16} />
-          Nova evolução
-        </Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <button
+          type="button"
+          aria-label="Criar paciente"
+          title="Criar paciente"
+          onClick={openCreatePatient}
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink transition hover:border-forest/20 hover:bg-accent-soft hover:text-forest"
+        >
+          <img src={userAddIcon} alt="" width={24} height={24} aria-hidden="true" className="h-6 w-6 -translate-x-[2px]" />
+        </button>
         <Button type="button" variant="secondary" onClick={() => openPicker('avaliacao')}>
           <Plus size={16} />
           Nova avaliação
         </Button>
+        <Button type="button" onClick={() => openPicker('evolucao')}>
+          <Plus size={16} />
+          Nova evolução
+        </Button>
       </div>
+
+      {state.step === 'create-patient' ? (
+        <Modal
+          open
+          title="Novo paciente"
+          description="Cadastro rápido. Só o nome é obrigatório — o restante pode ser completado na ficha."
+          onClose={closeShortcut}
+        >
+          <form className="space-y-4" onSubmit={createForm.handleSubmit(submitCreatePatient)}>
+            <Input
+              label="Nome completo"
+              autoFocus
+              error={createForm.formState.errors.fullName?.message}
+              {...createForm.register('fullName')}
+            />
+            <Input
+              label="Telefone"
+              type="tel"
+              hint="Opcional"
+              error={createForm.formState.errors.phone?.message}
+              {...createForm.register('phone')}
+            />
+            <Input
+              label="Data de nascimento"
+              type="date"
+              hint="Opcional"
+              error={createForm.formState.errors.birthDate?.message}
+              {...createForm.register('birthDate')}
+            />
+            <Button type="submit" fullWidth isLoading={createPatient.isPending}>
+              Criar ficha
+            </Button>
+          </form>
+        </Modal>
+      ) : null}
 
       {state.step === 'picker' ? (
         <Modal

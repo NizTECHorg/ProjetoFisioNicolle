@@ -193,6 +193,10 @@ function limitsFor(key: string): { max: number; windowMs: number } {
     return { max: REGISTER_MAX_ATTEMPTS, windowMs: REGISTER_WINDOW_MS }
   }
 
+  if (key.startsWith('auth:recovery:')) {
+    return { max: REGISTER_MAX_ATTEMPTS, windowMs: REGISTER_WINDOW_MS }
+  }
+
   return {
     max: key.endsWith(':global') ? LOGIN_MAX_ATTEMPTS_GLOBAL : LOGIN_MAX_ATTEMPTS_PER_KEY,
     windowMs: LOGIN_WINDOW_MS,
@@ -227,6 +231,14 @@ export function resetRateLimit(key: string): void {
   deleteEntry(key)
 }
 
+/** Zera todos os contadores deste browser (sessionStorage + memória). Não remove o rate limit. */
+export function clearAuthRateLimits(): void {
+  for (const key of Object.keys(memoryStore)) {
+    delete memoryStore[key]
+  }
+  writeStore({})
+}
+
 export function formatRetryAfter(ms: number): string {
   const minutes = Math.max(1, Math.ceil(ms / 60_000))
   if (minutes >= 60) {
@@ -248,6 +260,12 @@ export function mapDbError(error: { message?: string; code?: string }): string {
   const message = error.message?.toLowerCase() ?? ''
   const code = error.code ?? ''
 
+  if (message.includes('therapist_not_in_team')) {
+    return 'Escolha um fisioterapeuta ativo da sua equipe.'
+  }
+  if (message.includes('only_status_allowed')) {
+    return 'Você só pode alterar o status desta sessão.'
+  }
   if (code === '42501' || message.includes('operation_not_permitted')) {
     return 'Você não tem permissão para esta ação.'
   }

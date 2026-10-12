@@ -15,6 +15,7 @@ import {
   evaluationFormSchema,
   type EvaluationFormData,
 } from '@/schemas/evaluation.schema'
+import { formatTestesParaColuna } from '@/lib/mobilidadePalpacao'
 import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { toast } from '@/stores/toast.store'
 import type { ToastAction } from '@/stores/toast.store'
@@ -187,7 +188,7 @@ export function PatientEvaluationEditorForm({
       limitations: ficha.funcao?.limitacaoFuncional?.item1 ?? values.limitations ?? '',
       goals: ficha.avaliacaoPlano?.objetivos?.curto1 ?? values.goals ?? '',
       physicalExam: ficha.avaliacaoPlano?.inspecao?.achados ?? values.physicalExam ?? '',
-      tests: ficha.avaliacaoPlano?.palpacaoTestes?.testesClinicos ?? values.tests ?? '',
+      tests: formatTestesParaColuna(ficha.avaliacaoPlano?.palpacaoTestes),
       measurements: values.measurements ?? '',
       physioDiagnosis: ficha.avaliacaoPlano?.sintese?.diagnosticoFisio ?? values.physioDiagnosis ?? '',
       plan: ficha.avaliacaoPlano?.planejamento?.criteriosProgressao ?? values.plan ?? '',
@@ -222,7 +223,7 @@ export function PatientEvaluationEditorForm({
               {editing ? 'Editar avaliação' : 'Nova avaliação'}
             </h3>
             <p className="mt-1 text-xs text-muted">
-              Só a data é obrigatória — salve parcial e complete depois.
+              Só o nome da avaliação é obrigatório. O restante pode ficar em branco.
             </p>
           </div>
         </div>
@@ -232,6 +233,7 @@ export function PatientEvaluationEditorForm({
         <Input
           label="Nome da avaliação"
           placeholder="Ex.: Avaliação inicial, Reavaliação 30 dias…"
+          error={form.formState.errors.ficha?.titulo?.message}
           {...form.register('ficha.titulo')}
         />
         <Input

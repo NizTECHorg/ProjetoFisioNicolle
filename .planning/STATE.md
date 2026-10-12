@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 19-02-PLAN.md
-last_updated: "2026-09-24T16:32:47.015Z"
+status: ready
+stopped_at: Completed 27-04-PLAN.md
+last_updated: "2026-10-11T00:52:07.469Z"
 progress:
-  total_phases: 19
-  completed_phases: 10
-  total_plans: 77
-  completed_plans: 68
-  percent: 53
+  total_phases: 31
+  completed_phases: 14
+  total_plans: 120
+  completed_plans: 105
+  percent: 45
 ---
 
 # Project State
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Documentar cada atendimento e manter a base clínica do paciente.
 
-**Current focus:** Phase 19 — Boneco de área de foco
+**Current focus:** Phase 27 — analitica-financeiro (COMPLETE)
 
 ## Current Position
 
-Phase: 19 (Boneco de área de foco) — Ready to execute
-Plan: 2 of 3
+Phase: 27 (analitica-financeiro) — COMPLETE
+Plan: 4 of 4 (all verified)
 
-- Status: Ready to execute
-- Progress: 2/3 plans
+- Status: Verified
+- Progress: 4/4 plans executed and verified
 
 **Progress:** [█████████░] 88%
 
@@ -37,6 +37,7 @@ Plan: 2 of 3
 
 ### Decisions
 
+- [Phase 27]: Refeita conforme UI-SPEC (Por mês, Por preço, Contra o mês anterior; sem KPI cards/donut/percentual). Filtros Mês, Ano e Paciente na aba Analítica: mês e ano movem o mesmo mês selecionado; Por mês mostra jan–dez do ano escolhido; Paciente filtra as três visões (leitura traz só patient_id; nome vem de usePatients)
 - Avaliação estruturada em `patient_evaluations` (Supabase) — Phase 1
 - REQ-05 adiado: código existe; SQL/UAT ficam para depois
 - Metas no Resumo; clique no card = concluído / em andamento — Phase 2
@@ -178,6 +179,88 @@ Plan: 2 of 3
 - [Phase 19]: Phase 13 patient-ai-summary Set mirrors the 42 keys; deploy stays on the Dashboard and the phase 11 twin is unchanged — The function cannot import src/; publishing is operator work
 - [Phase 19]: Centroids of unchanged keys stay the current literals, including back.shoulder_l at x 96 — The plan forbids recalculating centers of regions that did not change
 - [Phase 19]: SQL Editor is the apply path for the eight-key DELETE; do not run supabase db push — Operator confirmed applied and the eight-key count returned zero rows
+- [Phase 20]: recoveryPasswordSchema uses password/confirmPassword field names (not newPassword) per plan interfaces
+- [Phase 20]: mapRecoveryRequestError returns fixed UI-SPEC send failure string; rate-limit still via mapAuthError
+- [Phase 20]: typesToTry(null) left without recovery (Pitfall 5 / T-20-05)
+- [Phase 20]: Success state hides Lembrou a senha footer; Voltar ao login lives in the centered body
+- [Phase 20]: Forgot link sits inside password space-y-2 under Mostrar senha, above Entrar
+- [Phase 20]: Recovery ok sets status recovery without toast or clinic navigate (Pitfall 1 / T-20-02) — GuestRoute must not admit clinic with recovery session before setPasswordFromRecovery
+- [Phase 20]: Kept UI-SPEC Senha atualizada toast; plan Senha atual substring assert was a false positive — UI-SPEC toast required; verified label Senha atual absent instead
+- [Phase 22]: Zod schemas for the AI summary live in patientSummary.ts so node --test imports them without the @/ alias
+- [Phase 22]: formatGeneratedAt uses hourCycle h23 so midnight in São Paulo renders 00:00
+- [Phase 22]: REQ-33 stays open after 22-01; pack, prompt, and ResumoDoPaciente contract cases stay red until 22-04 and 22-05
+- [Phase 22]: Patient summary jsonb CHECKs are explicit null-or-object and 20000 bytes; no new RLS policy — patients_update already covers new columns
+- [Phase 22]: Paste 22-patient-summary-fields.sql before running the app after plan 22-03; publish patient-ai-summary only in the 22-07 UAT after plan 22-04 edits the phase 13 source
+- [Phase 22]: REQ-33 stays open after 22-02; the SQL script and operator document do not complete the requirement
+- [Phase 22]: One generation UPDATE writes ai_summary, ai_summary_fields, and summary_edits null — updatePatient payload stays string|number|null
+- [Phase 22]: Summary save errors throw PATIENT_AI_COPY.editError or editForbidden — the hook shows error.message and does not call mapDbError
+- [Phase 22]: A summary-only function response is accepted — optional texts stay absent and ai_summary_fields keeps generatedAt
+- [Phase 22]: REQ-33 stays open after 22-03 — plans 22-04 through 22-07 still own the prompt, the UI, and the hosted UAT
+- [Phase 22]: Resumo pack drops unread defaults; PatientRow stays so evolucao still reads program, EVA, and evolution columns — assembleEvolucaoContextPack casts the same interface
+- [Phase 22]: Empty focusRegionKeys stays on the response because omitEmpty drops empty arrays — An empty catalog result must still include the key
+- [Phase 22]: REQ-33 stays open after 22-04 — plans 22-05 through 22-07 still own the Resumo UI and the hosted UAT — This plan ships the phase 13 function source only; Dashboard publish stays in 22-USER-SETUP.md
+- [Phase 22]: Form reset depends only on open; resolved text is read through a ref so a patient refetch does not wipe in-progress edits — A query refresh while the modal is open must not replace what the user typed
+- [Phase 22]: EvaChart is unchanged and mounts only when painSeries has rows, so the empty-series message is not shown on Dor e limitações — The empty branch stays inside EvaChart; this card simply does not render it
+- [Phase 22]: REQ-33 stays open after 22-05; plans 22-06 and 22-07 still own the Resumo IA tab, regenerate confirmation, goals typography, and hosted UAT — This plan covers the Resumo tab editor only; requirements.mark-complete was not called
+- [Phase 22]: The Nova button on the goals card uses font-semibold because this phase forbids font-medium on these surfaces — Typography forbids font-medium on S1–S4; the card table named the seals, and the Nova button is part of the same card
+- [Phase 22]: autoFocusCancel defaults to false so the other ConfirmDialog callers keep their previous focus — The dialog is shared; only the regenerate confirmation opts into cancel focus
+- [Phase 22]: REQ-33 stays open after 22-06; plan 22-07 still owns the hosted UAT — This plan covers the Resumo IA block, regenerate confirmation, and goals typography; requirements.mark-complete was not called
+- [Phase 23]: allowedFocusKeys matches a whole catalog label after NFD with a left boundary, and ignores a shorter label that only sits inside a longer one — antebraço must not mark braço, and Palma da mão esquerda must not mark Mão esquerda
+- [Phase 23]: NÃO CONFIÁVEL now belongs to hintBlockFor; the seven prompt keys and the 42-key parity stay — REQ-34.4 will refuse the phrase inside buildPrompt; putting it back would hide the red contracts
+- [Phase 23]: REQ-34 stays open after 23-01; plans 02-05 still own the Edge Function, inline editor, scroll, and UAT — requirements.mark-complete was not called because only the matcher and the still-red contracts shipped
+- [Phase 23]: sessionsDone is the exact count of realizada sessions on the user client; a count error omits the key and never reads patients.sessions_done
+- [Phase 23]: The resumo response replaces Gemini focusRegionKeys with allowedFocusKeys on untruncated chart text plus the description, and does not union saved focus areas
+- [Phase 23]: buildPrompt treats the extra description as FONTE and states that it does not replace patient.sessionsDone; the evolucao hint stays untrusted
+- [Phase 23]: Each Resumo text field edits inside its card with one editingKey; Salvar calls diffSummaryEdits on all six resolved keys — An UPDATE replaces the whole summary_edits column
+- [Phase 23]: REQ-34 stays open after the inline editor — 34.1 is green; 34.5 scroll and composer label stay red for later plans
+- [Phase 23]: Queixa and Diagnóstico scroll inside max-h 4.5rem; the article and the goal line-clamp-2 stay put — Overflow on the article would scroll metrics and goals with the complaint
+- [Phase 23]: REQ-34 stays open after 23-04; 34.5 is green and plan 05 still owns UAT — requirements.mark-complete was not called because the phase requirement is not finished
+- [Phase 24]: REQ-35 stays open after the capacity helper — Schema, page 03, and PDF still belong to plans 02-04
+- [Phase 24]: New-form normalize keeps textoLegado — A second pass must not erase the legacy paragraph
+- [Phase 24]: Free text such as 10 min is not parsed into a unit — Only minutos, km, and repeticoes are units
+- [Phase 24]: REQ-35 stays open after schema and bloco B: detail, catalog, and PDF remain plan 03 — Acceptance item 4 is still plan 03
+- [Phase 24]: Missing atividadesAfetadas keeps .default({}) outside preprocess so parse({}) stays equal to emptyEvaluationFicha() — Absent bloco B must still parse
+- [Phase 24]: REQ-35 stays open after detail, catalog, and PDF: plan 04 owns the suite gate and UAT — Acceptance item 4 shipped in plan 03; plan 04 still lists REQ-35
+- [Phase 24]: Name-only PDF activity lines use drawText; lines with a miolo use drawLabeledValue — drawOptionalField drops an empty value, so a checked activity with no measure would disappear
+- [Phase 24]: REQ-35 closes after the green suite, phase gate, and approved hosted UAT — Plan 04 changed no source; the six bloco B steps were approved
+- [Phase 24]: Task 1 stayed uncommitted because the REQ-35 suite was already green — A green file is not edited, and the UAT approval did not require a code commit
+- [Phase 25]: Rótulo ambíguo de mobilidade não escolhe a primeira região: Flexão vai para registroAnterior e Flexão de quadril marca só Quadril / Flexão — Match é rótulo inteiro único, depois segmento após barra, depois composição
+- [Phase 25]: resultados, testeFuncional e resultadoInicial cortam em 2000 no normalize da fase 25 — optionalText(2000) do plano 02 rejeitaria a ficha inteira
+- [Phase 25]: O preprocess de mobilidade e palpação fica fora do default({}) e o valor D/E continua texto — O strip do Zod apaga a chave velha depois do normalize
+- [Phase 25]: A coluna tests e os rascunhos deixam de gravar testesClinicos — emptyToNull só aceita string e a ficha é a fonte
+- [Phase 25]: Trocar a região da mobilidade chama replace([]) nos movimentos, para a chave do catálogo anterior não ficar no array — O array só deve ter o movimento marcado da região atual
+- [Phase 25]: O rascunho do achado e a busca de teste são useState; o Lado copia o markup do RadioRow sem virar campo da ficha — RadioRow exige register e o rascunho não é campo da ficha
+- [Phase 25]: Salvar achado fica desabilitado com a região vazia, no mesmo travamento de Adicionar achado — O schema exige região no achado
+- [Phase 25]: O PDF troca → por -> só na string de 04.B e 04.E; toWinAnsiSafe permanece global — WinAnsi não tem U+2192; o detalhe e o preview no browser mantêm a seta
+- [Phase 25]: O preview usa a primeira linha formatada, com corte de 40 caracteres já existente — previewFrom corta em 40; a frase inteira fica no detalhe e no PDF
+- [Phase 25]: Tipo, comparação, lado e achado entram no formatador como string, porque o schema infere o enum assim — optionalEnum infere string; o mapa de rótulos ainda descarta valor fora do catálogo
+- [Phase 26]: Avaliação e evolução usam título de seção 20pt e campo 14pt; célula vazia da tabela não é desenhada — REQ-37.1 omite campo, bloco e célula vazios sem inventar texto
+- [Phase 26]: Cabeçalho da ficha é Avaliação ou Evolução a partir de docTitle; rodapé é Fluxo e o número da página — Geral e sessão permanecem com FLUXO · Documento clínico
+- [Phase 26]: Contact helpers return missing or invalid so the screen can choose the Portuguese sentence — Placeholder dash is not a destination
+- [Phase 26]: send-patient-document reads patients.email with the user JWT and ignores any address in the JSON body — T-26-04 and T-26-05
+- [Phase 26]: SMTP password stays in FLUXO_SMTP_PASS; denomailer is pinned at 1.6.0 and is not an npm dependency — T-26-06 and T-26-SC
+- [Phase 26]: REQ-37 stays open after 26-03; plans 26-02 and 26-04 still own the Gerando button and the send screen — requirements.mark-complete was not called
+- [Phase 26]: Plan counter stays at 2 of 4 because 26-02 has no summary — state.advance-plan was not called
+- [Phase 26]: Gerando, the star, and ai-generating live only on AiGeneratingButton; Button isLoading still says Aguarde...
+- [Phase 26]: generatingTarget splits resumo and evolução synthesis so export upload does not show the star
+- [Phase 26]: An empty filled catalog sets catalogEmpty and renders pdfEmptyHeading and pdfEmptyBody
+- [Phase 26]: WhatsApp success toast only after an https signed URL and a non-null window.open
+- [Phase 26]: Patient document signed URL uses only 604800 seconds; failure toasts sendFileUnavailable with no 24-hour fallback
+- [Phase 26]: Send buttons render only when canWrite and the PDF kind is avaliacao or evolucao
+- [Phase 26]: PatientResumoIaPanel passes detail phone and email from the existing usePatient
+- [Phase 27]: Month key uses Intl formatToParts in America/Sao_Paulo; the window shifts by year*12+month — REQ-38 must not use getMonth or setMonth
+- [Phase 27]: Blank price names become Avulso and sums are integer cents; an empty list returns no bars — Pitfalls 4 and 5; amountBrl is cents divided by 100
+- [Phase 27]: REQ-38 stays open after 27-01; plans 27-02, 27-03, and 27-04 still own the read, charts, and tabs — requirements.mark-complete was not called
+- [Phase 27]: Paid analytics selects is_paid charges with scheduled_at and does not use the realizadas list — REQ-38 includes prepaid scheduled sessions; the realizadas list filters that status
+- [Phase 27]: A missing session embed discards partial rows and restarts as two queries in chunks of 200 — PGRST200 or a relationship/schema-cache message; no new foreign key and no SQL
+- [Phase 27]: useFinanceAnalytics uses the finance prefix so existing invalidation covers it — invalidateFinance already matches the finance prefix without exact
+- [Phase 27]: REQ-38 stays open after 27-02; plans 27-03 and 27-04 still own the charts and the tabs — requirements.mark-complete was not called
+- [Phase 27]: Charts stay hand-drawn SVG; a short bar is 4px tall with a 44px transparent hit target — UI-SPEC reserves accent for unselected month bars, price bars, and the previous month
+- [Phase 27]: Price names render as React text inside foreignObject so CSS ellipsis can clip them; the full name stays on aria-label — No dangerouslySetInnerHTML and no patient name in the tooltip
+- [Phase 27]: REQ-38 stays open after 27-03; plan 27-04 still owns the Totais and Analítica tabs — requirements.mark-complete was not called
+- [Phase 27]: The two tabs stay in the Totais section. Selected month is React state, not a query string or localStorage — REQ-38 keeps one route; the month must survive switching back to Totais
+- [Phase 27]: Analytics loading and error stay inside the Analítica panel. Page isError remains pricesError or totalsError — T-27-13: an analytics failure must not hide the three cards, the catalog, or realizadas
+- [Phase 27]: REQ-38 stays unchecked after 27-04. The phase overview checkbox was not checked and requirements.mark-complete was not called — Plan progress for 27-04 is recorded; phase sign-off and the on-screen human check stay open
 
 ### Pending user action
 
@@ -187,7 +270,8 @@ Plan: 2 of 3
 - Paste `.planning/phases/17-isolamento-de-dados-por-conta/sql/17-account-isolation.sql` in the Supabase SQL Editor once. Do not use supabase db push. If board counts are above zero, uncomment only the owner backfill first.
 - Paste `.planning/phases/18-minha-conta/sql/18-account.sql` in the Supabase SQL Editor once. Do not use supabase db push. If the DO block aborts on a legacy avatar_url, inspect the row and do not null it in bulk.
 - (adiado) Oráculo de senha da fase 18: ligar `security_update_password_require_current_password`, deixar a reautenticação desligada e seguir `.planning/phases/18-minha-conta/18-USER-SETUP.md`. A prova fica em aberto.
-- Publish Edge Function patient-ai-summary from `.planning/phases/13-pdf-export-avaliacao-evolucao/functions/patient-ai-summary/index.ts` in the Supabase Dashboard. Do not publish the phase 11 twin. Do not use supabase db push. See `.planning/phases/19-boneco-de-rea-de-foco/19-USER-SETUP.md`.
+- Paste `.planning/phases/22-resumo-paciente-ia/sql/22-patient-summary-fields.sql` in the Supabase SQL Editor before running the app after plan 22-03. Do not use supabase db push. Without those columns the patient chart fails to load. See `.planning/phases/22-resumo-paciente-ia/22-USER-SETUP.md`.
+- Publish Edge Function patient-ai-summary only in the plan 22-07 UAT, from `.planning/phases/13-pdf-export-avaliacao-evolucao/functions/patient-ai-summary/index.ts` after plan 22-04 edits it. Do not publish the phase 11 twin or `supabase/functions/patient-ai-summary/index.ts`. Do not use `supabase functions deploy`. The phase 19 42-key publish waits for that same step.
 
 ### Roadmap Evolution
 
@@ -202,11 +286,19 @@ Plan: 2 of 3
 - Phase 17 added: Isolamento de dados por conta — vazamento do quadro entre contas, auditoria de todo dado digitável e remoção de mocks
 - Phase 18 added: Minha conta — ícone ao lado de Sair; trocar foto, nome e senha
 - Phase 19 added: Boneco de área de foco — divisões nos braços, pés separados e seleção sem scroll na página
+- Phase 20 added: Esqueci minha senha — link no login envia e-mail para redefinir a senha
+- Phase 21 added: Agendar sessões em vários dias da semana com repetição
+- Phase 22 added: Resumo do paciente editável e preenchido pela IA (REQ-33)
+- Phase 23 added: Ajustes do resumo IA e rolagem do Entenda o caso (REQ-34)
+- Phase 24 added: Atividades da avaliação com capacidade por item (REQ-35)
+- Phase 25 added: Mobilidade por região, palpação estruturada e testes clínicos (REQ-36)
+- Phase 26 added: PDF só com o preenchido, botão Gerando com estrela e brilho azul, envio por e-mail e WhatsApp (REQ-37)
+- Phase 27 added: Analítica no Financeiro — duas abas nos totais, com gráficos simples e interativos (REQ-38)
 
 ## Session Continuity
 
-Last session: 2026-09-24T16:32:46.999Z
-Stopped at: Completed 19-02-PLAN.md
+Last session: 2026-10-11T00:52:07.420Z
+Stopped at: Completed 27-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -253,3 +345,34 @@ Resume file: None
 | Phase 18 P06 | 4 min | 2 tasks | 2 files |
 | Phase 19 P01 | 4min | 2 tasks | 3 files |
 | Phase 19 P02 | 4min | 2 tasks | 1 files |
+| Phase 20 P01 | 2min | 2 tasks | 4 files |
+| Phase 20 P02 | 1min | 2 tasks | 3 files |
+| Phase 20 P03 | 3min | 2 tasks | 1 files |
+| Phase 21 P01 | 8min | 2 tasks | 2 files |
+| Phase 21 P02 | 10min | 2 tasks | 1 files |
+| Phase 22 P01 | 9min | 3 tasks | 3 files |
+| Phase 22 P02 | 2min | 2 tasks | 2 files |
+| Phase 22 P03 | 5min | 3 tasks | 5 files |
+| Phase 22 P04 | 2min | 2 tasks | 1 files |
+| Phase 22 P05 | 3min | 2 tasks | 2 files |
+| Phase 22 P06 | 4min | 3 tasks | 4 files |
+| Phase 23 P01 | 5min | 2 tasks | 3 files |
+| Phase 23 P02 | 4min | 3 tasks | 2 files |
+| Phase 23 P03 | 6min | 2 tasks | 2 files |
+| Phase 23 P04 | 2min | 2 tasks | 3 files |
+| Phase 24 P01 | 6min | 2 tasks | 2 files |
+| Phase 24 P02 | 6min | 2 tasks | 4 files |
+| Phase 24 P03 | 5min | 2 tasks | 4 files |
+| Phase 24 P04 | 4min | 2 tasks | 0 files |
+| Phase 25 P01 | 16min | 2 tasks | 2 files |
+| Phase 25 P02 | 9min | 2 tasks | 6 files |
+| Phase 25 P03 | 14min | 2 tasks | 2 files |
+| Phase 25 P04 | 8min | 2 tasks | 5 files |
+| Phase 26 P01 | 14min | 2 tasks | 2 files |
+| Phase 26 P03 | 8min | 2 tasks | 5 files |
+| Phase 26 P02 | 6min | 2 tasks | 5 files |
+| Phase 26 P04 | 9min | 2 tasks | 6 files |
+| Phase 27 P01 | 8min | 2 tasks | 2 files |
+| Phase 27 P02 | 7min | 2 tasks | 3 files |
+| Phase 27 P03 | 12min | 2 tasks | 2 files |
+| Phase 27 P04 | 10min | 2 tasks | 2 files |

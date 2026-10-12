@@ -75,12 +75,18 @@ export function EvaluationFichaForm({
         />
       ) : null}
       {page === '03' ? (
-        <EvaluationPage03 register={register} watch={watch} readOnly={readOnly} />
+        <EvaluationPage03
+          register={register}
+          watch={watch}
+          setValue={setValue}
+          readOnly={readOnly}
+        />
       ) : null}
       {page === '04' ? (
         <EvaluationPage04
           register={register}
           watch={watch}
+          setValue={setValue}
           control={control}
           readOnly={readOnly}
         />

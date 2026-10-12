@@ -47,7 +47,8 @@ function draftFromPdf(result: PhysicalEvaluationResult): EvaluationFormData {
         },
         palpacaoTestes: {
           ...base.ficha.avaliacaoPlano.palpacaoTestes,
-          testesClinicos: result.muscleForceAndTests,
+          testesRegistroAnterior: result.muscleForceAndTests,
+          testes: [],
         },
         sintese: {
           ...base.ficha.avaliacaoPlano.sintese,
@@ -193,7 +194,7 @@ export function PatientEvaluationPanel({
           <p className="mt-3 text-sm font-medium text-ink">Nenhuma avaliação ainda.</p>
           <p className="mt-1 text-sm text-muted">
             {canWrite
-              ? 'Crie a primeira avaliação — só a data é obrigatória.'
+              ? 'Crie a primeira avaliação — só o nome é obrigatório.'
               : 'Nenhuma avaliação nesta ficha.'}
           </p>
         </article>

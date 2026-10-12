@@ -4,16 +4,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
-  CreditCard,
-  Dumbbell,
-  FileText,
+  Images,
   Pencil,
   Plus,
-  RefreshCw,
   Sparkles,
   Stethoscope,
   Target,
+  Trash2,
+  UserRound,
 } from 'lucide-react'
 import { AttendanceCounts, plannedCount } from '@/components/patients/AttendanceCounts'
 import {
@@ -33,9 +33,26 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Textarea } from '@/components/ui/Textarea'
 import { useAuth } from '@/hooks/useAuth'
-import { usePatient, usePatientDashboard, useUpdatePatient } from '@/hooks/usePatients'
+import {
+  useDeletePatient,
+  usePatient,
+  usePatientDashboard,
+  useSavePatientSummaryEdits,
+  useUpdatePatient,
+} from '@/hooks/usePatients'
+import { DeletePatientDialog } from '@/components/patients/DeletePatientDialog'
 import { canWritePatient } from '@/lib/accountAccess'
 import { patientFichaPath } from '@/lib/dashboardShortcut'
+import {
+  SUMMARY_FIELD_KEYS,
+  SUMMARY_FIELD_LABELS,
+  SUMMARY_FIELD_ROWS,
+  diffSummaryEdits,
+  resolveSummaryFields,
+  summaryEditsSchema,
+  type SummaryFieldKey,
+} from '@/lib/patientSummary'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import {
   caseUnderstandingSchema,
   type CaseUnderstandingFormData,
@@ -45,10 +62,9 @@ import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPain
 const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
   { label: 'Sessões', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
-  { label: 'Reavaliações', detail: 'Em breve', icon: RefreshCw, path: 'reavaliacoes' },
-  { label: 'Exercícios', detail: 'Em breve', icon: Dumbbell, path: 'exercicios' },
-  { label: 'Documentos', detail: 'Em breve', icon: FileText, path: 'documentos' },
-  { label: 'Financeiro', detail: 'Em breve', icon: CreditCard, path: 'financeiro' },
+  { label: 'Avaliações', detail: 'Ficha de avaliação', icon: ClipboardCheck, tab: 'avaliacoes' as const },
+  { label: 'Imagens', detail: 'Fotos e anexos', icon: Images, tab: 'imagens' as const },
+  { label: 'Dados cadastrais', detail: 'Contato e cadastro', icon: UserRound, tab: 'cadastro' as const },
   { label: 'Agenda', detail: 'Abrir agenda', icon: CalendarDays, to: '/agenda' },
 ] as const
 
@@ -69,6 +85,13 @@ function clampText(value: string, empty = '—') {
 
 function dash(value: string) {
   return value === '—' ? '' : value
+}
+
+function textOrDash(value: string) {
+  if (!value.trim()) {
+    return <span aria-label="Sem informação">—</span>
+  }
+  return value
 }
 
 function EvaChart({ series }: { series: PatientPainLog[] }) {
@@ -151,11 +174,23 @@ function EntendaOCaso({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-muted">Queixa</p>
-            <p className="mt-1 line-clamp-3 text-sm leading-6 text-ink">{clampText(patient.complaint)}</p>
+            <p
+              className="case-scroll mt-1 max-h-[4.5rem] overflow-y-auto overscroll-contain text-sm leading-6 text-ink"
+              tabIndex={0}
+              aria-label="Queixa"
+            >
+              {clampText(patient.complaint)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted">Diagnóstico</p>
-            <p className="mt-1 line-clamp-3 text-sm leading-6 text-ink">{clampText(patient.diagnosis)}</p>
+            <p
+              className="case-scroll mt-1 max-h-[4.5rem] overflow-y-auto overscroll-contain text-sm leading-6 text-ink"
+              tabIndex={0}
+              aria-label="Diagnóstico"
+            >
+              {clampText(patient.diagnosis)}
+            </p>
           </div>
         </div>
 
@@ -264,6 +299,25 @@ function ResumoDoPaciente({
   detail: Patient | null | undefined
   canWrite: boolean
 }) {
+  const save = useSavePatientSummaryEdits(patientId)
+  const [editingKey, setEditingKey] = useState<SummaryFieldKey | null>(null)
+  const [draft, setDraft] = useState('')
+  const [fieldError, setFieldError] = useState<string | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const pencilRefs = useRef<Partial<Record<SummaryFieldKey, HTMLButtonElement | null>>>({})
+  const returnFocusKey = useRef<SummaryFieldKey | null>(null)
+
+  useEffect(() => {
+    if (editingKey) {
+      textareaRef.current?.focus()
+      return
+    }
+    const key = returnFocusKey.current
+    if (!key) return
+    returnFocusKey.current = null
+    pencilRefs.current[key]?.focus()
+  }, [editingKey])
+
   if (!detail) {
     return (
       <article className="rounded-2xl border border-line bg-surface p-6">
@@ -274,61 +328,263 @@ function ResumoDoPaciente({
     )
   }
 
+  const original = { summary: detail.aiSummary, ...detail.aiSummaryFields }
+  const resolved = resolveSummaryFields(original, detail.summaryEdits)
+  const fieldIds: Record<SummaryFieldKey, { labelId: string; fieldId: string }> = {
+    summary: { labelId: 'resumo-summary-label', fieldId: 'resumo-summary' },
+    treatmentPlan: { labelId: 'resumo-treatment-plan-label', fieldId: 'resumo-treatment-plan' },
+    evolution: { labelId: 'resumo-evolution-label', fieldId: 'resumo-evolution' },
+    conducts: { labelId: 'resumo-conducts-label', fieldId: 'resumo-conducts' },
+    nextSessionPlan: {
+      labelId: 'resumo-next-session-plan-label',
+      fieldId: 'resumo-next-session-plan',
+    },
+    painLimitations: {
+      labelId: 'resumo-pain-limitations-label',
+      fieldId: 'resumo-pain-limitations',
+    },
+  }
+
+  function openEditor(key: SummaryFieldKey) {
+    if (!canWrite || save.isPending || key === editingKey) return
+    if (!SUMMARY_FIELD_KEYS.includes(key)) return
+    returnFocusKey.current = null
+    setFieldError(null)
+    setDraft(resolved[key] ?? '')
+    setEditingKey(key)
+  }
+
+  function closeEditor(key: SummaryFieldKey) {
+    returnFocusKey.current = key
+    setEditingKey(null)
+    setDraft('')
+    setFieldError(null)
+  }
+
+  function saveEditor(key: SummaryFieldKey) {
+    if (save.isPending) return
+    const parsed = summaryEditsSchema.shape[key].safeParse(draft)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      if (issue) setFieldError(issue.message)
+      return
+    }
+    setFieldError(null)
+    const diff = diffSummaryEdits(original, { ...resolved, [key]: draft })
+    save.mutate(diff, {
+      onSuccess: () => {
+        returnFocusKey.current = key
+        setEditingKey(null)
+        setDraft('')
+        setFieldError(null)
+      },
+    })
+  }
+
+  function pencilButton(key: SummaryFieldKey) {
+    if (!canWrite) return null
+    return (
+      <button
+        type="button"
+        ref={(node) => {
+          pencilRefs.current[key] = node
+        }}
+        aria-label={`Editar ${SUMMARY_FIELD_LABELS[key]}`}
+        onClick={() => openEditor(key)}
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+      >
+        <Pencil size={16} />
+      </button>
+    )
+  }
+
+  function fieldEditor(key: SummaryFieldKey, marginClass: string) {
+    const ids = fieldIds[key]
+    const invalid = fieldError != null
+    return (
+      <div className={marginClass}>
+        <textarea
+          ref={textareaRef}
+          id={ids.fieldId}
+          rows={SUMMARY_FIELD_ROWS[key]}
+          aria-labelledby={ids.labelId}
+          aria-invalid={invalid || undefined}
+          value={draft}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            if (fieldError) setFieldError(null)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && !save.isPending) {
+              event.preventDefault()
+              closeEditor(key)
+            }
+          }}
+          className={[
+            'min-h-24 w-full rounded-2xl border bg-canvas px-4 py-3 text-ink placeholder:text-muted/50',
+            'transition-colors duration-200',
+            'focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/25',
+            invalid ? 'border-error' : 'border-line hover:border-forest/25',
+          ].join(' ')}
+        />
+        {invalid ? (
+          <p role="alert" className="mt-2 text-xs text-error">
+            {fieldError}
+          </p>
+        ) : null}
+        <div className="mt-4 flex flex-col-reverse gap-4 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-11"
+            disabled={save.isPending}
+            onClick={() => closeEditor(key)}
+          >
+            Cancelar
+          </Button>
+          <Button type="button" className="min-h-11" isLoading={save.isPending} onClick={() => saveEditor(key)}>
+            Salvar
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const editing = (key: SummaryFieldKey) => canWrite && editingKey === key
+
   return (
     <article className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Resumo do paciente</p>
 
-      <div className="mt-4 rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
+      <div className="group mt-4 rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Resumo IA</p>
-          <Sparkles size={16} className="text-accent" />
+          <p
+            id={fieldIds.summary.labelId}
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+          >
+            Resumo IA
+          </p>
+          <div className="flex items-center gap-1">
+            <Sparkles size={16} className="text-accent" aria-hidden />
+            {pencilButton('summary')}
+          </div>
         </div>
-        <p className="mt-3 text-sm leading-7 text-ink/90 sm:text-base">
-          {detail.aiSummary || 'Sem resumo ainda.'}
-        </p>
+        {editing('summary') ? (
+          fieldEditor('summary', 'mt-4')
+        ) : (
+          <p className="mt-4 text-sm leading-7 text-ink/90 sm:text-base whitespace-pre-line break-words">
+            {resolved.summary || 'Sem resumo ainda.'}
+          </p>
+        )}
+        {detail.aiSummary || detail.summaryEdits != null ? (
+          <p className="mt-2 text-xs text-muted">
+            {detail.summaryEdits != null
+              ? PATIENT_AI_COPY.summaryEditedCaption
+              : PATIENT_AI_COPY.summaryAiCaption}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-3 lg:grid-flow-col lg:grid-rows-[auto_auto]">
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Programa</p>
-          <h3 className="mt-2 text-sm font-semibold text-ink">{detail.program}</h3>
-          <div className="mt-auto pt-3">
-            <div className="h-2 overflow-hidden rounded-full bg-canvas">
-              <div className="h-full rounded-full bg-accent" style={{ width: `${detail.programProgress}%` }} />
-            </div>
-            <p className="mt-2 text-xs text-muted">{detail.programProgress}% concluído</p>
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.treatmentPlan.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Plano de tratamento
+            </p>
+            {pencilButton('treatmentPlan')}
           </div>
+          {editing('treatmentPlan') ? (
+            fieldEditor('treatmentPlan', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.treatmentPlan)}
+            </p>
+          )}
         </div>
 
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Evolução geral</p>
-          <p className="mt-2 break-words text-sm leading-6 text-ink">{detail.evolutionSummary || '—'}</p>
-          <div className="mt-auto flex min-w-0 items-center gap-3 pt-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-forest">
-              {detail.eva}/10
-            </span>
-            <span className="min-w-0 text-xs text-muted">EVA na sessão de {detail.lastVisit}</span>
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.evolution.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Evolução geral
+            </p>
+            {pencilButton('evolution')}
           </div>
+          {editing('evolution') ? (
+            fieldEditor('evolution', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.evolution)}
+            </p>
+          )}
         </div>
 
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Condutas</p>
-          <p className="mt-2 break-words text-sm leading-6 text-ink">{detail.lastConducts || '—'}</p>
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.conducts.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Condutas
+            </p>
+            {pencilButton('conducts')}
+          </div>
+          {editing('conducts') ? (
+            fieldEditor('conducts', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.conducts)}
+            </p>
+          )}
           <div className="mt-auto pt-4">
-            <p className="text-xs text-muted">Plano próxima sessão</p>
-            <p className="mt-1 break-words text-sm text-ink">{detail.nextSessionPlan || '—'}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p id={fieldIds.nextSessionPlan.labelId} className="text-xs text-muted">
+                Plano próxima sessão
+              </p>
+              {pencilButton('nextSessionPlan')}
+            </div>
+            {editing('nextSessionPlan') ? (
+              fieldEditor('nextSessionPlan', 'mt-1')
+            ) : (
+              <p className="mt-1 break-words whitespace-pre-line text-sm text-ink">
+                {textOrDash(resolved.nextSessionPlan)}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Dor (EVA)</p>
-          <div className="mt-auto flex w-full min-w-0 flex-1 items-end">
-            <EvaChart series={detail.painSeries} />
+        <div className="group flex h-full min-h-[11rem] min-w-0 flex-col rounded-2xl border border-line p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              id={fieldIds.painLimitations.labelId}
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-accent"
+            >
+              Dor e limitações
+            </p>
+            {pencilButton('painLimitations')}
           </div>
+          {editing('painLimitations') ? (
+            fieldEditor('painLimitations', 'mt-2')
+          ) : (
+            <p className="mt-2 break-words whitespace-pre-line text-sm leading-6 text-ink">
+              {textOrDash(resolved.painLimitations)}
+            </p>
+          )}
+          {detail.painSeries.length > 0 ? (
+            <div className="mt-4">
+              <p className="text-xs text-muted">Registros de dor (EVA)</p>
+              <EvaChart series={detail.painSeries} />
+            </div>
+          ) : null}
         </div>
 
         <div className="flex h-full min-h-[16rem] min-w-0 flex-col rounded-2xl border border-line p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Áreas de foco</p>
           <div className="mt-auto flex w-full min-w-0 flex-1 items-center">
             <PatientFocusAreasPanel
               patientId={patientId}
@@ -350,13 +606,15 @@ function ResumoPanel({
   patient,
   detail,
   canWrite,
+  onDeletePatient,
 }: {
   patient: PatientDashboard
   detail: Patient | null | undefined
   canWrite: boolean
+  onDeletePatient?: () => void
 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       {/* Desktop 80/20; mobile empilha */}
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
         <EntendaOCaso patient={patient} detail={detail} canWrite={canWrite} />
@@ -372,12 +630,7 @@ function ResumoPanel({
         <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {shortcuts.map((item) => {
             const Icon = item.icon
-            const to =
-              'to' in item
-                ? item.to
-                : 'tab' in item
-                  ? `/pacientes/${patient.id}?aba=${item.tab}`
-                  : `/pacientes/${patient.id}/${item.path}`
+            const to = 'to' in item ? item.to : `/pacientes/${patient.id}?aba=${item.tab}`
             return (
               <Link
                 key={item.label}
@@ -396,6 +649,34 @@ function ResumoPanel({
           })}
         </div>
       </div>
+
+      {canWrite && onDeletePatient ? (
+        <section
+          aria-labelledby="patient-danger-zone"
+          className="min-w-0 rounded-2xl border border-error/25 bg-error/5 p-4 sm:p-5"
+        >
+          <p id="patient-danger-zone" className="text-xs font-semibold uppercase tracking-[0.16em] text-error">
+            Área sensível
+          </p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">Excluir paciente</p>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                Apaga o paciente e tudo dele: sessões, avaliações, evoluções, imagens, PDFs e cobranças. Não dá para
+                desfazer.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onDeletePatient}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-error/30 bg-surface px-4 text-sm font-semibold text-error transition-colors hover:bg-error hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/30"
+            >
+              <Trash2 size={16} aria-hidden />
+              Excluir paciente
+            </button>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }
@@ -406,6 +687,8 @@ export function PatientPage() {
   const { user, profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const openIdentityRef = useRef<(() => void) | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const deletePatient = useDeletePatient(id ?? '')
 
   const aba = searchParams.get('aba')
   const openCreateOnMount = searchParams.get('nova') === '1'
@@ -546,9 +829,22 @@ export function PatientPage() {
         }
       />
 
+      <DeletePatientDialog
+        open={deleteOpen && canWrite}
+        patientName={dashboard.name}
+        isPending={deletePatient.isPending}
+        onConfirm={() => deletePatient.mutate()}
+        onClose={() => setDeleteOpen(false)}
+      />
+
       <div className="mt-5 sm:mt-6">
         {tab === 'resumo' ? (
-          <ResumoPanel patient={dashboard} detail={detail} canWrite={canWrite} />
+          <ResumoPanel
+            patient={dashboard}
+            detail={detail}
+            canWrite={canWrite}
+            onDeletePatient={canWrite ? () => setDeleteOpen(true) : undefined}
+          />
         ) : tab === 'secoes' ? (
           <PatientEvolutionsPanel patientId={dashboard.id} canWrite={canWrite} />
         ) : tab === 'avaliacoes' ? (

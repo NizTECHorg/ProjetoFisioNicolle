@@ -1,3 +1,4 @@
+import type { PaidAnalyticsRow } from '@/lib/financeAnalytics'
 import { supabase } from '@/lib/supabase/client'
 import { mapDbError, sanitizeText } from '@/lib/security'
 import type {
@@ -267,4 +268,143 @@ export async function listFinanceRealizadas(): Promise<FinanceRealizadaRow[]> {
       charge: chargesBySession.get(row.id) ?? null,
     }
   })
+}
+
+const PAID_PAGE = 1000
+const SESSION_ID_CHUNK = 200
+
+interface SessionEmbed {
+  scheduled_at?: unknown
+  patient_id?: unknown
+}
+
+interface PaidEmbedRow {
+  price_name: string
+  amount_brl: number | string
+  patient_sessions: SessionEmbed | SessionEmbed[] | null
+}
+
+interface PaidLookupRow {
+  price_name: string
+  amount_brl: number | string
+  session_id: string
+}
+
+interface SessionWhenRow {
+  id: string
+  scheduled_at: unknown
+  patient_id: unknown
+}
+
+interface SessionWhen {
+  scheduledAt: string
+  patientId: string | null
+}
+
+function missingSessionRelationship(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false
+  if (error.code === 'PGRST200') return true
+  const message = (error.message ?? '').toLowerCase()
+  return message.includes('relationship') || message.includes('schema cache')
+}
+
+function sessionWhen(row: SessionEmbed | undefined): SessionWhen | null {
+  if (typeof row?.scheduled_at !== 'string') return null
+  return {
+    scheduledAt: row.scheduled_at,
+    patientId: typeof row.patient_id === 'string' ? row.patient_id : null,
+  }
+}
+
+function sessionFromEmbed(value: PaidEmbedRow['patient_sessions']): SessionWhen | null {
+  if (!value) return null
+  return sessionWhen(Array.isArray(value) ? value[0] : value)
+}
+
+function paidAnalyticsRow(
+  priceName: string,
+  amountBrl: number | string,
+  session: SessionWhen,
+): PaidAnalyticsRow {
+  return {
+    scheduledAt: session.scheduledAt,
+    priceName,
+    amountBrl: Number(amountBrl),
+    patientId: session.patientId,
+  }
+}
+
+export async function listFinancePaidForAnalytics(): Promise<PaidAnalyticsRow[]> {
+  const embedded: PaidAnalyticsRow[] = []
+  let from = 0
+  let pageCount = PAID_PAGE
+  let missingEmbed = false
+
+  while (pageCount === PAID_PAGE && !missingEmbed) {
+    const { data, error } = await supabase
+      .from('autonomo_session_charges')
+      .select('id, price_name, amount_brl, is_paid, patient_sessions!inner(scheduled_at, patient_id)')
+      .eq('is_paid', true)
+      .order('id', { ascending: true })
+      .range(from, from + 999)
+
+    if (missingSessionRelationship(error)) {
+      missingEmbed = true
+      break
+    }
+    throwIfError(error)
+
+    const page = (data ?? []) as PaidEmbedRow[]
+    pageCount = page.length
+    for (const row of page) {
+      const session = sessionFromEmbed(row.patient_sessions)
+      if (!session) continue
+      embedded.push(paidAnalyticsRow(row.price_name, row.amount_brl, session))
+    }
+    if (pageCount === PAID_PAGE) from += PAID_PAGE
+  }
+
+  if (!missingEmbed) return embedded
+
+  const charges: PaidLookupRow[] = []
+  from = 0
+  pageCount = PAID_PAGE
+  while (pageCount === PAID_PAGE) {
+    const { data, error } = await supabase
+      .from('autonomo_session_charges')
+      .select('id, price_name, amount_brl, is_paid, session_id')
+      .eq('is_paid', true)
+      .order('id', { ascending: true })
+      .range(from, from + 999)
+
+    throwIfError(error)
+    const page = (data ?? []) as PaidLookupRow[]
+    pageCount = page.length
+    charges.push(...page)
+    if (pageCount === PAID_PAGE) from += PAID_PAGE
+  }
+
+  const sessionById = new Map<string, SessionWhen>()
+  const sessionIds = [...new Set(charges.map((row) => row.session_id))]
+  for (let index = 0; index < sessionIds.length; index += SESSION_ID_CHUNK) {
+    const chunk = sessionIds.slice(index, index + SESSION_ID_CHUNK)
+    const { data, error } = await supabase
+      .from('patient_sessions')
+      .select('id, scheduled_at, patient_id')
+      .in('id', chunk)
+
+    throwIfError(error)
+    for (const row of (data ?? []) as SessionWhenRow[]) {
+      const session = sessionWhen(row)
+      if (session) sessionById.set(row.id, session)
+    }
+  }
+
+  const lookedUp: PaidAnalyticsRow[] = []
+  for (const charge of charges) {
+    const session = sessionById.get(charge.session_id)
+    if (!session) continue
+    lookedUp.push(paidAnalyticsRow(charge.price_name, charge.amount_brl, session))
+  }
+  return lookedUp
 }

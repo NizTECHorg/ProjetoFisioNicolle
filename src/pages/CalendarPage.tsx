@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { useAuth } from '@/hooks/useAuth'
 import { useCalendarSessions, useCreateSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
 import {
   useDisconnectGoogleCalendar,
@@ -16,11 +18,24 @@ import {
   useLinkGoogleCalendar,
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
+import { useTeam } from '@/hooks/useTeam'
+import { canManageTeam } from '@/lib/accountAccess'
 import { filterPatientsByName } from '@/lib/dashboardShortcut'
+import {
+  MAX_SERIES_WEEKS,
+  SERIES_WEEKDAYS,
+  buildSeriesPreview,
+  buildWeeklySeries,
+  clampWeeks,
+  seriesCtaLabel,
+} from '@/lib/sessionSeries'
 import { GOOGLE_CALENDAR_COPY } from '@/schemas/googleCalendar.schema'
 import type { PatientListItem } from '@/types/patient'
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+
+/** Integração permanece no código; a faixa e os CTAs ficam ocultos para o usuário. */
+const GOOGLE_CALENDAR_UI_VISIBLE = false
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -41,20 +56,6 @@ function monthGrid(year: number, month: number) {
   return cells
 }
 
-function weeklyAt(start: Date, weeks: number): Date[] {
-  return Array.from({ length: weeks }, (_, index) => {
-    const next = new Date(start)
-    next.setDate(start.getDate() + index * 7)
-    return next
-  })
-}
-
-function clampWeeks(value: string) {
-  const count = Number(value)
-  if (!Number.isFinite(count)) return 1
-  return Math.min(24, Math.max(1, Math.trunc(count)))
-}
-
 function toLocalInput(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -72,8 +73,11 @@ export function CalendarPage() {
   const [pickerCursor, setPickerCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [time, setTime] = useState('09:00')
   const [repeatWeeks, setRepeatWeeks] = useState('1')
+  const [weekdays, setWeekdays] = useState<number[]>([today.getDay()])
+  const [weekdaysTouched, setWeekdaysTouched] = useState(false)
   const [type, setType] = useState('Sessão')
   const [place, setPlace] = useState('Sala 1')
+  const [therapistId, setTherapistId] = useState('')
   const [disconnectOpen, setDisconnectOpen] = useState(false)
   const [needsReconnect, setNeedsReconnect] = useState(false)
 
@@ -89,6 +93,24 @@ export function CalendarPage() {
     [patients, patientQuery],
   )
   const create = useCreateSession()
+  const { profile } = useAuth()
+  const isCompany = canManageTeam(profile?.accountType)
+  const { data: team } = useTeam()
+  const therapists = useMemo(
+    () =>
+      (team?.members ?? [])
+        .filter((member) => member.role === 'therapist' && member.status === 'active')
+        .map((member) => ({ id: member.profileId, name: member.fullName || member.email || 'Fisioterapeuta' }))
+        .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR')),
+    [team],
+  )
+  const therapistOptions = useMemo(
+    () => [
+      { value: '', label: 'Sem fisioterapeuta' },
+      ...therapists.map((item) => ({ value: item.id, label: item.name })),
+    ],
+    [therapists],
+  )
   const updateStatus = useUpdateSessionStatus()
 
   const connectionQuery = useGoogleCalendarConnection()
@@ -170,6 +192,9 @@ export function CalendarPage() {
     setSessionDate(selected)
     setPickerCursor(new Date(selected.getFullYear(), selected.getMonth(), 1))
     setRepeatWeeks('1')
+    setWeekdays([selected.getDay()])
+    setWeekdaysTouched(false)
+    setTherapistId('')
     setOpen(true)
   }
 
@@ -188,19 +213,54 @@ export function CalendarPage() {
   function chooseSessionDate(date: Date) {
     const next = startOfDay(date)
     setSessionDate(next)
+    if (!weekdaysTouched) setWeekdays([next.getDay()])
     setPickerCursor(new Date(next.getFullYear(), next.getMonth(), 1))
     setSelected(next)
     setCursor(new Date(next.getFullYear(), next.getMonth(), 1))
   }
 
+  function seriesStartAt() {
+    const start = new Date(sessionDate)
+    let hours = 9
+    let minutes = 0
+    if (time.trim() !== '') {
+      const [h, m] = time.split(':').map(Number)
+      if (Number.isFinite(h) && Number.isFinite(m)) {
+        hours = h as number
+        minutes = m as number
+      }
+    }
+    start.setHours(hours, minutes, 0, 0)
+    return start
+  }
+
+  function toggleWeekday(day: number) {
+    setWeekdaysTouched(true)
+    if (weekdays.includes(day)) {
+      if (weekdays.length === 1) return
+      setWeekdays(weekdays.filter((value) => value !== day))
+      return
+    }
+    setWeekdays([...weekdays, day])
+  }
+
+  const seriesCycles = clampWeeks(repeatWeeks)
+  const series = buildWeeklySeries(seriesStartAt(), weekdays, seriesCycles)
+  const seriesTotal = series.length
+  const seriesPreviewText = buildSeriesPreview(series, {
+    weekdayCount: weekdays.length,
+    cycles: seriesCycles,
+    showTime: time.trim() !== '',
+  })
+  const ctaLabel = seriesCtaLabel(seriesTotal)
+
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!patientId) return
-    const [hours = 9, minutes = 0] = time.split(':').map(Number)
-    const when = new Date(sessionDate)
-    when.setHours(hours, minutes, 0, 0)
-    const weeks = clampWeeks(repeatWeeks)
-    const scheduledAts = weeklyAt(when, weeks).map((date) => date.toISOString())
+    const when = seriesStartAt()
+    if (series.length === 0) return
+    const scheduledAts = series.map((date) => date.toISOString())
+    const therapist = isCompany ? therapists.find((item) => item.id === therapistId) : undefined
     create.mutate(
       {
         patientId,
@@ -208,6 +268,8 @@ export function CalendarPage() {
         scheduledAts,
         type,
         place,
+        therapistId: therapist?.id,
+        therapistName: therapist?.name,
       },
       {
         onSuccess: () => {
@@ -270,6 +332,7 @@ export function CalendarPage() {
         }
       />
 
+      {GOOGLE_CALENDAR_UI_VISIBLE ? (
       <article
         className="dash-in mb-4 rounded-2xl border border-line bg-surface p-4 sm:p-5"
         style={{ animationDelay: '40ms' }}
@@ -378,6 +441,7 @@ export function CalendarPage() {
           </div>
         </div>
       </article>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-4 sm:p-5" style={{ animationDelay: '80ms' }}>
@@ -517,6 +581,7 @@ export function CalendarPage() {
                           new Date(session.scheduledAt),
                         )}{' '}
                         · {session.type} · {session.place}
+                        {session.therapistName ? ` · ${session.therapistName}` : ''}
                       </span>
                     </span>
                   </Link>
@@ -550,7 +615,7 @@ export function CalendarPage() {
               {daySessions.length === 0 && dayDues.length === 0 ? (
                 <button
                   type="button"
-                  onClick={() => setOpen(true)}
+                  onClick={openComposer}
                   className="text-sm font-medium text-forest"
                 >
                   Agendar sessão neste dia
@@ -694,28 +759,83 @@ export function CalendarPage() {
             </div>
           </div>
           <Input label="Horário" type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+          <div>
+            <p id="dias-semana-label" className="mb-2 text-sm font-medium text-ink">
+              Dias da semana
+            </p>
+            <div role="group" aria-labelledby="dias-semana-label" className="grid grid-cols-7 gap-1">
+              {SERIES_WEEKDAYS.map(({ day, label, ariaLabel }) => {
+                const pressed = weekdays.includes(day)
+                const onlyOne = pressed && weekdays.length === 1
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleWeekday(day)}
+                    aria-pressed={pressed}
+                    aria-label={ariaLabel}
+                    aria-disabled={onlyOne}
+                    className={[
+                      'min-h-11 rounded-xl border text-sm font-medium transition',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25',
+                      pressed
+                        ? 'border-forest bg-forest text-white'
+                        : 'border-line bg-canvas text-ink hover:bg-surface',
+                    ].join(' ')}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              Marque um ou mais dias. Pelo menos um dia precisa ficar marcado.
+            </p>
+          </div>
           <Input
-            label="Horário fixo"
+            label="Repetir por quantas semanas"
             type="number"
             min={1}
-            max={24}
+            max={MAX_SERIES_WEEKS}
             inputMode="numeric"
             value={repeatWeeks}
-            hint={
-              clampWeeks(repeatWeeks) === 1
-                ? '1 marca só esta data, como agendada.'
-                : `Marca esta e as próximas ${clampWeeks(repeatWeeks) - 1} no mesmo dia e horário, todas como agendadas.`
-            }
+            hint="Os dias marcados se repetem a cada semana, sempre no mesmo horário. De 1 a 24 semanas."
             onChange={(event) => setRepeatWeeks(event.target.value)}
           />
+          {seriesPreviewText ? (
+            <p
+              role="status"
+              aria-live="polite"
+              className="rounded-2xl border border-accent/30 bg-accent-soft p-3 text-sm text-forest"
+            >
+              {seriesPreviewText}
+            </p>
+          ) : null}
           <Input label="Tipo" value={type} onChange={(event) => setType(event.target.value)} />
           <Input label="Sala" value={place} onChange={(event) => setPlace(event.target.value)} />
+          {isCompany ? (
+            <div>
+              <Select
+                id="calendar-session-therapist"
+                label="Fisioterapeuta"
+                value={therapistId}
+                options={therapistOptions}
+                onChange={(event) => setTherapistId(event.target.value)}
+              />
+              {therapists.length === 0 ? (
+                <p className="mt-2 text-xs text-muted">
+                  Nenhum fisioterapeuta ativo na equipe. Aprove convites em Equipe para anexar aqui.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <Button type="submit" fullWidth isLoading={create.isPending} disabled={!patientId}>
-            Agendar
+            {ctaLabel}
           </Button>
         </form>
       </Modal>
 
+      {GOOGLE_CALENDAR_UI_VISIBLE ? (
       <ConfirmDialog
         open={disconnectOpen}
         title={GOOGLE_CALENDAR_COPY.disconnectTitle}
@@ -727,6 +847,7 @@ export function CalendarPage() {
         onClose={() => setDisconnectOpen(false)}
         onConfirm={handleDisconnectConfirm}
       />
+      ) : null}
     </section>
   )
 }

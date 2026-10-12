@@ -25,6 +25,18 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [x] **Phase 17: Isolamento de dados por conta** — Cada conta vê só os próprios dados; nenhum mock permanece no site (completed 2026-09-24)
 - [ ] **Phase 18: Minha conta** — Ícone ao lado de Sair abre a página para trocar foto, nome e senha *(oráculo de senha pendente)*
 - [ ] **Phase 19: Boneco de área de foco** — Divisões nos braços, pés separados e seleção sem scroll na página
+- [ ] **Phase 20: Esqueci minha senha** — Link no login envia e-mail para trocar a senha
+- [x] **Phase 21: Agendar sessões em vários dias** — Escolher segunda, quarta, sábado (ou outros) e quantas vezes repetir (completed 2026-10-03)
+
+- [ ] **Phase 22: Resumo do paciente pela IA** — A IA preenche o resumo inteiro; o profissional edita na aba Resumo
+- [ ] **Phase 23: Ajustes do resumo IA** — Editar cada caixa no lugar, usar o prontuário e a descrição extra, e rolar o Entenda o caso
+- [x] **Phase 24: Atividades da avaliação** — Várias atividades no bloco B da Função, cada uma com capacidade atual, quanto conseguia antes e unidade (completed 2026-10-05)
+- [ ] **Phase 25: Mobilidade, palpação e testes** — Bloco B por região e movimento; palpação estruturada; testes clínicos pesquisáveis
+- [ ] **Phase 26: PDF, botão Gerando e envio ao cliente** — PDF só com o preenchido; botão de IA com estrela e brilho azul; enviar avaliação ou evolução por e-mail e WhatsApp
+- [ ] **Phase 27: Analítica no Financeiro** — Duas abas nos totais: a de hoje e uma analítica com gráficos simples e interativos
+- [ ] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage
+- [ ] **Phase 29: Fisio anexado na sessão da agenda** — Empresa anexa um fisio da equipe na nova sessão; só ele e a empresa veem a sessão
+- [ ] **Phase 30: Assinatura desenhada na avaliação** — Desenhar a assinatura com traço preto no fim da avaliação, apagar e refazer; sai no PDF
 
 ## Phase Details
 
@@ -500,6 +512,7 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] 17-01-PLAN.md — RLS do quadro e fechamento de patients_select
 - [x] 17-02-PLAN.md — Remover o laudo inventado da aba Avaliações
 - [x] 17-03-PLAN.md — Carimbar owner_id e esvaziar o texto de seed do quadro
@@ -528,6 +541,7 @@ Plans:
 **Plans:** 6/6 plans complete
 
 Plans:
+
 - [x] 18-01-PLAN.md — SQL do bucket account-avatars e do GRANT de coluna
 - [x] 18-02-PLAN.md — Bump de @supabase/supabase-js para 2.117.1
 - [x] 18-03-PLAN.md — Schema de nome e senha e mapAuthError por error.code
@@ -577,3 +591,328 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [ ] 19-03-PLAN.md — Seleção sem scroll no card e no mapa da avaliação
+
+### Phase 20: Esqueci minha senha
+
+**Goal:** No login, um link Esqueci minha senha pede o e-mail e manda a mensagem Fluxo de redefinição. O link do e-mail abre o app para a pessoa escolher uma senha nova e entrar de novo.
+**Requirements**: REQ-31
+**Depends on:** Phase 15
+**Success Criteria** (what must be TRUE):
+
+  1. Na tela de login existe um caminho Esqueci minha senha
+  2. Informar o e-mail dispara o e-mail de redefinição (template Fluxo já existente)
+  3. Abrir o link do e-mail permite definir uma senha nova
+  4. Depois disso, a senha antiga deixa de entrar e a nova entra
+
+**Plans:** 3/4 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 20-01-PLAN.md — Schemas, rate limit, confirm mode, requestPasswordReset + setPasswordFromRecovery
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 20-02-PLAN.md — Link no login + GuestRoute /esqueci-senha anti-enumeração
+- [x] 20-03-PLAN.md — AuthConfirmPage branch recovery + formulário Nova senha
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 20-04-PLAN.md — UAT hospedado REQ-31 + confirmação template Fluxo
+
+### Phase 21: Agendar sessões em vários dias da semana com repetição
+
+**Goal:** No agendamento, o profissional escolhe um ou mais dias da semana (por exemplo segunda, quarta e sábado) e quantas vezes a série se repete. Cada ocorrência vira sessão agendada no mesmo horário. Hoje só dá para repetir o mesmo dia da data escolhida.
+**Requirements**: REQ-32
+**Depends on:** Nothing (agenda e criação de sessões já existem)
+**Success Criteria** (what must be TRUE):
+
+  1. Dá para marcar mais de um dia da semana na mesma série (ex.: segunda, quarta e sábado)
+  2. Dá para informar quantas vezes a série se repete
+  3. As sessões nascem agendadas, no mesmo horário, nos dias escolhidos
+  4. Repetir só um dia continua possível (comportamento de hoje)
+
+**Plans:** 3/3 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 21-01-PLAN.md — Helper puro `src/lib/sessionSeries.ts` (série semanal, clamp 1–24, catálogo Seg→Dom, cópia PT-BR) provado por `node --test`
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 21-02-PLAN.md — Chips de dias da semana, campo "Repetir por quantas semanas", preview e CTA com contagem no modal Nova sessão
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 21-03-PLAN.md — Full suite + UAT manual da série real na agenda (checkpoint bloqueante)
+
+### Phase 22: Resumo do paciente editável e preenchido pela IA
+
+**Goal:** A geração de Resumo IA grava só o último resultado e preenche, para todo paciente, o mesmo conjunto de campos do Resumo do paciente — incluindo áreas de foco. A aba Resumo IA mostra o texto original gerado. A edição desse texto fica na aba Resumo.
+**Requirements**: REQ-33
+**Depends on:** Nothing (ficha, áreas de foco e a função de resumo já existem)
+**Plans:** 6/7 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 22-01-PLAN.md — Módulo puro patientSummary (chaves, rótulos, limites, resolução, diff, Zod) + node:test + teste de contrato
+- [x] 22-02-PLAN.md — Script SQL das colunas jsonb para o SQL Editor + documento de setup do operador
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 22-03-PLAN.md — Tipos, leitura saneada das colunas, as duas escritas dedicadas, geração validada por Zod e hook de edição
+- [x] 22-04-PLAN.md — Edge Function: pack do modo resumo limpo, prompt das 7 chaves e parse estendido
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 22-05-PLAN.md — Aba Resumo: os sete cards do conjunto fixo, lápis e modal Editar resumo
+- [x] 22-06-PLAN.md — Aba Resumo IA somente leitura, confirmação antes de regenerar e tipografia dos objetivos
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 22-07-PLAN.md — Suíte completa + UAT hospedado bloqueante (SQL, publicação, geração, edição, regeneração)
+
+**Success Criteria** (what must be TRUE):
+
+1. Gerar de novo substitui o resumo anterior; não há histórico de resumos.
+2. Na aba Resumo IA o profissional lê o texto original da última geração e não edita ali.
+3. Na aba Resumo o profissional edita o texto do resumo e a edição persiste.
+4. A mesma geração preenche os campos fixos do resumo (os definidos nesta fase, iguais para todos os pacientes) e as áreas de foco.
+5. O system prompt descreve esses campos e só usa o que o prontuário contém.
+
+### Phase 23: Ajustes do resumo IA e rolagem do Entenda o caso
+
+**Goal:** Na aba Resumo cada caixa se edita no próprio texto, sem modal. A geração usa o número real de sessões feitas, marca só as áreas de foco do prontuário e da descrição extra, e trata essa descrição com o mesmo peso do prontuário. No Entenda o caso, queixa e diagnóstico longos rolam por um slider discreto em vez de cortar a página.
+**Requirements**: REQ-34
+**Depends on:** Phase 22 (cards, persistência original/edição e a função de resumo)
+**Plans:** 4/5 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 23-01-PLAN.md — Matcher puro de rótulos (verde) e contratos REQ-34 (parte fica vermelha até os planos seguintes)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 23-02-PLAN.md — Edge Function: count de realizada, descrição como FONTE, focusRegionKeys pelo catálogo
+- [x] 23-03-PLAN.md — Editor inline em cada caixa do Resumo e remoção do modal
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 23-04-PLAN.md — Rolagem de Queixa/Diagnóstico e rótulo da descrição adicional
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 23-05-PLAN.md — Suíte completa e UAT hospedado (colar o index.ts da fase 13)
+
+**Cross-cutting constraints:**
+
+- A aba Resumo IA continua só com o original da última geração, sem lápis
+- Salvar uma caixa grava o diff das seis chaves resolvidas; a descrição não substitui `patient.sessionsDone`
+
+**Success Criteria** (what must be TRUE):
+
+1. Cada campo de texto do Resumo do paciente se edita dentro da própria caixa. Não abre uma janela com todos os campos.
+2. O número de sessões feitas que a IA usa é o das sessões concluídas do prontuário, não um campo desatualizado.
+3. As áreas de foco geradas são exatamente as que o prontuário e a descrição extra sustentam.
+4. A descrição adicional escrita antes de gerar entra no prompt como fonte, não como nota ignorável.
+5. Queixa e diagnóstico longos no Entenda o caso rolam no card, sem estourar o layout.
+
+### Phase 24: Atividades da avaliação
+
+**Goal:** No bloco B de 03 Função, o profissional registra várias atividades. Cada uma tem capacidade atual e quanto conseguia antes, com unidade (minutos, km, repetições). Some o campo Atividade solto e o Consigo por separado.
+**Requirements**: REQ-35
+**Depends on:** Phase 12 (ficha 03 Função já existe)
+**Plans:** 4/4 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 24-01-PLAN.md — Helper puro de capacidade (catálogo, normalize, format) e testes verdes
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 24-02-PLAN.md — Preprocess no schema e bloco B do formulário (grade revela a linha)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 24-03-PLAN.md — Leitura, catálogo 03.B e desenho do PDF com formatLinha
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 24-04-PLAN.md — Suíte completa e UAT hospedado do bloco B
+
+**Cross-cutting constraints:**
+
+- Só o bloco B de 03 Função; ficha já é jsonb, sem SQL e sem `supabase db push`
+- Não editar `patient-ai-summary`; não inventar EVA nem metas; sem pacote npm novo
+
+**Success Criteria** (what must be TRUE):
+
+1. Dá para marcar mais de uma atividade (correr, depois agachar) e preencher a capacidade de cada uma.
+2. Cada atividade mostra só capacidade atual e quanto conseguia antes. Não há campo Atividade nem Consigo por.
+3. Capacidade atual e quanto conseguia antes aceitam uma unidade de medida (minutos, km, repetições), com o par valor + unidade formatado de forma clara.
+4. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas atividades com valor e unidade.
+
+### Phase 25: Mobilidade, palpação e testes
+
+**Goal:** No bloco B de Avaliação e plano, o profissional escolhe a região e marca só os movimentos que vai medir, com direito e esquerdo no mesmo campo e a dor de cada lado. No bloco E, a palpação vira achados por região e estrutura, e os testes clínicos viram uma lista pesquisável.
+**Requirements**: REQ-36
+**Depends on:** Phase 12 (página 04 da ficha já existe)
+**Plans:** 4/5 plans executed
+
+Plans:
+
+- [x] 25-01-PLAN.md — Catálogos, normalize e frases do helper
+- [x] 25-02-PLAN.md — Preprocess no schema e escritores da coluna tests
+- [x] 25-03-PLAN.md — Blocos B e E da página 04
+- [x] 25-04-PLAN.md — Detalhe, catálogo, PDF e typecheck
+- [ ] 25-05-PLAN.md — Suíte completa e UAT hospedado
+
+**Cross-cutting constraints:**
+
+- Só os blocos B e E da página 04 · Avaliação e plano. Blocos A, C–G e as páginas 01–03 ficam como estão
+- A ficha já é jsonb: sem SQL e sem `supabase db push`
+- Não editar `patient-ai-summary`; sem pacote npm novo
+- Leitura, catálogo de export e PDF mostram o que a ficha nova grava
+
+**Success Criteria** (what must be TRUE):
+
+1. Dá para escolher uma região, marcar só os movimentos dela e acrescentar outra região, cada uma com tipo (ativo, passivo ou ambos) e comparação (bilateral ou unilateral).
+2. Cada movimento marcado mostra direito e esquerdo no mesmo campo. O valor aceita graus ou Completo, Limitado e Não avaliado. A dor de cada lado abre início, intensidade e observação.
+3. A palpação registra achados com região, local filtrado por essa região, lado, achado, dor e observação, numa lista que dá para editar.
+4. Os testes clínicos são uma lista pesquisável, com vários por região e Outro no fim.
+5. A leitura da ficha, o PDF e o catálogo de export mostram as mesmas regiões, movimentos, achados e testes.
+
+### Phase 26: PDF, botão Gerando e envio ao cliente
+
+**Goal:** O PDF de avaliação e o de evolução ficam simples e mostram só o que foi preenchido. Todo botão que chama a IA, enquanto gera, mostra Gerando com uma estrela e um brilho azul. Dá para mandar essa avaliação ou evolução direto ao cliente por e-mail ou WhatsApp, com o logo de cada um.
+**Requirements**: REQ-37
+**Depends on:** Phase 13 (o PDF de avaliação e evolução já existe)
+**UI hint**: yes
+**Plans:** 4/4 plans complete
+
+Plans:
+
+- [x] 26-01-PLAN.md — PDF de avaliação e evolução só com o preenchido
+- [x] 26-03-PLAN.md — Contato do paciente e função de e-mail no SMTP do Fluxo
+- [x] 26-02-PLAN.md — Botão Gerando com estrela e brilho azul
+- [x] 26-04-PLAN.md — Envio por e-mail e WhatsApp na exportação e na lista
+
+**Cross-cutting constraints:**
+
+- Sem SQL e sem `supabase db push`. Segredos de e-mail só no Dashboard, no SMTP que o Fluxo já usa
+- Sem pacote npm novo. Não editar `patient-ai-summary`
+- Conta sem escrita não vê e-mail nem WhatsApp. O brilho azul fica só no botão que está gerando com IA
+
+**Success Criteria** (what must be TRUE):
+
+1. O PDF de avaliação e o de evolução mostram só informações preenchidas, com uma formatação simples e limpa.
+2. Enquanto a IA gera, o botão diz Gerando, mostra uma estrela e o fundo tem um brilho azul animado.
+3. Na exportação, e-mail e WhatsApp aparecem com os logos e enviam a avaliação ou a evolução para o contato do cliente.
+
+### Phase 27: Analítica no Financeiro
+
+**Goal:** Na seção Totais do Financeiro, duas abas. Uma continua com Este mês, Este ano e Sempre. A outra é a Analítica, com visões e gráficos simples e interativos sobre os mesmos pagamentos.
+**Requirements**: REQ-38
+**Depends on:** Phase 5
+**UI hint**: yes
+**Plans:** 4/4 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 27-01-PLAN.md — Agregação pura dos pagamentos no fuso de São Paulo
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 27-02-PLAN.md — Leitura paginada das cobranças pagas e hook
+- [x] 27-03-PLAN.md — Gráficos SVG das três visões
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 27-04-PLAN.md — Abas Totais e Analítica na seção de totais
+
+**Success Criteria** (what must be TRUE):
+
+1. Onde estão os três totais, dá para trocar entre Totais e Analítica. Totais continua igual.
+2. A Analítica mostra arrecadado por mês, mistura por preço e o mês contra o anterior.
+3. Passar o mouse ou o foco mostra o valor em R$. Clicar num mês seleciona esse mês e as outras visões acompanham.
+4. Os números vêm dos mesmos pagamentos dos totais, inclusive sessão pré-paga. Sem mock, sem SQL novo e sem pacote novo.
+
+### Phase 28: Excluir paciente por completo
+
+**Goal:** Na ficha, quem pode editar o paciente consegue excluí-lo de vez. Depois de confirmar digitando o nome, o paciente e todos os dados ligados a ele saem do banco e os arquivos saem do storage.
+**Requirements**: REQ-39
+**Depends on:** Phase 27
+**UI hint**: yes
+
+**Success Criteria** (what must be TRUE):
+
+1. A ficha mostra Excluir paciente só para quem pode editar.
+2. O botão de confirmar só funciona depois de digitar o nome do paciente.
+3. Depois de excluir, nenhuma tabela tem linha ligada ao paciente e nenhum arquivo dele fica no storage.
+4. Ninguém exclui paciente de outra conta; a exclusão no banco é tudo ou nada.
+5. A tela volta para a lista e o paciente some da lista, dashboard, agenda e financeiro.
+
+**Plans:** 4/5 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 28-01-PLAN.md — SQL da exclusão (passo 0, tombstone, delete_patient_full, policies de limpeza de storage) + contrato
+- [x] 28-02-PLAN.md — Helpers de confirmação, service deletePatientCompletely e hook useDeletePatient
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 28-03-PLAN.md — Botão Excluir paciente na ficha e diálogo com confirmação por nome
+- [x] 28-04-PLAN.md — Passo 0 no banco vivo, reconciliar e aplicar o SQL pelo SQL Editor (humano)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 28-05-PLAN.md — Suite completa e verificação ponta a ponta no Supabase real (humano)
+
+### Phase 29: Fisio anexado na sessão da agenda
+
+**Goal:** Na agenda, a conta de empresa anexa um fisioterapeuta ativo da equipe à nova sessão. A sessão fica visível só para o fisio anexado e para a empresa. O fisio lê a ficha do paciente (sem editar) e muda só o status da sessão.
+**Requirements**: REQ-40
+**Depends on:** Phase 28
+**UI hint**: yes
+**Plans:** executada direto (sem PLAN.md), SQL em `sql/29-session-therapist-access.sql`
+
+**Success Criteria** (what must be TRUE):
+
+1. O campo Fisioterapeuta aparece em Nova sessão só para conta empresa, com os fisios ativos da equipe.
+2. O fisio anexado vê a sessão na agenda dele; outro fisio da equipe não vê.
+3. O fisio anexado abre a ficha do paciente em modo leitura.
+4. O fisio anexado muda o status; qualquer outra alteração da sessão é recusada pelo banco.
+5. O banco recusa anexar quem não é fisio ativo da equipe da empresa.
+
+### Phase 30: Assinatura desenhada na avaliação
+
+**Goal:** No bloco Identificação profissional da avaliação (página 04), o campo Assinatura vira um quadro onde o profissional desenha a assinatura com traço preto, com um botão que apaga tudo para refazer. A assinatura desenhada é salva na avaliação e aparece no PDF.
+**Requirements**: REQ-41
+**Depends on:** Phase 29
+**UI hint**: yes
+**Plans:** 1/2 plans executed
+
+**Success Criteria** (what must be TRUE):
+
+1. O quadro aceita desenho com mouse, dedo e caneta, em traço preto, sem rolar a página enquanto desenha.
+2. `Apagar assinatura` limpa o quadro e permite desenhar de novo.
+3. Ao salvar e reabrir a avaliação, a assinatura desenhada volta igual.
+4. O PDF da avaliação mostra a assinatura desenhada.
+5. Avaliação antiga com assinatura em texto mostra o texto; desenhar substitui o texto.
+6. Sem pacote npm novo e sem SQL novo.
+
+Plans:
+
+**Wave 1**
+
+- [x] 30-01-PLAN.md — Helpers do path, campo assinaturaTraco, SignaturePad em SVG e troca no bloco ID
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 30-02-PLAN.md — Assinatura desenhada no PDF (drawSvgPath) e verificação humana

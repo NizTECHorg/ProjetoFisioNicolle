@@ -1,6 +1,13 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { DetailLeaf } from '@/components/patients/evaluation/fichaFormPrimitives'
+import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
 import { FOCUS_REGIONS } from '@/lib/focusRegions'
+import {
+  formatAchado,
+  formatCabecalhoRegiao,
+  formatLinhaMovimento,
+  formatTeste,
+} from '@/lib/mobilidadePalpacao'
 
 const SYMBOL_GLYPH: Record<string, string> = {
   X: 'X',
@@ -45,6 +52,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
   const pregresso = ficha.anamnese?.historicoPregresso
   const sintomas = ficha.sintomas
   const funcao = ficha.funcao
+  const atividades = funcao?.atividadesAfetadas
   const plano = ficha.avaliacaoPlano
 
   const marks = sintomas?.mapa?.marks ?? []
@@ -114,6 +122,17 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Limitação 1" value={funcao?.limitacaoFuncional?.item1} />
         <DetailLeaf label="Limitação 2" value={funcao?.limitacaoFuncional?.item2} />
         <DetailLeaf label="Limitação 3" value={funcao?.limitacaoFuncional?.item3} />
+        {ATIVIDADES.map((item) => {
+          const marcada = atividades?.[item.key] === true
+          const capacidade = atividades?.capacidades?.[item.key]
+          const miolo = formatMiolo(capacidade?.atual, capacidade?.antes)
+          if (!marcada && !miolo) return null
+          return <DetailLeaf key={item.key} label={item.label} value={miolo || true} />
+        })}
+        <DetailLeaf
+          label="Registro anterior"
+          value={atividades?.textoLegado?.trim() ? atividades.textoLegado : undefined}
+        />
         <DetailLeaf label="Boa melhora" value={funcao?.expectativas?.boaMelhora} />
         <DetailLeaf label="Triagem — observações" value={funcao?.triagemSeguranca?.observacoes} />
         <DetailLeaf label="Medicamentos" value={funcao?.medicacoes?.medicamentos} />
@@ -124,8 +143,52 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">04 · Avaliação e plano</p>
         <DetailLeaf label="Inspeção — achados" value={plano?.inspecao?.achados} />
         <DetailLeaf label="Neurológico — achados" value={plano?.neurologico?.achados} />
-        <DetailLeaf label="Palpação" value={plano?.palpacaoTestes?.palpacao} />
-        <DetailLeaf label="Testes clínicos" value={plano?.palpacaoTestes?.testesClinicos} />
+        {(plano?.mobilidade?.regioes ?? []).map((regiao, index) => {
+          const nome = formatCabecalhoRegiao({ regiao: regiao.regiao }, { incluirNome: true })
+          const linhas = [
+            formatCabecalhoRegiao(regiao, { incluirNome: false }),
+            ...(regiao.movimentos ?? []).map((movimento) =>
+              formatLinhaMovimento(movimento, regiao.regiao),
+            ),
+          ].filter((linha) => linha.trim().length > 0)
+          const value = linhas.join('\n')
+          if (!nome.trim() || !value) return null
+          return <DetailLeaf key={`${regiao.regiao}-${index}`} label={nome} value={value} />
+        })}
+        <DetailLeaf
+          label="Registro anterior"
+          value={plano?.mobilidade?.registroAnterior?.trim() ? plano.mobilidade.registroAnterior : undefined}
+        />
+        {(plano?.palpacaoTestes?.achados ?? []).map((achado, index) => {
+          const frase = formatAchado(achado)
+          if (!frase.trim()) return null
+          return <DetailLeaf key={`achado-${achado.regiao}-${index}`} label="Achado" value={frase} />
+        })}
+        <DetailLeaf
+          label="Registro anterior"
+          value={
+            plano?.palpacaoTestes?.palpacaoRegistroAnterior?.trim()
+              ? plano.palpacaoTestes.palpacaoRegistroAnterior
+              : undefined
+          }
+        />
+        <DetailLeaf
+          label="Testes clínicos"
+          value={
+            (plano?.palpacaoTestes?.testes ?? [])
+              .map((teste) => formatTeste(teste))
+              .filter((linha) => linha.trim().length > 0)
+              .join('\n') || undefined
+          }
+        />
+        <DetailLeaf
+          label="Registro anterior"
+          value={
+            plano?.palpacaoTestes?.testesRegistroAnterior?.trim()
+              ? plano.palpacaoTestes.testesRegistroAnterior
+              : undefined
+          }
+        />
         <DetailLeaf label="Diagnóstico fisioterapêutico" value={plano?.sintese?.diagnosticoFisio} />
         <DetailLeaf label="Prognóstico" value={plano?.sintese?.prognostico} />
         <DetailLeaf label="Objetivo curto 1" value={plano?.objetivos?.curto1} />

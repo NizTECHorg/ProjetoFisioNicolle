@@ -32,6 +32,7 @@ type PatientProfileHeaderProps = {
   identityAction?: ReactNode
   /** Ação no topo à direita (ex.: Nova avaliação no Resumo). */
   topRightAction?: ReactNode
+  /** Abre o diálogo de exclusão; só aparece com canWrite. */
 }
 
 const avatarClassName = '!h-14 !w-14 !text-base sm:!h-16 sm:!w-16 sm:!text-lg'

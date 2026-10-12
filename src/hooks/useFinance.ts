@@ -6,6 +6,7 @@ import {
   fetchChargesBySessionIds,
   fetchFinanceTotals,
   listActivePrices,
+  listFinancePaidForAnalytics,
   listFinanceRealizadas,
   markChargePaid,
   updatePrice,
@@ -38,6 +39,16 @@ export function useFinanceTotals() {
   return useQuery({
     queryKey: ['finance', 'totals', userId],
     queryFn: fetchFinanceTotals,
+    enabled: signedIn,
+    staleTime: 60_000,
+  })
+}
+
+export function useFinanceAnalytics() {
+  const { userId, signedIn } = useAccountScope()
+  return useQuery({
+    queryKey: ['finance', 'analytics', userId],
+    queryFn: listFinancePaidForAnalytics,
     enabled: signedIn,
     staleTime: 60_000,
   })

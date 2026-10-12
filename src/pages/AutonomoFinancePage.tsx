@@ -1,39 +1,39 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Wallet } from 'lucide-react'
+import {
+  FinanceAnalyticsCharts,
+  FinanceAnalyticsFilters,
+} from '@/components/finance/FinanceAnalyticsCharts'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
 import { Modal } from '@/components/ui/Modal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { DataTable } from '@/components/ui/DataTable'
-import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/hooks/useAuth'
+import { usePatients } from '@/hooks/usePatients'
 import {
   useArchivePrice,
   useCreatePrice,
+  useFinanceAnalytics,
   useFinancePrices,
   useFinanceRealizadas,
   useFinanceTotals,
-  useMarkChargePaid,
   useUpdatePrice,
-  useUpsertCharge,
 } from '@/hooks/useFinance'
 import { canSeeFinance } from '@/lib/accountAccess'
+import { saoPauloMonthKey } from '@/lib/financeAnalytics'
 import { formatCurrency, formatDate } from '@/lib/security'
 import {
   emptyPriceForm,
-  emptySessionChargeFields,
   parseBrlInput,
   priceFormSchema,
-  sessionChargeFieldsSchema,
   type PriceFormData,
-  type SessionChargeFieldsFormData,
 } from '@/schemas/finance.schema'
-import type { AutonomoPrice, FinanceRealizadaRow, SessionCharge } from '@/types/finance'
+import type { AutonomoPrice, SessionCharge } from '@/types/finance'
 
 function formatBrlInput(value: number): string {
   return value.toFixed(2).replace('.', ',')
@@ -54,20 +54,30 @@ export function AutonomoFinancePage() {
   const { data: prices = [], isLoading: pricesLoading, isError: pricesError } = useFinancePrices()
   const { data: totals, isLoading: totalsLoading, isError: totalsError } = useFinanceTotals()
   const {
+    data: analyticsRows = [],
+    isLoading: analyticsLoading,
+    isError: analyticsError,
+  } = useFinanceAnalytics()
+  const { data: patients = [] } = usePatients()
+  const {
     data: realizadas = [],
     isLoading: realizadasLoading,
     isError: realizadasError,
   } = useFinanceRealizadas()
+  const paidSessions = useMemo(() => realizadas.filter((row) => row.charge?.isPaid), [realizadas])
   const createPrice = useCreatePrice()
   const updatePrice = useUpdatePrice()
   const archivePrice = useArchivePrice()
-  const upsertCharge = useUpsertCharge()
-  const markChargePaid = useMarkChargePaid()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<AutonomoPrice | null>(null)
   const [pendingArchive, setPendingArchive] = useState<AutonomoPrice | null>(null)
-  const [completing, setCompleting] = useState<FinanceRealizadaRow | null>(null)
+  const [clock] = useState(() => new Date())
+  const [tab, setTab] = useState<'totais' | 'analitica'>('totais')
+  const [selectedMonthKey, setSelectedMonthKey] = useState(() => saoPauloMonthKey(clock))
+  const [analyticsPatientId, setAnalyticsPatientId] = useState<string | null>(null)
+  const totalsTabRef = useRef<HTMLButtonElement>(null)
+  const analyticsTabRef = useRef<HTMLButtonElement>(null)
 
   const createForm = useForm<PriceFormData>({
     resolver: zodResolver(priceFormSchema),
@@ -77,21 +87,10 @@ export function AutonomoFinancePage() {
     resolver: zodResolver(priceFormSchema),
     defaultValues: emptyPriceForm(),
   })
-  const completeForm = useForm<SessionChargeFieldsFormData>({
-    resolver: zodResolver(sessionChargeFieldsSchema),
-    defaultValues: emptySessionChargeFields(),
-  })
 
-  const completePriceId = completeForm.watch('priceId')
-  const catalogOptions = useMemo(
-    () => [
-      { value: '', label: 'Sem valor' },
-      ...prices.map((item) => ({
-        value: item.id,
-        label: `${item.name} — ${formatCurrency(Number(item.amountBrl))}`,
-      })),
-    ],
-    [prices],
+  const patientNames = useMemo(
+    () => new Map(patients.map((patient) => [patient.id, patient.name])),
+    [patients],
   )
 
   if (!canSeeFinance(profile?.accountType)) {
@@ -124,16 +123,6 @@ export function AutonomoFinancePage() {
     editForm.reset(emptyPriceForm())
   }
 
-  function openComplete(row: FinanceRealizadaRow) {
-    completeForm.reset(emptySessionChargeFields())
-    setCompleting(row)
-  }
-
-  function closeComplete() {
-    setCompleting(null)
-    completeForm.reset(emptySessionChargeFields())
-  }
-
   function onCreate(values: PriceFormData) {
     const amountBrl = parseBrlInput(values.amount)
     if (amountBrl === null) return
@@ -153,52 +142,24 @@ export function AutonomoFinancePage() {
     )
   }
 
-  function onComplete(values: SessionChargeFieldsFormData) {
-    if (!completing) return
-    upsertCharge.mutate(
-      {
-        sessionId: completing.sessionId,
-        priceId: values.priceId || null,
-        adHocAmountBrl: parseBrlInput(values.adHocAmount),
-        isPaid: values.isPaid,
-      },
-      { onSuccess: () => closeComplete() },
-    )
+  function onTotalsTabKeyDown(event: KeyboardEvent<HTMLElement>) {
+    const key = event.key
+    if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Home' && key !== 'End') return
+    event.preventDefault()
+    const next =
+      key === 'Home' ? 'totais' : key === 'End' ? 'analitica' : tab === 'totais' ? 'analitica' : 'totais'
+    setTab(next)
+    const node = next === 'totais' ? totalsTabRef.current : analyticsTabRef.current
+    node?.focus()
   }
 
-  function rowAction(row: FinanceRealizadaRow) {
-    if (!row.charge) {
-      return (
-        <Button
-          type="button"
-          variant="ghost"
-          className="min-h-11 min-w-11"
-          onClick={() => openComplete(row)}
-        >
-          Completar valor
-        </Button>
-      )
-    }
-    if (!row.charge.isPaid) {
-      return (
-        <Button
-          type="button"
-          variant="ghost"
-          className="min-h-11 min-w-11"
-          isLoading={markChargePaid.isPending && markChargePaid.variables === row.sessionId}
-          onClick={() => markChargePaid.mutate(row.sessionId)}
-        >
-          Marcar como pago
-        </Button>
-      )
-    }
-    return null
-  }
-
-  function statusBadge(charge: SessionCharge | null) {
-    if (charge?.isPaid) return <Badge tone="success">Pago</Badge>
-    return <Badge tone="muted">Sem pagamento</Badge>
-  }
+  const tabClass = (selected: boolean) =>
+    [
+      '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 text-sm font-semibold transition-colors',
+      selected
+        ? 'border-forest text-forest'
+        : 'border-transparent text-muted hover:border-line hover:text-ink',
+    ].join(' ')
 
   return (
     <section className="mx-auto w-full max-w-7xl">
@@ -230,23 +191,106 @@ export function AutonomoFinancePage() {
         <div className="space-y-6">
           <section className="dash-in">
             <h2 className="mb-4 text-xl font-semibold leading-tight text-ink">Totais</h2>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-                <p className="text-sm text-muted">Este mês</p>
-                <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{monthTotal}</p>
-              </article>
-              <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-                <p className="text-sm text-muted">Este ano</p>
-                <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{yearTotal}</p>
-              </article>
-              <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
-                <p className="text-sm text-muted">Sempre</p>
-                <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{alwaysTotal}</p>
-              </article>
-            </div>
-            <p className="mt-3 text-xs text-muted">
-              Soma das sessões pagas, inclusive pré-pagas agendadas.
-            </p>
+            <nav
+              className="flex min-w-0 items-end gap-4 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line [-ms-overflow-style:auto] [scrollbar-width:thin]"
+              aria-label="Visões dos totais"
+              role="tablist"
+              onKeyDown={onTotalsTabKeyDown}
+            >
+              <button
+                ref={totalsTabRef}
+                type="button"
+                role="tab"
+                id="finance-totals-tab"
+                aria-selected={tab === 'totais'}
+                aria-controls="finance-totals-panel"
+                className={tabClass(tab === 'totais')}
+                onClick={() => setTab('totais')}
+              >
+                Totais
+              </button>
+              <button
+                ref={analyticsTabRef}
+                type="button"
+                role="tab"
+                id="finance-analytics-tab"
+                aria-selected={tab === 'analitica'}
+                aria-controls="finance-analytics-panel"
+                className={tabClass(tab === 'analitica')}
+                onClick={() => setTab('analitica')}
+              >
+                Analítica
+              </button>
+            </nav>
+            {tab === 'totais' ? (
+              <div
+                id="finance-totals-panel"
+                role="tabpanel"
+                aria-labelledby="finance-totals-tab"
+                className="mt-4"
+              >
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+                    <p className="text-sm text-muted">Este mês</p>
+                    <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{monthTotal}</p>
+                  </article>
+                  <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+                    <p className="text-sm text-muted">Este ano</p>
+                    <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{yearTotal}</p>
+                  </article>
+                  <article className="rounded-2xl border border-line bg-surface p-4 md:p-6">
+                    <p className="text-sm text-muted">Sempre</p>
+                    <p className="mt-2 text-3xl font-semibold leading-tight text-ink">{alwaysTotal}</p>
+                  </article>
+                </div>
+                <p className="mt-3 text-xs text-muted">
+                  Soma das sessões pagas, inclusive pré-pagas agendadas.
+                </p>
+              </div>
+            ) : (
+              <div
+                id="finance-analytics-panel"
+                role="tabpanel"
+                aria-labelledby="finance-analytics-tab"
+                className="mt-4"
+              >
+                {analyticsLoading ? (
+                  <div className="flex min-h-48 items-center justify-center">
+                    <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+                  </div>
+                ) : analyticsError ? (
+                  <article className="rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
+                    Não foi possível carregar a analítica. Tente de novo em instantes.
+                  </article>
+                ) : analyticsRows.length === 0 ? (
+                  <FinanceAnalyticsCharts
+                    rows={analyticsRows}
+                    now={clock}
+                    selectedMonthKey={selectedMonthKey}
+                    onSelectMonth={setSelectedMonthKey}
+                  />
+                ) : (
+                  <div className="space-y-6">
+                    <FinanceAnalyticsFilters
+                      rows={analyticsRows}
+                      now={clock}
+                      patientNames={patientNames}
+                      selectedMonthKey={selectedMonthKey}
+                      onSelectMonth={setSelectedMonthKey}
+                      patientId={analyticsPatientId}
+                      onSelectPatient={setAnalyticsPatientId}
+                    />
+                    <FinanceAnalyticsCharts
+                      rows={analyticsRows}
+                      now={clock}
+                      selectedMonthKey={selectedMonthKey}
+                      onSelectMonth={setSelectedMonthKey}
+                      patientId={analyticsPatientId}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="dash-in" style={{ animationDelay: '80ms' }}>
@@ -336,38 +380,34 @@ export function AutonomoFinancePage() {
           </section>
 
           <section className="dash-in" style={{ animationDelay: '120ms' }}>
-            <h2 className="mb-4 text-xl font-semibold leading-tight text-ink">Sessões realizadas</h2>
+            <h2 className="mb-4 text-xl font-semibold leading-tight text-ink">Sessões pagas</h2>
             {realizadasError ? (
               <article className="rounded-2xl border border-error/20 bg-error/5 px-6 py-8 text-sm text-error">
                 Não foi possível carregar as sessões. Tente de novo em instantes.
               </article>
-            ) : realizadasLoading || realizadas.length === 0 ? (
+            ) : realizadasLoading || paidSessions.length === 0 ? (
               <DataTable
                 columns={[
                   { key: 'date', header: 'Data', render: () => null },
                   { key: 'patient', header: 'Paciente', render: () => null },
                   { key: 'price', header: 'Preço', render: () => null },
                   { key: 'amount', header: 'Valor', render: () => null },
-                  { key: 'status', header: 'Status', render: () => null },
-                  { key: 'action', header: 'Ação', render: () => null },
                 ]}
                 data={[]}
                 rowKey={() => 'empty'}
                 isLoading={realizadasLoading}
-                emptyTitle="Nenhuma sessão realizada"
-                emptyDescription="Marque uma sessão como realizada na ficha do paciente. Ela aparece aqui para completar o valor e marcar pago."
+                emptyTitle="Nenhuma sessão paga"
+                emptyDescription="Quando uma sessão realizada for marcada como paga na ficha do paciente, ela aparece aqui."
               />
             ) : (
               <>
                 <div className="space-y-3 md:hidden">
-                  {realizadas.map((row) => (
+                  {paidSessions.map((row) => (
                     <article key={row.sessionId} className="rounded-2xl border border-line bg-surface p-4">
                       <p className="text-sm font-semibold text-ink">{row.patientName || '—'}</p>
                       <p className="mt-0.5 text-xs text-muted">{formatDate(row.scheduledAt)}</p>
                       <p className="mt-2 text-sm text-ink">{priceLabel(row.charge)}</p>
                       <p className="text-sm text-muted">{amountLabel(row.charge)}</p>
-                      <div className="mt-3">{statusBadge(row.charge)}</div>
-                      <div className="mt-4">{rowAction(row)}</div>
                     </article>
                   ))}
                 </div>
@@ -396,21 +436,11 @@ export function AutonomoFinancePage() {
                         header: 'Valor',
                         render: (row) => amountLabel(row.charge),
                       },
-                      {
-                        key: 'status',
-                        header: 'Status',
-                        render: (row) => statusBadge(row.charge),
-                      },
-                      {
-                        key: 'action',
-                        header: 'Ação',
-                        render: (row) => rowAction(row),
-                      },
                     ]}
-                    data={realizadas}
+                    data={paidSessions}
                     rowKey={(row) => row.sessionId}
-                    emptyTitle="Nenhuma sessão realizada"
-                    emptyDescription="Marque uma sessão como realizada na ficha do paciente. Ela aparece aqui para completar o valor e marcar pago."
+                    emptyTitle="Nenhuma sessão paga"
+                    emptyDescription="Quando uma sessão realizada for marcada como paga na ficha do paciente, ela aparece aqui."
                   />
                 </div>
               </>
@@ -484,67 +514,6 @@ export function AutonomoFinancePage() {
             </Button>
             <Button type="submit" isLoading={updatePrice.isPending}>
               Salvar preço
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      <Modal
-        open={Boolean(completing)}
-        title="Completar valor"
-        description={
-          completing
-            ? `${completing.patientName} · ${formatDate(completing.scheduledAt)}`
-            : undefined
-        }
-        onClose={closeComplete}
-      >
-        <form className="space-y-4" onSubmit={completeForm.handleSubmit(onComplete)}>
-          <input type="hidden" {...completeForm.register('priceId')} />
-          {prices.length > 0 ? (
-            <Select
-              label="Preço do catálogo"
-              options={catalogOptions}
-              value={prices.some((item) => item.id === completePriceId) ? completePriceId : ''}
-              onChange={(event) => {
-                const next = event.target.value
-                completeForm.setValue('priceId', next, { shouldValidate: true })
-                if (next) {
-                  completeForm.setValue('adHocAmount', '', { shouldValidate: true })
-                }
-              }}
-            />
-          ) : null}
-          <Input
-            label="Valor avulso (R$)"
-            placeholder="0,00"
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            error={completeForm.formState.errors.adHocAmount?.message}
-            {...completeForm.register('adHocAmount', {
-              onChange: () => {
-                completeForm.setValue('priceId', '', { shouldValidate: true })
-              },
-            })}
-          />
-          <div>
-            <label className="flex min-h-11 items-center gap-2 text-sm text-ink">
-              <input type="checkbox" className="accent-forest" {...completeForm.register('isPaid')} />
-              Pago
-            </label>
-            {completeForm.formState.errors.isPaid?.message ? (
-              <p role="alert" className="text-xs text-error">
-                {completeForm.formState.errors.isPaid.message}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={closeComplete}>
-              Voltar
-            </Button>
-            <Button type="submit" isLoading={upsertCharge.isPending}>
-              Salvar valor
             </Button>
           </div>
         </form>
