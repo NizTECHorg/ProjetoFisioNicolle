@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
 import type { FieldPath, FieldValues, UseFormRegister } from 'react-hook-form'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -14,6 +15,8 @@ export function FichaBlock({
   children: ReactNode
   tone?: 'default' | 'danger'
 }) {
+  const [aberto, setAberto] = useState(true)
+  const conteudoId = useId()
   const border = tone === 'danger' ? 'border-error/30' : 'border-line'
   const badge =
     tone === 'danger'
@@ -23,7 +26,13 @@ export function FichaBlock({
 
   return (
     <section className={`rounded-2xl border ${border} bg-surface p-4 sm:p-5`}>
-      <div className="flex items-center gap-2.5">
+      <button
+        type="button"
+        aria-expanded={aberto}
+        aria-controls={conteudoId}
+        onClick={() => setAberto((atual) => !atual)}
+        className="-m-1 flex w-[calc(100%+0.5rem)] items-center gap-2.5 rounded-xl p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+      >
         <span
           className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-semibold ${badge}`}
         >
@@ -32,8 +41,20 @@ export function FichaBlock({
         <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${heading}`}>
           Bloco {letter} · {title}
         </p>
+        <ChevronDown
+          size={18}
+          aria-hidden
+          className={[
+            'shrink-0 text-accent transition-transform duration-200 motion-reduce:transition-none',
+            aberto ? 'rotate-0' : '-rotate-90',
+          ].join(' ')}
+        />
+        <span className="sr-only">{aberto ? 'Recolher bloco' : 'Expandir bloco'}</span>
+      </button>
+      {/* Recolhido fica montado (hidden) para não perder estado interno dos campos. */}
+      <div id={conteudoId} hidden={!aberto} className="mt-4 space-y-4">
+        {children}
       </div>
-      <div className="mt-4 space-y-4">{children}</div>
     </section>
   )
 }
