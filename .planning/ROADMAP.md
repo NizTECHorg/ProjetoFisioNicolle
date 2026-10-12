@@ -940,7 +940,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 31-01-PLAN.md — SQL atômico `delete_account_data` + tombstone + `finish_account_deletion` (só service_role) e contrato
+- [x] 31-01-PLAN.md — SQL atômico `delete_account_data` + tombstone + `finish_account_deletion` (só service_role) e contrato
 - [ ] 31-02-PLAN.md — Edge Function `delete-account` (JWT, EXCLUIR + senha no servidor, RPC → storage → deleteUser) e contrato
 - [ ] 31-03-PLAN.md — Helpers puros (EXCLUIR, tipo, aviso, erros) e service `accountDeletion` no cliente
 
