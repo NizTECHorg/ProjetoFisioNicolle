@@ -12,7 +12,8 @@ function blobToBase64(blob: Blob): Promise<string> {
     reader.onloadend = () => {
       if (typeof reader.result === 'string') {
         const base64 = reader.result.split(',')[1];
-        resolve(base64);
+        if (base64) resolve(base64);
+        else reject(new Error('Failed to convert blob to base64'));
       } else {
         reject(new Error('Failed to convert blob to base64'));
       }
@@ -26,11 +27,11 @@ export async function generateEvolutionFromAudio(audioBlob: Blob): Promise<strin
   const ai = getClient();
   const base64Data = await blobToBase64(audioBlob);
 
-  const prompt = `Voc� � um assistente de fisioterapia experiente. 
-Escute a grava��o da consulta entre o fisioterapeuta e o paciente. 
-Extraia os dados cl�nicos relevantes, ignore conversas paralelas e cumprimentos informais.
-Escreva a Evolu��o do Paciente no formato SOAP (Subjetivo, Objetivo, Avalia��o, Plano) estruturado em Markdown.
-N�o inclua a transcri��o literal, nem introdu��es ou finaliza��es. Retorne APENAS o prontu�rio final em texto Markdown puro.`;
+  const prompt = `Você é um assistente de fisioterapia experiente.
+Escute a gravação da consulta entre o fisioterapeuta e o paciente.
+Extraia os dados clínicos relevantes, ignore conversas paralelas e cumprimentos informais.
+Escreva a Evolução do Paciente no formato SOAP (Subjetivo, Objetivo, Avaliação, Plano) estruturado em Markdown.
+Não inclua a transcrição literal, nem introduções ou finalizações. Retorne APENAS o prontuário final em texto Markdown puro.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3.8-flash',

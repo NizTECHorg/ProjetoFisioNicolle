@@ -67,6 +67,8 @@ type PatientSessionEditorFormProps = {
   successAction?: ToastAction
   errorMessage?: string
   editing?: PatientSessionRecord | null
+  /** Texto pronto (ex.: evolução gerada por áudio) para uma sessão NOVA já realizada. */
+  draftConducts?: string | null
   onCancel: () => void
   onSuccess: () => void
 }
@@ -78,6 +80,7 @@ export function PatientSessionEditorForm({
   successAction,
   errorMessage,
   editing,
+  draftConducts,
   onCancel,
   onSuccess,
 }: PatientSessionEditorFormProps) {
@@ -153,20 +156,20 @@ export function PatientSessionEditorForm({
       return
     }
     form.reset({
-      mode: 'agendar',
+      mode: draftConducts ? 'realizada' : 'agendar',
       scheduledAt: defaultScheduledLocal(),
       sessionType: 'Sessão',
       place: '',
       therapistId: '',
       patientState: '',
       changesSinceLast: '',
-      conducts: '',
+      conducts: draftConducts ?? '',
       treatmentResponse: '',
       incidents: '',
       nextPlan: '',
       ...emptyFinanceFields,
     })
-  }, [editing, form, therapists, charge, showFinance])
+  }, [editing, draftConducts, form, therapists, charge, showFinance])
 
   function onSubmit(values: SessionFormData) {
     const therapist = therapists.find((item) => item.id === values.therapistId)

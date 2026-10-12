@@ -152,6 +152,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   }, [images])
 
   const [editorOpen, setEditorOpen] = useState(false)
+  const [draftConducts, setDraftConducts] = useState<string | null>(null)
   const [isProcessingAudio, setIsProcessingAudio] = useState(false)
   const { isRecording, duration, startRecording, stopRecording, audioBlob } = useVoiceCopilot()
 
@@ -162,28 +163,13 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
         try {
           setIsProcessingAudio(true)
           const text = await generateEvolutionFromAudio(audioBlob)
-          setEditing({
-            id: '',
-            patientId,
-            dateLabel: new Date().toLocaleDateString('pt-BR'),
-            timeLabel: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            status: 'realizada',
-            type: 'Sessão',
-            place: 'Consultório',
-            therapistName: profile?.name || '',
-            evolution: {
-              patientState: '',
-              conducts: text,
-              changesSinceLast: '',
-              treatmentResponse: '',
-              incidents: '',
-              nextPlan: '',
-            }
-          })
+          setEditing(null)
+          setDraftConducts(text)
           setEditorOpen(true)
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error(error)
-          useToastStore.getState().push('Erro ao processar áudio: ' + (error.message || 'Chave da API ausente ou inválida'), 'error')
+          const message = error instanceof Error && error.message ? error.message : 'Chave da API ausente ou inválida'
+          useToastStore.getState().push('Erro ao processar áudio: ' + message, 'error')
         } finally {
           setIsProcessingAudio(false)
         }
@@ -202,6 +188,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   function closeEditor() {
     setEditorOpen(false)
     setEditing(null)
+    setDraftConducts(null)
   }
 
   function closeViewer() {
@@ -234,7 +221,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                   <Mic size={16} />
                 </Button>
               )}
-              <Button type="button" onClick={() => { setEditing(null); setEditorOpen(true) }}>
+              <Button type="button" onClick={() => { setEditing(null); setDraftConducts(null); setEditorOpen(true) }}>
                 <Plus size={16} />
                 Nova sessão
               </Button>
@@ -285,6 +272,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                           aria-label="Editar sessão"
                           onClick={() => {
                             setEditing(session)
+                            setDraftConducts(null)
                             setEditorOpen(true)
                           }}
                           className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
@@ -412,6 +400,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
           <PatientSessionEditorForm
             patientId={patientId}
             editing={editing}
+            draftConducts={draftConducts}
             cancelLabel="Cancelar"
             submitLabel="Salvar"
             onCancel={closeEditor}
