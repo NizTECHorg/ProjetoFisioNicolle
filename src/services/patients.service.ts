@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { mapDbError } from '@/lib/security'
+import { mapDbError, sanitizeText } from '@/lib/security'
 import { narrowAiSummaryFields, narrowSummaryEdits } from '@/lib/patientSummary'
 import { getFocusRegion } from '@/lib/focusRegions'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
@@ -613,6 +613,9 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
   if (input.adminNotes !== undefined) payload.admin_notes = emptyToNull(input.adminNotes)
   if (input.referralSource !== undefined) payload.referral_source = emptyToNull(input.referralSource)
   if (input.therapistName !== undefined) payload.therapist_name = emptyToNull(input.therapistName)
+  if (input.programName !== undefined) {
+    payload.program_name = emptyToNull(sanitizeText(input.programName, 80))
+  }
   if (input.status !== undefined) payload.status = input.status
   if (input.code !== undefined && input.code.trim()) payload.code = input.code.trim()
   if (input.treatmentStartedOn !== undefined) {

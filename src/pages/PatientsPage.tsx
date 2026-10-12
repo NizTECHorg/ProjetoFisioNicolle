@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { PatientPhotoControl } from '@/components/patients/PatientPhotoControl'
+import { PatientProgramCell } from '@/components/patients/PatientProgramCell'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -66,6 +67,13 @@ export function PatientsPage() {
   const visible = useMemo(
     () => sortPatients(filterPatientsByName(patients, query), sort),
     [patients, query, sort],
+  )
+  const programSuggestions = useMemo(
+    () =>
+      [...new Set(patients.map((item) => item.program).filter((item) => item && item !== '—'))].sort(
+        (left, right) => left.localeCompare(right, 'pt-BR'),
+      ),
+    [patients],
   )
 
   const form = useForm<CreatePatientFormData>({
@@ -308,7 +316,14 @@ export function PatientsPage() {
                           {statusLabels[patient.status]}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-muted">{patient.program}</td>
+                      <td className="px-5 py-3.5 text-muted">
+                        <PatientProgramCell
+                          patientId={patient.id}
+                          program={patient.program}
+                          suggestions={programSuggestions}
+                          writable={writable}
+                        />
+                      </td>
                       <td className="px-5 py-3.5 text-muted">
                         <span className="block text-ink">{patient.sessionsDone} feitos</span>
                         {patient.sessionsTotal > 0 ? (

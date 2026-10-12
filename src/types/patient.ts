@@ -273,6 +273,8 @@ export interface UpdatePatientInput {
   adminNotes?: string
   referralSource?: string
   therapistName?: string
+  /** Programa de tratamento (coluna Programa da lista). Vazio limpa. */
+  programName?: string
   status?: PatientStatus
   code?: string
   treatmentStartedOn?: string
