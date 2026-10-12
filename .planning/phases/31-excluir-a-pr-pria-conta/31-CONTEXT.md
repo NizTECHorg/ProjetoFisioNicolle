@@ -20,6 +20,12 @@ Na página **Minha conta** (`src/pages/AccountPage.tsx`), o usuário logado excl
 - **Fisio de empresa (membership active/pending):** apaga só a conta dele (login, perfil, avatar, quadro/Google próprios se houver). Os pacientes que ele criou **passam para o dono da empresa** (`patients.created_by` = owner), sem perder nada. Sessões anexadas a ele (`patient_sessions.therapist_id`) ficam sem fisio (null). O vínculo dele é removido.
 - Fisio sem empresa ativa (pending/rejected) que criou pacientes: tratar como autônomo para os próprios dados (pesquisa confirma o caso).
 
+### Decisões após a pesquisa (2026-10-12)
+- Quando a empresa exclui a conta, os fisios ativos da equipe passam a `account_type = 'autonomo'` (não ficam presos em /aguardando).
+- Registros clínicos de fisio que sai mantêm o nome em texto (`created_by_name`, `therapist_name`); só o login some.
+- `storage.objects.owner` de arquivos do fisio que sai é reatribuído ao dono da empresa (senão `auth.admin.deleteUser` falha).
+- Fisio `pending` não tem UI de exclusão nesta fase (a função SQL cobre o caso).
+
 ### Confirmação (disclaimer)
 - Área sensível no fim de Minha conta, botão `Excluir minha conta` (estilo de perigo, igual à Área sensível da ficha).
 - Diálogo com aviso específico do tipo de conta (o que some, que é definitivo, que não dá para desfazer; para empresa, quantos pacientes e que os fisios perdem o vínculo; para fisio, que os pacientes ficam com a empresa).
