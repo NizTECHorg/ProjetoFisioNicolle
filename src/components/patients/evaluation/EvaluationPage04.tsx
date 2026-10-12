@@ -1280,16 +1280,13 @@ function SubSecao({
   const tituloId = useId()
   return (
     <section aria-labelledby={tituloId} className="rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
-      <header className="mb-4 flex items-start gap-3 border-b border-line pb-3">
-        <span
-          aria-hidden
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest text-white"
-        >
-          <Icon size={18} />
-        </span>
+      <header className="mb-4 border-b border-line pb-3">
         <div className="min-w-0">
-          <h3 id={tituloId} className="text-base font-semibold leading-tight text-ink">
-            <span className="text-muted">{numero}.</span> {titulo}
+          <h3 id={tituloId} className="flex items-center gap-2 text-base font-semibold leading-tight text-ink">
+            <Icon size={16} strokeWidth={1.75} aria-hidden className="shrink-0 text-forest" />
+            <span>
+              <span className="text-muted">{numero}.</span> {titulo}
+            </span>
           </h3>
           <p className="mt-1 text-sm leading-snug text-muted">{descricao}</p>
         </div>
