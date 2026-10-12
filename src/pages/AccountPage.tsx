@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Camera } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Camera, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
+import { DeleteAccountDialog } from '@/components/account/DeleteAccountDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { accountTypeLabel } from '@/lib/accountAccess'
+import { accountDeletionKind } from '@/lib/accountDeletion'
 import { preparePatientPhoto } from '@/lib/cropPatientPhoto'
 import {
   accountNameSchema,
@@ -16,6 +20,10 @@ import {
   type ChangePasswordFormData,
 } from '@/schemas/auth.schema'
 import { removeAccountPhoto, signAccountAvatarUrl, uploadAccountPhoto } from '@/services/accountPhoto.service'
+import {
+  countAccountDeletionPatients,
+  signOutAfterAccountDeletion,
+} from '@/services/accountDeletion.service'
 import { changePassword, updateOwnName } from '@/services/auth.service'
 import { toast } from '@/stores/toast.store'
 
@@ -67,7 +75,9 @@ function accountInitials(displayName: string): string {
 }
 
 export function AccountPage() {
-  const { profile, user, reloadProfile } = useAuth()
+  const { profile, user, membership, reloadProfile } = useAuth()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const savedName = (profile?.fullName ?? user?.user_metadata.full_name ?? '').trim()
   const email = user?.email ?? profile?.email ?? ''
   const avatarPath =
@@ -79,6 +89,9 @@ export function AccountPage() {
   const [uploading, setUploading] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletePatientCount, setDeletePatientCount] = useState<number | null>(null)
+  const deletionKind = accountDeletionKind(profile?.accountType, membership)
 
   const {
     register,
@@ -216,12 +229,27 @@ export function AccountPage() {
     }
   }
 
+  function openDeleteDialog() {
+    setDeletePatientCount(null)
+    setDeleteOpen(true)
+    if (deletionKind === 'empresa') {
+      void countAccountDeletionPatients().then(setDeletePatientCount)
+    }
+  }
+
+  async function onAccountDeleted() {
+    await signOutAfterAccountDeletion()
+    queryClient.clear()
+    navigate('/', { replace: true })
+    toast('Sua conta foi excluída.', 'success')
+  }
+
   return (
     <section className="mx-auto w-full max-w-2xl font-sans">
       <PageHeader
         className="dash-in"
         title="Minha conta"
-        description="Foto, nome e senha desta conta."
+        description="Foto, nome, senha e exclusão desta conta."
       />
 
       <div className="space-y-6">
@@ -354,6 +382,36 @@ export function AccountPage() {
           </div>
         </form>
       </article>
+
+      <section
+        aria-labelledby="account-danger-zone"
+        className="min-w-0 rounded-2xl border border-error/25 bg-error/5 p-4 sm:p-5"
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p
+              id="account-danger-zone"
+              className="text-xs font-semibold uppercase tracking-[0.16em] text-error"
+            >
+              Área sensível
+            </p>
+            <h2 className="mt-1 text-sm font-semibold text-ink">Excluir minha conta</h2>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {deletionKind === 'fisio_empresa'
+                ? 'Apaga a sua conta, de vez. Os pacientes que você cadastrou ficam com a empresa.'
+                : 'Apaga a sua conta e tudo dela, de vez. Não dá para desfazer.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={openDeleteDialog}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-error/30 bg-surface px-4 text-sm font-semibold text-error transition-colors hover:bg-error hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/30"
+          >
+            <Trash2 aria-hidden="true" size={16} />
+            Excluir minha conta
+          </button>
+        </div>
+      </section>
       </div>
 
       <ConfirmDialog
@@ -370,6 +428,15 @@ export function AccountPage() {
         onClose={() => {
           if (!removing) setConfirmOpen(false)
         }}
+      />
+
+      <DeleteAccountDialog
+        open={deleteOpen && Boolean(user?.id)}
+        userId={user?.id ?? ''}
+        kind={deletionKind}
+        patientCount={deletePatientCount}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={onAccountDeleted}
       />
     </section>
   )
