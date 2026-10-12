@@ -1,4 +1,14 @@
-import { CalendarDays, Home, LayoutDashboard, SquareKanban, UserPlus, Users, Wallet, type LucideIcon } from 'lucide-react'
+import {
+  CalendarDays,
+  Construction,
+  Home,
+  LayoutDashboard,
+  SquareKanban,
+  UserPlus,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react'
 import type { AccountType } from '@/types/account'
 
 export interface NavigationItem {
@@ -14,6 +24,8 @@ export const navigationItems: NavigationItem[] = [
   { label: 'Quadro', path: '/quadro', icon: SquareKanban },
   { label: 'Equipe', path: '/equipe', icon: UserPlus },
   { label: 'Financeiro', path: '/financeiro', icon: Wallet },
+  { label: 'Termos', path: '/termos', icon: Construction },
+  { label: 'Testes especiais', path: '/testes-especiais', icon: Construction },
 ]
 
 export function clinicNavigationItems(accountType: AccountType | null | undefined): NavigationItem[] {
