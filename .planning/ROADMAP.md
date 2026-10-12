@@ -933,3 +933,21 @@ Plans:
 4. Empresa: some tudo do dono e também os pacientes dos fisios da equipe, a organização e os vínculos; as contas dos fisios continuam, sem empresa.
 5. Fisio de empresa: some só a conta dele; os pacientes que ele criou passam para o dono da empresa, sem perder nada.
 6. Ninguém exclui conta de outra pessoa; falha no meio não deixa a conta pela metade.
+
+**Plans**: 5 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 31-01-PLAN.md — SQL atômico `delete_account_data` + tombstone + `finish_account_deletion` (só service_role) e contrato
+- [ ] 31-02-PLAN.md — Edge Function `delete-account` (JWT, EXCLUIR + senha no servidor, RPC → storage → deleteUser) e contrato
+- [ ] 31-03-PLAN.md — Helpers puros (EXCLUIR, tipo, aviso, erros) e service `accountDeletion` no cliente
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 31-04-PLAN.md — DeleteAccountDialog + Área sensível em Minha conta + fluxo de sucesso
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 31-05-PLAN.md — Aplicar SQL, publicar a Edge Function e testes manuais por tipo de conta (checkpoints humanos)

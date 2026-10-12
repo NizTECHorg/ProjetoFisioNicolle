@@ -21,7 +21,7 @@ Na página **Minha conta** (`src/pages/AccountPage.tsx`), o usuário logado excl
 - Fisio sem empresa ativa (pending/rejected) que criou pacientes: tratar como autônomo para os próprios dados (pesquisa confirma o caso).
 
 ### Decisões após a pesquisa (2026-10-12)
-- Quando a empresa exclui a conta, os fisios ativos da equipe passam a `account_type = 'autonomo'` (não ficam presos em /aguardando).
+- Quando a empresa exclui a conta, todos os fisios da equipe (active, pending, rejected) passam a `account_type = 'autonomo'` (não ficam presos em /aguardando). Pacientes de fisio pending/rejected continuam com ele.
 - Registros clínicos de fisio que sai mantêm o nome em texto (`created_by_name`, `therapist_name`); só o login some.
 - `storage.objects.owner` de arquivos do fisio que sai é reatribuído ao dono da empresa (senão `auth.admin.deleteUser` falha).
 - Fisio `pending` não tem UI de exclusão nesta fase (a função SQL cobre o caso).
