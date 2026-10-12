@@ -64,15 +64,17 @@ export function PatientProfileHeader({
       </div>
 
       {/*
-        Grid fixo: avatar | coluna de texto.
+        Grid fixo: avatar (3.5rem / 4rem, igual ao avatar) | coluna de texto.
+        A coluna do avatar não pode ser auto: o botão da direita (só em algumas abas)
+        mudaria a largura calculada e as abas andariam para os lados.
         O conteúdo da página usa a mesma coluna (col-start-2),
         então a borda esquerda de tabs e cards fica alinhada.
       */}
       <div
-        className="dash-in mt-5 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:gap-x-4"
+        className="dash-in mt-5 grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-x-4"
         style={{ animationDelay: '60ms' }}
       >
-        <div className="group col-span-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:gap-x-4">
+        <div className="group col-span-2 grid grid-cols-subgrid">
           {canWrite ? (
             <PatientPhotoControl
               patientId={patientId}
