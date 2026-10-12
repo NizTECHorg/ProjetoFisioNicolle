@@ -41,8 +41,13 @@ export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProp
       </aside>
 
       <div className="relative z-10 lg:flex lg:w-1/2 lg:flex-col lg:p-2.5">
-        <main className="auth-form-card flex min-h-dvh items-center justify-center px-4 py-12 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-[1.15rem] lg:px-8">
-          <div className="w-full max-w-md landing-fade">
+        {/*
+          Sem items-center: com zoom ou tela baixa o formulário fica mais alto que a área
+          e a centralização jogava o topo para fora do alcance da rolagem. my-auto centraliza
+          quando sobra espaço e encosta no topo (com scroll) quando não sobra.
+        */}
+        <main className="auth-form-card flex min-h-dvh justify-center px-4 py-12 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-[1.15rem] lg:px-8">
+          <div className="my-auto w-full max-w-md landing-fade">
             <div className="mb-8 lg:hidden">
               <BrandWordmark size="sm" variant="onLight" asLink to="/" />
             </div>
