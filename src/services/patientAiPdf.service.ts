@@ -1495,9 +1495,9 @@ function drawPlanoClinico(
       ['Fisioterapeuta', plano?.profissional?.fisioterapeuta],
       ['CREFITO', plano?.profissional?.crefito],
       ['Data', plano?.profissional?.data],
-      ['Assinatura', temTraco ? undefined : plano?.profissional?.assinatura],
+      ['Assinatura do Profissional', temTraco ? undefined : plano?.profissional?.assinatura],
     ])
-    if (temTraco) drawSignatureStroke(ctx, 'Assinatura', traco)
+    if (temTraco) drawSignatureStroke(ctx, 'Assinatura do Profissional', traco)
   }
 
   return anyContent

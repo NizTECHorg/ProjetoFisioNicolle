@@ -1758,7 +1758,7 @@ export function EvaluationPage04({ register, watch, setValue, control, readOnly 
           <LineField label="Data" name="ficha.avaliacaoPlano.profissional.data" register={register} disabled={disabled} />
           <div className="sm:col-span-2">
             <SignaturePad
-              label="Assinatura"
+              label="Assinatura do Profissional"
               value={watch('ficha.avaliacaoPlano.profissional.assinaturaTraco')}
               legacyText={watch('ficha.avaliacaoPlano.profissional.assinatura')}
               disabled={disabled}
