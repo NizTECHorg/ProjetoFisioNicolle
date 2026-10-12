@@ -28,3 +28,6 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Planejamento GSD (local, fora do GitHub)
+.planning/
