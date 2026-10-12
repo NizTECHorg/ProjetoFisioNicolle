@@ -79,4 +79,8 @@ Conclusão: profiles some em cascata com `auth.admin.deleteUser`. Antes disso, a
 ## Observações para o plano
 
 - Os gatilhos da fase 29 (`check_session_therapist`, `guard_assigned_session_update`) pulam quando `auth.uid()` é null; numa função security definer chamada pela Edge Function com service role, `auth.uid()` é null → não bloqueiam. Confirmar.
-- `protect_profile_fields`: definição pendente (consulta pg_get_functiondef).
+- `protect_profile_fields` (colada em 2026-10-12): só age em UPDATE quando `current_user = 'authenticated'` e trava id, email, role, is_active, created_at. **Não trava `account_type`.** Numa função security definer (current_user = postgres) não faz nada → a troca dos fisios para `autonomo` funciona.
+  - ⚠ Achado de segurança fora do escopo: `account_type` não é protegido para `authenticated`. Se a policy de UPDATE em `profiles` deixar o usuário editar a própria linha, ele pode trocar o próprio tipo de conta via API. Registrar para uma fase futura.
+- `handle_new_user`: cria profile; empresa → organização + membership owner/active; fisioterapeuta → membership therapist/pending. **Empresa tem membership `role = 'owner'`** — a função de exclusão deve tratar o dono também em `organization_memberships` (cascade pela organização).
+- `set_patient_created_by` e `snapshot_autonomo_session_charge`: só preenchem `created_by`/`owner_id` quando nulos (auth.uid()); não interferem em update/delete feitos pela função.
+- `patient_images_on_session_delete` não apareceu na consulta (não está em `public` com esse nome); na fase 28 a exclusão de sessões funcionou, então segue sem impacto conhecido.
