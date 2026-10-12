@@ -171,7 +171,12 @@ export function AppShell() {
               <BrandWordmark size="sm" variant="onLight" showTagline={false} asLink to="/painel" />
             </header>
 
-            <main className="px-4 py-6 pb-24 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-6 lg:pb-4 lg:pt-6">
+            {/*
+              Desktop: o main tem a altura da tela e o conteúdo longo transborda dele,
+              então padding-bottom não aparece no fim da rolagem. O ::after é o último
+              filho do fluxo e garante 16px depois do último conteúdo em toda página.
+            */}
+            <main className="px-4 py-6 pb-24 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-6 lg:pb-0 lg:pt-6 lg:after:block lg:after:h-4 lg:after:shrink-0 lg:after:content-['']">
               <Outlet />
             </main>
           </div>

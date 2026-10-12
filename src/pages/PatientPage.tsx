@@ -614,7 +614,7 @@ function ResumoPanel({
   onDeletePatient?: () => void
 }) {
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-6">
       {/* Desktop 80/20; mobile empilha */}
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
         <EntendaOCaso patient={patient} detail={detail} canWrite={canWrite} />
