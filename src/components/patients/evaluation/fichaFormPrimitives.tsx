@@ -1,8 +1,34 @@
-import { useId, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useId, useMemo, useState, type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { FieldPath, FieldValues, UseFormRegister } from 'react-hook-form'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+
+type FichaCollapseState = {
+  recolhido: (chave: string) => boolean
+  alternar: (chave: string) => void
+}
+
+const FichaCollapseContext = createContext<FichaCollapseState | null>(null)
+
+/**
+ * Guarda quais blocos estão recolhidos enquanto o formulário da avaliação está aberto
+ * (sobrevive à troca de página 01–04). Recarregar ou salvar/fechar desmonta e volta tudo aberto.
+ */
+export function FichaCollapseProvider({ children }: { children: ReactNode }) {
+  const [recolhidos, setRecolhidos] = useState<ReadonlySet<string>>(() => new Set())
+  const recolhido = useCallback((chave: string) => recolhidos.has(chave), [recolhidos])
+  const alternar = useCallback((chave: string) => {
+    setRecolhidos((atual) => {
+      const proximo = new Set(atual)
+      if (proximo.has(chave)) proximo.delete(chave)
+      else proximo.add(chave)
+      return proximo
+    })
+  }, [])
+  const valor = useMemo(() => ({ recolhido, alternar }), [recolhido, alternar])
+  return <FichaCollapseContext.Provider value={valor}>{children}</FichaCollapseContext.Provider>
+}
 
 export function FichaBlock({
   letter,
@@ -15,7 +41,19 @@ export function FichaBlock({
   children: ReactNode
   tone?: 'default' | 'danger'
 }) {
-  const [aberto, setAberto] = useState(true)
+  const contexto = useContext(FichaCollapseContext)
+  const [abertoLocal, setAbertoLocal] = useState(true)
+  const chave = `${letter}|${title}`
+  const aberto = contexto ? !contexto.recolhido(chave) : abertoLocal
+  const [animando, setAnimando] = useState(false)
+  const alternar = () => {
+    // Sem animação (reduced motion) não há transitionend para destravar o overflow.
+    const semMovimento =
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!semMovimento) setAnimando(true)
+    if (contexto) contexto.alternar(chave)
+    else setAbertoLocal((atual) => !atual)
+  }
   const conteudoId = useId()
   const border = tone === 'danger' ? 'border-error/30' : 'border-line'
   const badge =
@@ -30,7 +68,7 @@ export function FichaBlock({
         type="button"
         aria-expanded={aberto}
         aria-controls={conteudoId}
-        onClick={() => setAberto((atual) => !atual)}
+        onClick={alternar}
         className="-m-1 flex w-[calc(100%+0.5rem)] items-center gap-2.5 rounded-xl p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
       >
         <span
@@ -45,15 +83,31 @@ export function FichaBlock({
           size={18}
           aria-hidden
           className={[
-            'shrink-0 text-accent transition-transform duration-200 motion-reduce:transition-none',
+            'shrink-0 text-accent transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
             aberto ? 'rotate-0' : '-rotate-90',
           ].join(' ')}
         />
         <span className="sr-only">{aberto ? 'Recolher bloco' : 'Expandir bloco'}</span>
       </button>
-      {/* Recolhido fica montado (hidden) para não perder estado interno dos campos. */}
-      <div id={conteudoId} hidden={!aberto} className="mt-4 space-y-4">
-        {children}
+      {/*
+        Grid 1fr/0fr anima a altura; recolhido fica montado (inert) para não perder estado interno.
+        overflow-hidden só durante a animação ou fechado: aberto precisa ser visível para o
+        position: sticky interno (barra da Mobilidade) continuar funcionando.
+      */}
+      <div
+        id={conteudoId}
+        onTransitionEnd={(event) => {
+          if (event.target === event.currentTarget) setAnimando(false)
+        }}
+        inert={aberto ? undefined : true}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          aberto ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        ].join(' ')}
+      >
+        <div className={['min-h-0', aberto && !animando ? 'overflow-visible' : 'overflow-hidden'].join(' ')}>
+          <div className="space-y-4 pt-4">{children}</div>
+        </div>
       </div>
     </section>
   )

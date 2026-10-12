@@ -5,6 +5,7 @@ import { EvaluationPage01 } from '@/components/patients/evaluation/EvaluationPag
 import { EvaluationPage02 } from '@/components/patients/evaluation/EvaluationPage02'
 import { EvaluationPage03 } from '@/components/patients/evaluation/EvaluationPage03'
 import { EvaluationPage04 } from '@/components/patients/evaluation/EvaluationPage04'
+import { FichaCollapseProvider } from '@/components/patients/evaluation/fichaFormPrimitives'
 
 export const FICHA_PAGES = [
   { id: '01', label: '01 · Anamnese inicial' },
@@ -35,6 +36,7 @@ export function EvaluationFichaForm({
   const [page, setPage] = useState<FichaPageId>(initialPage)
 
   return (
+    <FichaCollapseProvider>
     <div className="space-y-4">
       <nav
         className="flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:auto] [scrollbar-width:thin]"
@@ -92,5 +94,6 @@ export function EvaluationFichaForm({
         />
       ) : null}
     </div>
+    </FichaCollapseProvider>
   )
 }
