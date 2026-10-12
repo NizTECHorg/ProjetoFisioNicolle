@@ -946,7 +946,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 31-04-PLAN.md — DeleteAccountDialog + Área sensível em Minha conta + fluxo de sucesso
+- [x] 31-04-PLAN.md — DeleteAccountDialog + Área sensível em Minha conta + fluxo de sucesso
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
