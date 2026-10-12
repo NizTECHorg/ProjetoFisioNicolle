@@ -37,6 +37,7 @@ Completar o prontuário e o modelo de contas. Phase 15 concluída em 2026-09-23.
 - [ ] **Phase 28: Excluir paciente por completo** — Ação na ficha que apaga o paciente e tudo dele do banco e do storage
 - [ ] **Phase 29: Fisio anexado na sessão da agenda** — Empresa anexa um fisio da equipe na nova sessão; só ele e a empresa veem a sessão
 - [ ] **Phase 30: Assinatura desenhada na avaliação** — Desenhar a assinatura com traço preto no fim da avaliação, apagar e refazer; sai no PDF
+- [ ] **Phase 31: Excluir a própria conta** — Em Minha conta, excluir a conta de vez (Auth + dados + arquivos), com aviso, EXCLUIR e senha; fisio de empresa entrega os pacientes à empresa
 
 ## Phase Details
 
@@ -916,3 +917,19 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [ ] 30-02-PLAN.md — Assinatura desenhada no PDF (drawSvgPath) e verificação humana
+
+### Phase 31: Excluir a própria conta
+
+**Goal:** Em Minha conta, o usuário exclui a própria conta de vez. Antes, um aviso diz o que será apagado e pede para digitar EXCLUIR e a senha. A conta some do Supabase Auth com tudo que é dela; fisio de empresa entrega os pacientes que criou à empresa.
+**Requirements**: REQ-42
+**Depends on:** Phase 28
+**UI hint**: yes
+
+**Success Criteria** (what must be TRUE):
+
+1. Minha conta tem a ação Excluir minha conta numa área sensível, com aviso específico do tipo de conta.
+2. Só exclui depois de digitar EXCLUIR e a senha atual correta.
+3. Autônomo: some o login (auth.users), o perfil, todos os pacientes e tudo que é filho deles, preços, financeiro, quadro, Google Agenda e arquivos no storage.
+4. Empresa: some tudo do dono e também os pacientes dos fisios da equipe, a organização e os vínculos; as contas dos fisios continuam, sem empresa.
+5. Fisio de empresa: some só a conta dele; os pacientes que ele criou passam para o dono da empresa, sem perder nada.
+6. Ninguém exclui conta de outra pessoa; falha no meio não deixa a conta pela metade.

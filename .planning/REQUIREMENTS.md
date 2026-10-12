@@ -23,6 +23,7 @@
 - [ ] **REQ-39**: Excluir paciente por completo — some do banco e do storage, sem deixar linha nem arquivo
 - [ ] **REQ-40**: Fisio anexado na sessão da agenda — só empresa anexa; só o fisio anexado e a empresa veem a sessão
 - [ ] **REQ-41**: Assinatura desenhada na avaliação — traço preto, apagar e refazer, salva na ficha e sai no PDF
+- [ ] **REQ-42**: Excluir a própria conta — aviso + EXCLUIR + senha; apaga Auth, dados e arquivos; fisio de empresa entrega pacientes à empresa
 - [ ] **REQ-25**: PDF export Avaliação / Evolução — seções, field-picker, multi-sessão + IA, estilo ficha
 - [ ] **REQ-26**: PDF ficha visual polish — layout denso e legível alinhado às refs 01–04
 - [x] **REQ-27**: E-mail de confirmação de conta com marca Fluxo (remetente próprio)
@@ -469,3 +470,4 @@ A avaliação permanece vinculada à **data em que foi realizada**. É a base cl
 | REQ-39 | Phase 28 | Planned |
 | REQ-40 | Phase 29 | In Progress |
 | REQ-41 | Phase 30 | Planned |
+| REQ-42 | Phase 31 | Planned |
