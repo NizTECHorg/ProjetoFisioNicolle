@@ -2,6 +2,13 @@ import { z } from 'zod'
 import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
 import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadePalpacao.ts'
 import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
+import {
+  BODY_DRAWING_COLOR_KEYS,
+  BODY_DRAWING_MAX_PATH_CHARS,
+  BODY_DRAWING_MAX_STROKES,
+  isSafeBodyPath,
+  safeBodyStrokes,
+} from '../lib/bodyDrawing.ts'
 
 /** Treat null / '' as absent so partial saves never fail on empty radios. */
 function emptyToUndefined(value: unknown) {
@@ -121,6 +128,14 @@ const forcaRowSchema = z.object({
 const periodo24hSchema = optionalEnum(['melhor', 'igual', 'pior'])
 
 /** Pages 01–04 musculoskeletal ficha — every leaf optional so `{}` parses (D-04). */
+const bodyDrawingStrokeSchema = z.object({
+  cor: z.enum(BODY_DRAWING_COLOR_KEYS),
+  d: z
+    .string()
+    .max(BODY_DRAWING_MAX_PATH_CHARS)
+    .refine((value) => isSafeBodyPath(value), 'Traço inválido'),
+})
+
 export const evaluationFichaSchema = z.object({
   /** Nome livre da avaliação (lista / PDF). Opcional — save parcial ok. */
   titulo: optionalText(160),
@@ -506,6 +521,18 @@ export const evaluationFichaSchema = z.object({
           assinaturaTraco: optionalText(SIGNATURE_MAX_CHARS),
         })
         .default({}),
+    })
+    .default({}),
+
+  /** 05 · Mapa de sintomas: traços coloridos sobre a figura anterior/posterior. */
+  mapaSintomas: z
+    .object({
+      // Traço estragado não derruba a ficha inteira: é descartado antes de validar.
+      tracos: z.preprocess(
+        (value) => safeBodyStrokes(value),
+        z.array(bodyDrawingStrokeSchema).max(BODY_DRAWING_MAX_STROKES),
+      ),
+      observacao: optionalText(1000),
     })
     .default({}),
 })

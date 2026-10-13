@@ -5,6 +5,7 @@ import { EvaluationPage01 } from '@/components/patients/evaluation/EvaluationPag
 import { EvaluationPage02 } from '@/components/patients/evaluation/EvaluationPage02'
 import { EvaluationPage03 } from '@/components/patients/evaluation/EvaluationPage03'
 import { EvaluationPage04 } from '@/components/patients/evaluation/EvaluationPage04'
+import { EvaluationPage05 } from '@/components/patients/evaluation/EvaluationPage05'
 import { FichaCollapseProvider } from '@/components/patients/evaluation/fichaFormPrimitives'
 
 export const FICHA_PAGES = [
@@ -12,6 +13,7 @@ export const FICHA_PAGES = [
   { id: '02', label: '02 · Comportamento dos sintomas' },
   { id: '03', label: '03 · Função, contexto e segurança' },
   { id: '04', label: '04 · Avaliação e plano' },
+  { id: '05', label: '05 · Mapa de sintomas' },
 ] as const
 
 export type FichaPageId = (typeof FICHA_PAGES)[number]['id']
@@ -90,6 +92,14 @@ export function EvaluationFichaForm({
           watch={watch}
           setValue={setValue}
           control={control}
+          readOnly={readOnly}
+        />
+      ) : null}
+      {page === '05' ? (
+        <EvaluationPage05
+          register={register}
+          watch={watch}
+          setValue={setValue}
           readOnly={readOnly}
         />
       ) : null}

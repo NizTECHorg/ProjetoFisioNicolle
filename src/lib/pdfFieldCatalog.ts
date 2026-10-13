@@ -6,6 +6,7 @@ import {
   formatLinhaMovimento,
   formatTeste,
 } from '@/lib/mobilidadePalpacao'
+import { safeBodyStrokes, usedBodyDrawingColors } from '@/lib/bodyDrawing'
 
 export type PdfFieldId = string
 
@@ -680,6 +681,22 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       plano?.profissional?.fisioterapeuta,
       plano?.profissional?.crefito,
       plano?.profissional?.data,
+    ),
+  })
+
+  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
+  pushBlock(items, {
+    id: '05.A',
+    label: 'Desenho dos sintomas',
+    groupLabel: '05 · Mapa de sintomas · Bloco A',
+    filled: tracosMapa.length > 0 || textFilled(ficha.mapaSintomas?.observacao),
+    preview: previewFrom(
+      tracosMapa.length > 0
+        ? usedBodyDrawingColors(tracosMapa)
+            .map((item) => item.label)
+            .join(', ')
+        : undefined,
+      ficha.mapaSintomas?.observacao,
     ),
   })
 

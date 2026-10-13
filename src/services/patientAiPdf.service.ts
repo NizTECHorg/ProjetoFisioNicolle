@@ -9,6 +9,7 @@ import {
   type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
+import pessoaUrl from '@/assets/pessoa.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
 import {
@@ -20,6 +21,13 @@ import {
 import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/lib/focusRegions'
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import { isSafeSignaturePath, signaturePdfScale } from '@/lib/signaturePath'
+import {
+  BODY_DRAWING_VIEWBOX,
+  bodyDrawingColor,
+  safeBodyStrokes,
+  usedBodyDrawingColors,
+  type BodyDrawingStroke,
+} from '@/lib/bodyDrawing'
 import type { PatientGoal, PatientFocusArea, SessionEvolution } from '@/types/patient'
 
 /** A4 */
@@ -280,6 +288,8 @@ type DrawContext = {
   fichaDate?: string
   /** Filled therapist name, when the ficha has one. */
   fichaTherapist?: string
+  /** Figura do mapa de sintomas (05), embutida só quando há traços. */
+  bodyImage?: PDFImage
 }
 
 function drawFooter(ctx: DrawContext) {
@@ -1503,6 +1513,70 @@ function drawPlanoClinico(
   return anyContent
 }
 
+/** 05 · Mapa de sintomas: figura com os traços coloridos e a legenda só das cores usadas. */
+function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observacao?: string): void {
+  if (tracos.length > 0 && ctx.bodyImage) {
+    const width = Math.min(ctx.contentW, 400)
+    const height = (width * BODY_DRAWING_VIEWBOX.height) / BODY_DRAWING_VIEWBOX.width
+    const usadas = usedBodyDrawingColors(tracos)
+    const legendRowH = 16
+    const perRow = 3
+    const legendH = Math.ceil(usadas.length / perRow) * legendRowH
+    ensureSpace(ctx, height + 12 + legendH + 12)
+
+    const x = ctx.contentX + (ctx.contentW - width) / 2
+    const top = ctx.y
+    ctx.page.drawImage(ctx.bodyImage, { x, y: top - height, width, height })
+    ctx.page.drawRectangle({
+      x,
+      y: top - height,
+      width,
+      height,
+      borderColor: COLORS.border,
+      borderWidth: 0.6,
+    })
+
+    const scale = width / BODY_DRAWING_VIEWBOX.width
+    for (const traco of tracos) {
+      const info = bodyDrawingColor(traco.cor)
+      if (!info) continue
+      ctx.page.drawSvgPath(traco.d, {
+        x,
+        y: top,
+        scale,
+        borderColor: rgb(info.rgb[0], info.rgb[1], info.rgb[2]),
+        borderWidth: 2.4 / scale,
+        borderOpacity: 0.9,
+        borderLineCap: LineCapStyle.Round,
+      })
+    }
+    ctx.y = top - height - 14
+
+    const colW = ctx.contentW / perRow
+    usadas.forEach((info, index) => {
+      const col = index % perRow
+      const row = Math.floor(index / perRow)
+      const cx = ctx.contentX + col * colW
+      const cy = ctx.y - row * legendRowH
+      ctx.page.drawCircle({
+        x: cx + 5,
+        y: cy + 3,
+        size: 4,
+        color: rgb(info.rgb[0], info.rgb[1], info.rgb[2]),
+      })
+      ctx.page.drawText(toWinAnsiSafe(`${info.label} — ${info.hint}`), {
+        x: cx + 14,
+        y: cy,
+        size: SIZE.meta,
+        font: ctx.font,
+        color: COLORS.ink,
+      })
+    })
+    ctx.y -= legendH + 8
+  }
+  drawOptionalField(ctx, 'Observações do desenho', observacao)
+}
+
 /**
  * Renders EvaluationFicha pages 01–04; omits empty/unselected blocks (D-02/D-03/D-05/D-07).
  */
@@ -1967,6 +2041,15 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
 
   if (drawPlanoClinico(ctx, ficha, selected)) anyContent = true
 
+  // —— 05 Mapa de sintomas ——
+  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
+  const obsMapa = ficha.mapaSintomas?.observacao
+  if ((tracosMapa.length > 0 || textFilled(obsMapa)) && isFieldSelected(selected, '05.A')) {
+    anyContent = true
+    drawClearSectionTitle(ctx, 'Mapa de sintomas')
+    drawMapaSintomas(ctx, tracosMapa, obsMapa)
+  }
+
   if (!anyContent) {
     drawParagraph(ctx, 'Avaliação sem campos preenchidos na ficha.', { color: COLORS.muted })
   }
@@ -2136,6 +2219,16 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
   })
   const logo = await doc.embedPng(logoBytes)
 
+  // Figura do mapa de sintomas: só busca e embute quando a avaliação tem traços.
+  let bodyImage: PDFImage | undefined
+  if (input.kind === 'avaliacao' && safeBodyStrokes(input.ficha.mapaSintomas?.tracos).length > 0) {
+    const bodyBytes = await fetch(pessoaUrl).then((r) => {
+      if (!r.ok) throw new Error('Não foi possível carregar a figura do mapa de sintomas.')
+      return r.arrayBuffer()
+    })
+    bodyImage = await doc.embedPng(bodyBytes)
+  }
+
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
   const generatedAt = formatGeneratedAt()
   const docTitle = docTitleFor(input)
@@ -2164,6 +2257,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
           : undefined,
     fichaTherapist:
       input.kind === 'avaliacao' ? input.therapistName?.trim() || undefined : undefined,
+    bodyImage,
   }
 
   drawHeaderBand(ctx, { isFirstPage: true })

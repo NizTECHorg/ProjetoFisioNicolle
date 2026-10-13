@@ -1,4 +1,6 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
+import { BodyDrawingPad } from '@/components/patients/evaluation/BodyDrawingPad'
+import { safeBodyStrokes } from '@/lib/bodyDrawing'
 import { DetailLeaf } from '@/components/patients/evaluation/fichaFormPrimitives'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
 import { FOCUS_REGIONS } from '@/lib/focusRegions'
@@ -54,6 +56,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
   const funcao = ficha.funcao
   const atividades = funcao?.atividadesAfetadas
   const plano = ficha.avaliacaoPlano
+  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
 
   const marks = sintomas?.mapa?.marks ?? []
   const markLabels = marks
@@ -196,6 +199,14 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Progressão" value={plano?.planejamento?.criteriosProgressao} />
         <DetailLeaf label="Fisioterapeuta" value={plano?.profissional?.fisioterapeuta} />
       </section>
+
+      {tracosMapa.length > 0 || ficha.mapaSintomas?.observacao?.trim() ? (
+        <section className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">05 · Mapa de sintomas</p>
+          {tracosMapa.length > 0 ? <BodyDrawingPad value={tracosMapa} disabled onChange={() => {}} /> : null}
+          <DetailLeaf label="Observações do desenho" value={ficha.mapaSintomas?.observacao} />
+        </section>
+      ) : null}
     </div>
   )
 }
