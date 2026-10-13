@@ -19,10 +19,10 @@ import { statusLabels, type PatientListItem } from '@/types/patient'
 
 type PatientSort = 'recent' | 'name' | 'next'
 
-const SORT_OPTIONS: Array<{ value: PatientSort; label: string }> = [
-  { value: 'recent', label: 'Paciente mais recente' },
-  { value: 'name', label: 'Ordem alfabética' },
-  { value: 'next', label: 'Sessão mais próxima' },
+const SORT_OPTIONS: Array<{ value: PatientSort; label: string; short: string }> = [
+  { value: 'recent', label: 'Paciente mais recente', short: 'Recentes' },
+  { value: 'name', label: 'Ordem alfabética', short: 'A–Z' },
+  { value: 'next', label: 'Sessão mais próxima', short: 'Próx. sessão' },
 ]
 
 function nearestSessionTime(patient: PatientListItem) {
@@ -161,7 +161,7 @@ export function PatientsPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Ordenar pacientes">
+            <div className="grid grid-cols-3 gap-1.5 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1" role="tablist" aria-label="Ordenar pacientes">
               {SORT_OPTIONS.map((option) => {
                 const selected = sort === option.value
                 return (
@@ -171,14 +171,16 @@ export function PatientsPage() {
                     role="tab"
                     aria-selected={selected}
                     onClick={() => setSort(option.value)}
+                    aria-label={option.label}
                     className={[
-                      'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition',
+                      'min-w-0 shrink-0 truncate rounded-full px-2 py-1.5 text-xs font-medium transition sm:px-4 sm:py-2 sm:text-sm',
                       selected
                         ? 'bg-forest text-white'
                         : 'border border-line bg-canvas text-muted hover:bg-accent-soft hover:text-forest',
                     ].join(' ')}
                   >
-                    {option.label}
+                    <span className="sm:hidden">{option.short}</span>
+                    <span className="hidden sm:inline">{option.label}</span>
                   </button>
                 )
               })}
