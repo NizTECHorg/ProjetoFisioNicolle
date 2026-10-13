@@ -328,7 +328,7 @@ export function PatientFocusAreasPanel({
       aria-label="Áreas de foco do paciente"
       className="mt-3 w-full overflow-visible [overflow-anchor:none]"
     >
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-center">
+      <div className="flex flex-row items-end justify-center gap-3 sm:gap-4">
         {renderFigure('front')}
         {renderFigure('back')}
       </div>

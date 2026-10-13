@@ -111,20 +111,21 @@ export function PatientProfileHeader({
                 <div className="shrink-0 self-start">{topRightAction ?? identityAction}</div>
               ) : null}
             </div>
-
-            <div className="mt-2 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1">
-              {meta ? <p className="text-sm text-muted">{meta}</p> : null}
-              {canWrite ? (
-                <PatientStatusToggle patientId={patientId} status={status} />
-              ) : (
-                <span className="text-xs text-muted">{statusLabels[status]}</span>
-              )}
-            </div>
           </div>
         </div>
 
+        {/* Mobile: telefone + status ocupam a largura toda; sm+: alinhados à coluna do nome. */}
+        <div className="col-span-2 mt-3 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 sm:col-span-1 sm:col-start-2 sm:mt-2">
+          {meta ? <p className="text-sm text-muted">{meta}</p> : null}
+          {canWrite ? (
+            <PatientStatusToggle patientId={patientId} status={status} />
+          ) : (
+            <span className="text-xs text-muted">{statusLabels[status]}</span>
+          )}
+        </div>
+
         <nav
-          className="col-start-2 mt-4 flex min-w-0 items-end gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
+          className="col-span-2 mt-4 flex min-w-0 items-end gap-5 sm:col-span-1 sm:col-start-2 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
           aria-label="Sessões do paciente"
           role="tablist"
         >

@@ -618,14 +618,15 @@ function ResumoPanel({
       {/* Desktop 80/20; mobile empilha */}
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(12rem,1fr)] lg:items-stretch">
         <EntendaOCaso patient={patient} detail={detail} canWrite={canWrite} />
-        <div className="min-h-[14rem] min-w-0 lg:h-full lg:min-h-0">
+        <div className="min-w-0 sm:min-h-[14rem] lg:h-full lg:min-h-0">
           <PatientAlertsPanel patientId={patient.id} alerts={patient.alerts} compact canWrite={canWrite} />
         </div>
       </div>
 
       <ResumoDoPaciente patientId={patient.id} detail={detail} canWrite={canWrite} />
 
-      <div className="min-w-0">
+      {/* Atalhos só a partir de tablet: no celular as abas da ficha já fazem esse papel. */}
+      <div className="hidden min-w-0 sm:block">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Atalhos</p>
         <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {shortcuts.map((item) => {
