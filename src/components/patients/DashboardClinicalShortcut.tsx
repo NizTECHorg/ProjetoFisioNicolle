@@ -133,23 +133,35 @@ export function DashboardClinicalShortcut() {
 
   return (
     <>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+      {/* Mobile: uma linha compacta (paciente | avaliação | evolução). sm+: como antes. */}
+      <div className="grid w-full grid-cols-[auto_1fr_1fr] gap-2 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
           aria-label="Criar paciente"
           title="Criar paciente"
           onClick={openCreatePatient}
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink transition hover:border-forest/20 hover:bg-accent-soft hover:text-forest"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink transition hover:border-forest/20 hover:bg-accent-soft hover:text-forest sm:h-11 sm:w-11"
         >
-          <img src={userAddIcon} alt="" width={24} height={24} aria-hidden="true" className="h-6 w-6 -translate-x-[2px]" />
+          <img src={userAddIcon} alt="" width={24} height={24} aria-hidden="true" className="h-5 w-5 -translate-x-[2px] sm:h-6 sm:w-6" />
         </button>
-        <Button type="button" variant="secondary" onClick={() => openPicker('avaliacao')}>
-          <Plus size={16} />
-          Nova avaliação
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => openPicker('avaliacao')}
+          className="max-sm:!h-10 max-sm:!gap-1.5 max-sm:!rounded-xl max-sm:!px-3 max-sm:!py-0"
+        >
+          <Plus size={16} aria-hidden />
+          <span className="sm:hidden">Avaliação</span>
+          <span className="hidden sm:inline">Nova avaliação</span>
         </Button>
-        <Button type="button" onClick={() => openPicker('evolucao')}>
-          <Plus size={16} />
-          Nova evolução
+        <Button
+          type="button"
+          onClick={() => openPicker('evolucao')}
+          className="max-sm:!h-10 max-sm:!gap-1.5 max-sm:!rounded-xl max-sm:!px-3 max-sm:!py-0 max-sm:!shadow-md"
+        >
+          <Plus size={16} aria-hidden />
+          <span className="sm:hidden">Evolução</span>
+          <span className="hidden sm:inline">Nova evolução</span>
         </Button>
       </div>
 

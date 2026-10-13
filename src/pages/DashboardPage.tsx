@@ -125,16 +125,16 @@ function StatCard({
   return (
     <Link
       to={to}
-      className="dash-card dash-in flex min-h-[148px] min-w-0 flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5 lg:min-h-[128px] lg:p-4"
+      className="dash-card dash-in flex min-h-[100px] min-w-0 flex-col justify-between rounded-2xl bg-accent-soft p-3.5 sm:min-h-[148px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[128px] lg:p-4"
       style={{ animationDelay: delay }}
     >
-      <p className="text-sm font-medium text-forest">{label}</p>
-      <div className="flex items-end justify-between gap-3">
-        <p className="font-sans text-5xl font-semibold leading-none tracking-tight text-ink lg:text-4xl">{value}</p>
+      <p className="text-xs font-medium leading-tight text-forest sm:text-sm">{label}</p>
+      <div className="flex items-end justify-between gap-2 sm:gap-3">
+        <p className="font-sans text-3xl font-semibold leading-none tracking-tight text-ink sm:text-5xl lg:text-4xl">{value}</p>
         {delta ? (
           <span
             className={[
-              'mb-1 inline-flex items-center gap-0.5 text-xs font-medium',
+              'mb-0.5 inline-flex items-center gap-0.5 text-[11px] font-medium sm:mb-1 sm:text-xs',
               delta.up ? 'text-accent' : 'text-error',
             ].join(' ')}
           >
@@ -174,7 +174,7 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
   const tooltipY = active ? Math.max(4, active.y - tooltipH - 10) : 0
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" overflow="visible" className="dash-chart block h-56 w-full overflow-visible lg:h-full lg:min-h-[10rem]">
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" overflow="visible" className="dash-chart block h-44 w-full overflow-visible sm:h-56 lg:h-full lg:min-h-[10rem]">
       {ticks.map((tick) => {
         const y = pad.t + innerH - (tick / max) * innerH
         return (
@@ -350,7 +350,7 @@ export function DashboardPage() {
 
       {!isLoading && !isError ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="grid shrink-0 gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:gap-3">
+          <div className="grid shrink-0 grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4 lg:gap-3">
             <StatCard
               label="Pacientes ativos"
               target={view.activePatients}
@@ -372,19 +372,19 @@ export function DashboardPage() {
             />
 
             <article
-              className="dash-card dash-in flex min-h-[148px] flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5 lg:min-h-[128px] lg:p-4"
+              className="dash-card dash-in flex min-h-[100px] flex-col justify-between rounded-2xl bg-accent-soft p-3.5 sm:min-h-[148px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[128px] lg:p-4"
               style={{ animationDelay: '240ms' }}
             >
               <div>
-                <p className="text-sm font-medium text-forest">Hoje na clínica</p>
-                <p className="mt-1 text-xs text-forest/70">
+                <p className="text-xs font-medium leading-tight text-forest sm:text-sm">Hoje na clínica</p>
+                <p className="mt-0.5 text-[11px] text-forest/70 sm:mt-1 sm:text-xs">
                   {view.confirmedToday === 1
                     ? '1 sessão confirmada'
                     : `${view.confirmedToday} sessões confirmadas`}
                 </p>
               </div>
               <div className="flex items-end justify-between">
-                <svg viewBox="0 0 88 88" className="dash-ring h-16 w-16">
+                <svg viewBox="0 0 88 88" className="dash-ring h-10 w-10 sm:h-16 sm:w-16">
                   <circle cx="44" cy="44" r="34" fill="none" stroke="#0b1d36" strokeOpacity="0.12" strokeWidth="8" />
                   <circle
                     className="dash-ring-arc"
@@ -413,7 +413,7 @@ export function DashboardPage() {
                 </svg>
                 <Link
                   to="/agenda"
-                  className="flex h-14 w-14 items-center justify-center rounded-full bg-forest text-[11px] font-bold tracking-wide text-white transition hover:scale-105 hover:bg-forest-mid active:scale-95"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-forest text-[10px] font-bold tracking-wide text-white transition hover:scale-105 hover:bg-forest-mid active:scale-95 sm:h-14 sm:w-14 sm:text-[11px]"
                 >
                   VER
                 </Link>
@@ -421,12 +421,12 @@ export function DashboardPage() {
             </article>
           </div>
 
-          <div className="mt-4 grid gap-4 lg:mt-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[1.7fr_1fr] lg:grid-rows-[minmax(0,1fr)] lg:gap-3">
-            <article className="dash-in flex h-full min-h-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5 lg:p-4" style={{ animationDelay: '280ms' }}>
-              <div className="flex items-start justify-between gap-3">
+          <div className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 lg:mt-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[1.7fr_1fr] lg:grid-rows-[minmax(0,1fr)] lg:gap-3">
+            <article className="dash-in flex h-full min-h-0 flex-col rounded-2xl border border-line bg-surface p-4 sm:rounded-[1.5rem] sm:p-5 lg:p-4" style={{ animationDelay: '280ms' }}>
+              <div className="flex flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:items-start sm:gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-lg font-semibold text-ink">Atividade</h2>
-                  <p className="mt-1 text-xs text-muted">
+                  <h2 className="text-base font-semibold text-ink sm:text-lg">Atividade</h2>
+                  <p className="mt-1 hidden text-xs text-muted sm:block">
                     Sessões agendadas, confirmadas e realizadas · passe o mouse nos pontos
                   </p>
                 </div>
@@ -453,7 +453,7 @@ export function DashboardPage() {
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  <span className="min-w-28 rounded-full border border-line px-3 py-1 text-center text-xs text-muted">
+                  <span className="min-w-24 rounded-full border border-line px-2.5 py-1 text-center text-xs text-muted sm:min-w-28 sm:px-3">
                     {formatWeekRange(ranges.weekStart)}
                   </span>
                   <button
@@ -471,12 +471,12 @@ export function DashboardPage() {
               </div>
             </article>
 
-            <article className="dash-in flex h-full min-h-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5 lg:p-4" style={{ animationDelay: '360ms' }}>
-              <h2 className="text-lg font-semibold text-ink">Próximas sessões</h2>
+            <article className="dash-in flex h-full min-h-0 flex-col rounded-2xl border border-line bg-surface p-4 sm:rounded-[1.5rem] sm:p-5 lg:p-4" style={{ animationDelay: '360ms' }}>
+              <h2 className="text-base font-semibold text-ink sm:text-lg">Próximas sessões</h2>
               {view.upcoming.length === 0 ? (
-                <p className="mt-5 flex-1 text-sm text-muted lg:mt-3">Nenhuma sessão agendada nos próximos dias.</p>
+                <p className="mt-3 flex-1 text-sm text-muted sm:mt-5 lg:mt-3">Nenhuma sessão agendada nos próximos dias.</p>
               ) : (
-                <ul className="mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto lg:mt-3 lg:space-y-2.5">
+                <ul className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto sm:mt-5 sm:space-y-4 lg:mt-3 lg:space-y-2.5">
                   {view.upcoming.map((item) => (
                     <li key={item.id}>
                       <Link
@@ -503,31 +503,31 @@ export function DashboardPage() {
             </article>
           </div>
 
-          <article className="dash-in mt-4 shrink-0 rounded-[1.5rem] bg-accent-soft p-5 sm:p-6 lg:mt-3 lg:p-4" style={{ animationDelay: '420ms' }}>
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-4">
+          <article className="dash-in mt-3 shrink-0 rounded-2xl bg-accent-soft p-4 sm:mt-4 sm:rounded-[1.5rem] sm:p-6 lg:mt-3 lg:p-4" style={{ animationDelay: '420ms' }}>
+            <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row lg:items-center lg:gap-4">
               <div className="min-w-0 lg:w-48 lg:shrink-0">
-                <h2 className="text-lg font-semibold text-forest">Carteira</h2>
-                <p className="mt-1 text-xs leading-5 text-forest/70">
+                <h2 className="text-base font-semibold text-forest sm:text-lg">Carteira</h2>
+                <p className="mt-1 hidden text-xs leading-5 text-forest/70 sm:block">
                   Distribuição dos pacientes pelo status atual da clínica.
                 </p>
               </div>
-              <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-5">
                 {view.statusCards.map((area) => (
-                  <div key={area.name} className="dash-card h-full min-w-0 rounded-2xl bg-surface px-4 py-4 lg:py-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-forest">
+                  <div key={area.name} className="dash-card h-full min-w-0 rounded-xl bg-surface px-3 py-2.5 sm:rounded-2xl sm:px-4 sm:py-4 lg:py-3">
+                    <span className="hidden h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-forest sm:flex">
                       {area.name.slice(0, 1)}
                     </span>
-                    <p className="mt-4 truncate text-sm font-medium text-ink lg:mt-2.5">{area.name}</p>
+                    <p className="truncate text-xs font-medium text-ink sm:mt-4 sm:text-sm lg:mt-2.5">{area.name}</p>
                     <p className="truncate text-xs text-muted">{area.detail}</p>
-                    <p className="mt-3 text-lg font-semibold text-forest lg:mt-2">{area.change}</p>
+                    <p className="mt-1 text-base font-semibold text-forest sm:mt-3 sm:text-lg lg:mt-2">{area.change}</p>
                   </div>
                 ))}
                 <Link
                   to="/pacientes"
-                  className="dash-card flex min-h-36 h-full flex-col justify-between rounded-2xl bg-forest px-4 py-4 text-white lg:min-h-0"
+                  className="dash-card col-span-2 flex h-full flex-row items-center justify-between rounded-xl bg-forest px-4 py-2.5 text-white sm:col-span-1 sm:min-h-36 sm:flex-col sm:items-stretch sm:rounded-2xl sm:py-4 lg:min-h-0"
                 >
                   <p className="text-sm font-medium">Ver fichas</p>
-                  <span className="ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-white text-forest">
+                  <span className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-white text-forest sm:h-9 sm:w-9">
                     <ArrowRight size={16} />
                   </span>
                 </Link>
