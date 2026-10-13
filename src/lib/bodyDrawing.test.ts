@@ -6,6 +6,7 @@ import {
   BODY_DRAWING_VIEWBOX,
   appendBodyStroke,
   bodyClientToViewBox,
+  bodyDrawingFigure,
   bodyStrokeToPath,
   isSafeBodyPath,
   safeBodyStrokes,
@@ -83,4 +84,11 @@ test('mapa de sintomas: cores usadas seguem a ordem da legenda', () => {
     usadas.map((item) => item.key),
     ['dor', 'rigidez'],
   )
+})
+
+test('mapa de sintomas: figura padrão masculina, feminina só quando pedida', () => {
+  equal(bodyDrawingFigure('feminina'), 'feminina')
+  equal(bodyDrawingFigure('masculina'), 'masculina')
+  equal(bodyDrawingFigure(undefined), 'masculina')
+  equal(bodyDrawingFigure('outra'), 'masculina')
 })

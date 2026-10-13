@@ -10,6 +10,7 @@ import {
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
 import pessoaUrl from '@/assets/pessoa.png'
+import pessoaFemininaUrl from '@/assets/pessoa-feminina.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
 import {
@@ -24,6 +25,7 @@ import { isSafeSignaturePath, signaturePdfScale } from '@/lib/signaturePath'
 import {
   BODY_DRAWING_VIEWBOX,
   bodyDrawingColor,
+  bodyDrawingFigure,
   safeBodyStrokes,
   usedBodyDrawingColors,
   type BodyDrawingStroke,
@@ -2222,7 +2224,9 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
   // Figura do mapa de sintomas: só busca e embute quando a avaliação tem traços.
   let bodyImage: PDFImage | undefined
   if (input.kind === 'avaliacao' && safeBodyStrokes(input.ficha.mapaSintomas?.tracos).length > 0) {
-    const bodyBytes = await fetch(pessoaUrl).then((r) => {
+    const fundoUrl =
+      bodyDrawingFigure(input.ficha.mapaSintomas?.figura) === 'feminina' ? pessoaFemininaUrl : pessoaUrl
+    const bodyBytes = await fetch(fundoUrl).then((r) => {
       if (!r.ok) throw new Error('Não foi possível carregar a figura do mapa de sintomas.')
       return r.arrayBuffer()
     })

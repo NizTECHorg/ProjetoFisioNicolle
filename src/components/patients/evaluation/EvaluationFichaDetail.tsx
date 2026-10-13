@@ -203,7 +203,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
       {tracosMapa.length > 0 || ficha.mapaSintomas?.observacao?.trim() ? (
         <section className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">05 · Mapa de sintomas</p>
-          {tracosMapa.length > 0 ? <BodyDrawingPad value={tracosMapa} disabled onChange={() => {}} /> : null}
+          {tracosMapa.length > 0 ? <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} disabled onChange={() => {}} /> : null}
           <DetailLeaf label="Observações do desenho" value={ficha.mapaSintomas?.observacao} />
         </section>
       ) : null}

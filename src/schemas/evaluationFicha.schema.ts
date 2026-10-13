@@ -4,9 +4,11 @@ import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadeP
 import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
 import {
   BODY_DRAWING_COLOR_KEYS,
+  BODY_DRAWING_FIGURES,
   BODY_DRAWING_MAX_PATH_CHARS,
   BODY_DRAWING_MAX_STROKES,
   isSafeBodyPath,
+  bodyDrawingFigure,
   safeBodyStrokes,
 } from '../lib/bodyDrawing.ts'
 
@@ -527,6 +529,7 @@ export const evaluationFichaSchema = z.object({
   /** 05 · Mapa de sintomas: traços coloridos sobre a figura anterior/posterior. */
   mapaSintomas: z
     .object({
+      figura: z.preprocess((value) => bodyDrawingFigure(value), z.enum(BODY_DRAWING_FIGURES)),
       // Traço estragado não derruba a ficha inteira: é descartado antes de validar.
       tracos: z.preprocess(
         (value) => safeBodyStrokes(value),

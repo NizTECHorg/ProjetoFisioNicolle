@@ -36,6 +36,14 @@ export const BODY_DRAWING_COLORS: readonly BodyDrawingColorInfo[] = [
   { key: 'rigidez', hex: '#059669', rgb: [0.020, 0.588, 0.412], label: 'Rigidez', hint: 'Travado, limitado' },
 ]
 
+/** Figura de fundo. As duas imagens têm o mesmo tamanho, então os traços valem para ambas. */
+export const BODY_DRAWING_FIGURES = ['masculina', 'feminina'] as const
+export type BodyDrawingFigure = (typeof BODY_DRAWING_FIGURES)[number]
+
+export function bodyDrawingFigure(value: unknown): BodyDrawingFigure {
+  return value === 'feminina' ? 'feminina' : 'masculina'
+}
+
 export type BodyDrawingPoint = { x: number; y: number }
 
 export type BodyDrawingStroke = { cor: BodyDrawingColor; d: string }

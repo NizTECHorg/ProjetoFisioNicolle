@@ -24,6 +24,10 @@ export function EvaluationPage05({ register, watch, setValue, readOnly }: PagePr
         ) : null}
         <BodyDrawingPad
           value={watch('ficha.mapaSintomas.tracos')}
+          figura={watch('ficha.mapaSintomas.figura')}
+          onFiguraChange={(next) =>
+            setValue('ficha.mapaSintomas.figura', next, { shouldDirty: true, shouldValidate: true })
+          }
           disabled={disabled}
           onChange={(next) =>
             setValue('ficha.mapaSintomas.tracos', next, { shouldDirty: true, shouldValidate: true })

@@ -1,6 +1,7 @@
 import { useRef, useState, type PointerEvent } from 'react'
-import { RotateCcw, Undo2 } from 'lucide-react'
+import { ArrowLeftRight, RotateCcw, Undo2 } from 'lucide-react'
 import pessoaUrl from '@/assets/pessoa.png'
+import pessoaFemininaUrl from '@/assets/pessoa-feminina.png'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
@@ -11,10 +12,12 @@ import {
   appendBodyStroke,
   bodyClientToViewBox,
   bodyDrawingColor,
+  bodyDrawingFigure,
   bodyStrokeToPath,
   safeBodyStrokes,
   simplifyBodyStroke,
   type BodyDrawingColor,
+  type BodyDrawingFigure,
   type BodyDrawingPoint,
   type BodyDrawingStroke,
 } from '@/lib/bodyDrawing'
@@ -22,12 +25,16 @@ import {
 type BodyDrawingPadProps = {
   value: unknown
   onChange: (next: BodyDrawingStroke[]) => void
+  figura?: unknown
+  onFiguraChange?: (next: BodyDrawingFigure) => void
   disabled?: boolean
 }
 
 /** Desenho livre colorido sobre a figura anterior/posterior. SVG + Pointer Events, sem biblioteca. */
-export function BodyDrawingPad({ value, onChange, disabled }: BodyDrawingPadProps) {
+export function BodyDrawingPad({ value, onChange, figura, onFiguraChange, disabled }: BodyDrawingPadProps) {
   const tracos = safeBodyStrokes(value)
+  const figuraAtual = bodyDrawingFigure(figura)
+  const fundoUrl = figuraAtual === 'feminina' ? pessoaFemininaUrl : pessoaUrl
   const [cor, setCor] = useState<BodyDrawingColor>('dor')
   const [pontos, setPontos] = useState<BodyDrawingPoint[]>([])
   const [confirmarLimpar, setConfirmarLimpar] = useState(false)
@@ -108,7 +115,18 @@ export function BodyDrawingPad({ value, onChange, disabled }: BodyDrawingPadProp
             {tracos.length > 0 ? ` · ${tracos.length === 1 ? '1 traço' : `${tracos.length} traços`}` : ''}
             {cheio ? ' · limite de traços atingido' : ''}
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {onFiguraChange ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onFiguraChange(figuraAtual === 'feminina' ? 'masculina' : 'feminina')}
+                aria-label={figuraAtual === 'feminina' ? 'Trocar para figura masculina' : 'Trocar para figura feminina'}
+              >
+                <ArrowLeftRight size={16} aria-hidden />
+                {figuraAtual === 'feminina' ? 'Masculino' : 'Feminino'}
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="secondary"
@@ -144,7 +162,7 @@ export function BodyDrawingPad({ value, onChange, disabled }: BodyDrawingPadProp
           onPointerCancel={finish}
         >
           <image
-            href={pessoaUrl}
+            href={fundoUrl}
             x={0}
             y={0}
             width={BODY_DRAWING_VIEWBOX.width}
