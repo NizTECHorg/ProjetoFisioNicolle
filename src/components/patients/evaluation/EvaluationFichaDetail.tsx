@@ -71,7 +71,8 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
 
   return (
     <div className="space-y-5">
-      <section className="space-y-3">
+      {/* Seção só com o título (nenhum campo preenchido) some. */}
+      <section className="space-y-3 [&:not(:has(>:nth-child(2)))]:hidden">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">01 · Anamnese</p>
         <DetailLeaf label="Nome" value={id?.nomeCompleto} />
         <DetailLeaf label="Nascimento" value={id?.dataNascimento} />
@@ -95,7 +96,8 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Histórico — observações" value={pregresso?.observacoes} />
       </section>
 
-      <section className="space-y-3">
+      {/* Seção só com o título (nenhum campo preenchido) some. */}
+      <section className="space-y-3 [&:not(:has(>:nth-child(2)))]:hidden">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">02 · Sintomas</p>
         <DetailLeaf label="Mapa corporal" value={markLabels || null} />
         <DetailLeaf
@@ -120,7 +122,8 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="O que melhora — detalhe" value={sintomas?.melhora?.detalhe} />
       </section>
 
-      <section className="space-y-3">
+      {/* Seção só com o título (nenhum campo preenchido) some. */}
+      <section className="space-y-3 [&:not(:has(>:nth-child(2)))]:hidden">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">03 · Função</p>
         <DetailLeaf label="Limitação 1" value={funcao?.limitacaoFuncional?.item1} />
         <DetailLeaf label="Limitação 2" value={funcao?.limitacaoFuncional?.item2} />
@@ -142,7 +145,8 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Alergias" value={funcao?.medicacoes?.alergias} />
       </section>
 
-      <section className="space-y-3">
+      {/* Seção só com o título (nenhum campo preenchido) some. */}
+      <section className="space-y-3 [&:not(:has(>:nth-child(2)))]:hidden">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">04 · Avaliação e plano</p>
         <DetailLeaf label="Inspeção — achados" value={plano?.inspecao?.achados} />
         <DetailLeaf label="Neurológico — achados" value={plano?.neurologico?.achados} />
@@ -203,7 +207,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
       {tracosMapa.length > 0 || ficha.mapaSintomas?.observacao?.trim() ? (
         <section className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">05 · Mapa de sintomas</p>
-          {tracosMapa.length > 0 ? <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} disabled onChange={() => {}} /> : null}
+          {tracosMapa.length > 0 ? <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} disabled showLegend={false} onChange={() => {}} /> : null}
           <DetailLeaf label="Observações do desenho" value={ficha.mapaSintomas?.observacao} />
         </section>
       ) : null}

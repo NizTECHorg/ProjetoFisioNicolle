@@ -28,10 +28,19 @@ type BodyDrawingPadProps = {
   figura?: unknown
   onFiguraChange?: (next: BodyDrawingFigure) => void
   disabled?: boolean
+  /** Legenda/paleta de cores. A visualização da avaliação esconde; o editor sempre mostra. */
+  showLegend?: boolean
 }
 
 /** Desenho livre colorido sobre a figura anterior/posterior. SVG + Pointer Events, sem biblioteca. */
-export function BodyDrawingPad({ value, onChange, figura, onFiguraChange, disabled }: BodyDrawingPadProps) {
+export function BodyDrawingPad({
+  value,
+  onChange,
+  figura,
+  onFiguraChange,
+  disabled,
+  showLegend = true,
+}: BodyDrawingPadProps) {
   const tracos = safeBodyStrokes(value)
   const figuraAtual = bodyDrawingFigure(figura)
   const fundoUrl = figuraAtual === 'feminina' ? pessoaFemininaUrl : pessoaUrl
@@ -74,6 +83,7 @@ export function BodyDrawingPad({ value, onChange, figura, onFiguraChange, disabl
 
   return (
     <div className="space-y-4">
+      {showLegend ? (
       <div role="radiogroup" aria-label="Cor do traço e o que ela significa" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {BODY_DRAWING_COLORS.map((item) => {
           const ativa = !disabled && item.key === cor
@@ -104,6 +114,7 @@ export function BodyDrawingPad({ value, onChange, figura, onFiguraChange, disabl
           )
         })}
       </div>
+      ) : null}
 
       {!disabled ? (
         <div className="flex flex-wrap items-center justify-between gap-2">

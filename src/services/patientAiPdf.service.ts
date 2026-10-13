@@ -1521,9 +1521,9 @@ function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observa
     const width = Math.min(ctx.contentW, 400)
     const height = (width * BODY_DRAWING_VIEWBOX.height) / BODY_DRAWING_VIEWBOX.width
     const usadas = usedBodyDrawingColors(tracos)
-    const legendRowH = 16
-    const perRow = 3
-    const legendH = Math.ceil(usadas.length / perRow) * legendRowH
+    const legendRowH = 14
+    // Estimativa folgada para reservar espaço (a legenda quase sempre cabe em 1 linha).
+    const legendH = Math.ceil(usadas.length / 4) * legendRowH
     ensureSpace(ctx, height + 12 + legendH + 12)
 
     const x = ctx.contentX + (ctx.contentW - width) / 2
@@ -1554,27 +1554,42 @@ function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observa
     }
     ctx.y = top - height - 14
 
-    const colW = ctx.contentW / perRow
-    usadas.forEach((info, index) => {
-      const col = index % perRow
-      const row = Math.floor(index / perRow)
-      const cx = ctx.contentX + col * colW
-      const cy = ctx.y - row * legendRowH
-      ctx.page.drawCircle({
-        x: cx + 5,
-        y: cy + 3,
-        size: 4,
-        color: rgb(info.rgb[0], info.rgb[1], info.rgb[2]),
-      })
-      ctx.page.drawText(toWinAnsiSafe(`${info.label} — ${info.hint}`), {
-        x: cx + 14,
-        y: cy,
-        size: SIZE.meta,
-        font: ctx.font,
-        color: COLORS.ink,
-      })
+    // Legenda minimalista: bolinha + nome, centralizada numa linha (quebra se não couber).
+    const size = SIZE.meta
+    const gapItem = 14
+    const itens = usadas.map((info) => {
+      const texto = toWinAnsiSafe(info.label)
+      return { info, texto, w: 8 + 5 + ctx.font.widthOfTextAtSize(texto, size) }
     })
-    ctx.y -= legendH + 8
+    const linhas: (typeof itens)[] = [[]]
+    let larguraLinha = 0
+    for (const item of itens) {
+      const atual = linhas[linhas.length - 1]!
+      const extra = (atual.length > 0 ? gapItem : 0) + item.w
+      if (atual.length > 0 && larguraLinha + extra > ctx.contentW) {
+        linhas.push([item])
+        larguraLinha = item.w
+      } else {
+        atual.push(item)
+        larguraLinha += extra
+      }
+    }
+    for (const linha of linhas) {
+      const total = linha.reduce((sum, item, index) => sum + item.w + (index > 0 ? gapItem : 0), 0)
+      let cx = ctx.contentX + (ctx.contentW - total) / 2
+      for (const item of linha) {
+        ctx.page.drawCircle({
+          x: cx + 4,
+          y: ctx.y + 3,
+          size: 4,
+          color: rgb(item.info.rgb[0], item.info.rgb[1], item.info.rgb[2]),
+        })
+        ctx.page.drawText(item.texto, { x: cx + 13, y: ctx.y, size, font: ctx.font, color: COLORS.muted })
+        cx += item.w + gapItem
+      }
+      ctx.y -= legendRowH
+    }
+    ctx.y -= 6
   }
   drawOptionalField(ctx, 'Observações do desenho', observacao)
 }
