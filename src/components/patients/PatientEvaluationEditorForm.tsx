@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { EvaluationFichaForm } from '@/components/patients/evaluation/EvaluationFichaForm'
+import { EvaluationFichaForm, type FichaPageId } from '@/components/patients/evaluation/EvaluationFichaForm'
+import { EvaluationFichaSidebar } from '@/components/patients/evaluation/EvaluationFichaSidebar'
 import {
   useActiveTherapists,
   useCreatePatientEvaluation,
@@ -112,6 +113,7 @@ export function PatientEvaluationEditorForm({
   onSuccess,
 }: PatientEvaluationEditorFormProps) {
   const { data: therapists = [] } = useActiveTherapists()
+  const [fichaPage, setFichaPage] = useState<FichaPageId>('01')
   const createEvaluation = useCreatePatientEvaluation(patientId, {
     action: successAction,
     errorMessage,
@@ -215,7 +217,11 @@ export function PatientEvaluationEditorForm({
   const performedOnValid = /^\d{4}-\d{2}-\d{2}$/.test(form.watch('performedOn') ?? '')
 
   return (
-    <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit, onInvalid)}>
+    <form
+      className="xl:grid xl:grid-cols-[minmax(0,1fr)_16.5rem] xl:items-start xl:gap-6"
+      onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+    >
+      <div className="min-w-0 space-y-5">
       {showInnerHeading ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -255,9 +261,12 @@ export function PatientEvaluationEditorForm({
         watch={form.watch}
         setValue={form.setValue}
         control={form.control}
+        page={fichaPage}
+        onPageChange={setFichaPage}
       />
 
-      <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+      {/* No desktop os botões ficam fixos na navegação lateral. */}
+      <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end xl:hidden">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
           {cancelLabel}
         </Button>
@@ -265,6 +274,17 @@ export function PatientEvaluationEditorForm({
           {submitLabel}
         </Button>
       </div>
+      </div>
+
+      <EvaluationFichaSidebar
+        page={fichaPage}
+        onPageChange={setFichaPage}
+        onCancel={onCancel}
+        cancelLabel={cancelLabel}
+        submitLabel={submitLabel}
+        saving={saving}
+        submitDisabled={!performedOnValid}
+      />
     </form>
   )
 }

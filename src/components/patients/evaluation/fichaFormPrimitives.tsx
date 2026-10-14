@@ -74,6 +74,19 @@ const FICHA_BLOCK_ICONS: Record<string, LucideIcon> = {
   'Desenho dos sintomas': Brush,
 }
 
+/** id do bloco no DOM (navegação lateral da avaliação no desktop). */
+export function fichaBlocoDomId(title: string): string {
+  return (
+    'ficha-bloco-' +
+    title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+  )
+}
+
 type FichaCollapseState = {
   recolhido: (chave: string) => boolean
   alternar: (chave: string) => void
@@ -134,7 +147,11 @@ export function FichaBlock({
   const heading = tone === 'danger' ? 'text-error' : 'text-accent'
 
   return (
-    <section className={`rounded-2xl border ${border} bg-surface p-4 sm:p-5`}>
+    <section
+      id={fichaBlocoDomId(title)}
+      data-ficha-bloco={title}
+      className={`scroll-mt-4 rounded-2xl border ${border} bg-surface p-4 sm:p-5`}
+    >
       <button
         type="button"
         aria-expanded={aberto}

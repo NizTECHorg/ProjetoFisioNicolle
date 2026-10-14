@@ -18,6 +18,47 @@ export const FICHA_PAGES = [
 
 export type FichaPageId = (typeof FICHA_PAGES)[number]['id']
 
+/** Blocos de cada página (letra e título iguais aos FichaBlock) para a navegação lateral. */
+export const FICHA_BLOCOS: Record<FichaPageId, ReadonlyArray<{ letter: string; title: string }>> = {
+  '01': [
+    { letter: 'A', title: 'Identificação' },
+    { letter: 'B', title: 'Queixa principal' },
+    { letter: 'C', title: 'História atual' },
+    { letter: 'D', title: 'Esportes' },
+    { letter: 'E', title: 'Tratamentos e investigações anteriores' },
+    { letter: 'F', title: 'Histórico pregresso resumido' },
+  ],
+  '02': [
+    { letter: 'A', title: 'Mapa corporal' },
+    { letter: 'B', title: 'Característica predominante' },
+    { letter: 'C', title: 'Intensidade (0–10)' },
+    { letter: 'D', title: 'Comportamento em 24 horas' },
+    { letter: 'E', title: 'O que piora?' },
+    { letter: 'F', title: 'O que melhora?' },
+    { letter: 'G', title: 'Irritabilidade / resposta' },
+  ],
+  '03': [
+    { letter: 'A', title: 'Principal limitação funcional' },
+    { letter: 'B', title: 'Atividades afetadas' },
+    { letter: 'C', title: 'Rotina e demanda' },
+    { letter: 'D', title: 'Expectativas e objetivos do paciente' },
+    { letter: 'E', title: 'Triagem de segurança' },
+    { letter: 'F', title: 'Medicações / outras informações' },
+  ],
+  '04': [
+    { letter: 'A', title: 'Inspeção / observação' },
+    { letter: 'B', title: 'Mobilidade' },
+    { letter: 'C', title: 'Força' },
+    { letter: 'D', title: 'Avaliação neurológica (se indicada)' },
+    { letter: 'E', title: 'Palpação, testes e função' },
+    { letter: 'F', title: 'Síntese dos principais achados' },
+    { letter: 'G', title: 'Objetivos' },
+    { letter: 'H', title: 'Planejamento' },
+    { letter: 'ID', title: 'Identificação profissional' },
+  ],
+  '05': [{ letter: 'A', title: 'Desenho dos sintomas' }],
+}
+
 type EvaluationFichaFormProps = {
   register: UseFormRegister<EvaluationFormData>
   watch: UseFormWatch<EvaluationFormData>
@@ -25,6 +66,9 @@ type EvaluationFichaFormProps = {
   control: Control<EvaluationFormData>
   readOnly?: boolean
   initialPage?: FichaPageId
+  /** Página controlada por fora (navegação lateral no desktop). Com isso, os chips somem no desktop. */
+  page?: FichaPageId
+  onPageChange?: (page: FichaPageId) => void
 }
 
 export function EvaluationFichaForm({
@@ -34,14 +78,21 @@ export function EvaluationFichaForm({
   control,
   readOnly,
   initialPage = '01',
+  page: pageControlada,
+  onPageChange,
 }: EvaluationFichaFormProps) {
-  const [page, setPage] = useState<FichaPageId>(initialPage)
+  const [pageLocal, setPageLocal] = useState<FichaPageId>(initialPage)
+  const page = pageControlada ?? pageLocal
+  const setPage = (next: FichaPageId) => (onPageChange ? onPageChange(next) : setPageLocal(next))
 
   return (
     <FichaCollapseProvider>
     <div className="space-y-4">
       <nav
-        className="flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:auto] [scrollbar-width:thin]"
+        className={[
+          'flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:auto] [scrollbar-width:thin]',
+          onPageChange ? 'xl:hidden' : '',
+        ].join(' ')}
         aria-label="Páginas da ficha"
         role="tablist"
       >
