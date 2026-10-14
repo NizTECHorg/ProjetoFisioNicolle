@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Mic, Square, Loader2, CalendarClock, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import { SignedPhoto } from '@/components/patients/SignedPhoto'
 import { PatientSessionEditorForm } from '@/components/patients/PatientSessionEditorForm'
@@ -162,7 +162,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
       const processAudio = async () => {
         try {
           setIsProcessingAudio(true)
-          const text = await generateEvolutionFromAudio(audioBlob)
+          const text = await generateEvolutionFromAudio(audioBlob, patientId)
           setEditing(null)
           setDraftConducts(text)
           setEditorOpen(true)
@@ -427,6 +427,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
     </>
   )
 }
+
 
 
 
