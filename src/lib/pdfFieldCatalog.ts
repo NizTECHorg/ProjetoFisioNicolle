@@ -1,5 +1,6 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatLinha } from '@/lib/atividadeCapacidade'
+import { resumoEsporte } from '@/lib/esportesAvaliacao'
 import {
   formatAchado,
   formatCabecalhoRegiao,
@@ -406,17 +407,24 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       variavel: 'Variável',
     },
   )
+  const esporteResumo = resumoEsporte(funcao?.rotina)
   const hasRotina =
     trabalhoItems.length > 0 ||
     textFilled(funcao?.rotina?.horasDia) ||
     Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(funcao?.rotina?.atividadeQualFreq)
+    textFilled(funcao?.rotina?.atividadeQualFreq) ||
+    Boolean(esporteResumo.esporteLabel)
   pushBlock(items, {
     id: '03.C',
     label: 'Rotina e demanda',
     groupLabel: '03 · Função · Bloco C',
     filled: hasRotina,
-    preview: previewFrom(trabalhoItems[0], funcao?.rotina?.horasDia, funcao?.rotina?.atividadeQualFreq),
+    preview: previewFrom(
+      trabalhoItems[0],
+      funcao?.rotina?.horasDia,
+      esporteResumo.esporteLabel,
+      funcao?.rotina?.atividadeQualFreq,
+    ),
   })
 
   const objetivoItems = checkedLabels(

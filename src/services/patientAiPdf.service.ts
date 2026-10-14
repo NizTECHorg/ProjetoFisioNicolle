@@ -13,6 +13,7 @@ import pessoaUrl from '@/assets/pessoa.png'
 import pessoaFemininaUrl from '@/assets/pessoa-feminina.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
+import { resumoEsporte } from '@/lib/esportesAvaliacao'
 import {
   formatAchado,
   formatCabecalhoRegiao,
@@ -1933,11 +1934,13 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       variavel: 'Variável',
     },
   )
+  const esporteResumo = resumoEsporte(funcao?.rotina)
   const hasRotina =
     trabalhoItems.length > 0 ||
     textFilled(funcao?.rotina?.horasDia) ||
     Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(funcao?.rotina?.atividadeQualFreq)
+    textFilled(funcao?.rotina?.atividadeQualFreq) ||
+    Boolean(esporteResumo.esporteLabel)
 
   const objetivoItems = checkedLabels(
     funcao?.expectativas?.objetivos as Record<string, unknown> | undefined,
@@ -2034,6 +2037,12 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       enumLabel(funcao?.rotina?.praticaAtividadeFisica, { nao: 'Não', sim: 'Sim' }),
     )
     drawOptionalField(ctx, 'Qual / frequência', funcao?.rotina?.atividadeQualFreq)
+    drawOptionalField(ctx, 'Esporte', esporteResumo.esporteLabel)
+    drawOptionalBullets(
+      ctx,
+      'Problemas frequentes marcados',
+      esporteResumo.problemas.map((p) => `${p.nome} · ${p.regiao}`),
+    )
   }
   if (show03D) {
     anyContent = true
