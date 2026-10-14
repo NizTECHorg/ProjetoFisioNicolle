@@ -169,7 +169,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
           <section
             key={entrada.esporte}
             aria-label={rotuloEsporte(entrada)}
-            className={['relative space-y-3 rounded-2xl border border-line bg-canvas transition-[padding] duration-200', recolhido ? 'px-4 py-2' : 'p-4'].join(' ')}
+            className={['relative rounded-2xl border border-line bg-canvas transition-[padding] duration-200', recolhido ? 'px-4 py-1.5' : 'space-y-3 p-4'].join(' ')}
           >
             <div className="flex items-center justify-between gap-2 pr-1">
               {catalogo ? (
