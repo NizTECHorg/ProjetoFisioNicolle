@@ -122,7 +122,7 @@ export function EvaluationFichaSidebar({
   return (
     <aside aria-label="Navegação da avaliação" className="h-full">
       {/* sticky precisa de espaço para deslizar: o aside estica na altura do editor (h-full no slot). */}
-      <div className="sticky top-4 flex max-h-[calc(100dvh-2rem)] flex-col">
+      <div className="sticky top-4 flex max-h-[calc(100dvh-4.5rem)] flex-col">
         <p className="shrink-0 px-2 pb-3 text-sm font-semibold text-ink">
           Avaliação fisioterapêutica
         </p>
@@ -215,7 +215,7 @@ export function EvaluationFichaSidebar({
           })}
         </nav>
 
-        <div className="shrink-0 space-y-2 pt-3">
+        <div className="shrink-0 space-y-2 pb-1 pt-3">
           <Button type="submit" form={formId} fullWidth isLoading={saving} disabled={submitDisabled} className="!py-2.5">
             {submitLabel}
           </Button>
