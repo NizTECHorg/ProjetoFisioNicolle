@@ -1099,7 +1099,7 @@ function CamposTesteMarcado({
   const idResultado = useId()
 
   return (
-    <div className="space-y-2 pb-2">
+    <div className="space-y-2">
       {outro ? (
         <div className="space-y-2">
           <label htmlFor={idOutro} className={ROTULO}>
@@ -1346,14 +1346,6 @@ function ListaTestes({
                         />
                         <span>{item.label}</span>
                       </label>
-                      {marcado ? (
-                        <CamposTesteMarcado
-                          indice={indice}
-                          outro={item.key === 'outro'}
-                          register={register}
-                          disabled={disabled}
-                        />
-                      ) : null}
                     </li>
                   )
                 })}
@@ -1365,6 +1357,46 @@ function ListaTestes({
         </div>
       )}
       </div>
+      ) : null}
+      {fields.length > 0 ? (
+        <section aria-label="Testes marcados" className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+          <p className="text-sm font-semibold leading-[1.2] text-ink">
+            Testes marcados <span className="font-normal text-muted">({fields.length})</span>
+          </p>
+          <ul className="divide-y divide-line">
+            {fields.map((campo, indice) => {
+              const regiao = CATALOGO_TESTES.find((item) => item.key === campo.regiao)
+              const teste = regiao?.testes.find((item) => item.key === campo.teste)
+              return (
+                <li key={campo.id} className="space-y-1 py-3 first:pt-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 text-sm text-ink">
+                      <span className="font-semibold">{teste?.label ?? campo.teste}</span>
+                      {regiao ? <span className="text-muted"> · {regiao.label}</span> : null}
+                    </p>
+                    {!disabled ? (
+                      <button
+                        type="button"
+                        aria-label={`Desmarcar ${teste?.label ?? 'teste'}`}
+                        title="Desmarcar"
+                        onClick={() => remove(indice)}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error"
+                      >
+                        <X size={16} aria-hidden />
+                      </button>
+                    ) : null}
+                  </div>
+                  <CamposTesteMarcado
+                    indice={indice}
+                    outro={campo.teste === 'outro'}
+                    register={register}
+                    disabled={disabled}
+                  />
+                </li>
+              )
+            })}
+          </ul>
+        </section>
       ) : null}
       <RegistroAnterior texto={registroAnterior} />
     </div>
