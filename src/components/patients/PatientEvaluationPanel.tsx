@@ -1,3 +1,4 @@
+import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { useEffect, useMemo, useState } from 'react'
 import { ClipboardList, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -192,16 +193,15 @@ export function PatientEvaluationPanel({
         </div>
         {canWrite && !editorOpen ? (
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleGenerateAi}
-              disabled={aiState === 'loading'}
-              isLoading={aiState === 'loading'}
-            >
-              <Sparkles size={16} />
-              {aiState === 'loading' ? PATIENT_AI_COPY.avaliacaoGenerating : PATIENT_AI_COPY.avaliacaoCta}
-            </Button>
+            {/* Mesmo loading do Resumo IA: botão escuro com brilho azul e ícone de brilho. */}
+            {aiState === 'loading' ? (
+              <AiGeneratingButton type="button" generating aria-label={PATIENT_AI_COPY.avaliacaoGenerating} />
+            ) : (
+              <Button type="button" variant="secondary" onClick={handleGenerateAi}>
+                <Sparkles size={16} />
+                {PATIENT_AI_COPY.avaliacaoCta}
+              </Button>
+            )}
             <Button type="button" onClick={() => openCreate()}>
               <Plus size={16} />
               Nova avaliação

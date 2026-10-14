@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
 interface AiGeneratingButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -20,7 +20,7 @@ export const AiGeneratingButton = forwardRef<HTMLButtonElement, AiGeneratingButt
       >
         {generating ? (
           <>
-            <Star size={16} fill="currentColor" aria-hidden />
+            <Sparkles size={16} aria-hidden />
             Gerando
           </>
         ) : (

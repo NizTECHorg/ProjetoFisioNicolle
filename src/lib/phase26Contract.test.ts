@@ -91,7 +91,7 @@ test('REQ-37.2: Gerando fica fora do Button', () => {
   equal(button.includes('ai-generating'), false)
 
   equal(ai.includes('Gerando'), true)
-  equal(ai.includes('Star'), true)
+  equal(ai.includes('Sparkles'), true)
   equal(ai.includes('aria-busy'), true)
   equal(ai.includes('ai-generating'), true)
   equal(ai.includes('rounded-2xl'), true)
