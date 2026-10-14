@@ -226,10 +226,10 @@ function PriceBars(props: { prices: readonly PriceBar[] }) {
                   <p className="truncate text-sm font-semibold text-ink">{price.name}</p>
                   <p className="shrink-0 text-sm font-semibold text-forest">{formatCurrency(price.amountBrl)}</p>
                 </div>
-                <svg viewBox="0 0 100 6" preserveAspectRatio="none" className="mt-2 block h-1.5 w-full" aria-hidden="true">
-                  <rect x="0" y="0" width="100" height="6" rx="3" fill="#e7f0fb" />
-                  <rect x="0" y="0" width={width} height="6" rx="3" fill="#2f7dff" />
-                </svg>
+                {/* Barra em div (rounded-full): SVG esticado deixava as pontas finas. */}
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-accent-soft" aria-hidden="true">
+                  <div className="h-full min-w-1.5 rounded-full bg-accent" style={{ width: `${width}%` }} />
+                </div>
               </div>
             </div>
           </li>
@@ -257,14 +257,15 @@ function CompareCard(props: { money: MonthMoney; peakCents: number; selected: bo
       </div>
       <div className="mt-3 sm:mt-5">
         <p className="truncate text-lg font-semibold leading-none tracking-tight sm:text-2xl">{formatCurrency(props.money.amountBrl)}</p>
-        <svg viewBox="0 0 100 6" preserveAspectRatio="none" className="mt-3 block h-1.5 w-full" aria-hidden="true">
-          <rect x="0" y="0" width="100" height="6" rx="3" fill={props.selected ? '#163056' : '#e7f0fb'} />
-          {props.selected ? (
-            <rect x="0" y="0" width={width} height="6" rx="3" fill="#ffffff" />
-          ) : (
-            <rect x="0" y="0" width={width} height="6" rx="3" fill="#2f7dff" />
-          )}
-        </svg>
+        <div
+          className={['mt-3 h-1.5 w-full overflow-hidden rounded-full', props.selected ? 'bg-forest-mid' : 'bg-accent-soft'].join(' ')}
+          aria-hidden="true"
+        >
+          <div
+            className={['h-full min-w-1.5 rounded-full', props.selected ? 'bg-white' : 'bg-accent'].join(' ')}
+            style={{ width: `${width}%` }}
+          />
+        </div>
       </div>
     </div>
   )
