@@ -19,6 +19,7 @@ import {
 } from '@/schemas/evaluation.schema'
 import { formatTestesParaColuna } from '@/lib/mobilidadePalpacao'
 import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
+import { genderLabel } from '@/lib/patientGender'
 import { toast } from '@/stores/toast.store'
 import type { ToastAction } from '@/stores/toast.store'
 import type { PatientEvaluation } from '@/types/evaluation'
@@ -30,6 +31,7 @@ export type EvaluationPatientSnapshot = {
   profession?: string
   phone?: string
   email?: string
+  gender?: string | null
 }
 
 function dash(value: string | null | undefined) {
@@ -58,6 +60,7 @@ function prefillIdentification(
           ...id,
           nomeCompleto: id.nomeCompleto || dash(snapshot.name),
           dataNascimento: id.dataNascimento || dash(snapshot.birthDateRaw) || dash(snapshot.birthDate),
+          genero: id.genero || genderLabel(snapshot.gender),
           profissao: id.profissao || dash(snapshot.profession),
           contato: id.contato || contactFromSnapshot(snapshot),
           dataAvaliacao: id.dataAvaliacao || base.performedOn,

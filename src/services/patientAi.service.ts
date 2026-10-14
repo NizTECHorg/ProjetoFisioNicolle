@@ -4,9 +4,12 @@ import { aiSummaryResponseSchema, type SummaryTexts } from '@/lib/patientSummary
 import { getFocusRegion } from '@/lib/focusRegions'
 import { focusRegionKeySchema } from '@/schemas/patient.schema'
 import {
+  avaliacaoIaResponseSchema,
   evolucaoSynthesisSchema,
+  patientAiAvaliacaoInvokeSchema,
   patientAiEvolucaoInvokeSchema,
   patientAiSummaryInvokeSchema,
+  type AvaliacaoIaResponse,
   type EvolucaoSynthesis,
   type PatientAiEvolucaoInvokeInput,
   type PatientAiSummaryInvokeInput,
@@ -232,4 +235,38 @@ export async function generateEvolucaoSynthesis(
   }
 
   return synthesis.data
+}
+
+/** Gera os itens do rascunho de avaliação. Só o id do paciente sai do navegador. */
+export async function generateEvaluationDraft(patientId: string): Promise<AvaliacaoIaResponse> {
+  const parsed = patientAiAvaliacaoInvokeSchema.parse({ patientId })
+
+  const { data, error } = await supabase.functions.invoke('patient-ai-summary', {
+    body: { patientId: parsed.patientId, mode: 'avaliacao' },
+  })
+
+  if (error) {
+    const payload = await readFunctionsErrorPayload(error, data)
+    throwMappedFunctionsError(payload)
+  }
+
+  const body = data as Record<string, unknown> | null
+  if (body && (body.code || body.error) && !Array.isArray(body.items)) {
+    throwMappedFunctionsError({
+      code: typeof body.code === 'string' ? body.code : undefined,
+      message:
+        typeof body.message === 'string'
+          ? body.message
+          : typeof body.error === 'string'
+            ? body.error
+            : undefined,
+    })
+  }
+
+  const result = avaliacaoIaResponseSchema.safeParse(body)
+  if (!result.success) {
+    throwMappedFunctionsError({ code: 'ai_unavailable' })
+  }
+
+  return result.data
 }

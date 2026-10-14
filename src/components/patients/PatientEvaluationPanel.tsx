@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ClipboardList, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { PatientEvaluationEditorForm } from '@/components/patients/PatientEvaluationEditorForm'
 import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhysicalEvaluationPanel'
 import { EvaluationFichaDetail } from '@/components/patients/evaluation/EvaluationFichaDetail'
 import { fichaHasClinicalContent } from '@/lib/evaluationFichaContent'
+import { useAuth } from '@/hooks/useAuth'
+import { AI_EVALUATION_BANNER, buildAiEvaluationFicha } from '@/lib/avaliacaoIa'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
+import { generateEvaluationDraft } from '@/services/patientAi.service'
 import {
+  useActiveTherapists,
   useDeletePatientEvaluation,
   usePatient,
   usePatientEvaluations,
@@ -88,6 +93,10 @@ export function PatientEvaluationPanel({
   const { data: evaluations = [], isLoading, isError } = usePatientEvaluations(patientId)
   const { data: patientDetail } = usePatient(patientId)
   const deleteEvaluation = useDeletePatientEvaluation(patientId)
+  const { user, profile } = useAuth()
+  const { data: therapists = [] } = useActiveTherapists()
+  const [aiState, setAiState] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [aiNotes, setAiNotes] = useState<string[] | null>(null)
 
   const [sidebarSlot, setSidebarSlot] = useState<HTMLDivElement | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
@@ -102,9 +111,10 @@ export function PatientEvaluationPanel({
     if (!selectedId && evaluations[0]) setSelectedId(evaluations[0].id)
   }, [evaluations, selectedId])
 
-  function openCreate(draft?: EvaluationFormData) {
+  function openCreate(draft?: EvaluationFormData, options?: { aiNotes?: string[] }) {
     setEditing(null)
     setCreateDraft(draft ?? null)
+    setAiNotes(options?.aiNotes ?? null)
     setEditorOpen(true)
   }
 
@@ -126,6 +136,33 @@ export function PatientEvaluationPanel({
     setEditorOpen(false)
     setEditing(null)
     setCreateDraft(null)
+    setAiNotes(null)
+    setAiState('idle')
+  }
+
+  async function handleGenerateAi() {
+    if (aiState === 'loading') return
+    setAiState('loading')
+    try {
+      const res = await generateEvaluationDraft(patientId)
+      const me = therapists.find((t) => t.id === user?.id)
+      const base = emptyEvaluationForm()
+      const { ficha, notes } = buildAiEvaluationFicha(
+        base.ficha,
+        {
+          complaint: patientDetail?.complaint,
+          diagnosis: patientDetail?.diagnosis,
+          goals: patientDetail?.goals,
+          painSeries: patientDetail?.painSeries,
+          therapistName: me?.fullName ?? profile?.fullName ?? null,
+        },
+        { items: res.items, diagnosticoResumido: res.diagnosticoResumido },
+      )
+      openCreate({ ...base, therapistId: me?.id ?? '', ficha }, { aiNotes: notes })
+      setAiState('idle')
+    } catch {
+      setAiState('error')
+    }
   }
 
   const patientSnapshot = useMemo(() => {
@@ -137,6 +174,7 @@ export function PatientEvaluationPanel({
         profession: patientDetail.profession,
         phone: patientDetail.phone,
         email: patientDetail.email,
+        gender: patientDetail.gender,
       }
     }
     if (patientName) return { name: patientName }
@@ -153,12 +191,36 @@ export function PatientEvaluationPanel({
           </p>
         </div>
         {canWrite && !editorOpen ? (
-          <Button type="button" onClick={() => openCreate()}>
-            <Plus size={16} />
-            Nova avaliação
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleGenerateAi}
+              disabled={aiState === 'loading'}
+              isLoading={aiState === 'loading'}
+            >
+              <Sparkles size={16} />
+              {aiState === 'loading' ? PATIENT_AI_COPY.avaliacaoGenerating : PATIENT_AI_COPY.avaliacaoCta}
+            </Button>
+            <Button type="button" onClick={() => openCreate()}>
+              <Plus size={16} />
+              Nova avaliação
+            </Button>
+          </div>
         ) : null}
       </div>
+
+      {aiState === 'error' && !editorOpen && canWrite ? (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-sm text-error"
+        >
+          <span>{PATIENT_AI_COPY.avaliacaoError}</span>
+          <Button type="button" variant="secondary" onClick={() => openCreate()}>
+            {PATIENT_AI_COPY.avaliacaoOpenBlank}
+          </Button>
+        </div>
+      ) : null}
 
       {isLoading ? (
         <div className="flex min-h-32 items-center justify-center">
@@ -175,6 +237,24 @@ export function PatientEvaluationPanel({
       {!isLoading && !isError && canWrite && editorOpen ? (
         <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_17.5rem] xl:gap-5">
         <div className="min-w-0 rounded-2xl border border-line bg-surface p-5">
+          {aiNotes !== null ? (
+            <div
+              role="status"
+              className="mb-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+            >
+              <p className="flex items-center gap-2 font-medium">
+                <Sparkles size={16} />
+                {AI_EVALUATION_BANNER}
+              </p>
+              {aiNotes.length > 0 ? (
+                <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-muted">
+                  {aiNotes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
           <PatientEvaluationEditorForm
             sidebarContainer={sidebarSlot}
             key={editing?.id ?? (createDraft ? 'draft' : 'create')}

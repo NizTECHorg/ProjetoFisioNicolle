@@ -85,6 +85,11 @@ export const PATIENT_AI_COPY = {
   emailSubjectAvaliacao: 'Sua avaliação',
   emailSubjectEvolucao: 'Sua evolução',
   emailBody: 'Segue o documento da sua fisioterapia, em anexo.',
+  avaliacaoCta: 'Gerar avaliação com IA',
+  avaliacaoGenerating: 'Gerando…',
+  avaliacaoError:
+    'Não foi possível gerar a avaliação com IA agora. Você pode abrir uma avaliação em branco.',
+  avaliacaoOpenBlank: 'Abrir em branco',
 } as const
 
 export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024
@@ -185,3 +190,36 @@ export const patientAiReportUploadSchema = z
   })
 
 export type PatientAiReportUploadInput = z.infer<typeof patientAiReportUploadSchema>
+
+/** Avaliação por IA (fase 34): o servidor lê o paciente com RLS; o cliente só envia o id. */
+export const patientAiAvaliacaoInvokeSchema = z.object({
+  patientId: z.string().uuid(),
+})
+
+export const avaliacaoIaItemSchema = z.object({
+  path: z.string().min(1).max(120),
+  value: z.union([z.string().max(4000), z.number(), z.boolean()]),
+  evidence: z.string().min(1).max(4000),
+})
+
+/** Tolerante: itens malformados são descartados um a um, nunca derrubam a resposta. */
+export const avaliacaoIaResponseSchema = z.object({
+  items: z
+    .array(z.unknown())
+    .max(60)
+    .transform((lista) =>
+      lista.flatMap((item) => {
+        const r = avaliacaoIaItemSchema.safeParse(item)
+        return r.success ? [r.data] : []
+      }),
+    ),
+  droppedCount: z.number().int().min(0).optional().default(0),
+  diagnosticoResumido: z
+    .string()
+    .max(4000)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+})
+
+export type AvaliacaoIaResponse = z.infer<typeof avaliacaoIaResponseSchema>
