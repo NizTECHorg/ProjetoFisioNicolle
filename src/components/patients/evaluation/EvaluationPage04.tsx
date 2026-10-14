@@ -734,6 +734,15 @@ function AcoesAchado({
   )
 }
 
+/** Frase curta para a dor à palpação (escala 0–10). */
+function descricaoDorPalpacao(nivel: number): string {
+  if (nivel <= 0) return 'Sem dor à palpação'
+  if (nivel <= 3) return 'Dor leve à palpação'
+  if (nivel <= 6) return 'Dor moderada à palpação'
+  if (nivel <= 9) return 'Dor intensa à palpação'
+  return 'Pior dor imaginável à palpação'
+}
+
 function FormularioAchado({
   rascunho,
   setRascunho,
@@ -755,7 +764,6 @@ function FormularioAchado({
   const idLocal = useId()
   const idOutroLocal = useId()
   const idOutroAchado = useId()
-  const idDor = useId()
   const idObs = useId()
   const idLado = useId()
   const catalogo = CATALOGO_PALPACAO.find((item) => item.key === rascunho.regiao)
@@ -920,31 +928,52 @@ function FormularioAchado({
           />
         </div>
       ) : null}
-      <div className="space-y-2">
-        <label htmlFor={idDor} className={ROTULO}>
-          Dor (0–10)
-        </label>
-        <input
-          id={idDor}
-          type="number"
-          min={0}
-          max={10}
-          step={1}
-          className={CAMPO}
-          disabled={disabled}
-          value={rascunho.dor}
-          onChange={(event) => setRascunho((atual) => ({ ...atual, dor: event.target.value }))}
-        />
-      </div>
+      <fieldset className="space-y-2">
+        <legend className={ROTULO}>Dor à palpação</legend>
+        <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-11" role="radiogroup" aria-label="Dor à palpação de 0 a 10">
+          {Array.from({ length: 11 }, (_, nivel) => {
+            const selecionado = rascunho.dor !== '' && Number(rascunho.dor) === nivel
+            return (
+              <button
+                key={nivel}
+                type="button"
+                role="radio"
+                aria-checked={selecionado}
+                disabled={disabled}
+                onClick={() =>
+                  setRascunho((atual) => ({ ...atual, dor: selecionado ? '' : String(nivel) }))
+                }
+                className={[
+                  'flex h-11 items-center justify-center rounded-xl border text-sm font-semibold transition-colors disabled:opacity-60',
+                  selecionado
+                    ? 'border-forest bg-forest text-white'
+                    : 'border-line bg-surface text-ink hover:border-forest/30 hover:bg-canvas',
+                ].join(' ')}
+              >
+                {nivel}
+              </button>
+            )
+          })}
+        </div>
+        {rascunho.dor !== '' ? (
+          <div className="rounded-xl bg-accent-soft/60 px-3 py-2">
+            <p className="text-sm font-semibold text-ink">Dor {rascunho.dor}/10</p>
+            <p className="text-xs text-muted">{descricaoDorPalpacao(Number(rascunho.dor))}</p>
+          </div>
+        ) : (
+          <p className="text-xs text-muted">Toque no número. Toque de novo para limpar.</p>
+        )}
+      </fieldset>
       <div className="space-y-2">
         <label htmlFor={idObs} className={ROTULO}>
-          Observação
+          Observações
         </label>
-        <input
+        <textarea
           id={idObs}
-          type="text"
-          className={CAMPO}
+          rows={2}
+          className={`${CAMPO} resize-y`}
           disabled={disabled}
+          placeholder="Ex.: reproduz a queixa, irradia, ponto-gatilho, tensão, edema ao toque…"
           value={rascunho.observacao}
           onChange={(event) =>
             setRascunho((atual) => ({ ...atual, observacao: event.target.value }))
