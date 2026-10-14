@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { PatientPhotoControl } from '@/components/patients/PatientPhotoControl'
 import { PatientProgramCell } from '@/components/patients/PatientProgramCell'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
@@ -197,7 +196,6 @@ export function PatientsPage() {
           <>
           <div className="space-y-2 md:hidden">
             {visible.map((patient, index) => {
-              const writable = canWritePatient(user?.id, patient.createdBy)
               const nameAndMeta = (
                 <>
                   <span className="block truncate font-medium text-ink">{patient.name}</span>
@@ -206,44 +204,22 @@ export function PatientsPage() {
                   </span>
                 </>
               )
-              if (!writable) {
-                return (
-                  <Link
-                    key={patient.id}
-                    to={`/pacientes/${patient.id}`}
-                    className="dash-card dash-in flex items-center gap-3 rounded-2xl border border-line bg-surface p-4"
-                    style={{ animationDelay: `${80 + index * 50}ms` }}
-                  >
-                    <PatientAvatar
-                      name={patient.name}
-                      tone={patient.photoTone}
-                      initials={patient.initials}
-                      size="md"
-                      photoUrl={patient.photoUrl}
-                    />
-                    <span className="min-w-0 flex-1">{nameAndMeta}</span>
-                  </Link>
-                )
-              }
               return (
-                <div
+                <Link
                   key={patient.id}
+                  to={`/pacientes/${patient.id}`}
                   className="dash-card dash-in flex items-center gap-3 rounded-2xl border border-line bg-surface p-4"
                   style={{ animationDelay: `${80 + index * 50}ms` }}
                 >
-                  <PatientPhotoControl
-                    patientId={patient.id}
+                  <PatientAvatar
                     name={patient.name}
                     tone={patient.photoTone}
                     initials={patient.initials}
-                    photoUrl={patient.photoUrl}
                     size="md"
-                    showRemove={false}
+                    photoUrl={patient.photoUrl}
                   />
-                  <Link to={`/pacientes/${patient.id}`} className="min-w-0 flex-1">
-                    {nameAndMeta}
-                  </Link>
-                </div>
+                  <span className="min-w-0 flex-1">{nameAndMeta}</span>
+                </Link>
               )
             })}
           </div>
@@ -281,30 +257,13 @@ export function PatientsPage() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          {writable ? (
-                            <div
-                              onClick={(event) => event.stopPropagation()}
-                              onKeyDown={(event) => event.stopPropagation()}
-                            >
-                              <PatientPhotoControl
-                                patientId={patient.id}
-                                name={patient.name}
-                                tone={patient.photoTone}
-                                initials={patient.initials}
-                                photoUrl={patient.photoUrl}
-                                size="md"
-                                showRemove={false}
-                              />
-                            </div>
-                          ) : (
-                            <PatientAvatar
-                              name={patient.name}
-                              tone={patient.photoTone}
-                              initials={patient.initials}
-                              size="md"
-                              photoUrl={patient.photoUrl}
-                            />
-                          )}
+                          <PatientAvatar
+                            name={patient.name}
+                            tone={patient.photoTone}
+                            initials={patient.initials}
+                            size="md"
+                            photoUrl={patient.photoUrl}
+                          />
                           <span>
                             <span className="block font-medium text-ink">{patient.name}</span>
                             {fichaDe ? (

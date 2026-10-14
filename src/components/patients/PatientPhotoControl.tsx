@@ -91,7 +91,7 @@ export function PatientPhotoControl({
           void onPhotoChange(event)
         }}
       />
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-forest/55 text-white opacity-0 group-hover/photo:opacity-100 group-focus-within/photo:opacity-100 [@media(hover:none)]:opacity-100 motion-reduce:transition-none">
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-forest/55 text-white opacity-0 transition-opacity group-hover/photo:opacity-100 group-focus-within/photo:opacity-100 group-active/photo:opacity-100 motion-reduce:transition-none">
         {upload.isPending ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
         ) : (
