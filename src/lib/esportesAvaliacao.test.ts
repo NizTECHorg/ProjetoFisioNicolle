@@ -11,12 +11,16 @@ import {
   resumoEsporte,
   safeEsporte,
   safeEsporteProblemas,
+  ESPORTES_MAX,
+  esportesDaFuncao,
+  resumoEsportes,
+  safeEsportesLista,
 } from './esportesAvaliacao.ts'
 import { CATALOGO_TESTES, fold } from './mobilidadePalpacao.ts'
 
 const KEY_RE = /^[a-z][a-zA-Z0-9]{0,63}$/
 
-test('REQ-44: catálogo tem 15 esportes na ordem esperada', () => {
+test('REQ-44: catálogo tem 17 esportes na ordem esperada', () => {
   deepEqual(
     ESPORTES.map((e) => e.key),
     [
@@ -35,9 +39,11 @@ test('REQ-44: catálogo tem 15 esportes na ordem esperada', () => {
       'padel',
       'danca',
       'pilatesYoga',
+      'ski',
+      'snowboard',
     ],
   )
-  equal(ESPORTES.length, 15)
+  equal(ESPORTES.length, 17)
   ok(!ESPORTES.some((e) => e.key === ESPORTE_OUTRO))
 })
 
@@ -105,7 +111,7 @@ test('REQ-44: avaliarTexto junta testes e achados', () => {
 
 test('REQ-44: buscarEsportes ignora acento e usa sinônimos', () => {
   const keys = (q: string) => buscarEsportes(q).map((e) => e.key)
-  equal(buscarEsportes('').length, 15)
+  equal(buscarEsportes('').length, 17)
   ok(keys('VOLEI').includes('volei'))
   ok(keys('vôlei').includes('volei'))
   ok(keys('beach').includes('tenis'))
@@ -173,4 +179,42 @@ test('REQ-44: schema limita esporteOutro a 80 caracteres', () => {
   const mk = (n: number) => ({ funcao: { rotina: { esporte: 'outro', esporteOutro: 'a'.repeat(n) } } })
   equal(evaluationFichaSchema.safeParse(mk(81)).success, false)
   equal(evaluationFichaSchema.safeParse(mk(80)).success, true)
+})
+
+test('vários esportes: lista tolerante, sem repetidos, problemas só do próprio esporte', () => {
+  const lista = safeEsportesLista([
+    { esporte: 'volei', problemas: ['naoExiste'] },
+    { esporte: 'volei' },
+    { esporte: 'xadrez' },
+    { esporte: 'outro', outro: 'Remo' },
+    null,
+  ])
+  equal(lista.length, 2)
+  equal(lista[0]?.esporte, 'volei')
+  equal(lista[0]?.problemas, undefined)
+  equal(lista[1]?.outro, 'Remo')
+  const muitos = safeEsportesLista(['volei', 'futebol', 'corrida', 'basquete', 'natacao', 'ski', 'snowboard'].map((esporte) => ({ esporte })))
+  ok(muitos.length <= ESPORTES_MAX)
+})
+
+test('vários esportes: avaliação antiga (um esporte em rotina) vira lista', () => {
+  const lista = esportesDaFuncao({ rotina: { esporte: 'ski', esporteProblemas: ['lcaSki', 'xx'] } })
+  equal(lista.length, 1)
+  equal(lista[0]?.problemas?.join(','), 'lcaSki')
+  equal(esportesDaFuncao({ esportes: [{ esporte: 'snowboard' }], rotina: { esporte: 'ski' } })[0]?.esporte, 'snowboard')
+  equal(esportesDaFuncao(undefined).length, 0)
+})
+
+test('vários esportes: resumo traz rótulo e problemas marcados de cada esporte', () => {
+  const resumo = resumoEsportes({
+    esportes: [
+      { esporte: 'ski', problemas: ['lcaSki'] },
+      { esporte: 'outro', outro: 'Remo' },
+    ],
+  })
+  equal(resumo.length, 2)
+  equal(resumo[0]?.label, 'Ski')
+  equal(resumo[0]?.problemas[0]?.regiao, 'Joelho')
+  equal(resumo[1]?.label, 'Remo')
+  equal(resumo[1]?.problemas.length, 0)
 })

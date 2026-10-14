@@ -1,64 +1,42 @@
 import { test } from 'node:test'
 import { ok } from 'node:assert/strict'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
-const path = (relative: string) => fileURLToPath(new URL(relative, import.meta.url))
-const FIELD = '../components/patients/evaluation/EsporteProblemasField.tsx'
+const read = (relative: string) => readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8')
+const FIELD = '../components/patients/evaluation/EsportesField.tsx'
 const PAGE = '../components/patients/evaluation/EvaluationPage03.tsx'
 
-function readField(): string {
-  ok(existsSync(path(FIELD)), 'EsporteProblemasField.tsx ainda nao existe')
-  return readFileSync(path(FIELD), 'utf8')
-}
-
-const page = readFileSync(path(PAGE), 'utf8')
-
-test('REQ-44: campo usa o catalogo e helpers', () => {
-  const field = readField()
-  ok(field.includes("from '@/lib/esportesAvaliacao'"))
-  for (const text of ['buscarEsportes', 'problemasDoEsporte', 'avaliarTexto', 'ESPORTE_OUTRO']) {
-    ok(field.includes(text), `falta: ${text}`)
-  }
-})
-
-test('REQ-44: campo tem a UI esperada', () => {
-  const field = readField()
+test('REQ-44: bloco Esportes usa o catálogo e grava a lista em ficha.funcao.esportes', () => {
+  const field = read(FIELD)
   for (const text of [
+    "from '@/lib/esportesAvaliacao'",
+    'esportesDaFuncao',
+    'buscarEsportes',
+    'problemasDoEsporte',
+    'avaliarTexto',
+    'ESPORTES_MAX',
+    "'ficha.funcao.esportes'",
+    'shouldDirty: true',
     'aria-pressed',
-    'type="button"',
     'min-h-11',
     'Problemas frequentes no',
-    'Problemas frequentes para orientar a avaliação. Não é diagnóstico.',
-    'ConfirmDialog',
+    'Não é diagnóstico.',
     'Avaliar:',
+    'Outro',
+    'ConfirmDialog',
   ]) {
     ok(field.includes(text), `falta: ${text}`)
   }
+  ok(!/register\([^)]*esportes/.test(field), 'a lista não pode usar register')
 })
 
-test('REQ-44: campo grava via setValue e nao via register no array', () => {
-  const field = readField()
-  for (const text of [
-    'shouldDirty: true',
-    'ficha.funcao.rotina.esporteProblemas',
-    'ficha.funcao.rotina.esporteOutro',
-  ]) {
-    ok(field.includes(text), `falta: ${text}`)
-  }
-  ok(!/register\([^)]*esporteProblemas/.test(field), 'esporteProblemas nao pode usar register')
-})
-
-test('REQ-44: pagina 03 monta o campo so com sim, entre o radio e Qual / frequencia', () => {
-  const at = page.indexOf('<EsporteProblemasField')
-  ok(at >= 0, 'falta <EsporteProblemasField')
-  ok(page.indexOf('Pratica atividade física?') < at)
-  ok(at < page.indexOf('Qual / frequência'))
-  const cond = page.lastIndexOf("=== 'sim'", at)
-  ok(cond >= 0, "falta condicao === 'sim'")
-  ok(!page.slice(cond, at).includes('</FichaBlock>'))
-})
-
-test('REQ-44: marcar Nao nao apaga dados do esporte', () => {
-  ok(!page.includes("setValue('ficha.funcao.rotina.esporte"))
+test('REQ-44: Esportes é um bloco próprio (G) na página 03, fora de Rotina e demanda', () => {
+  const page = read(PAGE)
+  ok(page.includes('<FichaBlock letter="G" title="Esportes">'))
+  ok(page.includes('<EsportesField'))
+  const rotina = page.indexOf('title="Rotina e demanda"')
+  const fimRotina = page.indexOf('</FichaBlock>', rotina)
+  ok(!page.slice(rotina, fimRotina).includes('EsportesField'), 'esporte não pode ficar dentro do bloco C')
+  ok(!page.includes('EsporteProblemasField'))
 })

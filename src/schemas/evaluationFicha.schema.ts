@@ -6,6 +6,8 @@ import {
   ESPORTE_PROBLEMAS_MAX,
   safeEsporte,
   safeEsporteProblemas,
+  ESPORTES_MAX,
+  safeEsportesLista,
 } from '../lib/esportesAvaliacao.ts'
 import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
 import {
@@ -404,6 +406,23 @@ export const evaluationFichaSchema = z.object({
           }, z.array(z.string()).max(ESPORTE_PROBLEMAS_MAX).optional()),
         })
         .default({}),
+      /** Bloco Esportes (página 03): vários esportes, cada um com seus problemas marcados. */
+      esportes: z.preprocess(
+        (v) => {
+          const lista = safeEsportesLista(v)
+          return lista.length > 0 ? lista : undefined
+        },
+        z
+          .array(
+            z.object({
+              esporte: z.string(),
+              outro: z.string().max(ESPORTE_OUTRO_MAX).optional(),
+              problemas: z.array(z.string()).max(ESPORTE_PROBLEMAS_MAX).optional(),
+            }),
+          )
+          .max(ESPORTES_MAX)
+          .optional(),
+      ),
       expectativas: z
         .object({
           boaMelhora: optionalText(4000),

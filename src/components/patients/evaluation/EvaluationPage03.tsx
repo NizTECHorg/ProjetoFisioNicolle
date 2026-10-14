@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { FieldPath, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { ATIVIDADES, type AtividadeKey } from '@/lib/atividadeCapacidade'
-import { EsporteProblemasField } from '@/components/patients/evaluation/EsporteProblemasField'
+import { EsportesField } from '@/components/patients/evaluation/EsportesField'
 import {
   BoolCheck,
   CheckboxGrid,
@@ -194,10 +194,7 @@ export function EvaluationPage03({ register, watch, setValue, readOnly }: PagePr
           ]}
         />
         {watch('ficha.funcao.rotina.praticaAtividadeFisica') === 'sim' ? (
-          <>
-            <EsporteProblemasField register={register} watch={watch} setValue={setValue} disabled={disabled} />
-            <LineField label="Qual / frequência" name="ficha.funcao.rotina.atividadeQualFreq" register={register} disabled={disabled} />
-          </>
+          <LineField label="Qual / frequência" name="ficha.funcao.rotina.atividadeQualFreq" register={register} disabled={disabled} />
         ) : null}
       </FichaBlock>
 
@@ -262,6 +259,10 @@ export function EvaluationPage03({ register, watch, setValue, readOnly }: PagePr
         <TextField label="Medicamentos em uso relevantes" name="ficha.funcao.medicacoes.medicamentos" register={register} rows={3} disabled={disabled} />
         <TextField label="Alergias relatadas" name="ficha.funcao.medicacoes.alergias" register={register} rows={2} disabled={disabled} />
         <TextField label="Outras informações clinicamente relevantes" name="ficha.funcao.medicacoes.outrasInfo" register={register} rows={3} disabled={disabled} />
+      </FichaBlock>
+
+      <FichaBlock letter="G" title="Esportes">
+        <EsportesField watch={watch} setValue={setValue} disabled={disabled} />
       </FichaBlock>
     </div>
   )

@@ -26,6 +26,7 @@ import {
   Stethoscope,
   Target,
   ThumbsDown,
+  Trophy,
   ThumbsUp,
   UserRound,
   Zap,
@@ -58,6 +59,7 @@ const FICHA_BLOCK_ICONS: Record<string, LucideIcon> = {
   'Expectativas e objetivos do paciente': Target,
   'Triagem de segurança': ShieldAlert,
   'Medicações / outras informações': Pill,
+  'Esportes': Trophy,
   // 04 · Avaliação e plano
   'Inspeção / observação': Eye,
   'Mobilidade': Move,

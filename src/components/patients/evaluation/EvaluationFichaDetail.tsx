@@ -3,7 +3,7 @@ import { BodyDrawingPad } from '@/components/patients/evaluation/BodyDrawingPad'
 import { safeBodyStrokes } from '@/lib/bodyDrawing'
 import { DetailLeaf } from '@/components/patients/evaluation/fichaFormPrimitives'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
-import { resumoEsporte } from '@/lib/esportesAvaliacao'
+import { resumoEsportes } from '@/lib/esportesAvaliacao'
 import { FOCUS_REGIONS } from '@/lib/focusRegions'
 import {
   formatAchado,
@@ -55,7 +55,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
   const pregresso = ficha.anamnese?.historicoPregresso
   const sintomas = ficha.sintomas
   const funcao = ficha.funcao
-  const esporteResumo = resumoEsporte(funcao?.rotina)
+  const esportesResumo = resumoEsportes(funcao)
   const atividades = funcao?.atividadesAfetadas
   const plano = ficha.avaliacaoPlano
   const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
@@ -141,15 +141,17 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
           label="Registro anterior"
           value={atividades?.textoLegado?.trim() ? atividades.textoLegado : undefined}
         />
-        <DetailLeaf label="Esporte" value={esporteResumo.esporteLabel} />
-        <DetailLeaf
-          label="Problemas marcados"
-          value={
-            esporteResumo.problemas.length
-              ? esporteResumo.problemas.map((p) => `${p.nome} · ${p.regiao}`).join('\n')
-              : undefined
-          }
-        />
+        {esportesResumo.map((esporte) => (
+          <DetailLeaf
+            key={esporte.label}
+            label={`Esporte · ${esporte.label}`}
+            value={
+              esporte.problemas.length
+                ? esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`).join('\n')
+                : 'Sem problemas marcados'
+            }
+          />
+        ))}
         <DetailLeaf label="Boa melhora" value={funcao?.expectativas?.boaMelhora} />
         <DetailLeaf label="Triagem — observações" value={funcao?.triagemSeguranca?.observacoes} />
         <DetailLeaf label="Medicamentos" value={funcao?.medicacoes?.medicamentos} />

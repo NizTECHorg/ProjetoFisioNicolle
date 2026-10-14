@@ -1,6 +1,6 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatLinha } from '@/lib/atividadeCapacidade'
-import { resumoEsporte } from '@/lib/esportesAvaliacao'
+import { resumoEsportes } from '@/lib/esportesAvaliacao'
 import {
   formatAchado,
   formatCabecalhoRegiao,
@@ -407,13 +407,11 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       variavel: 'Variável',
     },
   )
-  const esporteResumo = resumoEsporte(funcao?.rotina)
   const hasRotina =
     trabalhoItems.length > 0 ||
     textFilled(funcao?.rotina?.horasDia) ||
     Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(funcao?.rotina?.atividadeQualFreq) ||
-    Boolean(esporteResumo.esporteLabel)
+    textFilled(funcao?.rotina?.atividadeQualFreq)
   pushBlock(items, {
     id: '03.C',
     label: 'Rotina e demanda',
@@ -422,7 +420,6 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     preview: previewFrom(
       trabalhoItems[0],
       funcao?.rotina?.horasDia,
-      esporteResumo.esporteLabel,
       funcao?.rotina?.atividadeQualFreq,
     ),
   })
@@ -503,6 +500,15 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       funcao?.medicacoes?.alergias,
       funcao?.medicacoes?.outrasInfo,
     ),
+  })
+
+  const esportesResumo = resumoEsportes(funcao)
+  pushBlock(items, {
+    id: '03.G',
+    label: 'Esportes',
+    groupLabel: '03 · Função · Bloco G',
+    filled: esportesResumo.length > 0,
+    preview: previewFrom(esportesResumo.map((e) => e.label).join(', ')),
   })
 
   // —— 04 Avaliação e plano ——

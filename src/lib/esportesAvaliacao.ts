@@ -231,6 +231,36 @@ export const ESPORTES: readonly Esporte[] = [
       p('dorIsquiotibialProximal', 'Dor proximal posterior da coxa (alongamento extremo)', 'Coxa', [], ['Dor à palpação da inserção isquiática', 'dor em alongamento']),
     ],
   },
+  // REVISAO CLINICA: ski e snowboard — revisar com a fisioterapeuta.
+  {
+    key: 'ski',
+    nome: 'Ski',
+    busca: ['esqui', 'esqui alpino', 'skiing', 'neve'],
+    problemas: [
+      p('lcaSki', 'Lesão do LCA (queda com rotação)', 'Joelho', ['Lachman', 'Pivot Shift', 'Gaveta anterior'], ['Derrame articular', 'instabilidade em giro']),
+      p('lcmSki', 'Entorse do ligamento colateral medial', 'Joelho', ['Valgo stress test'], ['Dor medial', 'dor à palpação do LCM']),
+      p('polegarEsquiador', 'Polegar do esquiador (ligamento colateral ulnar)', 'Punho / mão', ['Grind Test do polegar'], ['Estresse em valgo da MCF do polegar', 'pinça dolorosa']),
+      p('ombroInstabilidadeSki', 'Instabilidade/luxação do ombro (queda)', 'Ombro', ['Apprehension', 'Relocation', 'Sulcus Sign'], ['Sensação de instabilidade']),
+      p('acromioclavicularSki', 'Lesão acromioclavicular (queda sobre o ombro)', 'Ombro', ['Cross-body Adduction'], ['Dor à palpação da acromioclavicular']),
+      p('dorLombarSki', 'Dor lombar', 'Coluna lombar', ['Quadrante lombar'], ['Dor em flexão sustentada', 'controle de tronco']),
+      p('pernaBotaSki', 'Contusão/fratura da perna (borda da bota)', 'Perna', [], ['Dor focal à palpação na borda da bota', 'edema']),
+    ],
+  },
+  // REVISAO CLINICA
+  {
+    key: 'snowboard',
+    nome: 'Snowboard',
+    busca: ['snow', 'prancha na neve', 'neve'],
+    problemas: [
+      p('punhoSnowboard', 'Entorse/fratura do punho (queda com a mão)', 'Punho / mão', ['Watson / Scaphoid Shift', 'TFCC Load Test'], ['Dor na tabaqueira anatômica', 'força de preensão']),
+      p('ombroInstabilidadeSnowboard', 'Instabilidade/luxação do ombro', 'Ombro', ['Apprehension', 'Relocation'], ['Sensação de instabilidade']),
+      p('claviculaSnowboard', 'Lesão acromioclavicular / clavícula', 'Ombro', ['Cross-body Adduction'], ['Dor à palpação da clavícula e acromioclavicular']),
+      p('tornozeloSnowboard', 'Entorse de tornozelo (processo lateral do tálus)', 'Tornozelo', ['Gaveta anterior', 'Talar Tilt'], ['Dor logo abaixo do maléolo lateral', 'dor em dorsiflexão com eversão']),
+      p('joelhoSnowboard', 'Lesão ligamentar do joelho', 'Joelho', ['Lachman', 'Valgo stress test'], ['Derrame', 'instabilidade']),
+      p('cervicalSnowboard', 'Dor cervical (quedas)', 'Coluna cervical', ['Spurling'], ['Amplitude cervical', 'sinais neurológicos']),
+      p('coccixSnowboard', 'Contusão do cóccix/lombar (queda sentado)', 'Coluna lombar', ['Quadrante lombar'], ['Dor à palpação do cóccix', 'dor ao sentar']),
+    ],
+  },
 ]
 
 export function esportePorKey(key: string | undefined): Esporte | undefined {
@@ -294,4 +324,72 @@ export function resumoEsporte(
     .filter((x) => marcadas.has(x.key))
     .map(({ key, nome, regiao }) => ({ key, nome, regiao }))
   return esporteLabel === undefined ? { problemas } : { esporteLabel, problemas }
+}
+
+// —— Vários esportes por avaliação (bloco próprio na página 03) ——
+
+export const ESPORTES_MAX = 6
+
+export type EsporteEntrada = { esporte: string; outro?: string; problemas?: string[] }
+
+/** Lista tolerante: descarta esporte desconhecido, repetido, problema de outro esporte; corta em ESPORTES_MAX. */
+export function safeEsportesLista(value: unknown): EsporteEntrada[] {
+  if (!Array.isArray(value)) return []
+  const out: EsporteEntrada[] = []
+  for (const item of value) {
+    if (!item || typeof item !== 'object') continue
+    const raw = item as { esporte?: unknown; outro?: unknown; problemas?: unknown }
+    const esporte = safeEsporte(raw.esporte)
+    if (!esporte || out.some((e) => e.esporte === esporte)) continue
+    const entrada: EsporteEntrada = { esporte }
+    if (esporte === ESPORTE_OUTRO) {
+      const outro = typeof raw.outro === 'string' ? raw.outro.slice(0, ESPORTE_OUTRO_MAX) : ''
+      if (outro) entrada.outro = outro
+    } else {
+      const validas = new Set(problemasDoEsporte(esporte).map((x) => x.key))
+      const problemas = safeEsporteProblemas(raw.problemas).filter((k) => validas.has(k))
+      if (problemas.length) entrada.problemas = problemas
+    }
+    out.push(entrada)
+    if (out.length >= ESPORTES_MAX) break
+  }
+  return out
+}
+
+type FuncaoComEsportes =
+  | {
+      esportes?: unknown
+      rotina?: { esporte?: string; esporteOutro?: string; esporteProblemas?: unknown }
+    }
+  | undefined
+
+/** Esportes da ficha; avaliação antiga (um esporte em rotina) vira uma lista de um item. */
+export function esportesDaFuncao(funcao: FuncaoComEsportes): EsporteEntrada[] {
+  const lista = safeEsportesLista(funcao?.esportes)
+  if (lista.length) return lista
+  const rotina = funcao?.rotina
+  if (!rotina?.esporte) return []
+  return safeEsportesLista([
+    { esporte: rotina.esporte, outro: rotina.esporteOutro, problemas: rotina.esporteProblemas },
+  ])
+}
+
+export function rotuloEsporte(entrada: EsporteEntrada): string {
+  if (entrada.esporte === ESPORTE_OUTRO) return (entrada.outro ?? '').trim() || 'Outro'
+  return esportePorKey(entrada.esporte)?.nome ?? entrada.esporte
+}
+
+export type ResumoEsportes = Array<{ label: string; problemas: Array<{ key: string; nome: string; regiao: string }> }>
+
+/** Saída única para visualização, PDF e seletor de campos. */
+export function resumoEsportes(funcao: FuncaoComEsportes): ResumoEsportes {
+  return esportesDaFuncao(funcao).map((entrada) => {
+    const marcadas = new Set(entrada.problemas ?? [])
+    return {
+      label: rotuloEsporte(entrada),
+      problemas: problemasDoEsporte(entrada.esporte)
+        .filter((x) => marcadas.has(x.key))
+        .map(({ key, nome, regiao }) => ({ key, nome, regiao })),
+    }
+  })
 }

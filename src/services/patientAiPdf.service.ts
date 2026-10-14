@@ -14,7 +14,7 @@ import pessoaUrl from '@/assets/pessoa.png'
 import pessoaFemininaUrl from '@/assets/pessoa-feminina.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
-import { resumoEsporte } from '@/lib/esportesAvaliacao'
+import { resumoEsportes } from '@/lib/esportesAvaliacao'
 import {
   formatAchado,
   formatCabecalhoRegiao,
@@ -1937,13 +1937,12 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       variavel: 'Variável',
     },
   )
-  const esporteResumo = resumoEsporte(funcao?.rotina)
+  const esportesResumo = resumoEsportes(funcao)
   const hasRotina =
     trabalhoItems.length > 0 ||
     textFilled(funcao?.rotina?.horasDia) ||
     Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(funcao?.rotina?.atividadeQualFreq) ||
-    Boolean(esporteResumo.esporteLabel)
+    textFilled(funcao?.rotina?.atividadeQualFreq)
 
   const objetivoItems = checkedLabels(
     funcao?.expectativas?.objetivos as Record<string, unknown> | undefined,
@@ -2040,12 +2039,6 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       enumLabel(funcao?.rotina?.praticaAtividadeFisica, { nao: 'Não', sim: 'Sim' }),
     )
     drawOptionalField(ctx, 'Qual / frequência', funcao?.rotina?.atividadeQualFreq)
-    drawOptionalField(ctx, 'Esporte', esporteResumo.esporteLabel)
-    drawOptionalBullets(
-      ctx,
-      'Problemas frequentes marcados',
-      esporteResumo.problemas.map((p) => `${p.nome} · ${p.regiao}`),
-    )
   }
   if (show03D) {
     anyContent = true
@@ -2066,6 +2059,21 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     drawOptionalField(ctx, 'Medicamentos', funcao?.medicacoes?.medicamentos)
     drawOptionalField(ctx, 'Alergias', funcao?.medicacoes?.alergias)
     drawOptionalField(ctx, 'Outras informações', funcao?.medicacoes?.outrasInfo)
+  }
+  if (esportesResumo.length > 0 && isFieldSelected(selected, '03.G')) {
+    anyContent = true
+    drawClearSectionTitle(ctx, 'Esportes')
+    for (const esporte of esportesResumo) {
+      if (esporte.problemas.length > 0) {
+        drawOptionalBullets(
+          ctx,
+          esporte.label,
+          esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`),
+        )
+      } else {
+        drawOptionalField(ctx, 'Esporte', esporte.label)
+      }
+    }
   }
 
   if (drawPlanoClinico(ctx, ficha, selected)) anyContent = true
