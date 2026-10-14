@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { FieldPath, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { ATIVIDADES, type AtividadeKey } from '@/lib/atividadeCapacidade'
+import { EsporteProblemasField } from '@/components/patients/evaluation/EsporteProblemasField'
 import {
   BoolCheck,
   CheckboxGrid,
@@ -193,7 +194,10 @@ export function EvaluationPage03({ register, watch, setValue, readOnly }: PagePr
           ]}
         />
         {watch('ficha.funcao.rotina.praticaAtividadeFisica') === 'sim' ? (
-          <LineField label="Qual / frequência" name="ficha.funcao.rotina.atividadeQualFreq" register={register} disabled={disabled} />
+          <>
+            <EsporteProblemasField register={register} watch={watch} setValue={setValue} disabled={disabled} />
+            <LineField label="Qual / frequência" name="ficha.funcao.rotina.atividadeQualFreq" register={register} disabled={disabled} />
+          </>
         ) : null}
       </FichaBlock>
 
