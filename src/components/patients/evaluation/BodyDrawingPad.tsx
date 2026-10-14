@@ -181,13 +181,18 @@ export function BodyDrawingPad({
             preserveAspectRatio="xMidYMid meet"
             pointerEvents="none"
           />
+          {/*
+            Camada "multiply": a cor tinge o branco da figura, e as linhas pretas
+            do boneco continuam pretas por cima. Os traços são agrupados antes
+            do blend para não escurecer onde se cruzam.
+          */}
+          <g style={{ mixBlendMode: 'multiply' }}>
           {tracos.map((item, index) => (
             <path
               key={index}
               d={item.d}
               fill="none"
               stroke={bodyDrawingColor(item.cor)?.hex}
-              strokeOpacity={0.85}
               strokeWidth={4}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -199,13 +204,13 @@ export function BodyDrawingPad({
               d={vivo}
               fill="none"
               stroke={corAtual.hex}
-              strokeOpacity={0.85}
               strokeWidth={4}
               strokeLinecap="round"
               strokeLinejoin="round"
               vectorEffect="non-scaling-stroke"
             />
           ) : null}
+          </g>
         </svg>
       </div>
 

@@ -1,4 +1,5 @@
 import {
+  BlendMode,
   PDFDocument,
   StandardFonts,
   rgb,
@@ -1549,8 +1550,9 @@ function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observa
         scale,
         borderColor: rgb(info.rgb[0], info.rgb[1], info.rgb[2]),
         borderWidth: 2.4 / scale,
-        borderOpacity: 0.9,
         borderLineCap: LineCapStyle.Round,
+        // Multiply: a cor tinge o branco e as linhas pretas da figura ficam por cima.
+        blendMode: BlendMode.Multiply,
       })
     }
     ctx.y = top - height - 14
