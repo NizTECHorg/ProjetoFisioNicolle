@@ -68,7 +68,7 @@ export function EvaluationFichaForm({
       </nav>
 
       {page === '01' ? (
-        <EvaluationPage01 register={register} watch={watch} readOnly={readOnly} />
+        <EvaluationPage01 register={register} watch={watch} setValue={setValue} readOnly={readOnly} />
       ) : null}
       {page === '02' ? (
         <EvaluationPage02

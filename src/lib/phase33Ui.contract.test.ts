@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 const read = (relative: string) => readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8')
 const FIELD = '../components/patients/evaluation/EsportesField.tsx'
-const PAGE = '../components/patients/evaluation/EvaluationPage03.tsx'
+const PAGE = '../components/patients/evaluation/EvaluationPage01.tsx'
+const PAGE03 = '../components/patients/evaluation/EvaluationPage03.tsx'
 
 test('REQ-44: bloco Esportes usa o catálogo e grava a lista em ficha.funcao.esportes', () => {
   const field = read(FIELD)
@@ -31,12 +32,13 @@ test('REQ-44: bloco Esportes usa o catálogo e grava a lista em ficha.funcao.esp
   ok(!/register\([^)]*esportes/.test(field), 'a lista não pode usar register')
 })
 
-test('REQ-44: Esportes é um bloco próprio (G) na página 03, fora de Rotina e demanda', () => {
+test('REQ-44: Esportes é o bloco D da Anamnese (página 01), depois de História atual', () => {
   const page = read(PAGE)
-  ok(page.includes('<FichaBlock letter="G" title="Esportes">'))
+  ok(page.includes('<FichaBlock letter="D" title="Esportes">'))
   ok(page.includes('<EsportesField'))
-  const rotina = page.indexOf('title="Rotina e demanda"')
-  const fimRotina = page.indexOf('</FichaBlock>', rotina)
-  ok(!page.slice(rotina, fimRotina).includes('EsportesField'), 'esporte não pode ficar dentro do bloco C')
-  ok(!page.includes('EsporteProblemasField'))
+  ok(page.indexOf('title="História atual"') < page.indexOf('title="Esportes"'))
+  ok(page.indexOf('title="Esportes"') < page.indexOf('title="Tratamentos e investigações anteriores"'))
+  ok(page.includes('<FichaBlock letter="E" title="Tratamentos e investigações anteriores">'))
+  ok(page.includes('<FichaBlock letter="F" title="Histórico pregresso resumido">'))
+  ok(!read(PAGE03).includes('EsportesField'), 'página 03 não tem mais esportes')
 })

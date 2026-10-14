@@ -182,6 +182,15 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     ),
   })
 
+  const esportesResumo = resumoEsportes(ficha.funcao)
+  pushBlock(items, {
+    id: '01.D',
+    label: 'Esportes',
+    groupLabel: '01 · Anamnese · Bloco D',
+    filled: esportesResumo.length > 0,
+    preview: previewFrom(esportesResumo.map((e) => e.label).join(', ')),
+  })
+
   const tratamentoItems = checkedLabels(tratamentos as Record<string, unknown> | undefined, {
     fisio: 'Fisioterapia',
     medicamentos: 'Medicamentos',
@@ -204,9 +213,9 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
   const hasTratamentos =
     tratamentoItems.length > 0 || exameItems.length > 0 || textFilled(tratamentos?.achados)
   pushBlock(items, {
-    id: '01.D',
+    id: '01.E',
     label: 'Tratamentos e investigações',
-    groupLabel: '01 · Anamnese · Bloco D',
+    groupLabel: '01 · Anamnese · Bloco E',
     filled: hasTratamentos,
     preview: previewFrom(tratamentoItems[0], exameItems[0], tratamentos?.achados),
   })
@@ -224,9 +233,9 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
   })
   const hasPregresso = pregressoItems.length > 0 || textFilled(pregresso?.observacoes)
   pushBlock(items, {
-    id: '01.E',
+    id: '01.F',
     label: 'Histórico pregresso',
-    groupLabel: '01 · Anamnese · Bloco E',
+    groupLabel: '01 · Anamnese · Bloco F',
     filled: hasPregresso,
     preview: previewFrom(pregressoItems[0], pregresso?.observacoes),
   })
@@ -502,14 +511,6 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     ),
   })
 
-  const esportesResumo = resumoEsportes(funcao)
-  pushBlock(items, {
-    id: '03.G',
-    label: 'Esportes',
-    groupLabel: '03 · Função · Bloco G',
-    filled: esportesResumo.length > 0,
-    preview: previewFrom(esportesResumo.map((e) => e.label).join(', ')),
-  })
 
   // —— 04 Avaliação e plano ——
   const plano = ficha.avaliacaoPlano

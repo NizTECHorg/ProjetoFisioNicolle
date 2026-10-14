@@ -96,6 +96,17 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Como começou" value={historia?.comoComecou} />
         <DetailLeaf label="Achados de exames" value={tratamentos?.achados} />
         <DetailLeaf label="Histórico — observações" value={pregresso?.observacoes} />
+        {esportesResumo.map((esporte) => (
+          <DetailLeaf
+            key={esporte.label}
+            label={`Esporte · ${esporte.label}`}
+            value={
+              esporte.problemas.length
+                ? esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`).join('\n')
+                : 'Sem problemas marcados'
+            }
+          />
+        ))}
       </section>
 
       {/* Seção só com o título (nenhum campo preenchido) some. */}
@@ -141,17 +152,6 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
           label="Registro anterior"
           value={atividades?.textoLegado?.trim() ? atividades.textoLegado : undefined}
         />
-        {esportesResumo.map((esporte) => (
-          <DetailLeaf
-            key={esporte.label}
-            label={`Esporte · ${esporte.label}`}
-            value={
-              esporte.problemas.length
-                ? esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`).join('\n')
-                : 'Sem problemas marcados'
-            }
-          />
-        ))}
         <DetailLeaf label="Boa melhora" value={funcao?.expectativas?.boaMelhora} />
         <DetailLeaf label="Triagem — observações" value={funcao?.triagemSeguranca?.observacoes} />
         <DetailLeaf label="Medicamentos" value={funcao?.medicacoes?.medicamentos} />

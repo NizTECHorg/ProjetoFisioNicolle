@@ -13,24 +13,24 @@ test('REQ-44: visualização mostra cada esporte com seus problemas via resumoEs
   ok(src.includes('resumoEsportes(funcao)'))
   ok(src.includes('`Esporte · ${esporte.label}`'))
   ok(src.includes('`${p.nome} · ${p.regiao}`'))
-  const s03 = src.indexOf('03 · Função')
+  const s01 = src.indexOf('01 · Anamnese')
   const iEsp = src.indexOf('Esporte · ')
-  const s04 = src.indexOf('04 · Avaliação e plano')
-  ok(s03 < iEsp && iEsp < s04)
+  const s02 = src.indexOf('02 · Sintomas')
+  ok(s01 < iEsp && iEsp < s02)
 })
 
-test('REQ-44: PDF tem seção Esportes (03.G) com os problemas de cada esporte', () => {
+test('REQ-44: PDF tem seção Esportes (01.D) com os problemas de cada esporte', () => {
   const src = read(PDF)
-  ok(src.includes('resumoEsportes(funcao)'))
-  ok(src.includes("isFieldSelected(selected, '03.G')"))
+  ok(src.includes('resumoEsportes(ficha.funcao)'))
+  ok(src.includes("isFieldSelected(selected, '01.D')"))
   ok(src.includes("drawClearSectionTitle(ctx, 'Esportes')"))
   ok(!/hasRotina =[\s\S]*?esporte/i.test(src.slice(src.indexOf('const hasRotina'), src.indexOf('const hasRotina') + 400)))
 })
 
-test('REQ-44: seletor de campos tem o bloco 03.G Esportes', () => {
+test('REQ-44: seletor de campos tem o bloco 01.D Esportes', () => {
   const src = read(CATALOG)
-  ok(src.includes("id: '03.G'"))
-  ok(src.includes('resumoEsportes(funcao)'))
+  ok(src.includes("id: '01.D',\n    label: 'Esportes'"))
+  ok(src.includes('resumoEsportes(ficha.funcao)'))
 })
 
 test('REQ-44: saída nunca lê esporteProblemas direto', () => {

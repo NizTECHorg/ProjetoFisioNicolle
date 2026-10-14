@@ -1,4 +1,4 @@
-import type { UseFormRegister, UseFormWatch } from 'react-hook-form'
+import type { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import {
   BoolCheck,
@@ -8,14 +8,16 @@ import {
   RadioRow,
   TextField,
 } from '@/components/patients/evaluation/fichaFormPrimitives'
+import { EsportesField } from '@/components/patients/evaluation/EsportesField'
 
 type PageProps = {
   register: UseFormRegister<EvaluationFormData>
   watch: UseFormWatch<EvaluationFormData>
+  setValue: UseFormSetValue<EvaluationFormData>
   readOnly?: boolean
 }
 
-export function EvaluationPage01({ register, watch, readOnly }: PageProps) {
+export function EvaluationPage01({ register, watch, setValue, readOnly }: PageProps) {
   const jaAconteceu = watch('ficha.anamnese.historiaAtual.jaAconteceuAntes')
   const disabled = readOnly
 
@@ -107,7 +109,11 @@ export function EvaluationPage01({ register, watch, readOnly }: PageProps) {
         ) : null}
       </FichaBlock>
 
-      <FichaBlock letter="D" title="Tratamentos e investigações anteriores">
+      <FichaBlock letter="D" title="Esportes">
+        <EsportesField watch={watch} setValue={setValue} disabled={disabled} />
+      </FichaBlock>
+
+      <FichaBlock letter="E" title="Tratamentos e investigações anteriores">
         <CheckboxGrid>
           <BoolCheck label="Fisioterapia" name="ficha.anamnese.tratamentos.fisio" register={register} disabled={disabled} />
           <BoolCheck label="Medicamentos" name="ficha.anamnese.tratamentos.medicamentos" register={register} disabled={disabled} />
@@ -136,7 +142,7 @@ export function EvaluationPage01({ register, watch, readOnly }: PageProps) {
         <TextField label="Achados / informações relevantes dos exames" name="ficha.anamnese.tratamentos.achados" register={register} rows={3} disabled={disabled} />
       </FichaBlock>
 
-      <FichaBlock letter="E" title="Histórico pregresso resumido">
+      <FichaBlock letter="F" title="Histórico pregresso resumido">
         <CheckboxGrid>
           <BoolCheck label="Cirurgias anteriores" name="ficha.anamnese.historicoPregresso.cirurgias" register={register} disabled={disabled} />
           <BoolCheck label="Fraturas" name="ficha.anamnese.historicoPregresso.fraturas" register={register} disabled={disabled} />

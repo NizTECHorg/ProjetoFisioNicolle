@@ -1708,8 +1708,8 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   const show01A = hasId && isFieldSelected(selected, '01.A')
   const show01B = hasQueixa && isFieldSelected(selected, '01.B')
   const show01C = hasHistoria && isFieldSelected(selected, '01.C')
-  const show01D = hasTratamentos && isFieldSelected(selected, '01.D')
-  const show01E = hasPregresso && isFieldSelected(selected, '01.E')
+  const show01E = hasTratamentos && isFieldSelected(selected, '01.E')
+  const show01F = hasPregresso && isFieldSelected(selected, '01.F')
 
   if (show01A) {
     anyContent = true
@@ -1738,14 +1738,30 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     )
     drawOptionalField(ctx, 'Se sim, quando/como', historia?.jaAconteceuDetalhe)
   }
-  if (show01D) {
+  const esportesResumo = resumoEsportes(ficha.funcao)
+  if (esportesResumo.length > 0 && isFieldSelected(selected, '01.D')) {
+    anyContent = true
+    drawClearSectionTitle(ctx, 'Esportes')
+    for (const esporte of esportesResumo) {
+      if (esporte.problemas.length > 0) {
+        drawOptionalBullets(
+          ctx,
+          esporte.label,
+          esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`),
+        )
+      } else {
+        drawOptionalField(ctx, 'Esporte', esporte.label)
+      }
+    }
+  }
+  if (show01E) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Tratamentos e investigações anteriores')
     drawOptionalBullets(ctx, 'Tratamentos', tratamentoItems)
     drawOptionalBullets(ctx, 'Exames complementares', exameItems)
     drawOptionalField(ctx, 'Achados / informações relevantes', tratamentos?.achados)
   }
-  if (show01E) {
+  if (show01F) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Histórico pregresso resumido')
     drawOptionalBullets(ctx, 'Condições', pregressoItems)
@@ -1937,7 +1953,6 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       variavel: 'Variável',
     },
   )
-  const esportesResumo = resumoEsportes(funcao)
   const hasRotina =
     trabalhoItems.length > 0 ||
     textFilled(funcao?.rotina?.horasDia) ||
@@ -2060,22 +2075,6 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     drawOptionalField(ctx, 'Alergias', funcao?.medicacoes?.alergias)
     drawOptionalField(ctx, 'Outras informações', funcao?.medicacoes?.outrasInfo)
   }
-  if (esportesResumo.length > 0 && isFieldSelected(selected, '03.G')) {
-    anyContent = true
-    drawClearSectionTitle(ctx, 'Esportes')
-    for (const esporte of esportesResumo) {
-      if (esporte.problemas.length > 0) {
-        drawOptionalBullets(
-          ctx,
-          esporte.label,
-          esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`),
-        )
-      } else {
-        drawOptionalField(ctx, 'Esporte', esporte.label)
-      }
-    }
-  }
-
   if (drawPlanoClinico(ctx, ficha, selected)) anyContent = true
 
   // —— 05 Mapa de sintomas ——
