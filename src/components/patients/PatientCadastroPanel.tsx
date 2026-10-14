@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
+import { patientGenderOptions } from '@/lib/patientGender'
 import { plannedCount } from '@/components/patients/AttendanceCounts'
 import { useUpdatePatient } from '@/hooks/usePatients'
 import {
@@ -141,6 +142,7 @@ export function PatientCadastroPanel({
     if (section === 'personal') {
       personalForm.reset({
         profession: dash(patient.profession),
+        gender: patient.gender ?? '',
         email: dash(patient.email),
       })
     }
@@ -176,6 +178,10 @@ export function PatientCadastroPanel({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <EditableCard title="Pessoais" onEdit={canWrite ? () => setSection('personal') : undefined}>
           <Field label="Profissão" value={patient.profession} />
+          <Field
+            label="Sexo"
+            value={patientGenderOptions.find((o) => o.value === (patient.gender ?? '') && o.value !== '')?.label ?? '—'}
+          />
           <Field label="E-mail" value={patient.email} />
         </EditableCard>
         <EditableCard title="Emergência" onEdit={canWrite ? () => setSection('emergency') : undefined}>
@@ -266,19 +272,25 @@ export function PatientCadastroPanel({
       <Modal
         open={section === 'personal'}
         title="Dados pessoais"
-        description="Profissão e e-mail deste card."
+        description="Profissão, sexo e e-mail deste card."
         onClose={() => setSection(null)}
       >
         <form
           className="space-y-4"
           onSubmit={personalForm.handleSubmit((values) =>
-            save({ profession: values.profession, email: values.email }),
+            save({ profession: values.profession, gender: values.gender, email: values.email }),
           )}
         >
           <Input
             label="Profissão"
             error={personalForm.formState.errors.profession?.message}
             {...personalForm.register('profession')}
+          />
+          <Select
+            label="Sexo"
+            options={patientGenderOptions}
+            error={personalForm.formState.errors.gender?.message}
+            {...personalForm.register('gender')}
           />
           <Input
             label="E-mail"

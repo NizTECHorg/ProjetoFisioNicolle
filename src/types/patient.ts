@@ -1,4 +1,5 @@
 import type { SummaryTexts } from '@/lib/patientSummary'
+import type { PatientGender } from '@/lib/patientGender'
 
 export type PatientStatus = 'em_tratamento' | 'avaliacao' | 'alta' | 'inativo'
 export type SessionStatus = 'agendada' | 'confirmada' | 'realizada' | 'cancelada' | 'faltou'
@@ -192,6 +193,7 @@ export interface Patient {
   phone: string
   email: string
   profession: string
+  gender: PatientGender | null
   emergencyName: string
   emergencyPhone: string
   emergencyRelation: string
@@ -267,6 +269,7 @@ export interface UpdatePatientInput {
   email?: string
   birthDate?: string
   profession?: string
+  gender?: string
   emergencyName?: string
   emergencyPhone?: string
   emergencyRelation?: string

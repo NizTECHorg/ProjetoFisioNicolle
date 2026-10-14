@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { parseBrlInput } from '@/schemas/finance.schema'
 import { FOCUS_REGION_KEYS } from '@/lib/focusRegions'
+import { PATIENT_GENDER_VALUES } from '@/lib/patientGender'
 import type { AlertTone, PatientStatus } from '@/types/patient'
 
 const optionalText = (max: number, minWhenFilled = 0) =>
@@ -72,6 +73,7 @@ export const identityPatientSchema = z.object({
 
 export const personalSectionSchema = z.object({
   profession: optionalText(80),
+  gender: z.union([z.literal(''), z.enum(PATIENT_GENDER_VALUES)]),
   email: optionalEmail,
 })
 
