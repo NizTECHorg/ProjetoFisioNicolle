@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import type { UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { Input } from '@/components/ui/Input'
@@ -43,6 +43,16 @@ function chipClass(selected: boolean): string {
 export function EsportesField({ watch, setValue, disabled }: Props) {
   const [query, setQuery] = useState('')
   const [remover, setRemover] = useState<string | null>(null)
+  const [recolhidos, setRecolhidos] = useState<ReadonlySet<string>>(() => new Set())
+
+  function alternarRecolhido(key: string) {
+    setRecolhidos((atual) => {
+      const proximo = new Set(atual)
+      if (proximo.has(key)) proximo.delete(key)
+      else proximo.add(key)
+      return proximo
+    })
+  }
 
   const lista = esportesDaFuncao(watch('ficha.funcao'))
   const escolhidos = new Set(lista.map((e) => e.esporte))
@@ -154,6 +164,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
         const catalogo = esportePorKey(entrada.esporte)
         const problemas = problemasDoEsporte(entrada.esporte)
         const marcados = new Set(entrada.problemas ?? [])
+        const recolhido = recolhidos.has(entrada.esporte)
         return (
           <section
             key={entrada.esporte}
@@ -161,10 +172,32 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
             className="relative space-y-3 rounded-2xl border border-line bg-canvas p-4"
           >
             <div className="flex items-start justify-between gap-2 pr-1">
-              <p className="text-sm font-semibold text-ink">
-                {catalogo ? `Problemas frequentes no ${catalogo.nome}` : rotuloEsporte(entrada)}
-                {marcados.size > 0 ? <span className="font-normal text-muted"> · {marcados.size} marcado{marcados.size > 1 ? 's' : ''}</span> : null}
-              </p>
+              {catalogo ? (
+                <button
+                  type="button"
+                  aria-expanded={!recolhido}
+                  aria-controls={`esporte-${entrada.esporte}-problemas`}
+                  onClick={() => alternarRecolhido(entrada.esporte)}
+                  className="-m-1 flex min-h-8 min-w-0 items-center gap-1.5 rounded-lg p-1 text-left text-sm font-semibold text-ink transition-colors hover:text-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+                >
+                  <span className="min-w-0">
+                    Problemas frequentes no {catalogo.nome}
+                    {marcados.size > 0 ? (
+                      <span className="font-normal text-muted"> · {marcados.size} marcado{marcados.size > 1 ? 's' : ''}</span>
+                    ) : null}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    aria-hidden
+                    className={[
+                      'shrink-0 text-accent transition-transform duration-200 motion-reduce:transition-none',
+                      recolhido ? '-rotate-90' : 'rotate-0',
+                    ].join(' ')}
+                  />
+                </button>
+              ) : (
+                <p className="text-sm font-semibold text-ink">{rotuloEsporte(entrada)}</p>
+              )}
               {!disabled ? (
                 <button
                   type="button"
@@ -188,7 +221,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                 onChange={(event) => mudarOutro(event.target.value)}
               />
             ) : (
-              <div className="space-y-2">
+              <div id={`esporte-${entrada.esporte}-problemas`} hidden={recolhido} className="space-y-2">
                 {problemas.map((p) => {
                   const avaliar = avaliarTexto(p)
                   return (
