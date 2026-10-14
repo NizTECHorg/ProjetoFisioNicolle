@@ -11,7 +11,8 @@ dist-ssr
 .env.*.local
 
 # Supabase CLI (SQL scripts, migrations e config na raiz — não ignore src/lib/supabase/)
-/supabase/
+/supabase/*
+!/supabase/functions/
 
 # Logs
 *.log
