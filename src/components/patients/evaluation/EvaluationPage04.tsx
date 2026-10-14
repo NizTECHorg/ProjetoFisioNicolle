@@ -1,4 +1,4 @@
-import { Activity, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Hand, Plus, type LucideIcon } from 'lucide-react'
+import { Activity, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Hand, Plus, X, type LucideIcon } from 'lucide-react'
 import { useId, useRef, useState, type ReactNode } from 'react'
 import {
   useFieldArray,
@@ -292,8 +292,19 @@ function CartaoRegiao({
   )
 
   return (
-    <div className="space-y-4 rounded-2xl border border-line bg-canvas p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <div className="relative space-y-4 rounded-2xl border border-line bg-canvas p-4">
+      {!disabled ? (
+        <button
+          type="button"
+          aria-label="Remover região"
+          title="Remover região"
+          onClick={onAskRemove}
+          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/30"
+        >
+          <X size={18} aria-hidden />
+        </button>
+      ) : null}
+      <div className="flex flex-col gap-3 pr-10 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1 space-y-2">
           <label htmlFor={idRegiao} className={ROTULO}>
             Região
@@ -322,15 +333,6 @@ function CartaoRegiao({
           </Button>
         ) : null}
       </div>
-      {!disabled ? (
-        <button
-          type="button"
-          className="min-h-11 text-sm text-muted hover:text-error"
-          onClick={onAskRemove}
-        >
-          Remover região
-        </button>
-      ) : null}
       {catalogo ? (
         <>
           <RadioRow

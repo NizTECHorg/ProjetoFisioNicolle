@@ -1,8 +1,76 @@
 import { createContext, useCallback, useContext, useId, useMemo, useState, type ReactNode } from 'react'
-import { ChevronDown } from 'lucide-react'
+import {
+  BadgeCheck,
+  Brain,
+  Briefcase,
+  Brush,
+  CalendarRange,
+  ChevronDown,
+  ClipboardList,
+  Clock,
+  Dumbbell,
+  Eye,
+  FileText,
+  Flag,
+  Flame,
+  Footprints,
+  Gauge,
+  Hand,
+  History,
+  ListChecks,
+  MessageSquareText,
+  Move,
+  PersonStanding,
+  Pill,
+  ShieldAlert,
+  Stethoscope,
+  Target,
+  ThumbsDown,
+  ThumbsUp,
+  UserRound,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import type { FieldPath, FieldValues, UseFormRegister } from 'react-hook-form'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+
+/** Ícone de cada bloco da ficha, pelo título. Bloco sem entrada mostra a letra. */
+const FICHA_BLOCK_ICONS: Record<string, LucideIcon> = {
+  // 01 · Anamnese
+  'Identificação': UserRound,
+  'Queixa principal': MessageSquareText,
+  'História atual': History,
+  'Tratamentos e investigações anteriores': Stethoscope,
+  'Histórico pregresso resumido': ClipboardList,
+  // 02 · Sintomas
+  'Mapa corporal': PersonStanding,
+  'Característica predominante': Zap,
+  'Intensidade (0–10)': Gauge,
+  'Comportamento em 24 horas': Clock,
+  'O que piora?': ThumbsDown,
+  'O que melhora?': ThumbsUp,
+  'Irritabilidade / resposta': Flame,
+  // 03 · Função
+  'Principal limitação funcional': Footprints,
+  'Atividades afetadas': ListChecks,
+  'Rotina e demanda': Briefcase,
+  'Expectativas e objetivos do paciente': Target,
+  'Triagem de segurança': ShieldAlert,
+  'Medicações / outras informações': Pill,
+  // 04 · Avaliação e plano
+  'Inspeção / observação': Eye,
+  'Mobilidade': Move,
+  'Força': Dumbbell,
+  'Avaliação neurológica (se indicada)': Brain,
+  'Palpação, testes e função': Hand,
+  'Síntese dos principais achados': FileText,
+  'Objetivos': Flag,
+  'Planejamento': CalendarRange,
+  'Identificação profissional': BadgeCheck,
+  // 05 · Mapa de sintomas
+  'Desenho dos sintomas': Brush,
+}
 
 type FichaCollapseState = {
   recolhido: (chave: string) => boolean
@@ -44,6 +112,7 @@ export function FichaBlock({
   const contexto = useContext(FichaCollapseContext)
   const [abertoLocal, setAbertoLocal] = useState(true)
   const chave = `${letter}|${title}`
+  const Icone = FICHA_BLOCK_ICONS[title]
   const aberto = contexto ? !contexto.recolhido(chave) : abertoLocal
   const [animando, setAnimando] = useState(false)
   const alternar = () => {
@@ -72,9 +141,10 @@ export function FichaBlock({
         className="-m-1 flex w-[calc(100%+0.5rem)] items-center gap-2.5 rounded-xl p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
       >
         <span
+          aria-hidden={Icone ? true : undefined}
           className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-semibold ${badge}`}
         >
-          {letter}
+          {Icone ? <Icone size={16} strokeWidth={1.9} /> : letter}
         </span>
         <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${heading}`}>
           Bloco {letter} · {title}
