@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import {
+  Activity,
+  ChevronDown,
+  ClipboardList,
+  PersonStanding,
+  ShieldCheck,
+  Stethoscope,
+  type LucideIcon,
+} from 'lucide-react'
 import { useWatch, type Control } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { Button } from '@/components/ui/Button'
@@ -25,6 +33,15 @@ type Props = {
   control: Control<EvaluationFormData>
 }
 
+/** Ícone de cada página da avaliação na navegação lateral. */
+const ICONES_PAGINA: Record<FichaPageId, LucideIcon> = {
+  '01': ClipboardList,
+  '02': Activity,
+  '03': ShieldCheck,
+  '04': Stethoscope,
+  '05': PersonStanding,
+}
+
 function nomePagina(label: string): string {
   return label.replace(/^\d+\s*·\s*/, '')
 }
@@ -48,8 +65,6 @@ export function EvaluationFichaSidebar({
   const [abertas, setAbertas] = useState<ReadonlySet<FichaPageId>>(() => new Set([page]))
   const [blocoAtivo, setBlocoAtivo] = useState<string | null>(null)
 
-  // A página atual sempre aparece aberta na lateral.
-  const abertasComAtual = abertas.has(page) ? abertas : new Set([...abertas, page])
 
   useEffect(() => {
     // Bloco "em que estou": o primeiro visível na metade de cima da tela.
@@ -72,10 +87,19 @@ export function EvaluationFichaSidebar({
     return () => observer.disconnect()
   }, [page])
 
+  /**
+   * Clique na linha inteira. Outra página: vai até ela e abre a lista de blocos.
+   * Página atual: abre ou fecha a lista.
+   */
   function alternarPagina(id: FichaPageId) {
+    if (id !== page) {
+      onPageChange(id)
+      setAbertas((atual) => new Set([...atual, id]))
+      return
+    }
     setAbertas((atual) => {
       const proximo = new Set(atual)
-      if (proximo.has(id) && id !== page) proximo.delete(id)
+      if (proximo.has(id)) proximo.delete(id)
       else proximo.add(id)
       return proximo
     })
@@ -105,50 +129,54 @@ export function EvaluationFichaSidebar({
         <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]">
           {FICHA_PAGES.map((item, index) => {
             const atual = item.id === page
-            const aberta = abertasComAtual.has(item.id)
+            const aberta = abertas.has(item.id)
+            const Icone = ICONES_PAGINA[item.id]
+            const listaId = `ficha-lateral-${item.id}`
             return (
               <div key={item.id}>
-                <div
+                <button
+                  type="button"
+                  onClick={() => alternarPagina(item.id)}
+                  aria-expanded={aberta}
+                  aria-controls={listaId}
+                  aria-current={atual ? 'page' : undefined}
+                  title={nomePagina(item.label)}
                   className={[
-                    'flex items-center gap-1 rounded-xl',
-                    atual ? 'bg-accent-soft' : 'hover:bg-canvas',
+                    'flex min-h-10 w-full items-center gap-2 rounded-xl px-2.5 text-left text-sm transition-colors',
+                    atual ? 'bg-accent-soft font-semibold text-[#1e3a8a]' : 'font-medium text-ink hover:bg-canvas',
                   ].join(' ')}
                 >
-                  <button
-                    type="button"
-                    onClick={() => onPageChange(item.id)}
-                    aria-current={atual ? 'page' : undefined}
+                  <span
+                    aria-hidden
                     className={[
-                      'flex min-h-10 min-w-0 flex-1 items-center gap-2 px-2.5 text-left text-sm',
-                      atual ? 'font-semibold text-[#1e3a8a]' : 'font-medium text-ink',
+                      'flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors',
+                      atual ? 'bg-[#1e3a8a] text-white' : 'bg-canvas text-muted',
                     ].join(' ')}
                   >
-                    <span
-                      className={[
-                        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold',
-                        atual ? 'bg-[#1e3a8a] text-white' : 'bg-canvas text-muted',
-                      ].join(' ')}
-                    >
-                      {index + 1}
-                    </span>
-                    <span className="truncate">{nomePagina(item.label)}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => alternarPagina(item.id)}
-                    aria-expanded={aberta}
-                    aria-label={aberta ? `Recolher blocos de ${nomePagina(item.label)}` : `Mostrar blocos de ${nomePagina(item.label)}`}
-                    className="flex h-10 w-8 shrink-0 items-center justify-center text-muted hover:text-ink"
-                  >
-                    <ChevronDown
-                      size={16}
-                      aria-hidden
-                      className={['transition-transform duration-200', aberta ? 'rotate-0' : '-rotate-90'].join(' ')}
-                    />
-                  </button>
-                </div>
+                    <Icone size={14} strokeWidth={2} />
+                  </span>
+                  <span className="sr-only">{index + 1}. </span>
+                  <span className="min-w-0 flex-1 truncate">{nomePagina(item.label)}</span>
+                  <ChevronDown
+                    size={16}
+                    aria-hidden
+                    className={[
+                      'shrink-0 text-muted transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                      aberta ? 'rotate-0' : '-rotate-90',
+                    ].join(' ')}
+                  />
+                </button>
 
-                {aberta ? (
+                {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
+                <div
+                  id={listaId}
+                  inert={aberta ? undefined : true}
+                  className={[
+                    'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                    aberta ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+                  ].join(' ')}
+                >
+                  <div className="min-h-0 overflow-hidden">
                   <ul className="mb-1 ml-3 mt-0.5 space-y-0.5">
                     {FICHA_BLOCOS[item.id].map((bloco) => {
                       const ativo = atual && blocoAtivo === bloco.title
@@ -168,7 +196,7 @@ export function EvaluationFichaSidebar({
                             <span
                               aria-hidden
                               className={[
-                                'h-2 w-2 shrink-0 rounded-full',
+                                'h-2 w-2 shrink-0 rounded-full transition-colors',
                                 preenchido ? 'bg-accent' : 'bg-line',
                               ].join(' ')}
                             />
@@ -179,7 +207,8 @@ export function EvaluationFichaSidebar({
                       )
                     })}
                   </ul>
-                ) : null}
+                  </div>
+                </div>
               </div>
             )
           })}
