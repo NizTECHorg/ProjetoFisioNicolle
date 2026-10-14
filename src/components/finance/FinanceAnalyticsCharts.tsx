@@ -247,16 +247,16 @@ function CompareCard(props: { money: MonthMoney; peakCents: number; selected: bo
       tabIndex={0}
       aria-label={moneyLabel(props.money.sentence, props.money.amountBrl)}
       className={[
-        'dash-card flex h-full min-w-0 flex-col justify-between rounded-2xl px-4 py-4',
+        'dash-card flex h-full min-w-0 flex-col justify-between rounded-xl px-3 py-3 sm:rounded-2xl sm:px-4 sm:py-4',
         props.selected ? 'bg-forest text-white' : 'bg-surface text-ink',
       ].join(' ')}
     >
       <div>
         <p className={props.selected ? 'text-xs text-white/70' : 'text-xs text-muted'}>{props.title}</p>
-        <p className="mt-1 truncate text-sm font-semibold">{props.money.sentence}</p>
+        <p className="mt-1 truncate text-xs font-semibold sm:text-sm">{props.money.sentence}</p>
       </div>
-      <div className="mt-5">
-        <p className="text-2xl font-semibold leading-none tracking-tight">{formatCurrency(props.money.amountBrl)}</p>
+      <div className="mt-3 sm:mt-5">
+        <p className="truncate text-lg font-semibold leading-none tracking-tight sm:text-2xl">{formatCurrency(props.money.amountBrl)}</p>
         <svg viewBox="0 0 100 6" preserveAspectRatio="none" className="mt-3 block h-1.5 w-full" aria-hidden="true">
           <rect x="0" y="0" width="100" height="6" rx="3" fill={props.selected ? '#163056' : '#e7f0fb'} />
           {props.selected ? (
@@ -270,13 +270,18 @@ function CompareCard(props: { money: MonthMoney; peakCents: number; selected: bo
   )
 }
 
-function SummaryCard(props: { label: string; value: string; hint?: string }) {
+function SummaryCard(props: { label: string; value: string; hint?: string; className?: string }) {
   return (
-    <article className="dash-card flex min-h-32 min-w-0 flex-col justify-between rounded-[1.5rem] bg-accent-soft p-5">
-      <p className="text-sm font-semibold text-forest">{props.label}</p>
+    <article
+      className={[
+        'dash-card flex min-h-[92px] min-w-0 flex-col justify-between rounded-2xl bg-accent-soft p-3.5 sm:min-h-32 sm:rounded-[1.5rem] sm:p-5',
+        props.className ?? '',
+      ].join(' ')}
+    >
+      <p className="text-xs font-semibold leading-tight text-forest sm:text-sm">{props.label}</p>
       <div>
-        <p className="truncate text-3xl font-semibold leading-none tracking-tight text-ink">{props.value}</p>
-        {props.hint ? <p className="mt-2 truncate text-xs text-forest/70">{props.hint}</p> : null}
+        <p className="truncate text-xl font-semibold leading-none tracking-tight text-ink sm:text-3xl">{props.value}</p>
+        {props.hint ? <p className="mt-1 truncate text-[11px] text-forest/70 sm:mt-2 sm:text-xs">{props.hint}</p> : null}
       </div>
     </article>
   )
@@ -315,10 +320,11 @@ export function FinanceAnalyticsFilters(props: {
   ]
 
   return (
-    <div className="grid gap-4 rounded-[1.5rem] border border-line bg-surface p-5 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 rounded-2xl border border-line bg-surface p-3.5 sm:grid-cols-3 sm:gap-4 sm:rounded-[1.5rem] sm:p-5">
       <Select
         id="finance-analytics-month"
         label="Mês"
+        className="max-sm:!rounded-xl max-sm:!px-3 max-sm:!py-2.5 max-sm:!text-sm"
         value={String(month)}
         options={monthOptions}
         onChange={(event) => props.onSelectMonth(joinMonthKey(year, Number(event.target.value)))}
@@ -326,17 +332,21 @@ export function FinanceAnalyticsFilters(props: {
       <Select
         id="finance-analytics-year"
         label="Ano"
+        className="max-sm:!rounded-xl max-sm:!px-3 max-sm:!py-2.5 max-sm:!text-sm"
         value={String(year)}
         options={yearOptions}
         onChange={(event) => props.onSelectMonth(joinMonthKey(Number(event.target.value), month))}
       />
+      <div className="col-span-2 sm:col-span-1">
       <Select
         id="finance-analytics-patient"
+        className="max-sm:!rounded-xl max-sm:!px-3 max-sm:!py-2.5 max-sm:!text-sm"
         label="Paciente"
         value={props.patientId ?? ALL_PATIENTS}
         options={patientOptions}
         onChange={(event) => props.onSelectPatient(event.target.value || null)}
       />
+      </div>
     </div>
   )
 }
@@ -377,22 +387,25 @@ export function FinanceAnalyticsCharts(props: {
   const comparePeak = Math.max(view.selected.cents, view.previous.cents)
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4">
         <SummaryCard label="Arrecadado no mês" value={formatCurrency(view.selected.amountBrl)} hint={view.selected.sentence} />
         <SummaryCard label={`Arrecadado em ${year}`} value={formatCurrency(yearCents / 100)} hint="Janeiro a dezembro" />
         <SummaryCard
+          className="col-span-2 sm:col-span-1"
           label="Melhor mês do ano"
           value={bestMonth ? formatCurrency(bestMonth.amountBrl) : formatCurrency(0)}
           hint={bestMonth ? bestMonth.sentence : 'Nenhum pagamento neste ano'}
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
-        <article className="flex min-w-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5">
-          <h3 className="text-lg font-semibold text-ink">Por mês</h3>
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-[1.7fr_1fr]">
+        <article className="flex min-w-0 flex-col rounded-2xl border border-line bg-surface p-4 sm:rounded-[1.5rem] sm:p-5">
+          <h3 className="text-base font-semibold text-ink sm:text-lg">Por mês</h3>
           <p className="mt-1 text-xs text-muted">
-            Arrecadado em {year} · clique num mês para ver os detalhes
+            Arrecadado em {year}
+            <span className="hidden sm:inline"> · clique num mês para ver os detalhes</span>
+            <span className="sm:hidden"> · toque num mês</span>
           </p>
           <div className="mt-3">
             <MonthLine
@@ -404,10 +417,10 @@ export function FinanceAnalyticsCharts(props: {
           </div>
         </article>
 
-        <article className="flex min-w-0 flex-col rounded-[1.5rem] border border-line bg-surface p-5">
-          <h3 className="text-lg font-semibold text-ink">Por preço</h3>
+        <article className="flex min-w-0 flex-col rounded-2xl border border-line bg-surface p-4 sm:rounded-[1.5rem] sm:p-5">
+          <h3 className="text-base font-semibold text-ink sm:text-lg">Por preço</h3>
           <p className="mt-1 text-xs text-muted">{view.selected.sentence}</p>
-          <div className="mt-5 min-h-0 flex-1">
+          <div className="mt-3 min-h-0 flex-1 sm:mt-5">
             {view.selected.cents === 0 ? (
               <p className="text-sm text-muted">Nenhum pagamento neste mês.</p>
             ) : (
@@ -417,15 +430,15 @@ export function FinanceAnalyticsCharts(props: {
         </article>
       </div>
 
-      <article className="rounded-[1.5rem] bg-accent-soft p-5 sm:p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
+      <article className="rounded-2xl bg-accent-soft p-4 sm:rounded-[1.5rem] sm:p-6">
+        <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row lg:items-center">
           <div className="min-w-0 lg:w-56 lg:shrink-0">
-            <h3 className="text-lg font-semibold text-forest">Contra o mês anterior</h3>
-            <p className="mt-1 text-xs leading-5 text-forest/70">
+            <h3 className="text-base font-semibold text-forest sm:text-lg">Contra o mês anterior</h3>
+            <p className="mt-1 hidden text-xs leading-5 text-forest/70 sm:block">
               O mês selecionado ao lado do mês imediatamente anterior.
             </p>
           </div>
-          <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:gap-3">
             <CompareCard money={view.selected} peakCents={comparePeak} selected title="Mês selecionado" />
             <CompareCard money={view.previous} peakCents={comparePeak} selected={false} title="Mês anterior" />
           </div>

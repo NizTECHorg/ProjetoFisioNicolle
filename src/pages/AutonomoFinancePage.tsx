@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Wallet } from 'lucide-react'
+import { Archive, Pencil, Plus, Wallet } from 'lucide-react'
 import {
   FinanceAnalyticsCharts,
   FinanceAnalyticsFilters,
@@ -307,32 +307,38 @@ export function AutonomoFinancePage() {
               </article>
             ) : (
               <>
-                <div className="space-y-3 md:hidden">
+                <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface md:hidden">
                   {prices.map((row) => (
-                    <article key={row.id} className="rounded-2xl border border-line bg-surface p-4">
-                      <p className="min-w-0 truncate text-sm font-semibold text-ink">{row.name}</p>
-                      <p className="mt-1 text-sm text-muted">{formatCurrency(Number(row.amountBrl))}</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="min-h-11 min-w-11"
-                          onClick={() => openEdit(row)}
-                        >
-                          Editar preço
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="min-h-11 min-w-11 text-error"
-                          onClick={() => setPendingArchive(row)}
-                        >
-                          Arquivar preço
-                        </Button>
+                    <li key={row.id} className="flex items-center gap-3 px-4 py-3">
+                      <span
+                        aria-hidden
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-forest"
+                      >
+                        <Wallet size={16} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ink">{row.name}</p>
+                        <p className="text-sm font-semibold text-forest">{formatCurrency(Number(row.amountBrl))}</p>
                       </div>
-                    </article>
+                      <button
+                        type="button"
+                        aria-label={`Editar preço ${row.name}`}
+                        onClick={() => openEdit(row)}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-accent-soft hover:text-forest"
+                      >
+                        <Pencil size={16} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Arquivar preço ${row.name}`}
+                        onClick={() => setPendingArchive(row)}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-error/10 hover:text-error"
+                      >
+                        <Archive size={16} aria-hidden />
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
                 <div className="hidden md:block">
                   <DataTable
                     columns={[
