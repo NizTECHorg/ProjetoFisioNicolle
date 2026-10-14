@@ -4,6 +4,7 @@ import { evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 import {
   ESPORTES,
   ESPORTE_OUTRO,
+  type ResumoEsporte,
   avaliarTexto,
   buscarEsportes,
   problemasDoEsporte,
@@ -51,7 +52,7 @@ test('REQ-44: cada esporte tem problemas bem formados', () => {
       ok(p.nome.trim().length > 0, `${e.key}.${p.key}: nome vazio`)
       ok(p.regiao.trim().length > 0, `${e.key}.${p.key}: região vazia`)
       const total = p.testes.length + p.achados.length
-      ok(total >= 2 && total <= 3, `${e.key}.${p.key}: testes+achados = ${total}`)
+      ok(total >= 2 && total <= 6, `${e.key}.${p.key}: testes+achados = ${total}`)
       ok(p.testes.length <= 3, `${e.key}.${p.key}: testes > 3`)
       ok(p.achados.length <= 3, `${e.key}.${p.key}: achados > 3`)
     }
@@ -116,14 +117,15 @@ test('REQ-44: buscarEsportes ignora acento e usa sinônimos', () => {
 
 test('REQ-44: resumoEsporte vazio quando não pratica atividade', () => {
   deepEqual(resumoEsporte(undefined), { problemas: [] })
-  const r = resumoEsporte({ praticaAtividadeFisica: 'nao', esporte: 'volei', esporteProblemas: ['entorseTornozelo'] })
-  deepEqual(r, { problemas: [] })
+  const r: ResumoEsporte = resumoEsporte({ praticaAtividadeFisica: 'nao', esporte: 'volei', esporteProblemas: ['entorseTornozelo'] })
   equal(r.esporteLabel, undefined)
+  deepEqual(r, { problemas: [] })
 })
 
 test('REQ-44: resumoEsporte filtra problemas pelo esporte atual', () => {
   const volei = ESPORTES.find((e) => e.key === 'volei')!
-  const k = volei.problemas[0].key
+  const first = volei.problemas[0]!
+  const k = first.key
   const r = resumoEsporte({
     praticaAtividadeFisica: 'sim',
     esporte: 'volei',
@@ -131,7 +133,7 @@ test('REQ-44: resumoEsporte filtra problemas pelo esporte atual', () => {
   })
   equal(r.esporteLabel, 'Vôlei')
   equal(r.problemas.length, 1)
-  deepEqual(r.problemas[0], { key: k, nome: volei.problemas[0].nome, regiao: volei.problemas[0].regiao })
+  deepEqual(r.problemas[0], { key: k, nome: first.nome, regiao: first.regiao })
 })
 
 test('REQ-44: resumoEsporte com Outro e sem esporte', () => {

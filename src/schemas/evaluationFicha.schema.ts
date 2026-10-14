@@ -1,6 +1,12 @@
 import { z } from 'zod'
 import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
 import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadePalpacao.ts'
+import {
+  ESPORTE_OUTRO_MAX,
+  ESPORTE_PROBLEMAS_MAX,
+  safeEsporte,
+  safeEsporteProblemas,
+} from '../lib/esportesAvaliacao.ts'
 import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
 import {
   BODY_DRAWING_COLOR_KEYS,
@@ -388,6 +394,12 @@ export const evaluationFichaSchema = z.object({
           horasDia: optionalText(80),
           praticaAtividadeFisica: optionalEnum(['nao', 'sim']),
           atividadeQualFreq: optionalText(400),
+          esporte: z.preprocess((v) => safeEsporte(v), z.string().optional()),
+          esporteOutro: optionalText(ESPORTE_OUTRO_MAX),
+          esporteProblemas: z.preprocess((v) => {
+            const keys = safeEsporteProblemas(v)
+            return keys.length > 0 ? keys : undefined
+          }, z.array(z.string()).max(ESPORTE_PROBLEMAS_MAX).optional()),
         })
         .default({}),
       expectativas: z
