@@ -19,6 +19,7 @@ import {
   type LadoAchado,
 } from '@/lib/mobilidadePalpacao'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
+import { scrollToElement } from '@/lib/scrollToElement'
 import { SignaturePad } from '@/components/patients/evaluation/SignaturePad'
 import {
   BoolCheck,
@@ -441,7 +442,8 @@ function MobilidadeRegioes({
 
   function irPara(index: number) {
     setAtivaBruta(index)
-    topoRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    // Mobile: a barra fixa da Mobilidade fica a ~72px do topo (cabeçalho do app).
+    scrollToElement(topoRef.current, window.matchMedia?.('(min-width: 1024px)').matches ? 16 : 96)
   }
 
   function acrescentar() {

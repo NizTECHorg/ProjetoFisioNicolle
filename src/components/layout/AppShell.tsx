@@ -44,7 +44,7 @@ export function AppShell() {
   }, [avatarPath])
 
   return (
-    <div className="min-h-dvh bg-canvas text-ink lg:h-dvh lg:overflow-hidden lg:bg-forest">
+    <div className="min-h-dvh bg-canvas text-ink lg:h-dvh lg:overflow-clip lg:bg-forest">
       {isMenuOpen && (
         <button
           type="button"
@@ -157,7 +157,7 @@ export function AppShell() {
       </aside>
 
       <div className="lg:ml-72 lg:flex lg:h-dvh lg:flex-col lg:p-2.5">
-        <div className="min-h-dvh bg-canvas lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden lg:rounded-[1.15rem] lg:bg-surface">
+        <div className="min-h-dvh bg-canvas lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-clip lg:rounded-[1.15rem] lg:bg-surface">
           <div className="panel-scroll min-h-dvh lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto">
             <header className="sticky top-0 z-20 flex items-center gap-3 bg-canvas/90 px-4 py-3 backdrop-blur-md lg:hidden">
               <button

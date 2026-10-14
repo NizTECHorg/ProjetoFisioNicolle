@@ -18,6 +18,7 @@ import {
 } from '@/components/patients/evaluation/EvaluationFichaForm'
 import { fichaBlocoDomId } from '@/components/patients/evaluation/fichaFormPrimitives'
 import { blocoPreenchido } from '@/lib/fichaPreenchimento'
+import { scrollToElement } from '@/lib/scrollToElement'
 
 type Props = {
   page: FichaPageId
@@ -107,7 +108,7 @@ export function EvaluationFichaSidebar({
 
   function irParaBloco(id: FichaPageId, titulo: string) {
     const rolar = () =>
-      document.getElementById(fichaBlocoDomId(titulo))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollToElement(document.getElementById(fichaBlocoDomId(titulo)))
     if (id !== page) {
       onPageChange(id)
       // Espera a página nova montar antes de rolar até o bloco.
