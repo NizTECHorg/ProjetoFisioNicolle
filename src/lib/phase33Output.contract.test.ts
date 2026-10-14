@@ -26,7 +26,7 @@ test('REQ-44: PDF 03.C mostra esporte e problemas frequentes', () => {
   const src = read(PDF)
   ok(src.includes("from '@/lib/esportesAvaliacao'"))
   ok(src.includes("drawOptionalField(ctx, 'Esporte'"))
-  ok(src.includes("drawOptionalBullets(ctx, 'Problemas frequentes marcados'"))
+  ok(/drawOptionalBullets\(\s*ctx,\s*'Problemas frequentes marcados'/.test(src))
   ok(/hasRotina =[\s\S]*?esporteLabel/.test(src))
 })
 
@@ -34,7 +34,7 @@ test('REQ-44: preview do seletor de campos inclui esporte', () => {
   const src = read(CATALOG)
   ok(src.includes("from '@/lib/esportesAvaliacao'"))
   ok(/hasRotina =[\s\S]*?esporteLabel/.test(src))
-  ok(/previewFrom\(trabalhoItems\[0\][^)]*esporteLabel/.test(src))
+  ok(/previewFrom\(\s*trabalhoItems\[0\][^)]*esporteLabel/.test(src))
 })
 
 test('REQ-44: saida so via resumoEsporte, nunca esporteProblemas direto', () => {
