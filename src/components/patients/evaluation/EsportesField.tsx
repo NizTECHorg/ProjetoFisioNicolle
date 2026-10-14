@@ -169,9 +169,9 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
           <section
             key={entrada.esporte}
             aria-label={rotuloEsporte(entrada)}
-            className="relative space-y-3 rounded-2xl border border-line bg-canvas p-4"
+            className={['relative space-y-3 rounded-2xl border border-line bg-canvas transition-[padding] duration-200', recolhido ? 'px-4 py-2' : 'p-4'].join(' ')}
           >
-            <div className="flex items-start justify-between gap-2 pr-1">
+            <div className="flex items-center justify-between gap-2 pr-1">
               {catalogo ? (
                 <button
                   type="button"
@@ -190,7 +190,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                     size={16}
                     aria-hidden
                     className={[
-                      'shrink-0 text-accent transition-transform duration-200 motion-reduce:transition-none',
+                      'shrink-0 text-muted transition-transform duration-200 motion-reduce:transition-none',
                       recolhido ? '-rotate-90' : 'rotate-0',
                     ].join(' ')}
                   />
@@ -204,7 +204,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                   aria-label={`Remover ${rotuloEsporte(entrada)}`}
                   title="Remover esporte"
                   onClick={() => alternarEsporte(entrada.esporte)}
-                  className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error"
+                  className="-mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error"
                 >
                   <X size={16} aria-hidden />
                 </button>
