@@ -9,10 +9,12 @@ import {
   BODY_DRAWING_MAX_STROKES,
   BODY_DRAWING_MIN_STEP,
   BODY_DRAWING_VIEWBOX,
+  BODY_DRAWING_WIDTHS,
   appendBodyStroke,
   bodyClientToViewBox,
   bodyDrawingColor,
   bodyDrawingFigure,
+  bodyDrawingWidthInfo,
   bodyStrokeToPath,
   safeBodyStrokes,
   simplifyBodyStroke,
@@ -20,6 +22,7 @@ import {
   type BodyDrawingFigure,
   type BodyDrawingPoint,
   type BodyDrawingStroke,
+  type BodyDrawingWidth,
 } from '@/lib/bodyDrawing'
 
 type BodyDrawingPadProps = {
@@ -45,6 +48,7 @@ export function BodyDrawingPad({
   const figuraAtual = bodyDrawingFigure(figura)
   const fundoUrl = figuraAtual === 'feminina' ? pessoaFemininaUrl : pessoaUrl
   const [cor, setCor] = useState<BodyDrawingColor>('dor')
+  const [espessura, setEspessura] = useState<BodyDrawingWidth>('media')
   const [pontos, setPontos] = useState<BodyDrawingPoint[]>([])
   const [confirmarLimpar, setConfirmarLimpar] = useState(false)
   const desenhando = useRef(false)
@@ -75,7 +79,7 @@ export function BodyDrawingPad({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
-    if (pontos.length > 0) onChange(appendBodyStroke(tracos, cor, pontos))
+    if (pontos.length > 0) onChange(appendBodyStroke(tracos, cor, pontos, espessura))
     setPontos([])
   }
 
@@ -126,7 +130,33 @@ export function BodyDrawingPad({
             {tracos.length > 0 ? ` · ${tracos.length === 1 ? '1 traço' : `${tracos.length} traços`}` : ''}
             {cheio ? ' · limite de traços atingido' : ''}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="radiogroup" aria-label="Espessura do pincel" className="inline-flex items-center gap-1 rounded-xl border border-line bg-canvas p-1">
+              {BODY_DRAWING_WIDTHS.map((item) => {
+                const ativo = item.key === espessura
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={ativo}
+                    aria-label={`Pincel ${item.label.toLowerCase()}`}
+                    title={`Pincel ${item.label.toLowerCase()}`}
+                    onClick={() => setEspessura(item.key)}
+                    className={[
+                      'flex h-9 w-9 items-center justify-center rounded-lg transition-colors',
+                      ativo ? 'bg-surface shadow-sm' : 'hover:bg-surface',
+                    ].join(' ')}
+                  >
+                    <span
+                      aria-hidden
+                      className="rounded-full"
+                      style={{ width: item.px + 2, height: item.px + 2, backgroundColor: ativo ? corAtual.hex : '#5a6b80' }}
+                    />
+                  </button>
+                )
+              })}
+            </div>
             {onFiguraChange ? (
               <Button
                 type="button"
@@ -193,7 +223,7 @@ export function BodyDrawingPad({
               d={item.d}
               fill="none"
               stroke={bodyDrawingColor(item.cor)?.hex}
-              strokeWidth={4}
+              strokeWidth={bodyDrawingWidthInfo(item.espessura).px}
               strokeLinecap="round"
               strokeLinejoin="round"
               vectorEffect="non-scaling-stroke"
@@ -204,7 +234,7 @@ export function BodyDrawingPad({
               d={vivo}
               fill="none"
               stroke={corAtual.hex}
-              strokeWidth={4}
+              strokeWidth={bodyDrawingWidthInfo(espessura).px}
               strokeLinecap="round"
               strokeLinejoin="round"
               vectorEffect="non-scaling-stroke"

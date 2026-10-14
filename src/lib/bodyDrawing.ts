@@ -46,7 +46,26 @@ export function bodyDrawingFigure(value: unknown): BodyDrawingFigure {
 
 export type BodyDrawingPoint = { x: number; y: number }
 
-export type BodyDrawingStroke = { cor: BodyDrawingColor; d: string }
+/** Espessura do pincel. Traço sem espessura salva (antigo) vale como média. */
+export const BODY_DRAWING_WIDTH_KEYS = ['fina', 'media', 'grossa'] as const
+export type BodyDrawingWidth = (typeof BODY_DRAWING_WIDTH_KEYS)[number]
+
+export const BODY_DRAWING_WIDTHS: readonly { key: BodyDrawingWidth; label: string; px: number; pdf: number }[] = [
+  { key: 'fina', label: 'Fino', px: 3, pdf: 1.8 },
+  { key: 'media', label: 'Médio', px: 6, pdf: 3.6 },
+  { key: 'grossa', label: 'Grosso', px: 12, pdf: 7.2 },
+]
+
+export function bodyDrawingWidth(value: unknown): BodyDrawingWidth {
+  return value === 'fina' || value === 'grossa' ? value : 'media'
+}
+
+export function bodyDrawingWidthInfo(value: unknown) {
+  const key = bodyDrawingWidth(value)
+  return BODY_DRAWING_WIDTHS.find((item) => item.key === key) ?? BODY_DRAWING_WIDTHS[1]!
+}
+
+export type BodyDrawingStroke = { cor: BodyDrawingColor; d: string; espessura?: BodyDrawingWidth }
 
 export function bodyDrawingColor(key: string | null | undefined): BodyDrawingColorInfo | undefined {
   return BODY_DRAWING_COLORS.find((item) => item.key === key)
@@ -106,9 +125,9 @@ export function safeBodyStrokes(value: unknown): BodyDrawingStroke[] {
   const out: BodyDrawingStroke[] = []
   for (const item of value) {
     if (!item || typeof item !== 'object') continue
-    const { cor, d } = item as { cor?: unknown; d?: unknown }
+    const { cor, d, espessura } = item as { cor?: unknown; d?: unknown; espessura?: unknown }
     if (typeof cor !== 'string' || !bodyDrawingColor(cor) || !isSafeBodyPath(d)) continue
-    out.push({ cor: cor as BodyDrawingColor, d })
+    out.push({ cor: cor as BodyDrawingColor, d, espessura: bodyDrawingWidth(espessura) })
     if (out.length >= BODY_DRAWING_MAX_STROKES) break
   }
   return out
@@ -119,10 +138,11 @@ export function appendBodyStroke(
   strokes: readonly BodyDrawingStroke[],
   cor: BodyDrawingColor,
   points: readonly BodyDrawingPoint[],
+  espessura: BodyDrawingWidth = 'media',
 ): BodyDrawingStroke[] {
   const d = bodyStrokeToPath(simplifyBodyStroke(points))
   if (!isSafeBodyPath(d) || strokes.length >= BODY_DRAWING_MAX_STROKES) return [...strokes]
-  return [...strokes, { cor, d }]
+  return [...strokes, { cor, d, espessura }]
 }
 
 /** Cores usadas no desenho, na ordem da legenda (para o PDF mostrar só o que importa). */

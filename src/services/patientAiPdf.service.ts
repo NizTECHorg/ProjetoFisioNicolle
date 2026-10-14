@@ -28,6 +28,7 @@ import {
   BODY_DRAWING_VIEWBOX,
   bodyDrawingColor,
   bodyDrawingFigure,
+  bodyDrawingWidthInfo,
   safeBodyStrokes,
   usedBodyDrawingColors,
   type BodyDrawingStroke,
@@ -1549,7 +1550,7 @@ function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observa
         y: top,
         scale,
         borderColor: rgb(info.rgb[0], info.rgb[1], info.rgb[2]),
-        borderWidth: 2.4 / scale,
+        borderWidth: bodyDrawingWidthInfo(traco.espessura).pdf / scale,
         borderLineCap: LineCapStyle.Round,
         // Multiply: a cor tinge o branco e as linhas pretas da figura ficam por cima.
         blendMode: BlendMode.Multiply,

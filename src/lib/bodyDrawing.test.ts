@@ -7,6 +7,7 @@ import {
   appendBodyStroke,
   bodyClientToViewBox,
   bodyDrawingFigure,
+  bodyDrawingWidth,
   bodyStrokeToPath,
   isSafeBodyPath,
   safeBodyStrokes,
@@ -61,14 +62,14 @@ test('mapa de sintomas: safeBodyStrokes descarta cor desconhecida e path insegur
       { cor: 'dor', d: 'javascript:1' },
       null,
     ]),
-    [{ cor: 'dor', d: 'M1 1 L2 2' }],
+    [{ cor: 'dor', d: 'M1 1 L2 2', espessura: 'media' }],
   )
   deepEqual(safeBodyStrokes('nada'), [])
 })
 
 test('mapa de sintomas: appendBodyStroke respeita o limite de traços', () => {
   const um = appendBodyStroke([], 'dor', [{ x: 1, y: 1 }, { x: 9, y: 9 }])
-  deepEqual(um, [{ cor: 'dor', d: 'M1 1 L9 9' }])
+  deepEqual(um, [{ cor: 'dor', d: 'M1 1 L9 9', espessura: 'media' }])
   const cheio = Array.from({ length: BODY_DRAWING_MAX_STROKES }, () => ({ cor: 'dor' as const, d: 'M1 1 L2 2' }))
   equal(appendBodyStroke(cheio, 'rigidez', [{ x: 1, y: 1 }]).length, BODY_DRAWING_MAX_STROKES)
   equal(appendBodyStroke([], 'dor', []).length, 0)
@@ -91,4 +92,18 @@ test('mapa de sintomas: figura padrão masculina, feminina só quando pedida', (
   equal(bodyDrawingFigure('masculina'), 'masculina')
   equal(bodyDrawingFigure(undefined), 'masculina')
   equal(bodyDrawingFigure('outra'), 'masculina')
+})
+
+test('mapa de sintomas: espessura do pincel, traço antigo vira médio', () => {
+  equal(bodyDrawingWidth('fina'), 'fina')
+  equal(bodyDrawingWidth('grossa'), 'grossa')
+  equal(bodyDrawingWidth(undefined), 'media')
+  equal(bodyDrawingWidth('enorme'), 'media')
+  deepEqual(
+    appendBodyStroke([], 'dor', [{ x: 1, y: 1 }, { x: 9, y: 9 }], 'grossa'),
+    [{ cor: 'dor', d: 'M1 1 L9 9', espessura: 'grossa' }],
+  )
+  deepEqual(safeBodyStrokes([{ cor: 'dor', d: 'M1 1 L2 2', espessura: 'fina' }]), [
+    { cor: 'dor', d: 'M1 1 L2 2', espessura: 'fina' },
+  ])
 })

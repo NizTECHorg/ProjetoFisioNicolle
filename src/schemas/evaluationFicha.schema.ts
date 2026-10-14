@@ -13,6 +13,7 @@ import {
   BODY_DRAWING_FIGURES,
   BODY_DRAWING_MAX_PATH_CHARS,
   BODY_DRAWING_MAX_STROKES,
+  BODY_DRAWING_WIDTH_KEYS,
   isSafeBodyPath,
   bodyDrawingFigure,
   safeBodyStrokes,
@@ -138,6 +139,7 @@ const periodo24hSchema = optionalEnum(['melhor', 'igual', 'pior'])
 /** Pages 01–04 musculoskeletal ficha — every leaf optional so `{}` parses (D-04). */
 const bodyDrawingStrokeSchema = z.object({
   cor: z.enum(BODY_DRAWING_COLOR_KEYS),
+  espessura: z.enum(BODY_DRAWING_WIDTH_KEYS).optional(),
   d: z
     .string()
     .max(BODY_DRAWING_MAX_PATH_CHARS)
