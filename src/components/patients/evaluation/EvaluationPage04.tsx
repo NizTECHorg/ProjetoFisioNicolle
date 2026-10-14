@@ -371,7 +371,7 @@ function CartaoRegiao({
                       disabled={disabled}
                       onChange={() => {
                         if (marcado) remove(movIndex)
-                        else append({ movimento: item.key })
+                        else append({ movimento: item.key }, { shouldFocus: false })
                       }}
                     />
                     <span>{item.label}</span>
@@ -1372,7 +1372,7 @@ function ListaTestes({
                           disabled={disabled}
                           onChange={() => {
                             if (marcado) remove(indice)
-                            else append({ regiao: regiao.key, teste: item.key })
+                            else append({ regiao: regiao.key, teste: item.key }, { shouldFocus: false })
                           }}
                         />
                         <span>{item.label}</span>
