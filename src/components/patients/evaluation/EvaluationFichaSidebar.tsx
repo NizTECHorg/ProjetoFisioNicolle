@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Activity,
   ChevronDown,
@@ -65,6 +65,34 @@ export function EvaluationFichaSidebar({
   const ficha = useWatch({ control, name: 'ficha' })
   const [abertas, setAbertas] = useState<ReadonlySet<FichaPageId>>(() => new Set([page]))
   const [blocoAtivo, setBlocoAtivo] = useState<string | null>(null)
+  const asideRef = useRef<HTMLElement>(null)
+  const [altura, setAltura] = useState<number | null>(null)
+
+  useEffect(() => {
+    // Altura = do topo visível da lateral até o fim da tela. Antes de grudar no topo
+    // (início da página) ela começa mais abaixo; assim os botões nunca saem da tela.
+    const TOPO = 16
+    const FOLGA_BAIXO = 28
+    let quadro = 0
+    function medir() {
+      quadro = 0
+      const aside = asideRef.current
+      if (!aside) return
+      const topo = Math.max(aside.getBoundingClientRect().top, TOPO)
+      setAltura(Math.max(240, Math.round(window.innerHeight - topo - FOLGA_BAIXO)))
+    }
+    function agendar() {
+      if (!quadro) quadro = window.requestAnimationFrame(medir)
+    }
+    medir()
+    window.addEventListener('scroll', agendar, { capture: true, passive: true })
+    window.addEventListener('resize', agendar)
+    return () => {
+      window.removeEventListener('scroll', agendar, { capture: true })
+      window.removeEventListener('resize', agendar)
+      if (quadro) window.cancelAnimationFrame(quadro)
+    }
+  }, [])
 
 
   useEffect(() => {
@@ -120,14 +148,17 @@ export function EvaluationFichaSidebar({
   }
 
   return (
-    <aside aria-label="Navegação da avaliação" className="h-full">
+    <aside ref={asideRef} aria-label="Navegação da avaliação" className="h-full">
       {/* sticky precisa de espaço para deslizar: o aside estica na altura do editor (h-full no slot). */}
-      <div className="sticky top-4 flex h-[calc(100dvh-3.25rem)] flex-col">
+      <div
+        className="sticky top-4 flex h-[calc(100dvh-3.25rem)] flex-col"
+        style={altura ? { height: altura } : undefined}
+      >
         <p className="shrink-0 px-2 pb-3 text-sm font-semibold text-ink">
           Avaliação fisioterapêutica
         </p>
 
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]">
+        <nav className="-mr-4 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-4 [scrollbar-gutter:stable] [scrollbar-width:thin]">
           {FICHA_PAGES.map((item, index) => {
             const atual = item.id === page
             const aberta = abertas.has(item.id)

@@ -173,7 +173,7 @@ export function PatientEvaluationPanel({
       ) : null}
 
       {!isLoading && !isError && canWrite && editorOpen ? (
-        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-6">
+        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_17.5rem] xl:gap-5">
         <div className="min-w-0 rounded-2xl border border-line bg-surface p-5">
           <PatientEvaluationEditorForm
             sidebarContainer={sidebarSlot}
