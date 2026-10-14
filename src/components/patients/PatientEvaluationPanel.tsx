@@ -89,6 +89,7 @@ export function PatientEvaluationPanel({
   const { data: patientDetail } = usePatient(patientId)
   const deleteEvaluation = useDeletePatientEvaluation(patientId)
 
+  const [sidebarSlot, setSidebarSlot] = useState<HTMLDivElement | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editing, setEditing] = useState<PatientEvaluation | null>(null)
   const [createDraft, setCreateDraft] = useState<EvaluationFormData | null>(null)
@@ -172,8 +173,10 @@ export function PatientEvaluationPanel({
       ) : null}
 
       {!isLoading && !isError && canWrite && editorOpen ? (
-        <div className="rounded-2xl border border-line bg-surface p-5">
+        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-6">
+        <div className="min-w-0 rounded-2xl border border-line bg-surface p-5">
           <PatientEvaluationEditorForm
+            sidebarContainer={sidebarSlot}
             key={editing?.id ?? (createDraft ? 'draft' : 'create')}
             patientId={patientId}
             cancelLabel="Cancelar"
@@ -185,6 +188,9 @@ export function PatientEvaluationPanel({
             onCancel={closeEditor}
             onSuccess={closeEditor}
           />
+        </div>
+        {/* Navegação lateral (só desktop): fora do cartão do editor, sem borda; estica na altura dele. */}
+        <div ref={setSidebarSlot} className="hidden xl:block" />
         </div>
       ) : null}
 

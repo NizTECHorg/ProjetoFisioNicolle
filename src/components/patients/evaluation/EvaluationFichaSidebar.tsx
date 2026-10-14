@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { useWatch, type Control } from 'react-hook-form'
+import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { Button } from '@/components/ui/Button'
 import {
   FICHA_BLOCOS,
@@ -7,6 +9,7 @@ import {
   type FichaPageId,
 } from '@/components/patients/evaluation/EvaluationFichaForm'
 import { fichaBlocoDomId } from '@/components/patients/evaluation/fichaFormPrimitives'
+import { blocoPreenchido } from '@/lib/fichaPreenchimento'
 
 type Props = {
   page: FichaPageId
@@ -16,6 +19,10 @@ type Props = {
   submitLabel: string
   saving: boolean
   submitDisabled?: boolean
+  /** id do <form>: a lateral fica fora dele no DOM (portal), então o Salvar usa form=… */
+  formId: string
+  /** Para ler a ficha (useWatch só re-renderiza a lateral) e pintar os bullets preenchidos. */
+  control: Control<EvaluationFormData>
 }
 
 function nomePagina(label: string): string {
@@ -34,7 +41,10 @@ export function EvaluationFichaSidebar({
   submitLabel,
   saving,
   submitDisabled,
+  formId,
+  control,
 }: Props) {
+  const ficha = useWatch({ control, name: 'ficha' })
   const [abertas, setAbertas] = useState<ReadonlySet<FichaPageId>>(() => new Set([page]))
   const [blocoAtivo, setBlocoAtivo] = useState<string | null>(null)
 
@@ -85,13 +95,14 @@ export function EvaluationFichaSidebar({
   }
 
   return (
-    <aside aria-label="Navegação da avaliação" className="hidden xl:block">
-      <div className="sticky top-4 flex max-h-[calc(100dvh-2rem)] flex-col rounded-2xl border border-line bg-surface">
-        <p className="shrink-0 border-b border-line px-4 py-3 text-sm font-semibold text-ink">
+    <aside aria-label="Navegação da avaliação" className="h-full">
+      {/* sticky precisa de espaço para deslizar: o aside estica na altura do editor (h-full no slot). */}
+      <div className="sticky top-4 flex max-h-[calc(100dvh-2rem)] flex-col">
+        <p className="shrink-0 px-2 pb-3 text-sm font-semibold text-ink">
           Avaliação fisioterapêutica
         </p>
 
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain p-2 [scrollbar-width:thin]">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]">
           {FICHA_PAGES.map((item, index) => {
             const atual = item.id === page
             const aberta = abertasComAtual.has(item.id)
@@ -138,9 +149,10 @@ export function EvaluationFichaSidebar({
                 </div>
 
                 {aberta ? (
-                  <ul className="mb-1 ml-5 mt-0.5 space-y-0.5 border-l border-line pl-2">
+                  <ul className="mb-1 ml-3 mt-0.5 space-y-0.5">
                     {FICHA_BLOCOS[item.id].map((bloco) => {
                       const ativo = atual && blocoAtivo === bloco.title
+                      const preenchido = blocoPreenchido(ficha, bloco.path)
                       return (
                         <li key={bloco.title}>
                           <button
@@ -153,8 +165,15 @@ export function EvaluationFichaSidebar({
                                 : 'text-muted hover:bg-canvas hover:text-ink',
                             ].join(' ')}
                           >
-                            <span className="w-5 shrink-0 font-semibold">{bloco.letter}.</span>
+                            <span
+                              aria-hidden
+                              className={[
+                                'h-2 w-2 shrink-0 rounded-full',
+                                preenchido ? 'bg-accent' : 'bg-line',
+                              ].join(' ')}
+                            />
                             <span className="truncate">{bloco.title}</span>
+                            {preenchido ? <span className="sr-only"> (preenchido)</span> : null}
                           </button>
                         </li>
                       )
@@ -166,8 +185,8 @@ export function EvaluationFichaSidebar({
           })}
         </nav>
 
-        <div className="shrink-0 space-y-2 border-t border-line p-3">
-          <Button type="submit" fullWidth isLoading={saving} disabled={submitDisabled} className="!py-2.5">
+        <div className="shrink-0 space-y-2 pt-3">
+          <Button type="submit" form={formId} fullWidth isLoading={saving} disabled={submitDisabled} className="!py-2.5">
             {submitLabel}
           </Button>
           <button

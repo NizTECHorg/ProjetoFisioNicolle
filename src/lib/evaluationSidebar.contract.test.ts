@@ -11,7 +11,7 @@ test('navegação lateral: cada bloco listado existe com a mesma letra e título
   const corpo = FORM.slice(inicio, FORM.indexOf('\n}\n', inicio))
   const paginas = [...corpo.matchAll(/'(0\d)': \[([\s\S]*?)\]/g)]
   ok(paginas.length === 5, 'esperava 5 páginas')
-  for (const [, id, lista] of paginas) {
+  for (const [, id = '', lista = ''] of paginas) {
     const pagina = read(`../components/patients/evaluation/EvaluationPage${id}.tsx`)
     for (const [, letter, title] of lista.matchAll(/letter: '([^']+)', title: '([^']+)'/g)) {
       ok(
@@ -25,9 +25,13 @@ test('navegação lateral: cada bloco listado existe com a mesma letra e título
 test('navegação lateral só no desktop (xl): chips e botões do fim somem só em xl', () => {
   const sidebar = read('../components/patients/evaluation/EvaluationFichaSidebar.tsx')
   const editor = read('../components/patients/PatientEvaluationEditorForm.tsx')
-  ok(sidebar.includes('className="hidden xl:block"'))
+  const panel = read('../components/patients/PatientEvaluationPanel.tsx')
+  ok(panel.includes('ref={setSidebarSlot} className="hidden xl:block"'), 'slot fora do cartão, só xl')
   ok(sidebar.includes('sticky top-4'))
-  ok(sidebar.includes('type="submit"'))
+  ok(sidebar.includes('form={formId}'), 'Salvar fora do <form> usa form=')
+  ok(sidebar.includes('blocoPreenchido('))
+  ok(!sidebar.includes('border-l border-line'), 'sem linha à esquerda dos blocos')
+  ok(editor.includes('createPortal('))
   ok(FORM.includes("onPageChange ? 'xl:hidden' : ''"))
-  ok(editor.includes('xl:hidden'))
+  ok(editor.includes("comLateral ? 'xl:hidden' : ''"))
 })
