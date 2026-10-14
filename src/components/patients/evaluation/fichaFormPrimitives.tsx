@@ -128,7 +128,7 @@ export function FichaBlock({
   const badge =
     tone === 'danger'
       ? 'bg-error/10 text-error'
-      : 'bg-accent-soft text-forest'
+      : 'bg-accent-soft text-[#1e3a8a]'
   const heading = tone === 'danger' ? 'text-error' : 'text-accent'
 
   return (
