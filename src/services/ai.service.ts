@@ -1,6 +1,34 @@
 import { supabase } from '@/lib/supabase/client'
 import { mapPatientAiError } from '@/lib/security'
 
+export function stripMarkdown(text: string): string {
+  if (!text) return ''
+  return text
+    // Remove blocos de código markdown
+    .replace(/```[a-z]*\n?/gi, '')
+    .replace(/```/g, '')
+    // Remove cabeçalhos (# Título, ## Subtítulo)
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove negrito e itálico: **texto**, *texto*, __texto__, _texto_
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    // Remove tachado ~~texto~~
+    .replace(/~~([^~]+)~~/g, '$1')
+    // Links: [texto](url) -> texto
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Código inline: `código` -> código
+    .replace(/`([^`]+)`/g, '$1')
+    // Citações: > citação -> citação
+    .replace(/^>\s+/gm, '')
+    // Padroniza marcadores de lista (* ou - para •)
+    .replace(/^[\*\-]\s+/gm, '• ')
+    // Limita quebras de linha excessivas
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -44,5 +72,6 @@ export async function generateEvolutionFromAudio(
   }
 
   const parsed = data as { text?: string } | null
-  return parsed?.text || ''
+  const rawText = parsed?.text || ''
+  return stripMarkdown(rawText)
 }
