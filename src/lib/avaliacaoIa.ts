@@ -1,3 +1,4 @@
+import { getFocusRegion } from './focusRegions.ts'
 import { evaluationFichaSchema, type EvaluationFicha } from '../schemas/evaluationFicha.schema.ts'
 
 // REQ-45. A garantia de "não inventar" vem deste código determinístico, não do prompt.
@@ -335,6 +336,8 @@ export type AiDraftPatientData = {
   goals?: ReadonlyArray<{ title: string }>
   painSeries?: ReadonlyArray<{ date: string; value: number }>
   therapistName?: string | null
+  /** Áreas de foco do cadastro: as ativas viram marcas de Dor no mapa corporal. */
+  focusAreas?: ReadonlyArray<{ regionKey: string; isActive: boolean }>
 }
 
 export function getByPath(obj: unknown, path: string): unknown {
@@ -429,6 +432,24 @@ export function buildAiEvaluationFicha(
         ficha = candidate
         notes.push(`EVA agora: último registro de ${formatIsoDate(last.date)}.`)
       }
+    }
+  }
+
+  const regioes: string[] = []
+  for (const area of patient.focusAreas ?? []) {
+    const key = area.regionKey.trim()
+    if (area.isActive && getFocusRegion(key) && !regioes.includes(key)) regioes.push(key)
+  }
+  const marcas = getByPath(ficha, 'sintomas.mapa.marks')
+  if (regioes.length > 0 && !(Array.isArray(marcas) && marcas.length > 0)) {
+    const candidate = setByPath(
+      ficha,
+      'sintomas.mapa.marks',
+      regioes.map((regionKey) => ({ regionKey, symbol: 'X' })),
+    )
+    if (evaluationFichaSchema.safeParse(candidate).success) {
+      ficha = candidate
+      notes.push('Mapa corporal: áreas de foco do cadastro marcadas como Dor.')
     }
   }
 

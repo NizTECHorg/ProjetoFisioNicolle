@@ -155,6 +155,7 @@ export function PatientEvaluationPanel({
           diagnosis: patientDetail?.diagnosis,
           goals: patientDetail?.goals,
           painSeries: patientDetail?.painSeries,
+          focusAreas: patientDetail?.focusAreas,
           therapistName: me?.fullName ?? profile?.fullName ?? null,
         },
         { items: res.items, diagnosticoResumido: res.diagnosticoResumido },

@@ -225,3 +225,20 @@ test('REQ-45: builder não sobrescreve cadastro, aplica item válido e ignora in
   ok(!ficha.anamnese.queixa.lado?.direito)
   ok(evaluationFichaSchema.safeParse(ficha).success)
 })
+
+test('REQ-45: áreas de foco ativas viram marcas de Dor no mapa corporal', () => {
+  const { ficha, notes } = buildAiEvaluationFicha(
+    emptyEvaluationFicha(),
+    {
+      focusAreas: [
+        { regionKey: 'front.neck', isActive: true },
+        { regionKey: 'front.neck', isActive: true },
+        { regionKey: 'front.head', isActive: false },
+        { regionKey: 'regiao.inexistente', isActive: true },
+      ],
+    },
+    { items: [] },
+  )
+  deepEqual(ficha.sintomas.mapa.marks, [{ regionKey: 'front.neck', symbol: 'X' }])
+  ok(notes.includes('Mapa corporal: áreas de foco do cadastro marcadas como Dor.'))
+})
