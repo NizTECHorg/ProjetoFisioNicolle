@@ -14,6 +14,7 @@ import {
   type PriceBar,
 } from '@/lib/financeAnalytics'
 import { formatCurrency } from '@/lib/security'
+import { smoothLinePath } from '@/lib/smoothPath'
 
 const VIEW_W = 560
 const VIEW_H = 220
@@ -79,7 +80,7 @@ function MonthLine(props: {
   const last = points[points.length - 1]
   if (!first || !last) return null
 
-  const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+  const line = smoothLinePath(points)
   const area = `${line} L ${last.x} ${PAD.t + INNER_H} L ${first.x} ${PAD.t + INNER_H} Z`
   const ticks = [0, 1 / 3, 2 / 3, 1].map((ratio) => Math.round(ceiling * ratio))
   const activeKey = hoverKey ?? focusKey

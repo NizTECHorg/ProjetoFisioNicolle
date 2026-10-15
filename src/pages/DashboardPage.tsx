@@ -8,6 +8,7 @@ import { useCalendarSessions } from '@/hooks/useClinic'
 import { usePatients } from '@/hooks/usePatients'
 import type { CalendarSession } from '@/services/calendar.service'
 import { statusLabels, type PatientListItem, type PatientStatus, type SessionStatus } from '@/types/patient'
+import { smoothLinePath } from '@/lib/smoothPath'
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 const STATUS_ORDER: PatientStatus[] = ['em_tratamento', 'avaliacao', 'alta', 'inativo']
@@ -164,7 +165,7 @@ function ActivityChart({ days }: { days: Array<{ day: string; value: number }> }
   const first = points[0]
   const last = points[points.length - 1]
   if (!first || !last) return null
-  const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+  const line = smoothLinePath(points)
   const area = `${line} L ${last.x} ${pad.t + innerH} L ${first.x} ${pad.t + innerH} Z`
   const active = hover === null ? undefined : points[hover]
   const ticks = [0, Math.round(max / 3), Math.round((max * 2) / 3), max]
