@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
-  ESPORTES_MAX,
   ESPORTE_OUTRO,
   ESPORTE_OUTRO_MAX,
   avaliarTexto,
@@ -136,6 +135,17 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
   const [remover, setRemover] = useState<string | null>(null)
   const [recolhidos, setRecolhidos] = useState<ReadonlySet<string>>(() => new Set())
 
+  const [problemasFechados, setProblemasFechados] = useState<ReadonlySet<string>>(() => new Set())
+
+  function alternarProblemas(key: string) {
+    setProblemasFechados((atual) => {
+      const proximo = new Set(atual)
+      if (proximo.has(key)) proximo.delete(key)
+      else proximo.add(key)
+      return proximo
+    })
+  }
+
   function alternarRecolhido(key: string) {
     setRecolhidos((atual) => {
       const proximo = new Set(atual)
@@ -147,7 +157,6 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
 
   const lista = esportesDaFuncao(watch('ficha.funcao'))
   const escolhidos = new Set(lista.map((e) => e.esporte))
-  const cheio = lista.length >= ESPORTES_MAX
 
   function gravar(proxima: EsporteEntrada[]) {
     setValue('ficha.funcao.esportes', proxima.length ? proxima : undefined, OPTS)
@@ -174,7 +183,6 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
       tirar(key)
       return
     }
-    if (cheio) return
     gravar([...lista, { esporte: key }])
   }
 
@@ -228,7 +236,6 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                   key={esporte.key}
                   type="button"
                   aria-pressed={marcado}
-                  disabled={!marcado && cheio}
                   onClick={() => alternarEsporte(esporte.key)}
                   className={chipClass(marcado)}
                 >
@@ -239,7 +246,6 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
             <button
               type="button"
               aria-pressed={escolhidos.has(ESPORTE_OUTRO)}
-              disabled={!escolhidos.has(ESPORTE_OUTRO) && cheio}
               onClick={() => alternarEsporte(ESPORTE_OUTRO)}
               className={chipClass(escolhidos.has(ESPORTE_OUTRO))}
             >
@@ -248,7 +254,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
           </div>
           {filtrados.length === 0 ? <p className="text-sm text-muted">Nenhum esporte encontrado. Use Outro.</p> : null}
           <p className="text-xs text-muted">
-            Escolha um ou mais esportes (até {ESPORTES_MAX}). Os problemas frequentes de cada um orientam a
+            Escolha um ou mais esportes. Os problemas frequentes de cada um orientam a
             avaliação. Não é diagnóstico.
           </p>
         </div>
@@ -445,8 +451,39 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
               </div>
 
               {catalogo && problemas.length > 0 ? (
-                <div id={`esporte-${entrada.esporte}-problemas`} className="space-y-2">
-                  <SubTitulo>{`Problemas frequentes no ${catalogo.nome}`}</SubTitulo>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    aria-expanded={!problemasFechados.has(entrada.esporte)}
+                    aria-controls={`esporte-${entrada.esporte}-problemas`}
+                    onClick={() => alternarProblemas(entrada.esporte)}
+                    className="-mx-1 flex min-h-8 w-[calc(100%+0.5rem)] items-center justify-between gap-2 rounded-lg px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+                  >
+                    <span className="min-w-0">
+                      Problemas frequentes no {catalogo.nome}
+                      {marcados.size > 0 ? (
+                        <span className="font-normal normal-case tracking-normal"> · {marcados.size} marcado{marcados.size > 1 ? 's' : ''}</span>
+                      ) : null}
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      aria-hidden
+                      className={[
+                        'shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                        problemasFechados.has(entrada.esporte) ? '-rotate-90' : 'rotate-0',
+                      ].join(' ')}
+                    />
+                  </button>
+                  {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
+                  <div
+                    id={`esporte-${entrada.esporte}-problemas`}
+                    inert={problemasFechados.has(entrada.esporte) ? true : undefined}
+                    className={[
+                      'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                      problemasFechados.has(entrada.esporte) ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100',
+                    ].join(' ')}
+                  >
+                    <div className="min-h-0 space-y-2 overflow-hidden">
                   {problemas.map((p) => {
                     const avaliar = avaliarTexto(p)
                     return (
@@ -469,6 +506,8 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                       </label>
                     )
                   })}
+                    </div>
+                  </div>
                 </div>
               ) : null}
             </div>

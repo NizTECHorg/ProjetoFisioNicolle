@@ -194,7 +194,8 @@ test('vários esportes: lista tolerante, sem repetidos, problemas só do própri
   equal(lista[0]?.problemas, undefined)
   equal(lista[1]?.outro, 'Remo')
   const muitos = safeEsportesLista(['volei', 'futebol', 'corrida', 'basquete', 'natacao', 'ski', 'snowboard'].map((esporte) => ({ esporte })))
-  ok(muitos.length <= ESPORTES_MAX)
+  equal(muitos.length, 7, 'sem limite de esportes')
+  ok(ESPORTES_MAX > ESPORTES.length, 'cabe o catálogo inteiro + Outro')
 })
 
 test('vários esportes: avaliação antiga (um esporte em rotina) vira lista', () => {

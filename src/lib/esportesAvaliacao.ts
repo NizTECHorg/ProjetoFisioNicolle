@@ -329,7 +329,8 @@ export function resumoEsporte(
 
 // —— Vários esportes por avaliação (bloco próprio na página 03) ——
 
-export const ESPORTES_MAX = 6
+/** Sem limite prático: cada esporte do catálogo (e Outro) entra uma vez só. */
+export const ESPORTES_MAX = ESPORTES.length + 1
 
 /** Esporte escolhido + avaliação esportiva dele (perfil, nível, volume, sintomas…) + problemas marcados. */
 export type EsporteEntrada = { esporte: string; outro?: string; problemas?: string[] } & AvaliacaoPratica

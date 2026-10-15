@@ -16,7 +16,6 @@ test('REQ-44: bloco Esportes usa o catálogo e grava a lista em ficha.funcao.esp
     'buscarEsportes',
     'problemasDoEsporte',
     'avaliarTexto',
-    'ESPORTES_MAX',
     "'ficha.funcao.esportes'",
     'shouldDirty: true',
     'aria-pressed',
