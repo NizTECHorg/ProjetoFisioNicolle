@@ -457,7 +457,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                     aria-expanded={!problemasFechados.has(entrada.esporte)}
                     aria-controls={`esporte-${entrada.esporte}-problemas`}
                     onClick={() => alternarProblemas(entrada.esporte)}
-                    className="-mx-1 flex min-h-8 w-[calc(100%+0.5rem)] items-center justify-between gap-2 rounded-lg px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+                    className="group -mx-1 flex min-h-8 max-w-full items-center gap-1.5 rounded-lg px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
                   >
                     <span className="min-w-0">
                       Problemas frequentes no {catalogo.nome}
@@ -469,7 +469,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                       size={16}
                       aria-hidden
                       className={[
-                        'shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                        'shrink-0 opacity-40 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-80 motion-reduce:transition-none',
                         problemasFechados.has(entrada.esporte) ? '-rotate-90' : 'rotate-0',
                       ].join(' ')}
                     />
