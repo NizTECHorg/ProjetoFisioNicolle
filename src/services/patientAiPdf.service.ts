@@ -1743,12 +1743,12 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Esportes')
     for (const esporte of esportesResumo) {
-      if (esporte.problemas.length > 0) {
-        drawOptionalBullets(
-          ctx,
-          esporte.label,
-          esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`),
-        )
+      const linhas = [
+        ...esporte.linhas,
+        ...esporte.problemas.map((p) => `Problema: ${p.nome} · ${p.regiao}`),
+      ]
+      if (linhas.length > 0) {
+        drawOptionalBullets(ctx, esporte.label, linhas)
       } else {
         drawOptionalField(ctx, 'Esporte', esporte.label)
       }

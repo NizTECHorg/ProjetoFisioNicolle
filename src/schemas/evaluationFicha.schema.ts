@@ -9,6 +9,13 @@ import {
   ESPORTES_MAX,
   safeEsportesLista,
 } from '../lib/esportesAvaliacao.ts'
+import {
+  ANOS_PRATICA_MAX,
+  FREQUENCIA_MAX,
+  PRATICA_OBS_MAX,
+  SINTOMAS_MAX,
+  VOLUME_MAX,
+} from '../lib/esportesPratica.ts'
 import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
 import {
   BODY_DRAWING_COLOR_KEYS,
@@ -406,7 +413,7 @@ export const evaluationFichaSchema = z.object({
           }, z.array(z.string()).max(ESPORTE_PROBLEMAS_MAX).optional()),
         })
         .default({}),
-      /** Bloco Esportes (página 03): vários esportes, cada um com seus problemas marcados. */
+      /** Bloco Esportes (Anamnese D): vários esportes, cada um com avaliação esportiva e problemas marcados. */
       esportes: z.preprocess(
         (v) => {
           const lista = safeEsportesLista(v)
@@ -418,6 +425,19 @@ export const evaluationFichaSchema = z.object({
               esporte: z.string(),
               outro: z.string().max(ESPORTE_OUTRO_MAX).optional(),
               problemas: z.array(z.string()).max(ESPORTE_PROBLEMAS_MAX).optional(),
+              // Avaliação esportiva (já saneada por safeEsportesLista).
+              perfil: z.string().optional(),
+              nivel: z.string().optional(),
+              situacao: z.string().optional(),
+              dominancia: z.string().optional(),
+              anosPratica: z.string().max(ANOS_PRATICA_MAX).optional(),
+              frequencia: z.number().int().min(1).max(FREQUENCIA_MAX).optional(),
+              volume: z.string().max(VOLUME_MAX).optional(),
+              modalidades: z.array(z.string()).max(20).optional(),
+              caracteristicas: z.array(z.string()).max(40).optional(),
+              praticaObs: z.string().max(PRATICA_OBS_MAX).optional(),
+              sintomasMomentos: z.array(z.string()).max(4).optional(),
+              sintomas: z.string().max(SINTOMAS_MAX).optional(),
             }),
           )
           .max(ESPORTES_MAX)

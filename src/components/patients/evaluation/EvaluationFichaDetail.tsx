@@ -101,9 +101,10 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
             key={esporte.label}
             label={`Esporte · ${esporte.label}`}
             value={
-              esporte.problemas.length
-                ? esporte.problemas.map((p) => `${p.nome} · ${p.regiao}`).join('\n')
-                : 'Sem problemas marcados'
+              [
+                ...esporte.linhas,
+                ...esporte.problemas.map((p) => `Problema: ${p.nome} · ${p.regiao}`),
+              ].join('\n') || 'Sem dados da prática'
             }
           />
         ))}

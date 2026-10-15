@@ -3,6 +3,7 @@
 // remover a antiga (a saída ignora chaves fora do catálogo).
 // Nomes em `testes` devem existir literalmente em CATALOGO_TESTES (mobilidadePalpacao.ts).
 import { fold } from './mobilidadePalpacao.ts'
+import { linhasAvaliacaoPratica, safeAvaliacaoPratica, type AvaliacaoPratica } from './esportesPratica.ts'
 
 export type EsporteProblema = {
   key: string
@@ -330,7 +331,8 @@ export function resumoEsporte(
 
 export const ESPORTES_MAX = 6
 
-export type EsporteEntrada = { esporte: string; outro?: string; problemas?: string[] }
+/** Esporte escolhido + avaliação esportiva dele (perfil, nível, volume, sintomas…) + problemas marcados. */
+export type EsporteEntrada = { esporte: string; outro?: string; problemas?: string[] } & AvaliacaoPratica
 
 /** Lista tolerante: descarta esporte desconhecido, repetido, problema de outro esporte; corta em ESPORTES_MAX. */
 export function safeEsportesLista(value: unknown): EsporteEntrada[] {
@@ -338,10 +340,10 @@ export function safeEsportesLista(value: unknown): EsporteEntrada[] {
   const out: EsporteEntrada[] = []
   for (const item of value) {
     if (!item || typeof item !== 'object') continue
-    const raw = item as { esporte?: unknown; outro?: unknown; problemas?: unknown }
+    const raw = item as Record<string, unknown>
     const esporte = safeEsporte(raw.esporte)
     if (!esporte || out.some((e) => e.esporte === esporte)) continue
-    const entrada: EsporteEntrada = { esporte }
+    const entrada: EsporteEntrada = { esporte, ...safeAvaliacaoPratica(raw, esporte) }
     if (esporte === ESPORTE_OUTRO) {
       const outro = typeof raw.outro === 'string' ? raw.outro.slice(0, ESPORTE_OUTRO_MAX) : ''
       if (outro) entrada.outro = outro
@@ -379,7 +381,12 @@ export function rotuloEsporte(entrada: EsporteEntrada): string {
   return esportePorKey(entrada.esporte)?.nome ?? entrada.esporte
 }
 
-export type ResumoEsportes = Array<{ label: string; problemas: Array<{ key: string; nome: string; regiao: string }> }>
+export type ResumoEsportes = Array<{
+  label: string
+  /** Avaliação esportiva preenchida, já como "Rótulo: valor". */
+  linhas: string[]
+  problemas: Array<{ key: string; nome: string; regiao: string }>
+}>
 
 /** Saída única para visualização, PDF e seletor de campos. */
 export function resumoEsportes(funcao: FuncaoComEsportes): ResumoEsportes {
@@ -387,6 +394,7 @@ export function resumoEsportes(funcao: FuncaoComEsportes): ResumoEsportes {
     const marcadas = new Set(entrada.problemas ?? [])
     return {
       label: rotuloEsporte(entrada),
+      linhas: linhasAvaliacaoPratica(entrada, entrada.esporte),
       problemas: problemasDoEsporte(entrada.esporte)
         .filter((x) => marcadas.has(x.key))
         .map(({ key, nome, regiao }) => ({ key, nome, regiao })),

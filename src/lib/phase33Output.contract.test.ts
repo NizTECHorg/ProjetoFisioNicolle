@@ -8,11 +8,12 @@ const DETAIL = '../components/patients/evaluation/EvaluationFichaDetail.tsx'
 const PDF = '../services/patientAiPdf.service.ts'
 const CATALOG = './pdfFieldCatalog.ts'
 
-test('REQ-44: visualização mostra cada esporte com seus problemas via resumoEsportes', () => {
+test('REQ-44: visualização mostra cada esporte com avaliação esportiva e problemas via resumoEsportes', () => {
   const src = read(DETAIL)
   ok(src.includes('resumoEsportes(funcao)'))
   ok(src.includes('`Esporte · ${esporte.label}`'))
-  ok(src.includes('`${p.nome} · ${p.regiao}`'))
+  ok(src.includes('`Problema: ${p.nome} · ${p.regiao}`'))
+  ok(src.includes('...esporte.linhas'), 'mostra a avaliação esportiva')
   const s01 = src.indexOf('01 · Anamnese')
   const iEsp = src.indexOf('Esporte · ')
   const s02 = src.indexOf('02 · Sintomas')
