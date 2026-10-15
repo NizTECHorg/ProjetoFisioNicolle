@@ -1,7 +1,7 @@
 import { useRef, useState, type PointerEvent } from 'react'
 import { ArrowLeftRight, RotateCcw, Undo2 } from 'lucide-react'
-import pessoaUrl from '@/assets/pessoa.png'
-import pessoaFemininaUrl from '@/assets/pessoa-feminina.png'
+import pessoaUrl from '@/assets/homi.png'
+import pessoaFemininaUrl from '@/assets/muir.png'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {

@@ -1,7 +1,7 @@
-// Mapa de sintomas desenhado à mão sobre a figura anterior/posterior (src/assets/pessoa.png).
+// Mapa de sintomas desenhado à mão sobre a figura anterior/posterior (src/assets/homi.png e muir.png).
 // Sem imports com alias: roda direto em node --test.
 
-/** Mesmas proporções de src/assets/pessoa.png (1271 × 1238). */
+/** Mesmas proporções de src/assets/homi.png e muir.png (1271 × 1238). */
 export const BODY_DRAWING_VIEWBOX = { width: 1271, height: 1238 } as const
 export const BODY_DRAWING_MAX_STROKES = 200
 export const BODY_DRAWING_MAX_PATH_CHARS = 6000

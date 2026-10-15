@@ -10,8 +10,8 @@ import {
   type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
-import pessoaUrl from '@/assets/pessoa.png'
-import pessoaFemininaUrl from '@/assets/pessoa-feminina.png'
+import pessoaUrl from '@/assets/homi.png'
+import pessoaFemininaUrl from '@/assets/muir.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
 import { resumoEsportes } from '@/lib/esportesAvaliacao'
