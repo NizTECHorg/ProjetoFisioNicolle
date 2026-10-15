@@ -120,12 +120,14 @@ export function EvaluationFichaSidebar({
    * Clique na linha inteira. Outra página: vai até ela e abre a lista de blocos.
    * Página atual: abre ou fecha a lista.
    */
-  function alternarPagina(id: FichaPageId) {
-    if (id !== page) {
-      onPageChange(id)
-      setAbertas((atual) => new Set([...atual, id]))
-      return
-    }
+  /** Linha da página: vai até ela e garante a lista de blocos aberta. */
+  function irParaPagina(id: FichaPageId) {
+    if (id !== page) onPageChange(id)
+    setAbertas((atual) => (atual.has(id) ? atual : new Set([...atual, id])))
+  }
+
+  /** Só a seta: abre ou fecha a lista, sem trocar de página. */
+  function alternarLista(id: FichaPageId) {
     setAbertas((atual) => {
       const proximo = new Set(atual)
       if (proximo.has(id)) proximo.delete(id)
@@ -166,38 +168,52 @@ export function EvaluationFichaSidebar({
             const listaId = `ficha-lateral-${item.id}`
             return (
               <div key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => alternarPagina(item.id)}
-                  aria-expanded={aberta}
-                  aria-controls={listaId}
-                  aria-current={atual ? 'page' : undefined}
-                  title={nomePagina(item.label)}
+                <div
                   className={[
-                    'flex min-h-10 w-full items-center gap-2 rounded-xl px-2.5 text-left text-sm transition-colors',
-                    atual ? 'bg-accent-soft font-semibold text-[#1e3a8a]' : 'font-medium text-ink hover:bg-canvas',
+                    'flex min-h-10 items-center rounded-xl transition-colors',
+                    atual ? 'bg-accent-soft' : 'hover:bg-canvas',
                   ].join(' ')}
                 >
-                  <span
-                    aria-hidden
+                  <button
+                    type="button"
+                    onClick={() => irParaPagina(item.id)}
+                    aria-current={atual ? 'page' : undefined}
+                    title={nomePagina(item.label)}
                     className={[
-                      'flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors',
-                      atual ? 'bg-[#1e3a8a] text-white' : 'bg-canvas text-muted',
+                      'flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-l-xl pl-2.5 text-left text-sm',
+                      atual ? 'font-semibold text-[#1e3a8a]' : 'font-medium text-ink',
                     ].join(' ')}
                   >
-                    <Icone size={14} strokeWidth={2} />
-                  </span>
-                  <span className="sr-only">{index + 1}. </span>
-                  <span className="min-w-0 flex-1 truncate">{nomePagina(item.label)}</span>
-                  <ChevronDown
-                    size={16}
-                    aria-hidden
-                    className={[
-                      'shrink-0 text-muted transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-                      aberta ? 'rotate-0' : '-rotate-90',
-                    ].join(' ')}
-                  />
-                </button>
+                    <span
+                      aria-hidden
+                      className={[
+                        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors',
+                        atual ? 'bg-[#1e3a8a] text-white' : 'bg-canvas text-muted',
+                      ].join(' ')}
+                    >
+                      <Icone size={14} strokeWidth={2} />
+                    </span>
+                    <span className="sr-only">{index + 1}. </span>
+                    <span className="min-w-0 flex-1 truncate">{nomePagina(item.label)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => alternarLista(item.id)}
+                    aria-expanded={aberta}
+                    aria-controls={listaId}
+                    aria-label={aberta ? `Recolher blocos de ${nomePagina(item.label)}` : `Mostrar blocos de ${nomePagina(item.label)}`}
+                    className="flex h-10 w-9 shrink-0 items-center justify-center rounded-r-xl text-muted transition-colors hover:text-ink"
+                  >
+                    <ChevronDown
+                      size={16}
+                      aria-hidden
+                      className={[
+                        'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                        aberta ? 'rotate-0' : '-rotate-90',
+                      ].join(' ')}
+                    />
+                  </button>
+                </div>
 
                 {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
                 <div
