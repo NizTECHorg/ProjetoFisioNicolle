@@ -756,7 +756,7 @@ test('REQ-36: formatadores da frase travada', () => {
       regiao: 'joelho',
       local: 'patela',
       lado: 'direito',
-      achado: 'doloroso',
+      tipos: ['doloroso'],
       dor: 6,
       observacao: 'calor local',
     }),
@@ -767,7 +767,7 @@ test('REQ-36: formatadores da frase travada', () => {
       regiao: 'joelho',
       local: 'outro',
       localOutro: 'fáscia',
-      achado: 'outro',
+      tipos: ['outro'],
       achadoOutro: 'nódulo',
     }),
     'Joelho · fáscia · Outro: nódulo',
@@ -778,7 +778,7 @@ test('REQ-36: formatadores da frase travada', () => {
       regiao: 'ombrocinturaescapular',
       local: 'deltoide',
       lado: 'naoSeAplica',
-      achado: 'tensao',
+      tipos: ['tensao'],
     }),
     'Ombro / cintura escapular · deltoide · Não se aplica · Tensão aumentada',
   )
@@ -1268,4 +1268,19 @@ test('REQ-36: leitores 04.B e 04.E usam o formatador', () => {
   const frameD = service.indexOf("drawFichaBlockFrame(ctx, 'D'", show04C)
   equal(show04C >= 0 && frameD > show04C, true)
   equal(service.slice(show04C, frameD).includes('drawDataTable'), true)
+})
+
+test('palpação: achado aceita vários tipos; avaliação antiga com um só vira lista', () => {
+  const out = normalizePalpacaoTestes({
+    achados: [
+      { regiao: 'joelho', local: 'patela', tipos: ['edema', 'doloroso', 'edema', 'xx'] },
+      { regiao: 'joelho', local: 'patela', achado: 'tensao' },
+      { regiao: 'joelho', local: 'patela', tipos: ['semAlteracao', 'doloroso'] },
+    ],
+  })
+  deepEqual(out.achados.map((a) => a.tipos), [['doloroso', 'edema'], ['tensao'], ['doloroso']])
+  equal(
+    formatAchado({ regiao: 'joelho', local: 'patela', tipos: ['doloroso', 'edema'] }),
+    'Joelho · patela · Doloroso, Edema',
+  )
 })

@@ -17,6 +17,7 @@ import {
   fold,
   type AchadoPalpacao,
   type LadoAchado,
+  tiposValidos,
 } from '@/lib/mobilidadePalpacao'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { scrollToElement } from '@/lib/scrollToElement'
@@ -613,7 +614,7 @@ type RascunhoAchado = {
   local: string
   localOutro: string
   lado: string
-  achado: string
+  achados: string[]
   achadoOutro: string
   dor: string
   observacao: string
@@ -625,7 +626,7 @@ const RASCUNHO_VAZIO: RascunhoAchado = {
   local: '',
   localOutro: '',
   lado: '',
-  achado: '',
+  achados: [],
   achadoOutro: '',
   dor: '',
   observacao: '',
@@ -633,10 +634,6 @@ const RASCUNHO_VAZIO: RascunhoAchado = {
 
 function ladoValido(valor: string): LadoAchado | undefined {
   return LADOS_ACHADO.find((item) => item.value === valor)?.value
-}
-
-function achadoValido(valor: string): AchadoPalpacao | undefined {
-  return ACHADOS_PALPACAO.find((item) => item.key === valor)?.key
 }
 
 function rotuloRegiaoPalpacao(chave: string) {
@@ -649,10 +646,14 @@ function rotuloLocalAchado(regiao: string, local: string, localOutro?: string) {
   return catalogo?.locais.find((item) => item.key === local)?.label ?? local
 }
 
-function rotuloAchadoPalpacao(achado?: string, achadoOutro?: string) {
-  if (!achado) return ''
-  if (achado === 'outro' && achadoOutro?.trim()) return `Outro: ${achadoOutro.trim()}`
-  return ACHADOS_PALPACAO.find((item) => item.key === achado)?.label ?? achado
+function rotuloAchadoPalpacao(tipos?: readonly string[], achadoOutro?: string) {
+  return (tipos ?? [])
+    .map((tipo) =>
+      tipo === 'outro' && achadoOutro?.trim()
+        ? `Outro: ${achadoOutro.trim()}`
+        : ACHADOS_PALPACAO.find((item) => item.key === tipo)?.label ?? tipo,
+    )
+    .join(', ')
 }
 
 function rotuloLadoAchado(lado?: string) {
@@ -667,14 +668,14 @@ function rotuloDorAchado(dor?: number) {
 
 function gravarAchado(rascunho: RascunhoAchado) {
   const lado = ladoValido(rascunho.lado)
-  const achado = achadoValido(rascunho.achado)
+  const tipos = tiposValidos(rascunho.achados)
   const dor = vazioViraUndefined(rascunho.dor)
   const item: {
     regiao: string
     local: string
     localOutro?: string
     lado?: LadoAchado
-    achado?: AchadoPalpacao
+    tipos?: AchadoPalpacao[]
     achadoOutro?: string
     dor?: number
     observacao?: string
@@ -684,8 +685,8 @@ function gravarAchado(rascunho: RascunhoAchado) {
   }
   if (rascunho.local === 'outro' && rascunho.localOutro.trim()) item.localOutro = rascunho.localOutro.trim()
   if (lado) item.lado = lado
-  if (achado) item.achado = achado
-  if (achado === 'outro' && rascunho.achadoOutro.trim()) item.achadoOutro = rascunho.achadoOutro.trim()
+  if (tipos.length > 0) item.tipos = tipos
+  if (tipos.includes('outro') && rascunho.achadoOutro.trim()) item.achadoOutro = rascunho.achadoOutro.trim()
   if (typeof dor === 'number') item.dor = dor
   if (rascunho.observacao.trim()) item.observacao = rascunho.observacao.trim()
   return item
@@ -887,22 +888,34 @@ function FormularioAchado({
         </div>
       </fieldset>
       <div className="space-y-2">
-        <p className={ROTULO}>Achado à palpação</p>
+        <p className={ROTULO}>
+          Achado à palpação <span className="font-normal text-muted">(pode marcar mais de um)</span>
+        </p>
         <div className="flex flex-wrap gap-2">
           {ACHADOS_PALPACAO.map((item) => {
-            const ativo = rascunho.achado === item.key
+            const ativo = rascunho.achados.includes(item.key)
             return (
               <button
                 key={item.key}
                 type="button"
+                aria-pressed={ativo}
                 disabled={disabled}
                 className={`${CHIP} ${ativo ? CHIP_ATIVO : CHIP_INATIVO}`}
                 onClick={() =>
-                  setRascunho((atual) => ({
-                    ...atual,
-                    achado: atual.achado === item.key ? '' : item.key,
-                    achadoOutro: item.key === 'outro' && atual.achado !== item.key ? atual.achadoOutro : '',
-                  }))
+                  setRascunho((atual) => {
+                    const marcado = atual.achados.includes(item.key)
+                    // "Sem alteração" exclui os outros, e vice-versa.
+                    const achados = marcado
+                      ? atual.achados.filter((key) => key !== item.key)
+                      : item.key === 'semAlteracao'
+                        ? [item.key]
+                        : [...atual.achados.filter((key) => key !== 'semAlteracao'), item.key]
+                    return {
+                      ...atual,
+                      achados,
+                      achadoOutro: achados.includes('outro') ? atual.achadoOutro : '',
+                    }
+                  })
                 }
               >
                 {item.label}
@@ -911,7 +924,7 @@ function FormularioAchado({
           })}
         </div>
       </div>
-      {rascunho.achado === 'outro' ? (
+      {rascunho.achados.includes('outro') ? (
         <div className="space-y-2">
           <label htmlFor={idOutroAchado} className={ROTULO}>
             Outro achado
@@ -1012,7 +1025,7 @@ function TabelaAchados({
     local: string
     localOutro?: string
     lado?: string
-    achado?: string
+    tipos?: string[]
     achadoOutro?: string
     dor?: number
     observacao?: string
@@ -1028,7 +1041,7 @@ function TabelaAchados({
       rotuloRegiaoPalpacao(item.regiao),
       rotuloLocalAchado(item.regiao, item.local, item.localOutro),
       rotuloLadoAchado(item.lado),
-      rotuloAchadoPalpacao(item.achado, item.achadoOutro),
+      rotuloAchadoPalpacao(item.tipos, item.achadoOutro),
       rotuloDorAchado(item.dor),
       item.observacao?.trim() ?? '',
     ]
@@ -1512,7 +1525,7 @@ function PalpacaoBloco({
       local: item.local ?? '',
       localOutro: item.localOutro ?? '',
       lado: item.lado ?? '',
-      achado: item.achado ?? '',
+      achados: item.tipos ?? [],
       achadoOutro: item.achadoOutro ?? '',
       dor: typeof item.dor === 'number' ? String(item.dor) : '',
       observacao: item.observacao ?? '',
@@ -1548,7 +1561,7 @@ function PalpacaoBloco({
             local: item.local ?? '',
             localOutro: item.localOutro,
             lado: item.lado,
-            achado: item.achado,
+            tipos: item.tipos,
             achadoOutro: item.achadoOutro,
             dor: item.dor,
             observacao: item.observacao,

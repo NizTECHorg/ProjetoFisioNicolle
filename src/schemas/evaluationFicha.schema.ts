@@ -112,7 +112,10 @@ const achadoSchema = z.object({
   local: z.string().trim().min(1).max(80),
   localOutro: optionalText(200),
   lado: optionalEnum(['direito', 'esquerdo', 'bilateral', 'central', 'naoSeAplica']),
-  achado: optionalEnum(['semAlteracao', 'doloroso', 'edema', 'tensao', 'crepitacao', 'temperatura', 'outro']),
+  tipos: z
+    .array(z.enum(['semAlteracao', 'doloroso', 'edema', 'tensao', 'crepitacao', 'temperatura', 'outro']))
+    .max(7)
+    .optional(),
   achadoOutro: optionalText(200),
   dor: evaScore,
   observacao: optionalText(400),

@@ -61,7 +61,8 @@ export type AchadoRegistrado = {
   local: string
   localOutro?: string
   lado?: string
-  achado?: string
+  /** Achados marcados (vários). Avaliação antiga guardava um só em `achado`; a leitura converte. */
+  tipos?: string[]
   achadoOutro?: string
   dor?: number
   observacao?: string
@@ -750,10 +751,14 @@ export function formatAchado(achado: AchadoRegistrado): string {
 
   if (achado.lado && achado.lado in LADO_ROTULO) partes.push(LADO_ROTULO[achado.lado as LadoAchado])
 
-  if (achado.achado && achado.achado in ACHADO_ROTULO) {
+  const tipos = (achado.tipos ?? []).filter((tipo) => tipo in ACHADO_ROTULO)
+  if (tipos.length > 0) {
     const achadoOutro = texto(achado.achadoOutro)
-    if (achado.achado === 'outro' && achadoOutro) partes.push(`Outro: ${achadoOutro}`)
-    else partes.push(ACHADO_ROTULO[achado.achado as AchadoPalpacao])
+    partes.push(
+      tipos
+        .map((tipo) => (tipo === 'outro' && achadoOutro ? `Outro: ${achadoOutro}` : ACHADO_ROTULO[tipo as AchadoPalpacao]))
+        .join(', '),
+    )
   }
 
   if (typeof achado.dor === 'number' && Number.isFinite(achado.dor)) {
@@ -912,6 +917,13 @@ function achadoValido(value: unknown): AchadoPalpacao | undefined {
   const achado = trimString(value)
   if (achado && ACHADOS.has(achado as AchadoPalpacao)) return achado as AchadoPalpacao
   return undefined
+}
+
+/** Achados válidos, sem repetir, na ordem do catálogo. "Sem alteração" não convive com os outros. */
+export function tiposValidos(values: readonly unknown[]): AchadoPalpacao[] {
+  const marcados = new Set(values.map(achadoValido).filter((v): v is AchadoPalpacao => v !== undefined))
+  if (marcados.has('semAlteracao') && marcados.size > 1) marcados.delete('semAlteracao')
+  return [...ACHADOS].filter((key) => marcados.has(key))
 }
 
 function agrupar<T>(itens: readonly T[], chave: (item: T) => string | undefined): Map<string, T[]> {
@@ -1155,13 +1167,13 @@ function lerAchado(value: Record<string, unknown>): AchadoRegistrado | undefined
   const achado: AchadoRegistrado = { regiao: regiaoKey, local: localKey }
   const localOutro = localKey === 'outro' ? clampTrimmed(trimString(value.localOutro), OUTRO_MAX) : undefined
   const lado = ladoValido(value.lado)
-  const tipo = achadoValido(value.achado)
-  const achadoOutro = tipo === 'outro' ? clampTrimmed(trimString(value.achadoOutro), OUTRO_MAX) : undefined
+  const tipos = tiposValidos(Array.isArray(value.tipos) ? value.tipos : [value.achado])
+  const achadoOutro = tipos.includes('outro') ? clampTrimmed(trimString(value.achadoOutro), OUTRO_MAX) : undefined
   const dor = notaDor(value.dor)
   const observacao = clampTrimmed(trimString(value.observacao), OBSERVACAO_MAX)
   if (localOutro) achado.localOutro = localOutro
   if (lado) achado.lado = lado
-  if (tipo) achado.achado = tipo
+  if (tipos.length > 0) achado.tipos = tipos
   if (achadoOutro) achado.achadoOutro = achadoOutro
   if (dor !== undefined) achado.dor = dor
   if (observacao) achado.observacao = observacao
