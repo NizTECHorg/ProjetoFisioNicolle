@@ -274,3 +274,15 @@ test('REQ-46: audit_record grava create/update/delete (bate com o check) e nunca
     ok(rec.includes("raise warning 'audit_record falhou"))
   }
 })
+
+test('REQ-46: 35-04 garante criação — carimbo e registro nunca bloqueiam o salvamento', () => {
+  const p = fileURLToPath(new URL(`${PHASE_DIR}/35-04-garantir-criacao.sql`, import.meta.url))
+  const sql = readFileSync(p, 'utf8')
+  ok(sql.includes('create or replace function public.audit_record()'))
+  ok(sql.includes('create or replace function public.audit_stamp()'))
+  ok(sql.includes("raise warning 'audit_stamp falhou"))
+  ok(sql.includes("raise warning 'audit_record falhou"))
+  ok(sql.includes("case tg_op when 'INSERT' then 'create' when 'UPDATE' then 'update' else 'delete' end"))
+  ok(!sql.includes('lower(tg_op)'))
+  ok(!/\bdelete\s+from\b/i.test(sql), 'não apaga dados')
+})

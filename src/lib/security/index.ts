@@ -257,6 +257,10 @@ export function escapeIlike(term: string): string {
 }
 
 export function mapDbError(error: { message?: string; code?: string }): string {
+  // A tela mostra só a mensagem amigável; o erro técnico fica no console para diagnóstico.
+  if (typeof console !== 'undefined' && (error.code || error.message)) {
+    console.error('[db]', error.code ?? '', error.message ?? '')
+  }
   const message = error.message?.toLowerCase() ?? ''
   const code = error.code ?? ''
 

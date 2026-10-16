@@ -243,6 +243,7 @@ export function PatientEvaluationEditorForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Nome da avaliação"
+          hint="Opcional. Sem nome, salva como “Avaliação”."
           placeholder="Ex.: Avaliação inicial, Reavaliação 30 dias…"
           error={form.formState.errors.ficha?.titulo?.message}
           {...form.register('ficha.titulo')}

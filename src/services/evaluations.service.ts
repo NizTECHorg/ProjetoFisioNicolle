@@ -210,6 +210,8 @@ async function resolveAuthor() {
   }
 }
 
+export const DEFAULT_EVALUATION_TITLE = 'Avaliação'
+
 function toRow(input: UpsertPatientEvaluationInput) {
   const parsed = evaluationFichaSchema.safeParse(input.ficha ?? {})
   if (!parsed.success) {
@@ -217,7 +219,10 @@ function toRow(input: UpsertPatientEvaluationInput) {
     const path = issue?.path?.length ? issue.path.join('.') : 'ficha'
     throw new Error(issue?.message ? `${path}: ${issue.message}` : 'Ficha de avaliação inválida.')
   }
-  const ficha = parsed.data
+  // Nome é opcional: sem nome, a avaliação salva como "Avaliação" (dá para renomear depois).
+  const ficha = parsed.data.titulo?.trim()
+    ? parsed.data
+    : { ...parsed.data, titulo: DEFAULT_EVALUATION_TITLE }
 
   const mirroredComplaint =
     blankText(input.mainComplaint) || blankText(ficha.anamnese?.queixa?.oQueTrouxe)
