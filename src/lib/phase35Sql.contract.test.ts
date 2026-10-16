@@ -263,3 +263,14 @@ test('REQ-46: 35-02-verify tem parte A só leitura e parte B com rollback por ex
   ok(sql.includes('request.jwt.claims'))
   ok(sql.includes('set local role authenticated'))
 })
+
+test('REQ-46: audit_record grava create/update/delete (bate com o check) e nunca bloqueia o salvamento', () => {
+  const hotfixPath = fileURLToPath(new URL(`${PHASE_DIR}/35-03-hotfix-audit-action.sql`, import.meta.url))
+  for (const path of [sqlPath, hotfixPath]) {
+    const rec = readFileSync(path, 'utf8')
+    ok(!rec.includes('lower(tg_op)'), 'lower(tg_op) gera "insert", que o check recusa')
+    ok(rec.includes("case tg_op when 'INSERT' then 'create' when 'UPDATE' then 'update' else 'delete' end"))
+    ok(rec.includes('exception when others then'))
+    ok(rec.includes("raise warning 'audit_record falhou"))
+  }
+})
