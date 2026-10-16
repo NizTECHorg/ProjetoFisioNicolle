@@ -107,51 +107,55 @@ export function HeroDevices() {
 
   return (
     <div aria-hidden="true" className="relative mx-auto w-full max-w-xl pb-10 pl-6 sm:pl-12 lg:max-w-none lg:pl-16">
-      {/* Computador */}
+      {/* Computador (a captura já vem com a moldura do navegador) */}
       <div ref={desktopRef}>
-        <div className="lp-hero-in overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_30px_80px_rgba(11,29,54,0.18)] [animation-delay:150ms]">
-          <div className="flex items-center gap-1.5 border-b border-line bg-surface px-3 py-2 sm:px-4 sm:py-2.5">
-            <span className="h-2 w-2 rounded-full bg-[#ff6b6b] sm:h-2.5 sm:w-2.5" />
-            <span className="h-2 w-2 rounded-full bg-[#ffc94d] sm:h-2.5 sm:w-2.5" />
-            <span className="h-2 w-2 rounded-full bg-sage sm:h-2.5 sm:w-2.5" />
-            <span className="ml-3 hidden h-4 flex-1 rounded-full bg-canvas sm:block" />
-          </div>
-          <div className="aspect-[16/10] w-full">
-            {HERO_DESKTOP_IMAGE ? (
-              <img
-                src={HERO_DESKTOP_IMAGE}
-                alt=""
-                className="h-full w-full object-cover object-top"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
-            ) : (
+        {HERO_DESKTOP_IMAGE ? (
+          <img
+            src={HERO_DESKTOP_IMAGE}
+            alt=""
+            width={1600}
+            height={1067}
+            className="lp-hero-in block h-auto w-full drop-shadow-[0_30px_50px_rgba(11,29,54,0.22)] [animation-delay:150ms]"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
+        ) : (
+          <div className="lp-hero-in overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_30px_80px_rgba(11,29,54,0.18)] [animation-delay:150ms]">
+            <div className="flex items-center gap-1.5 border-b border-line bg-surface px-3 py-2 sm:px-4 sm:py-2.5">
+              <span className="h-2 w-2 rounded-full bg-[#ff6b6b] sm:h-2.5 sm:w-2.5" />
+              <span className="h-2 w-2 rounded-full bg-[#ffc94d] sm:h-2.5 sm:w-2.5" />
+              <span className="h-2 w-2 rounded-full bg-sage sm:h-2.5 sm:w-2.5" />
+              <span className="ml-3 hidden h-4 flex-1 rounded-full bg-canvas sm:block" />
+            </div>
+            <div className="aspect-[16/10] w-full">
               <DesktopPreview />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Celular, na frente e sobreposto */}
-      <div ref={phoneRef} className="absolute bottom-0 left-0 z-10 w-[30%] min-w-[104px] max-w-[170px] lg:w-[27%]">
-        <div className="lp-float">
-          <div className="lp-hero-in rounded-[1.6rem] border-[5px] border-forest bg-forest shadow-[0_24px_60px_rgba(11,29,54,0.35)] [animation-delay:350ms] sm:rounded-[2rem] sm:border-[7px]">
-            <div className="relative aspect-[9/19] overflow-hidden rounded-[1.2rem] bg-canvas sm:rounded-[1.55rem]">
-              <span className="absolute left-1/2 top-[2.5%] z-10 h-[3%] w-[34%] -translate-x-1/2 rounded-full bg-forest" />
-              {HERO_MOBILE_IMAGE ? (
-                <img
-                  src={HERO_MOBILE_IMAGE}
-                  alt=""
-                  className="h-full w-full object-cover object-top"
-                  loading="eager"
-                  decoding="async"
-                />
-              ) : (
-                <MobilePreview />
-              )}
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Celular, na frente e sobreposto (a captura já vem com a moldura) */}
+      <div ref={phoneRef} className="absolute bottom-0 left-0 z-10 w-[30%] min-w-[104px] max-w-[200px] lg:w-[31%]">
+        <div className="lp-float">
+          {HERO_MOBILE_IMAGE ? (
+            <img
+              src={HERO_MOBILE_IMAGE}
+              alt=""
+              width={600}
+              height={1199}
+              className="lp-hero-in block h-auto w-full drop-shadow-[0_24px_40px_rgba(11,29,54,0.35)] [animation-delay:350ms]"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <div className="lp-hero-in rounded-[1.6rem] border-[5px] border-forest bg-forest shadow-[0_24px_60px_rgba(11,29,54,0.35)] [animation-delay:350ms] sm:rounded-[2rem] sm:border-[7px]">
+              <div className="relative aspect-[9/19] overflow-hidden rounded-[1.2rem] bg-canvas sm:rounded-[1.55rem]">
+                <span className="absolute left-1/2 top-[2.5%] z-10 h-[3%] w-[34%] -translate-x-1/2 rounded-full bg-forest" />
+                <MobilePreview />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

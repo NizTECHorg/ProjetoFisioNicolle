@@ -63,5 +63,5 @@ export const CREATOR_SIGNATURE = 'Nicolle, fisioterapeuta e criadora do Fluxo'
 
 // Capturas do app no hero. null mostra a prévia ilustrada (placeholder).
 // Coloque as imagens em public/ (ex.: '/landing/app-desktop.webp') e troque aqui.
-export const HERO_DESKTOP_IMAGE: string | null = null // ~1600×1000, tela do computador
-export const HERO_MOBILE_IMAGE: string | null = null // ~780×1690, tela do celular
+export const HERO_DESKTOP_IMAGE: string | null = '/landing/app-desktop.webp' // 1600×1067, já com a moldura do navegador
+export const HERO_MOBILE_IMAGE: string | null = '/landing/app-mobile.webp' // 600×1199, já com a moldura do celular
