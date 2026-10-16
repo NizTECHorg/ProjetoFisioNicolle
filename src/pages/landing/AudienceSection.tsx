@@ -6,7 +6,7 @@ export function AudienceSection() {
     <section
       id="para-quem"
       aria-labelledby="lp-para-quem-title"
-      className="lp-section bg-surface"
+      className="lp-section bg-sky-soft"
     >
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
         <Reveal>
@@ -18,7 +18,10 @@ export function AudienceSection() {
         </Reveal>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2">
-          <Reveal className="lp-card flex flex-col gap-4 rounded-xl border border-line bg-canvas p-6">
+          <Reveal
+            variant="left"
+            className="lp-card flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6"
+          >
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft">
               <User size={24} className="text-[#1e3a8a]" aria-hidden="true" />
             </span>
@@ -41,8 +44,9 @@ export function AudienceSection() {
           </Reveal>
 
           <Reveal
-            delay={80}
-            className="lp-card flex flex-col gap-4 rounded-xl bg-forest p-6 text-white"
+            delay={120}
+            variant="right"
+            className="lp-card flex flex-col gap-4 rounded-2xl bg-forest p-6 text-white"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
               <Building2 size={24} className="text-white" aria-hidden="true" />
@@ -72,7 +76,7 @@ export function AudienceSection() {
           <p>Atende os dois jeitos de trabalhar: sozinho ou em equipe.</p>
         </Reveal>
       </div>
-      <WaveDivider fill="fill-canvas" />
+      <WaveDivider fill="fill-forest" />
     </section>
   )
 }

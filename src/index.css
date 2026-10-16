@@ -13,6 +13,9 @@
   --color-error: #dc4a4a;
   --color-success: #2f7dff;
   --color-sage: #24b296;
+  --color-sage-soft: #e6f5f0;
+  --color-sky-soft: #eaf2fd;
+  --font-lp-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
 
   /* aliases — páginas antigas passam a herdar o tema claro */
   --color-chocolate: #0b1d36;
@@ -268,15 +271,102 @@
 
 .lp-reveal {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translate3d(0, 28px, 0);
   transition:
-    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 800ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lp-reveal[data-reveal='left'] {
+  transform: translate3d(-40px, 0, 0);
+}
+
+.lp-reveal[data-reveal='right'] {
+  transform: translate3d(40px, 0, 0);
+}
+
+.lp-reveal[data-reveal='scale'] {
+  transform: scale(0.94);
+}
+
+.lp-reveal[data-reveal='blur'] {
+  filter: blur(10px);
+  transform: translate3d(0, 12px, 0);
 }
 
 .lp-reveal.lp-in {
   opacity: 1;
   transform: none;
+  filter: none;
+}
+
+/* Fonte de destaque da landing (Fraunces carregada só na LP) */
+.lp-display {
+  font-family: var(--font-lp-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.02em;
+}
+
+.lp-gradient-text {
+  background-image: linear-gradient(100deg, #2f7dff 0%, #24b296 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Sublinhado desenhado no hero */
+.lp-swoosh path {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: lp-draw 1.4s 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes lp-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Barra de progresso da rolagem */
+.lp-progress {
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+
+/* Faixa com rolagem infinita */
+.lp-marquee {
+  display: flex;
+  width: max-content;
+  animation: lp-marquee 38s linear infinite;
+}
+
+.lp-marquee-wrap:hover .lp-marquee {
+  animation-play-state: paused;
+}
+
+@keyframes lp-marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Parallax: o JS escreve --lp-py (px) em cada elemento */
+.lp-parallax {
+  transform: translate3d(0, var(--lp-py, 0px), 0);
+  will-change: transform;
+}
+
+/* Entrada do hero ao carregar */
+.lp-hero-in {
+  animation: lp-hero-in 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes lp-hero-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
 }
 
 @keyframes lp-float {
@@ -350,6 +440,20 @@
   .lp-faq-panel,
   .lp-chevron {
     transition: none;
+  }
+
+  .lp-swoosh path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .lp-marquee,
+  .lp-hero-in {
+    animation: none;
+  }
+
+  .lp-parallax {
+    transform: none;
   }
 }
 

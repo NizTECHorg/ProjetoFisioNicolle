@@ -47,11 +47,22 @@ test('REQ-47: hero', () => {
     'Dados protegidos',
     'Funciona no celular',
     'IA só com o que você escreveu',
-    'fetchPriority="high"',
-    'homi-lp.webp',
+    '<HeroDevices />',
   ])
     has(src, s)
   lacks(src, 'homi.png')
+  // Computador atrás e celular na frente; capturas trocáveis no config
+  const devices = read(HERO.replace('HeroSection.tsx', 'HeroDevices.tsx'))
+  for (const s of [
+    'HERO_DESKTOP_IMAGE',
+    'HERO_MOBILE_IMAGE',
+    'fetchPriority="high"',
+    'homi-lp.webp',
+    'aria-hidden="true"',
+    'useParallax',
+  ])
+    has(devices, s)
+  lacks(devices, 'homi.png')
 })
 
 test('REQ-47: produto', () => {

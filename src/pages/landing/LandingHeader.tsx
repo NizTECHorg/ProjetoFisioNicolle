@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { Menu, X } from 'lucide-react'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { LinkButton } from './LinkButton'
@@ -15,9 +15,17 @@ type LandingHeaderProps = {
   scrolled: boolean
   menuOpen: boolean
   onMenuOpenChange: (open: boolean) => void
+  activeSection?: string | null
+  progressRef?: RefObject<HTMLDivElement | null>
 }
 
-export function LandingHeader({ scrolled, menuOpen, onMenuOpenChange }: LandingHeaderProps) {
+export function LandingHeader({
+  scrolled,
+  menuOpen,
+  onMenuOpenChange,
+  activeSection = null,
+  progressRef,
+}: LandingHeaderProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -51,23 +59,36 @@ export function LandingHeader({ scrolled, menuOpen, onMenuOpenChange }: LandingH
   return (
     <header
       className={[
-        'sticky top-0 z-40 h-16 border-b bg-canvas/85 backdrop-blur',
-        scrolled ? 'border-line' : 'border-transparent',
+        'sticky top-0 z-40 h-16 border-b backdrop-blur transition-[background-color,box-shadow] duration-300',
+        scrolled
+          ? 'border-line bg-surface/85 shadow-[0_8px_24px_rgba(11,29,54,0.06)]'
+          : 'border-transparent bg-transparent',
       ].join(' ')}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <BrandWordmark size="sm" variant="onLight" asLink to="/" showTagline={false} />
 
         <nav aria-label="Seções da página" className="hidden items-center gap-1 lg:flex">
-          {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className={`group ${linkClass}`}>
-              <span
-                aria-hidden="true"
-                className="h-1.5 w-1.5 rounded-full bg-accent opacity-0 transition-opacity group-hover:opacity-100"
-              />
-              {link.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const active = activeSection === link.href.slice(1)
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                aria-current={active ? 'location' : undefined}
+                className={`group ${linkClass}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={[
+                    'h-1.5 w-1.5 rounded-full bg-accent transition-[opacity,transform] duration-300',
+                    active ? 'scale-100 opacity-100' : 'scale-50 opacity-0 group-hover:scale-100 group-hover:opacity-100',
+                  ].join(' ')}
+                />
+                {link.label}
+              </a>
+            )
+          })}
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
@@ -125,6 +146,12 @@ export function LandingHeader({ scrolled, menuOpen, onMenuOpenChange }: LandingH
           </div>
         </div>
       ) : null}
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden">
+        <div
+          ref={progressRef}
+          className="lp-progress h-full w-full bg-[linear-gradient(90deg,#2f7dff,#24b296)]"
+        />
+      </div>
     </header>
   )
 }

@@ -1,17 +1,8 @@
-import { Activity, CalendarClock, ShieldCheck, Smartphone, Sparkles } from 'lucide-react'
-import homiLp from '@/assets/landing/homi-lp.webp'
-import { smoothLinePath } from '@/lib/smoothPath'
+import { Activity, ShieldCheck, Smartphone, Sparkles } from 'lucide-react'
+import { HeroDevices } from './HeroDevices'
 import { LinkButton, WhatsAppLink } from './LinkButton'
-import { Blob, Eyebrow, Reveal, WaveDivider } from './LandingUi'
-
-const PAIN_POINTS = [
-  { x: 2, y: 4 },
-  { x: 20, y: 8 },
-  { x: 38, y: 14 },
-  { x: 56, y: 20 },
-  { x: 78, y: 26 },
-]
-const PAIN_PATH = smoothLinePath(PAIN_POINTS)
+import { Eyebrow, WaveDivider } from './LandingUi'
+import { useParallax } from './useParallax'
 
 const TRUST = [
   { icon: ShieldCheck, label: 'Dados protegidos' },
@@ -20,34 +11,65 @@ const TRUST = [
 ]
 
 export function HeroSection() {
+  const blobA = useParallax<HTMLDivElement>(0.2)
+  const blobB = useParallax<HTMLDivElement>(-0.15)
+
   return (
     <section
       id="inicio"
       aria-labelledby="lp-hero-title"
-      className="lp-section relative overflow-hidden bg-canvas"
+      className="lp-section relative -mt-16 overflow-hidden bg-[linear-gradient(180deg,#eaf2fd_0%,#f3f8fb_55%,#e6f5f0_100%)] pt-16"
     >
-      <Blob className="-left-32 -top-24 h-96 w-96 bg-accent-soft" />
-      <Blob className="-right-24 top-32 h-[28rem] w-[28rem] bg-sage/20" />
+      <div ref={blobA} aria-hidden="true" className="pointer-events-none absolute -left-32 -top-24">
+        <div className="h-[26rem] w-[26rem] rounded-full bg-accent/15 blur-3xl" />
+      </div>
+      <div ref={blobB} aria-hidden="true" className="pointer-events-none absolute -right-24 top-40">
+        <div className="h-[30rem] w-[30rem] rounded-full bg-sage/20 blur-3xl" />
+      </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-12">
-          <div className="flex flex-col items-start gap-6 lg:col-span-7">
-            <Reveal>
-              <Eyebrow icon={<Activity size={16} aria-hidden="true" />}>
+      <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-10 sm:px-6 md:pb-20 md:pt-16 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+          <div className="flex flex-col items-start gap-6 lg:col-span-6">
+            <div className="lp-hero-in">
+              <Eyebrow icon={<Activity size={16} className="text-accent" aria-hidden="true" />}>
                 Prontuário para fisioterapia
               </Eyebrow>
-            </Reveal>
+            </div>
             <h1
               id="lp-hero-title"
-              className="font-display text-4xl font-semibold leading-[1.1] tracking-tight text-ink lg:text-5xl"
+              className="lp-display lp-hero-in text-[42px] font-semibold leading-[1.04] text-ink [animation-delay:80ms] sm:text-[56px] lg:text-[64px]"
             >
-              Cuidado em <span className="text-accent">movimento</span>, prontuário em ordem.
+              Cuidado em{' '}
+              <span className="relative inline-block whitespace-nowrap">
+                <em className="lp-gradient-text pr-1 font-semibold">movimento</em>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 300 24"
+                  preserveAspectRatio="none"
+                  className="lp-swoosh absolute -bottom-2 left-0 h-3 w-full sm:h-4"
+                  fill="none"
+                >
+                  <path
+                    d="M4 16 C 70 4, 150 4, 296 12"
+                    stroke="url(#lp-swoosh-grad)"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="lp-swoosh-grad" x1="0" x2="1">
+                      <stop offset="0" stopColor="#2f7dff" stopOpacity="0.5" />
+                      <stop offset="1" stopColor="#24b296" stopOpacity="0.6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </span>
+              , prontuário em ordem.
             </h1>
-            <p className="max-w-prose text-base leading-7 text-muted">
+            <p className="lp-hero-in max-w-prose text-base leading-7 text-muted [animation-delay:160ms] md:text-lg md:leading-8">
               O Fluxo reúne avaliação com mapa corporal, evolução das sessões, agenda e financeiro
               em um só lugar, para você dedicar seu tempo ao paciente.
             </p>
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <div className="lp-hero-in flex w-full flex-col gap-3 [animation-delay:240ms] sm:w-auto sm:flex-row sm:items-center">
               <LinkButton to="/cadastro" className="w-full sm:w-auto">
                 Começar agora
               </LinkButton>
@@ -58,7 +80,7 @@ export function HeroSection() {
                 Falar no WhatsApp
               </WhatsAppLink>
             </div>
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+            <ul className="lp-hero-in flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted [animation-delay:320ms]">
               {TRUST.map(({ icon: Icon, label }) => (
                 <li key={label} className="inline-flex items-center gap-2">
                   <Icon size={16} className="text-sage" aria-hidden="true" />
@@ -68,51 +90,12 @@ export function HeroSection() {
             </ul>
           </div>
 
-          <div aria-hidden="true" className="relative mx-auto w-full max-w-sm lg:col-span-5">
-            <div className="rounded-xl border border-line bg-surface p-6 shadow-[0_18px_50px_rgba(11,29,54,0.08)]">
-              <div className="relative mx-auto aspect-[640/623] w-full max-w-[260px]">
-                <img
-                  src={homiLp}
-                  width={640}
-                  height={623}
-                  alt=""
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="h-full w-full object-contain"
-                />
-                <span className="absolute left-[30%] top-[22%] h-5 w-5 rounded-full bg-accent/70 ring-4 ring-accent/20" />
-                <span className="absolute left-[46%] top-[48%] h-5 w-5 rounded-full bg-accent/70 ring-4 ring-accent/20" />
-                <span className="absolute left-[58%] top-[74%] h-5 w-5 rounded-full bg-accent/70 ring-4 ring-accent/20" />
-              </div>
-              <p className="mt-4 text-center text-sm text-muted">Paciente Exemplo</p>
-            </div>
-
-            <div className="lp-float absolute -left-4 top-8 flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 shadow-lg sm:-left-8">
-              <div>
-                <p className="text-sm font-semibold text-ink">Dor: 7 → 3</p>
-                <svg viewBox="0 0 80 32" className="mt-1 h-8 w-20" fill="none">
-                  <path
-                    d={PAIN_PATH}
-                    stroke="#2f7dff"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <div className="lp-float lp-float-delay absolute -right-2 bottom-10 flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 shadow-lg sm:-right-6">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft">
-                <CalendarClock size={20} className="text-[#1e3a8a]" aria-hidden="true" />
-              </span>
-              <p className="text-sm font-semibold text-ink">Próxima sessão · 14:30</p>
-            </div>
+          <div className="lg:col-span-6">
+            <HeroDevices />
           </div>
         </div>
       </div>
-      <WaveDivider fill="fill-surface" />
+      <WaveDivider fill="fill-forest" />
     </section>
   )
 }

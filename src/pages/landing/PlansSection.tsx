@@ -5,14 +5,21 @@ import { PLANS, PRICE_NOTE, PRICE_SUFFIX } from './landing.config'
 
 export function PlansSection() {
   return (
-    <section id="planos" aria-labelledby="lp-planos-title" className="lp-section bg-canvas">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+    <section
+      id="planos"
+      aria-labelledby="lp-planos-title"
+      className="lp-section relative overflow-hidden bg-forest"
+    >
+      <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-20 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 bottom-20 h-80 w-80 rounded-full bg-sage/15 blur-3xl" />
+      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
         <Reveal>
           <SectionHeading
             id="lp-planos-title"
             eyebrow="Planos"
             title="Escolha o jeito que combina com a sua prática"
             intro="Valores em breve. Comece agora e fale com a gente para saber das condições."
+            tone="dark"
           />
         </Reveal>
 
@@ -20,10 +27,13 @@ export function PlansSection() {
           {PLANS.map((plan, index) => (
             <Reveal
               key={plan.id}
-              delay={index * 80}
+              delay={index * 120}
+              variant="scale"
               className={[
-                'lp-card relative flex flex-col gap-4 rounded-xl border bg-surface p-6',
-                plan.highlighted ? 'border-2 border-accent' : 'border-line',
+                'lp-card relative flex flex-col gap-4 rounded-2xl border bg-surface p-6',
+                plan.highlighted
+                  ? 'border-2 border-accent shadow-[0_24px_60px_rgba(47,125,255,0.25)]'
+                  : 'border-line',
               ].join(' ')}
             >
               {plan.badge ? (
@@ -31,10 +41,10 @@ export function PlansSection() {
                   {plan.badge}
                 </span>
               ) : null}
-              <h3 className="text-base font-semibold text-ink">{plan.name}</h3>
+              <h3 className="lp-display text-2xl font-semibold text-ink">{plan.name}</h3>
               <p className="text-base leading-7 text-muted">{plan.description}</p>
               <div className="flex flex-wrap items-baseline gap-2">
-                <span className="font-display text-[28px] font-semibold leading-[1.2] text-ink">
+                <span className="lp-display text-[32px] font-semibold leading-[1.2] text-ink">
                   {plan.price}
                 </span>
                 <span className="text-sm text-muted">{PRICE_SUFFIX}</span>
@@ -67,12 +77,12 @@ export function PlansSection() {
           ))}
         </div>
 
-        <Reveal className="mt-8 flex flex-col items-center justify-center gap-1 text-base text-muted sm:flex-row sm:gap-3">
+        <Reveal className="mt-8 flex flex-col items-center justify-center gap-1 text-base text-white/70 sm:flex-row sm:gap-3 [&_a]:text-white">
           <p>Dúvidas sobre valores?</p>
           <WhatsAppLink asText />
         </Reveal>
       </div>
-      <WaveDivider fill="fill-surface" />
+      <WaveDivider fill="fill-canvas" />
     </section>
   )
 }

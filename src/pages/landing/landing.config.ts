@@ -60,3 +60,8 @@ export const CREATOR_PHOTO_ALT = 'Nicolle, fisioterapeuta e criadora do Fluxo'
 export const CREATOR_BIO =
   'A Nicolle é fisioterapeuta e criou o Fluxo a partir da própria rotina no consultório: papéis espalhados, fichas longas e pouco tempo para o que importa. O Fluxo nasceu para deixar o registro clínico simples, bonito e do jeito que o fisioterapeuta trabalha.'
 export const CREATOR_SIGNATURE = 'Nicolle, fisioterapeuta e criadora do Fluxo'
+
+// Capturas do app no hero. null mostra a prévia ilustrada (placeholder).
+// Coloque as imagens em public/ (ex.: '/landing/app-desktop.webp') e troque aqui.
+export const HERO_DESKTOP_IMAGE: string | null = null // ~1600×1000, tela do computador
+export const HERO_MOBILE_IMAGE: string | null = null // ~780×1690, tela do celular

@@ -54,13 +54,16 @@ export function FaqSection() {
     })
 
   return (
-    <section id="faq" aria-labelledby="lp-faq-title" className="lp-section bg-surface">
+    <section id="faq" aria-labelledby="lp-faq-title" className="lp-section bg-canvas">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
         <Reveal>
           <SectionHeading id="lp-faq-title" eyebrow="FAQ" title="Perguntas frequentes" />
         </Reveal>
 
-        <Reveal className="mx-auto mt-12 max-w-3xl divide-y divide-line rounded-xl border border-line bg-surface">
+        <Reveal
+          variant="blur"
+          className="mx-auto mt-12 max-w-3xl divide-y divide-line rounded-2xl border border-line bg-surface shadow-[0_18px_50px_rgba(11,29,54,0.06)]"
+        >
           {FAQ_ITEMS.map((item, i) => {
             const open = openIds.has(i)
             return (

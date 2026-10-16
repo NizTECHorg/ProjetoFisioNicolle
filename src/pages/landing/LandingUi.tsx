@@ -4,9 +4,22 @@ import { useReveal } from './useReveal'
 
 type Tone = 'light' | 'dark'
 
-export function Eyebrow({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
+export function Eyebrow({
+  children,
+  icon,
+  tone = 'light',
+}: {
+  children: ReactNode
+  icon?: ReactNode
+  tone?: Tone
+}) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold uppercase tracking-wide text-ink">
+    <span
+      className={[
+        'inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide',
+        tone === 'dark' ? 'bg-white/10 text-white' : 'bg-white/70 text-ink ring-1 ring-line',
+      ].join(' ')}
+    >
       {icon ?? <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent" />}
       {children}
     </span>
@@ -36,11 +49,11 @@ export function SectionHeading({
         align === 'center' ? 'items-center text-center' : 'items-start text-left',
       ].join(' ')}
     >
-      <Eyebrow>{eyebrow}</Eyebrow>
+      <Eyebrow tone={tone}>{eyebrow}</Eyebrow>
       <h2
         id={id}
         className={[
-          'font-display text-[28px] font-semibold leading-[1.2]',
+          'lp-display text-[32px] font-semibold leading-[1.15] md:text-[40px]',
           dark ? 'text-white' : 'text-ink',
         ].join(' ')}
       >
@@ -94,14 +107,18 @@ export function CheckItem({ children, tone = 'light' }: { children: ReactNode; t
   )
 }
 
+export type RevealVariant = 'up' | 'left' | 'right' | 'scale' | 'blur'
+
 export function Reveal({
   as = 'div',
   delay = 0,
+  variant = 'up',
   className,
   children,
 }: {
   as?: ElementType
   delay?: number
+  variant?: RevealVariant
   className?: string
   children: ReactNode
 }) {
@@ -110,6 +127,7 @@ export function Reveal({
   return (
     <Tag
       ref={ref}
+      data-reveal={variant === 'up' ? undefined : variant}
       className={className}
       style={{ transitionDelay: delay ? `${delay}ms` : undefined }}
     >

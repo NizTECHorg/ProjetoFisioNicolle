@@ -21,14 +21,17 @@ export function LandingFooter() {
         aria-labelledby="lp-cta-title"
         className="lp-section relative overflow-hidden bg-forest text-white"
       >
-        <Blob className="-left-16 top-0 h-72 w-72 bg-accent/20" />
-        <Blob className="-right-16 bottom-0 h-72 w-72 bg-sage/15" />
-        <Reveal className="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-12 text-center sm:px-6 md:py-16 lg:px-8">
+        <Blob className="-left-16 top-0 h-80 w-80 bg-accent/25" />
+        <Blob className="-right-16 bottom-0 h-80 w-80 bg-sage/25" />
+        <Reveal
+          variant="scale"
+          className="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-16 text-center sm:px-6 md:py-24 lg:px-8"
+        >
           <h2
             id="lp-cta-title"
-            className="font-display text-[28px] font-semibold leading-[1.2] text-white"
+            className="lp-display text-[36px] font-semibold leading-[1.1] text-white md:text-[48px]"
           >
-            Pronto para organizar sua prática?
+            Pronto para organizar <em className="lp-gradient-text">sua prática</em>?
           </h2>
           <p className="max-w-prose text-base leading-7 text-white/70">
             Crie sua conta e comece a registrar seus atendimentos hoje.

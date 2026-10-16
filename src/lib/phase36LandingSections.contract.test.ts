@@ -78,7 +78,8 @@ test('REQ-47: footer e fab', () => {
   const footer = read(`${DIR}LandingFooter.tsx`)
   for (const s of [
     '<footer',
-    'Pronto para organizar sua prática?',
+    'Pronto para organizar',
+    'sua prática</em>?',
     'getFullYear()',
     'Todos os direitos reservados.',
     'to="/login"',

@@ -99,13 +99,18 @@ export function ProductSection() {
 
         <div className="mt-12 flex flex-col gap-16 md:mt-16">
           {FEATURES.map((feature, index) => (
-            <Reveal
+            <div
               key={feature.title}
               className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12"
             >
-              <div className={index % 2 === 1 ? 'lg:order-2' : ''}>
+              <Reveal
+                variant={index % 2 === 1 ? 'right' : 'left'}
+                className={index % 2 === 1 ? 'lg:order-2' : ''}
+              >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-base font-semibold text-ink">{feature.title}</h3>
+                  <h3 className="lp-display text-2xl font-semibold leading-tight text-ink md:text-[28px]">
+                    {feature.title}
+                  </h3>
                   <p className="max-w-prose text-base leading-7 text-muted">{feature.text}</p>
                   <ul className="flex flex-col gap-2">
                     {feature.bullets.map((b) => (
@@ -118,16 +123,20 @@ export function ProductSection() {
                     </p>
                   ) : null}
                 </div>
-              </div>
-              <div
+              </Reveal>
+              <Reveal
+                variant="scale"
+                delay={120}
                 className={[
-                  'relative rounded-xl bg-canvas p-4 md:p-6',
-                  index % 2 === 1 ? 'lg:order-1' : '',
+                  'relative rounded-2xl p-4 md:p-6',
+                  index % 2 === 1
+                    ? 'bg-[linear-gradient(135deg,#e6f5f0,#eaf2fd)] lg:order-1'
+                    : 'bg-[linear-gradient(135deg,#eaf2fd,#e6f5f0)]',
                 ].join(' ')}
               >
                 {feature.mockup}
-              </div>
-            </Reveal>
+              </Reveal>
+            </div>
           ))}
         </div>
 
@@ -135,11 +144,21 @@ export function ProductSection() {
           {SMALL.map(({ icon: Icon, title, text }, index) => (
             <li key={title} className="contents">
               <Reveal
-                delay={index * 80}
-                className="lp-card flex flex-col gap-4 rounded-xl border border-line bg-canvas p-4 md:p-6"
+                delay={(index % 3) * 100}
+                variant="blur"
+                className="lp-card flex flex-col gap-4 rounded-2xl border border-line bg-canvas p-4 md:p-6"
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft">
-                  <Icon size={24} className="text-[#1e3a8a]" aria-hidden="true" />
+                <span
+                  className={[
+                    'flex h-12 w-12 items-center justify-center rounded-full',
+                    ['bg-accent-soft', 'bg-sage-soft', 'bg-[#e8ecf8]'][index % 3],
+                  ].join(' ')}
+                >
+                  <Icon
+                    size={24}
+                    className={['text-[#1e3a8a]', 'text-sage', 'text-accent'][index % 3]}
+                    aria-hidden="true"
+                  />
                 </span>
                 <div className="flex flex-col gap-1">
                   <h3 className="text-base font-semibold text-ink">{title}</h3>
@@ -150,7 +169,7 @@ export function ProductSection() {
           ))}
         </ul>
       </div>
-      <WaveDivider fill="fill-canvas" />
+      <WaveDivider fill="fill-sage-soft" />
     </section>
   )
 }
