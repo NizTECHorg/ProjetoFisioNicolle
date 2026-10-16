@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { CircleUser, LogOut, Menu, X } from 'lucide-react'
 import { clinicNavigationItems, mobileNavItems } from '@/config/navigation'
@@ -177,7 +177,15 @@ export function AppShell() {
               filho do fluxo e garante 16px depois do último conteúdo em toda página.
             */}
             <main className="px-4 py-6 pb-24 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-6 lg:pb-0 lg:pt-6 lg:after:block lg:after:h-4 lg:after:shrink-0 lg:after:content-['']">
-              <Outlet />
+              <Suspense
+                fallback={
+                  <div className="flex justify-center py-16">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+                  </div>
+                }
+              >
+                <Outlet />
+              </Suspense>
             </main>
           </div>
         </div>

@@ -59,7 +59,7 @@ export function ForgotPasswordPage() {
         sent ? undefined : (
           <p>
             Lembrou a senha?{' '}
-            <Link to="/" className="font-medium text-forest hover:text-forest-mid">
+            <Link to="/login" className="font-medium text-forest hover:text-forest-mid">
               Entrar
             </Link>
           </p>
@@ -84,7 +84,7 @@ export function ForgotPasswordPage() {
           </div>
 
           <Link
-            to="/"
+            to="/login"
             className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-2xl bg-forest px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-forest/20 transition-all duration-200 hover:bg-forest-mid active:scale-[0.98]"
           >
             Voltar ao login

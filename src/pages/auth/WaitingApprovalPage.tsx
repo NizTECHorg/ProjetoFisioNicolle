@@ -15,7 +15,7 @@ export function WaitingApprovalPage() {
   }
 
   if (!session) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/login" replace />
   }
 
   if (isAuthenticated) {

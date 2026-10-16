@@ -74,7 +74,7 @@ export function AuthConfirmPage() {
         setMessage('E-mail confirmado. Você já pode entrar na Fluxo.')
         toast('E-mail confirmado com sucesso.', 'success')
         window.setTimeout(() => {
-          if (!cancelled) navigate('/', { replace: true })
+          if (!cancelled) navigate('/login', { replace: true })
         }, 900)
         return
       }
@@ -113,7 +113,7 @@ export function AuthConfirmPage() {
     try {
       await setPasswordFromRecovery(data)
       toast('Senha atualizada.', 'success')
-      navigate('/', { replace: true })
+      navigate('/login', { replace: true })
     } catch (error) {
       toast(
         error instanceof Error
@@ -182,14 +182,14 @@ export function AuthConfirmPage() {
             </p>
           ) : null}
           {status === 'error' ? (
-            <Button type="button" fullWidth onClick={() => navigate('/', { replace: true })}>
+            <Button type="button" fullWidth onClick={() => navigate('/login', { replace: true })}>
               Ir para o login
             </Button>
           ) : null}
           {status === 'ok' ? (
             <p className="text-xs text-muted">
               Redirecionando… ou{' '}
-              <Link to="/" className="font-medium text-forest hover:text-forest-mid">
+              <Link to="/login" className="font-medium text-forest hover:text-forest-mid">
                 entre agora
               </Link>
               .
