@@ -12,6 +12,7 @@
   --color-line: #e1e8f0;
   --color-error: #dc4a4a;
   --color-success: #2f7dff;
+  --color-sage: #24b296;
 
   /* aliases — páginas antigas passam a herdar o tema claro */
   --color-chocolate: #0b1d36;
@@ -312,5 +313,103 @@
 @keyframes dash-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Landing page (Phase 36) — prefixo lp- */
+.lp-section {
+  scroll-margin-top: 80px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-scroll {
+    scroll-behavior: smooth;
+  }
+}
+
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lp-reveal.lp-in {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes lp-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.lp-float {
+  animation: lp-float 6s ease-in-out infinite;
+}
+
+.lp-float-delay {
+  animation-delay: -3s;
+}
+
+.lp-card {
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.lp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(11, 29, 54, 0.08);
+}
+
+.lp-faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms ease;
+}
+
+.lp-faq-panel[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+
+.lp-faq-panel > div {
+  overflow: hidden;
+}
+
+.lp-chevron {
+  transition: transform 200ms ease;
+}
+
+.lp-blob-shape {
+  border-radius: 42% 58% 55% 45% / 50% 45% 55% 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .lp-float {
+    animation: none;
+  }
+
+  .lp-card,
+  .lp-card:hover {
+    transition: none;
+    transform: none;
+  }
+
+  .lp-faq-panel,
+  .lp-chevron {
+    transition: none;
   }
 }

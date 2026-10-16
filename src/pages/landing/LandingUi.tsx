@@ -1,0 +1,119 @@
+import type { ElementType, ReactNode } from 'react'
+import { Check } from 'lucide-react'
+import { useReveal } from './useReveal'
+
+type Tone = 'light' | 'dark'
+
+export function Eyebrow({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold uppercase tracking-wide text-ink">
+      {icon ?? <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent" />}
+      {children}
+    </span>
+  )
+}
+
+export function SectionHeading({
+  id,
+  eyebrow,
+  title,
+  intro,
+  align = 'center',
+  tone = 'light',
+}: {
+  id: string
+  eyebrow: string
+  title: string
+  intro?: string
+  align?: 'center' | 'left'
+  tone?: Tone
+}) {
+  const dark = tone === 'dark'
+  return (
+    <div
+      className={[
+        'flex flex-col gap-4',
+        align === 'center' ? 'items-center text-center' : 'items-start text-left',
+      ].join(' ')}
+    >
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2
+        id={id}
+        className={[
+          'font-display text-[28px] font-semibold leading-[1.2]',
+          dark ? 'text-white' : 'text-ink',
+        ].join(' ')}
+      >
+        {title}
+      </h2>
+      {intro ? (
+        <p
+          className={['max-w-prose text-base leading-7', dark ? 'text-white/70' : 'text-muted'].join(
+            ' ',
+          )}
+        >
+          {intro}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+export function WaveDivider({ fill, flip }: { fill: string; flip?: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 1440 64"
+      preserveAspectRatio="none"
+      className={['block h-12 w-full md:h-16', fill, flip ? 'rotate-180' : ''].join(' ')}
+    >
+      <path d="M0 32 C 240 0, 480 0, 720 32 S 1200 64, 1440 32 L1440 64 L0 64 Z" />
+    </svg>
+  )
+}
+
+export function Blob({ className = '' }: { className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={['pointer-events-none absolute rounded-full blur-3xl', className].join(' ')}
+    />
+  )
+}
+
+export function CheckItem({ children, tone = 'light' }: { children: ReactNode; tone?: Tone }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage/15">
+        <Check size={14} className="text-sage" aria-hidden="true" />
+      </span>
+      <span className={['text-base', tone === 'dark' ? 'text-white' : 'text-ink'].join(' ')}>
+        {children}
+      </span>
+    </li>
+  )
+}
+
+export function Reveal({
+  as = 'div',
+  delay = 0,
+  className,
+  children,
+}: {
+  as?: ElementType
+  delay?: number
+  className?: string
+  children: ReactNode
+}) {
+  const ref = useReveal<HTMLElement>()
+  const Tag = as
+  return (
+    <Tag
+      ref={ref}
+      className={className}
+      style={{ transitionDelay: delay ? `${delay}ms` : undefined }}
+    >
+      {children}
+    </Tag>
+  )
+}
