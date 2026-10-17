@@ -1,3 +1,4 @@
+import { Eraser } from 'lucide-react'
 import { useRef, useState, type PointerEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 import {
@@ -17,9 +18,25 @@ type SignaturePadProps = {
   onChange: (next: string) => void
   disabled?: boolean
   legacyText?: string
+  placeholder?: string
+  clearLabel?: string
+  heightClass?: string
+  describedBy?: string
+  labelClassName?: string
 }
 
-export function SignaturePad({ label, value, onChange, disabled, legacyText }: SignaturePadProps) {
+export function SignaturePad({
+  label,
+  value,
+  onChange,
+  disabled,
+  legacyText,
+  placeholder = 'Assine com o mouse ou o dedo.',
+  clearLabel,
+  heightClass = 'h-40',
+  describedBy,
+  labelClassName = 'text-sm font-medium text-ink',
+}: SignaturePadProps) {
   const [points, setPoints] = useState<SignaturePoint[]>([])
   const drawing = useRef(false)
 
@@ -62,7 +79,7 @@ export function SignaturePad({ label, value, onChange, disabled, legacyText }: S
 
   return (
     <div className="space-y-2">
-      <span className="block text-sm font-medium text-ink">{label}</span>
+      <span className={`block ${labelClassName}`}>{label}</span>
       {legacy && !saved ? (
         <p className="text-sm text-muted">Assinatura registrada como texto: {legacy}</p>
       ) : null}
@@ -73,7 +90,8 @@ export function SignaturePad({ label, value, onChange, disabled, legacyText }: S
           width="100%"
           role="img"
           aria-label={label}
-          className={`block h-40 w-full touch-none rounded-2xl ${disabled ? 'cursor-default' : 'cursor-crosshair'}`}
+          aria-describedby={describedBy}
+          className={`block ${heightClass} w-full touch-none rounded-2xl ${disabled ? 'cursor-default' : 'cursor-crosshair'}`}
           style={{ touchAction: 'none' }}
           onPointerDown={handleDown}
           onPointerMove={handleMove}
@@ -104,18 +122,33 @@ export function SignaturePad({ label, value, onChange, disabled, legacyText }: S
         </svg>
         {empty && !disabled ? (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted">
-            Assine com o mouse ou o dedo.
+            {placeholder}
           </span>
         ) : null}
       </div>
-      <Button
-        type="button"
-        variant="secondary"
-        disabled={disabled || !saved}
-        onClick={() => onChange('')}
-      >
-        Apagar assinatura
-      </Button>
+      {clearLabel ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-11"
+            disabled={disabled || !saved}
+            onClick={() => onChange('')}
+          >
+            <Eraser size={16} aria-hidden="true" />
+            {clearLabel}
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled || !saved}
+          onClick={() => onChange('')}
+        >
+          Apagar assinatura
+        </Button>
+      )}
     </div>
   )
 }
