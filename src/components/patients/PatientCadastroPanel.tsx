@@ -23,6 +23,7 @@ import {
   type PersonalSectionFormData,
   type TreatmentSectionFormData,
 } from '@/schemas/patient.schema'
+import { formatCpf } from '@/lib/cpf'
 import type { Patient, UpdatePatientInput } from '@/types/patient'
 
 type EditSection = 'identity' | 'personal' | 'emergency' | 'admin' | 'treatment' | null
@@ -142,6 +143,7 @@ export function PatientCadastroPanel({
     if (section === 'personal') {
       personalForm.reset({
         profession: dash(patient.profession),
+        cpf: formatCpf(patient.cpf),
         gender: patient.gender ?? '',
         email: dash(patient.email),
       })
@@ -178,6 +180,7 @@ export function PatientCadastroPanel({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <EditableCard title="Pessoais" onEdit={canWrite ? () => setSection('personal') : undefined}>
           <Field label="Profissão" value={patient.profession} />
+          <Field label="CPF" value={patient.cpf ? formatCpf(patient.cpf) : ''} />
           <Field
             label="Sexo"
             value={patientGenderOptions.find((o) => o.value === (patient.gender ?? '') && o.value !== '')?.label ?? '—'}
@@ -278,13 +281,29 @@ export function PatientCadastroPanel({
         <form
           className="space-y-4"
           onSubmit={personalForm.handleSubmit((values) =>
-            save({ profession: values.profession, gender: values.gender, email: values.email }),
+            save({
+              profession: values.profession,
+              cpf: values.cpf ?? '',
+              gender: values.gender,
+              email: values.email,
+            }),
           )}
         >
           <Input
             label="Profissão"
             error={personalForm.formState.errors.profession?.message}
             {...personalForm.register('profession')}
+          />
+          <Input
+            label="CPF (opcional)"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="000.000.000-00"
+            maxLength={14}
+            error={personalForm.formState.errors.cpf?.message}
+            {...personalForm.register('cpf', {
+              onChange: (e) => personalForm.setValue('cpf', formatCpf(e.target.value)),
+            })}
           />
           <Select
             label="Sexo"
