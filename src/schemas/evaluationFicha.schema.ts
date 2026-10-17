@@ -441,6 +441,8 @@ export const evaluationFichaSchema = z.object({
               praticaObs: z.string().max(PRATICA_OBS_MAX).optional(),
               sintomasMomentos: z.array(z.string()).max(4).optional(),
               sintomas: z.string().max(SINTOMAS_MAX).optional(),
+              // Questionário próprio do esporte (já saneado por safeEsportesLista).
+              respostas: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
             }),
           )
           .max(ESPORTES_MAX)

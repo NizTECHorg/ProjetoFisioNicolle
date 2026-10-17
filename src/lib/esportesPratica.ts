@@ -5,15 +5,50 @@
 export type OpcaoPratica = { key: string; nome: string }
 export type GrupoPratica = { titulo: string; opcoes: OpcaoPratica[] }
 
+// —— Perguntas específicas de cada esporte (questionário próprio) ——
+
+export type TipoPergunta = 'unica' | 'multipla' | 'selecao' | 'simNao' | 'numeros' | 'textoLongo'
+
+export type CampoNumero = { key: string; rotulo: string; sufixo: string }
+
+export type Pergunta = {
+  /** Chave da resposta (única dentro do esporte). Para 'numeros', cada campo usa a própria key. */
+  key: string
+  rotulo: string
+  tipo: TipoPergunta
+  opcoes?: readonly OpcaoPratica[]
+  campos?: readonly CampoNumero[]
+  placeholder?: string
+}
+
+export type SecaoPerguntas = { titulo: string; perguntas: readonly Pergunta[] }
+
 export type PraticaEsporte = {
   /** Exemplo de volume no placeholder (cada esporte mede de um jeito). */
   volumeDica: string
   modalidades: OpcaoPratica[]
   caracteristicas: GrupoPratica[]
+  /** Questionário próprio do esporte. Quando existe, substitui modalidades/características e o bloco genérico de sintomas. */
+  secoes?: readonly SecaoPerguntas[]
+  /** O questionário já pergunta o volume: esconde o campo genérico "Volume". */
+  volumeProprio?: boolean
 }
 
 const o = (key: string, nome: string): OpcaoPratica => ({ key, nome })
 const g = (titulo: string, opcoes: OpcaoPratica[]): GrupoPratica => ({ titulo, opcoes })
+
+export const RESPOSTA_TEXTO_MAX = 600
+export const RESPOSTA_NUMERO_MAX = 6
+
+export const SIM_NAO: readonly OpcaoPratica[] = [o('sim', 'Sim'), o('nao', 'Não')]
+
+const unica = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => ({ key, rotulo, tipo: 'unica', opcoes })
+const multipla = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => ({ key, rotulo, tipo: 'multipla', opcoes })
+const selecao = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => ({ key, rotulo, tipo: 'selecao', opcoes })
+const simNao = (key: string, rotulo: string): Pergunta => ({ key, rotulo, tipo: 'simNao', opcoes: SIM_NAO })
+const numeros = (key: string, rotulo: string, campos: CampoNumero[]): Pergunta => ({ key, rotulo, tipo: 'numeros', campos })
+const textoLongo = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'textoLongo', placeholder })
+const secao = (titulo: string, perguntas: Pergunta[]): SecaoPerguntas => ({ titulo, perguntas })
 
 export const PERFIS_ESPORTIVOS: readonly OpcaoPratica[] = [
   o('recreativo', 'Recreativo'),
@@ -62,10 +97,58 @@ const PRATICA_OUTRO: PraticaEsporte = { volumeDica: 'ex.: 4 h por semana', modal
 export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   volei: {
     volumeDica: 'ex.: 6 h por semana',
-    modalidades: [o('quadra', 'Quadra'), o('praia', 'Praia')],
-    caracteristicas: [
-      g('Posição', [o('levantador', 'Levantador'), o('ponteiro', 'Ponteiro'), o('oposto', 'Oposto'), o('central', 'Central'), o('libero', 'Líbero')]),
-      g('Gestos frequentes', [o('ataque', 'Ataque'), o('bloqueio', 'Bloqueio'), o('saqueSuspensao', 'Saque em suspensão'), o('defesaPeixinho', 'Defesa / peixinho')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e posição', [
+        unica('modalidade', 'Modalidade', [o('quadra', 'Quadra'), o('praia', 'Praia')]),
+        unica('posicao', 'Posição principal', [
+          o('levantador', 'Levantador(a)'),
+          o('ponteiro', 'Ponteiro(a)'),
+          o('oposto', 'Oposto(a)'),
+          o('central', 'Central'),
+          o('libero', 'Líbero'),
+        ]),
+      ]),
+      secao('Demandas da prática', [
+        multipla('gestos', 'Gestos mais frequentes (múltipla escolha)', [
+          o('ataque', 'Ataque'),
+          o('bloqueio', 'Bloqueio'),
+          o('saque', 'Saque'),
+          o('recepcao', 'Recepção/manchete'),
+          o('levantamento', 'Levantamento'),
+          o('defesa', 'Defesa/mergulho'),
+          o('saltos', 'Saltos e aterrissagens'),
+          o('deslocamentos', 'Deslocamentos'),
+        ]),
+        numeros('volume', 'Volume de prática', [
+          { key: 'volumeHoras', rotulo: 'Horas/semana', sufixo: 'h/semana' },
+          { key: 'volumeJogos', rotulo: 'Jogos/semana', sufixo: 'jogos/semana' },
+        ]),
+        unica('cargaSaltos', 'Carga aproximada de saltos', [
+          o('baixa', 'Baixa'),
+          o('moderada', 'Moderada'),
+          o('alta', 'Alta'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+        simNao('mudancaVolume', 'Houve mudança recente no volume ou intensidade?'),
+      ]),
+      secao('Sintomas e dificuldades', [
+        selecao('faseSintoma', 'Em qual fase do movimento aparecem?', [
+          o('aproximacao', 'Aproximação para ataque'),
+          o('impulsao', 'Impulsão'),
+          o('contatoBola', 'Contato com a bola'),
+          o('aterrissagem', 'Aterrissagem'),
+          o('deslocamentoLateral', 'Deslocamento lateral'),
+          o('semGesto', 'Sem gesto específico'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade na modalidade',
+          'Ex.: perda de potência no salto, dor no ataque, insegurança na aterrissagem...',
+        ),
+      ]),
     ],
   },
   futebol: {
@@ -260,6 +343,69 @@ export type AvaliacaoPratica = {
   praticaObs?: string
   sintomasMomentos?: string[]
   sintomas?: string
+  /** Respostas do questionário próprio do esporte (chave da pergunta → valor). */
+  respostas?: Record<string, string | string[]>
+}
+
+/** Só respostas de perguntas que existem no esporte, com opções válidas; vazias somem. */
+export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<string, string | string[]> {
+  const out: Record<string, string | string[]> = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  const raw = value as Record<string, unknown>
+  for (const sec of pratica.secoes ?? []) {
+    for (const p of sec.perguntas) {
+      if (p.tipo === 'numeros') {
+        for (const campo of p.campos ?? []) {
+          const v = raw[campo.key]
+          if (typeof v !== 'string') continue
+          const n = v.replace(',', '.').trim().slice(0, RESPOSTA_NUMERO_MAX)
+          if (/^\d+(\.\d+)?$/.test(n)) out[campo.key] = n
+        }
+        continue
+      }
+      const v = raw[p.key]
+      if (p.tipo === 'multipla') {
+        const keys = filtrarOpcoes(v, p.opcoes ?? [])
+        if (keys.length) out[p.key] = keys
+      } else if (p.tipo === 'textoLongo') {
+        const t = texto(v, RESPOSTA_TEXTO_MAX)
+        if (t) out[p.key] = t
+      } else {
+        const k = opcao(v, p.opcoes ?? [])
+        if (k) out[p.key] = k
+      }
+    }
+  }
+  return out
+}
+
+/** Linhas "Pergunta: resposta" do questionário próprio, na ordem do catálogo. */
+export function linhasRespostas(respostas: Record<string, string | string[]> | undefined, pratica: PraticaEsporte): string[] {
+  if (!respostas) return []
+  const linhas: string[] = []
+  for (const sec of pratica.secoes ?? []) {
+    for (const p of sec.perguntas) {
+      const rotulo = p.rotulo.replace(/\s*\(múltipla escolha\)$/i, '')
+      let valor = ''
+      if (p.tipo === 'numeros') {
+        valor = (p.campos ?? [])
+          .filter((c) => typeof respostas[c.key] === 'string')
+          .map((c) => `${respostas[c.key]} ${c.sufixo}`)
+          .join(' · ')
+      } else if (p.tipo === 'multipla') {
+        const v = respostas[p.key]
+        valor = Array.isArray(v) ? nomes(v, p.opcoes ?? []) : ''
+      } else if (p.tipo === 'textoLongo') {
+        const v = respostas[p.key]
+        valor = typeof v === 'string' ? v.trim() : ''
+      } else {
+        const v = respostas[p.key]
+        valor = typeof v === 'string' ? nomeDe(v, p.opcoes ?? []) : ''
+      }
+      if (valor) linhas.push(rotulo.endsWith('?') ? `${rotulo} ${valor}` : `${rotulo}: ${valor}`)
+    }
+  }
+  return linhas
 }
 
 /** Só o que vale para o esporte; campo vazio some. */
@@ -290,6 +436,8 @@ export function safeAvaliacaoPratica(raw: Record<string, unknown>, esporteKey: s
   if (momentos.length) out.sintomasMomentos = momentos
   const sintomas = texto(raw.sintomas, SINTOMAS_MAX)
   if (sintomas) out.sintomas = sintomas
+  const respostas = safeRespostas(raw.respostas, pratica)
+  if (Object.keys(respostas).length) out.respostas = respostas
   return out
 }
 
@@ -321,6 +469,7 @@ export function linhasAvaliacaoPratica(entrada: AvaliacaoPratica, esporteKey: st
   add('Volume', entrada.volume)
   add('Modalidades', nomes(entrada.modalidades, pratica.modalidades))
   for (const grupo of pratica.caracteristicas) add(grupo.titulo, nomes(entrada.caracteristicas, grupo.opcoes))
+  linhas.push(...linhasRespostas(entrada.respostas, pratica))
   add('Características da prática', entrada.praticaObs)
   add('Quando os sintomas aparecem', nomes(entrada.sintomasMomentos, MOMENTOS_SINTOMA))
   add('Sintomas na prática', entrada.sintomas)

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import { deepEqual, equal, ok } from 'node:assert/strict'
 import { ESPORTES, resumoEsportes, safeEsportesLista } from './esportesAvaliacao.ts'
-import { PRATICAS, linhasAvaliacaoPratica, safeAvaliacaoPratica } from './esportesPratica.ts'
+import { PRATICAS, linhasAvaliacaoPratica, praticaDoEsporte, safeAvaliacaoPratica, safeRespostas } from './esportesPratica.ts'
 import { emptyEvaluationFicha, evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 
 test('avaliação esportiva: todo esporte do catálogo tem prática, chaves únicas por esporte', () => {
@@ -46,8 +46,7 @@ test('avaliação esportiva: lista mantém os campos e o schema aceita', () => {
     esporte: 'volei',
     nivel: 'atleta',
     frequencia: 5,
-    modalidades: ['praia'],
-    caracteristicas: ['ponteiro'],
+    respostas: { modalidade: 'praia', posicao: 'ponteiro', gestos: ['ataque', 'saque'], volumeHoras: '6' },
     sintomas: 'Dor no ombro ao atacar',
     problemas: ['dorOmbroAtaque'],
   }
@@ -57,18 +56,66 @@ test('avaliação esportiva: lista mantém os campos e o schema aceita', () => {
   deepEqual(parsed.funcao.esportes, [entrada])
 })
 
+test('vôlei: questionário saneia respostas (opção inválida, ordem, números, texto vazio)', () => {
+  const pratica = praticaDoEsporte('volei')
+  ok(pratica.secoes && pratica.secoes.length === 3)
+  ok(pratica.volumeProprio)
+  deepEqual(
+    safeRespostas(
+      {
+        modalidade: 'quadra',
+        posicao: 'goleiro',
+        gestos: ['saque', 'ataque', 'xx', 'saque'],
+        volumeHoras: '6,5',
+        volumeJogos: 'muitos',
+        cargaSaltos: 'alta',
+        mudancaVolume: 'sim',
+        faseSintoma: 'aterrissagem',
+        dificuldade: '   ',
+        inventada: 'x',
+      },
+      pratica,
+    ),
+    {
+      modalidade: 'quadra',
+      gestos: ['ataque', 'saque'],
+      volumeHoras: '6.5',
+      cargaSaltos: 'alta',
+      mudancaVolume: 'sim',
+      faseSintoma: 'aterrissagem',
+    },
+  )
+})
+
 test('avaliação esportiva: linhas para visualização e PDF', () => {
   deepEqual(
     linhasAvaliacaoPratica(
-      { nivel: 'intermediario', frequencia: 3, modalidades: ['praia'], caracteristicas: ['libero'], sintomasMomentos: ['durante'] },
+      {
+        nivel: 'intermediario',
+        frequencia: 3,
+        respostas: {
+          modalidade: 'praia',
+          posicao: 'libero',
+          gestos: ['recepcao', 'defesa'],
+          volumeHoras: '6',
+          volumeJogos: '2',
+          mudancaVolume: 'nao',
+          faseSintoma: 'aterrissagem',
+          dificuldade: 'Insegurança na aterrissagem',
+        },
+      },
       'volei',
     ),
     [
       'Nível: Intermediário',
       'Frequência: 3x por semana',
-      'Modalidades: Praia',
-      'Posição: Líbero',
-      'Quando os sintomas aparecem: Durante',
+      'Modalidade: Praia',
+      'Posição principal: Líbero',
+      'Gestos mais frequentes: Recepção/manchete, Defesa/mergulho',
+      'Volume de prática: 6 h/semana · 2 jogos/semana',
+      'Houve mudança recente no volume ou intensidade? Não',
+      'Em qual fase do movimento aparecem? Aterrissagem',
+      'Principal dificuldade na modalidade: Insegurança na aterrissagem',
     ],
   )
   const resumo = resumoEsportes({ esportes: [{ esporte: 'outro', outro: 'Remo', frequencia: 7 }] })

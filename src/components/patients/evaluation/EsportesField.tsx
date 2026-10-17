@@ -4,6 +4,7 @@ import type { UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { QuestionarioEsporte } from '@/components/patients/evaluation/QuestionarioEsporte'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
   ESPORTE_OUTRO,
@@ -382,19 +383,32 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                     disabled={disabled}
                     onChange={(event) => set({ anosPratica: event.target.value })}
                   />
-                  <Input
-                    id={`${idBase}-volume`}
-                    label="Volume"
-                    placeholder={pratica.volumeDica}
-                    maxLength={VOLUME_MAX}
-                    value={entrada.volume ?? ''}
-                    disabled={disabled}
-                    onChange={(event) => set({ volume: event.target.value })}
-                  />
+                  {pratica.volumeProprio ? null : (
+                    <Input
+                      id={`${idBase}-volume`}
+                      label="Volume"
+                      placeholder={pratica.volumeDica}
+                      maxLength={VOLUME_MAX}
+                      value={entrada.volume ?? ''}
+                      disabled={disabled}
+                      onChange={(event) => set({ volume: event.target.value })}
+                    />
+                  )}
                 </div>
               </div>
 
-              {pratica.modalidades.length > 0 || pratica.caracteristicas.length > 0 ? (
+              {pratica.secoes?.length ? (
+                <div className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+                  <SubTitulo>{`Avaliação esportiva · ${rotuloEsporte(entrada)}`}</SubTitulo>
+                  <QuestionarioEsporte
+                    idBase={idBase}
+                    secoes={pratica.secoes}
+                    respostas={entrada.respostas}
+                    onChange={(respostas) => set({ respostas })}
+                    disabled={disabled}
+                  />
+                </div>
+              ) : pratica.modalidades.length > 0 || pratica.caracteristicas.length > 0 ? (
                 <div className="space-y-3">
                   <SubTitulo>Modalidade e características da prática</SubTitulo>
                   {pratica.modalidades.length > 0 ? (
@@ -429,6 +443,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                 onChange={(event) => set({ praticaObs: event.target.value })}
               />
 
+              {pratica.secoes?.length ? null : (
               <div className="space-y-3">
                 <SubTitulo>Sintomas na prática</SubTitulo>
                 <OpcoesChips
@@ -449,6 +464,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                   onChange={(event) => set({ sintomas: event.target.value })}
                 />
               </div>
+              )}
 
               {catalogo && problemas.length > 0 ? (
                 <div className="space-y-2">
