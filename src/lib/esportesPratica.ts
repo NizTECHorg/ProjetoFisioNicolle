@@ -376,11 +376,69 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   tenis: {
     volumeDica: 'ex.: 3 jogos de 1h30 por semana',
-    modalidades: [o('simples', 'Simples'), o('duplas', 'Duplas'), o('beachTennis', 'Beach tennis')],
-    caracteristicas: [
-      g('Piso', [o('saibro', 'Saibro'), o('rapida', 'Quadra rápida'), o('areia', 'Areia')]),
-      g('Backhand', [o('umaMao', 'Uma mão'), o('duasMaos', 'Duas mãos')]),
-      g('Equipamento', [o('trocaRaquete', 'Troca recente de raquete'), o('cordaoTenso', 'Corda muito tensa')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e características', [
+        unica('esporte', 'Esporte praticado', [o('tenis', 'Tênis'), o('beachTennis', 'Beach tennis')]),
+        unica('formato', 'Formato de jogo', [o('simples', 'Simples'), o('duplas', 'Duplas'), o('ambos', 'Ambos')]),
+        unica('bracoDominante', 'Braço dominante para os golpes', [
+          o('direito', 'Direito'),
+          o('esquerdo', 'Esquerdo'),
+          o('ambos', 'Ambos'),
+        ]),
+        // Só no tênis: no beach tennis a quadra é sempre de areia e o backhand é outro gesto.
+        se(
+          'esporte',
+          'tenis',
+          unica('superficie', 'Superfície predominante', [
+            o('saibro', 'Saibro'),
+            o('quadraDura', 'Quadra dura'),
+            o('grama', 'Grama'),
+            o('outra', 'Outra'),
+          ]),
+        ),
+        se('esporte', 'tenis', unica('backhand', 'Backhand', [o('umaMao', 'Uma mão'), o('duasMaos', 'Duas mãos')])),
+        unica('estilo', 'Estilo predominante de jogo', [
+          o('fundo', 'Fundo de quadra'),
+          o('rede', 'Jogo de rede'),
+          o('misto', 'Misto'),
+        ]),
+      ]),
+      secao('Demandas esportivas', [
+        multipla('gestos', 'Gestos frequentes (múltipla escolha)', [
+          o('forehand', 'Forehand'),
+          o('backhand', 'Backhand'),
+          o('saque', 'Saque'),
+          o('voleio', 'Voleio'),
+          o('smash', 'Smash'),
+          o('slice', 'Slice'),
+          o('deslocamentoLateral', 'Deslocamento lateral'),
+          o('frenagem', 'Frenagem e mudança de direção'),
+        ]),
+        numeros('volume', 'Volume de prática', [
+          { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
+          { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
+        ]),
+        simNao('mudancaCarga', 'Houve mudança recente de carga ou equipamento?'),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('gestoSintoma', 'Qual gesto provoca sintomas ou apresenta dificuldade?', [
+          o('saque', 'Saque'),
+          o('forehand', 'Forehand'),
+          o('backhand', 'Backhand'),
+          o('voleio', 'Voleio'),
+          o('smash', 'Smash'),
+          o('deslocamento', 'Deslocamento'),
+          o('frenagem', 'Frenagem'),
+        ]),
+        textoLongo(
+          'limitacao',
+          'Principal limitação na modalidade',
+          'Ex.: dor no saque, perda de potência, dificuldade para alcançar bolas laterais...',
+        ),
+      ]),
     ],
   },
   natacao: {

@@ -236,3 +236,39 @@ test('basquete: questionário próprio (mão de arremesso, gestos, volume e dura
     ],
   )
 })
+
+test('tênis: superfície e backhand só aparecem no tênis (beach tennis não)', () => {
+  const pratica = praticaDoEsporte('tenis')
+  deepEqual(
+    safeRespostas({ esporte: 'beachTennis', superficie: 'saibro', backhand: 'umaMao', estilo: 'rede' }, pratica),
+    { esporte: 'beachTennis', estilo: 'rede' },
+  )
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          esporte: 'tenis',
+          formato: 'duplas',
+          superficie: 'saibro',
+          backhand: 'duasMaos',
+          gestos: ['saque', 'slice'],
+          volumeSessoes: '3',
+          volumeMinutos: '90',
+          mudancaCarga: 'sim',
+          gestoSintoma: 'saque',
+        },
+      },
+      'tenis',
+    ),
+    [
+      'Esporte praticado: Tênis',
+      'Formato de jogo: Duplas',
+      'Superfície predominante: Saibro',
+      'Backhand: Duas mãos',
+      'Gestos frequentes: Saque, Slice',
+      'Volume de prática: 3 sessões/semana · 90 min/sessão',
+      'Houve mudança recente de carga ou equipamento? Sim',
+      'Qual gesto provoca sintomas ou apresenta dificuldade? Saque',
+    ],
+  )
+})
