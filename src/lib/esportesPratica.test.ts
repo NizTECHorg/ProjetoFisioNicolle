@@ -31,18 +31,18 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
         nivel: 'mestre',
         frequencia: 9,
         anosPratica: '   ',
-        volume: '4 treinos por semana',
-        modalidades: ['boxe', 'praia', 'boxe'],
-        caracteristicas: ['sparring', 'levantador'],
+        volume: '8 h de aula por semana',
+        modalidades: ['ballet', 'praia', 'ballet'],
+        caracteristicas: ['pontas', 'levantador'],
         sintomasMomentos: ['depois', 'antes'],
       },
-      'lutas',
+      'danca',
     ),
     {
       perfil: 'profissional',
-      volume: '4 treinos por semana',
-      modalidades: ['boxe'],
-      caracteristicas: ['sparring'],
+      volume: '8 h de aula por semana',
+      modalidades: ['ballet'],
+      caracteristicas: ['pontas'],
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -416,6 +416,47 @@ test('ciclismo: questionário próprio (pedal, bike fit, km/horas, situação do
       'Pedal mais longo habitual (horas): 3',
       'Tipos de treino frequentes: Endurance, Subidas',
       'Em qual situação aparecem os sintomas? Durante subidas',
+    ],
+  )
+})
+
+test('lutas: perguntas mudam conforme a arte; várias artes mostram as perguntas de cada uma', () => {
+  const pratica = praticaDoEsporte('lutas')
+  // Muay thai não pode guardar movimentos/queixa/preferência do jiu-jitsu
+  deepEqual(
+    safeRespostas(
+      { arte: 'muayThai', preferenciaCombate: 'guarda', movimentos_jiuJitsu: ['raspagens'], movimentos_muayThai: ['chutes'] },
+      pratica,
+    ),
+    { arte: 'muayThai', movimentos_muayThai: ['chutes'] },
+  )
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          arte: 'jiuJitsu',
+          outrasArtes: ['muayThai'],
+          contato: 'moderado',
+          preferenciaCombate: 'guarda',
+          movimentos_jiuJitsu: ['raspagens', 'finalizacoes'],
+          movimentos_muayThai: ['joelhadas'],
+          tempoTreinoMin: '90',
+          compete: 'nao',
+          queixa_jiuJitsu: 'finalizacoes',
+        },
+      },
+      'lutas',
+    ),
+    [
+      'Arte marcial principal: Jiu-jitsu',
+      'Outras lutas praticadas: Muay thai',
+      'Tipo de contato habitual: Sparring / rola moderado',
+      'Preferência durante o combate: Jogo de guarda',
+      'Movimentos frequentes — Jiu-jitsu: Raspagens, Chaves e finalizações',
+      'Movimentos frequentes — Muay thai: Joelhadas',
+      'Tempo médio de treino (minutos): 90',
+      'Participa de competições? Não',
+      'Movimento ou situação associada à queixa — Jiu-jitsu: Chaves e finalizações',
     ],
   )
 })

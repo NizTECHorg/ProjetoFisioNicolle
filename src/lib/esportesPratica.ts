@@ -27,7 +27,7 @@ export type Pergunta = {
   campos?: readonly CampoNumero[]
   placeholder?: string
   /** Só aparece (e só é guardada) quando outra resposta tem esse valor (ou o inclui, se for múltipla). */
-  mostrarSe?: { key: string; valor: string }
+  mostrarSe?: { key: string | readonly string[]; valor: string }
   /** Na múltipla escolha: opções que excluem as demais (ex.: "Nenhum"). */
   exclusivas?: readonly string[]
 }
@@ -62,7 +62,7 @@ const numeros = (key: string, rotulo: string, campos: CampoNumero[]): Pergunta =
 const textoLongo = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'textoLongo', placeholder })
 const textoCurto = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'texto', placeholder })
 /** Pergunta que só aparece quando `key` tem `valor`. */
-const se = (key: string, valor: string, p: Pergunta): Pergunta => ({ ...p, mostrarSe: { key, valor } })
+const se = (key: string | readonly string[], valor: string, p: Pergunta): Pergunta => ({ ...p, mostrarSe: { key, valor } })
 const secao = (titulo: string, perguntas: Pergunta[]): SecaoPerguntas => ({ titulo, perguntas })
 
 export const PERFIS_ESPORTIVOS: readonly OpcaoPratica[] = [
@@ -105,6 +105,76 @@ export const SINTOMAS_MAX = 600
 
 export function rotuloFrequencia(vezes: number): string {
   return vezes >= FREQUENCIA_MAX ? 'Todo dia' : `${vezes}x por semana`
+}
+
+const ARTES_MARCIAIS: OpcaoPratica[] = [
+  o('jiuJitsu', 'Jiu-jitsu'),
+  o('muayThai', 'Muay thai'),
+  o('boxe', 'Boxe'),
+  o('judo', 'Judô'),
+  o('karate', 'Karatê'),
+  o('taekwondo', 'Taekwondo'),
+  o('mma', 'MMA'),
+]
+
+/** Movimentos frequentes de cada arte (Jiu-jitsu do protótipo; as demais são rascunho clínico). */
+const MOVIMENTOS_LUTA: Record<string, OpcaoPratica[]> = {
+  jiuJitsu: [
+    o('guarda', 'Guarda e retenção'),
+    o('passagem', 'Passagem de guarda'),
+    o('raspagens', 'Raspagens'),
+    o('quedas', 'Quedas'),
+    o('finalizacoes', 'Chaves e finalizações'),
+    o('controleSolo', 'Controle no solo'),
+  ],
+  muayThai: [
+    o('chutes', 'Chutes'),
+    o('joelhadas', 'Joelhadas'),
+    o('cotoveladas', 'Cotoveladas'),
+    o('socos', 'Socos'),
+    o('clinch', 'Clinch'),
+    o('checagem', 'Bloqueio / checagem de chutes'),
+  ],
+  boxe: [
+    o('jabDireto', 'Jab / direto'),
+    o('cruzadoGancho', 'Cruzado / gancho'),
+    o('uppercut', 'Uppercut'),
+    o('esquivas', 'Esquivas / pêndulo'),
+    o('footwork', 'Deslocamento / footwork'),
+    o('bloqueios', 'Bloqueios / clinch'),
+  ],
+  judo: [
+    o('pegada', 'Pegada (kumikata)'),
+    o('projecoes', 'Projeções'),
+    o('quedas', 'Quedas (ukemi)'),
+    o('solo', 'Imobilizações / solo'),
+    o('chavesEstrangulamentos', 'Chaves e estrangulamentos'),
+    o('randori', 'Randori'),
+  ],
+  karate: [
+    o('socos', 'Socos'),
+    o('chutes', 'Chutes'),
+    o('bases', 'Bases e deslocamentos'),
+    o('kata', 'Kata'),
+    o('kumite', 'Kumite'),
+    o('bloqueios', 'Bloqueios'),
+  ],
+  taekwondo: [
+    o('chutesAltos', 'Chutes altos'),
+    o('chutesGiratorios', 'Chutes giratórios'),
+    o('chutesSalto', 'Chutes em salto'),
+    o('footwork', 'Deslocamentos / footwork'),
+    o('socos', 'Socos'),
+    o('bloqueios', 'Bloqueios'),
+  ],
+  mma: [
+    o('trocacao', 'Trocação em pé'),
+    o('takedowns', 'Quedas (takedowns)'),
+    o('defesaQueda', 'Defesa de queda'),
+    o('clinchGrade', 'Clinch / grade'),
+    o('groundPound', 'Ground and pound'),
+    o('finalizacoes', 'Finalizações'),
+  ],
 }
 
 const PRATICA_OUTRO: PraticaEsporte = { volumeDica: 'ex.: 4 h por semana', modalidades: [], caracteristicas: [] }
@@ -733,19 +803,65 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     ],
   },
   lutas: {
+    // Sem volume semanal no questionário (só duração do treino): mantém o campo genérico "Volume".
     volumeDica: 'ex.: 4 treinos de 1h30 por semana',
-    modalidades: [
-      o('jiuJitsu', 'Jiu-jitsu'),
-      o('muayThai', 'Muay thai'),
-      o('boxe', 'Boxe'),
-      o('judo', 'Judô'),
-      o('karate', 'Karatê'),
-      o('taekwondo', 'Taekwondo'),
-      o('mma', 'MMA'),
-    ],
-    caracteristicas: [
-      g('Treino', [o('sparring', 'Sparring / rola'), o('quedas', 'Quedas e projeções'), o('finalizacoes', 'Chaves e finalizações'), o('chutes', 'Chutes')]),
-      g('Competição', [o('compete', 'Compete'), o('cortePeso', 'Faz corte de peso')]),
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Modalidade e prática', [
+        selecao('arte', 'Arte marcial principal', ARTES_MARCIAIS),
+        // Para MMA ou quem pratica várias lutas: cada arte marcada mostra as próprias perguntas.
+        multipla('outrasArtes', 'Outras lutas praticadas (opcional)', ARTES_MARCIAIS),
+        unica('contato', 'Tipo de contato habitual', [
+          o('semContato', 'Treino técnico sem contato'),
+          o('leve', 'Contato leve / controlado'),
+          o('moderado', 'Sparring / rola moderado'),
+          o('intenso', 'Sparring intenso'),
+          o('variavel', 'Variável conforme o treino'),
+        ]),
+        se(
+          ['arte', 'outrasArtes'],
+          'jiuJitsu',
+          unica('preferenciaCombate', 'Preferência durante o combate', [
+            o('guarda', 'Jogo de guarda'),
+            o('porCima', 'Jogo por cima / passagem'),
+            o('misto', 'Misto'),
+          ]),
+        ),
+      ]),
+      secao('Demandas específicas', [
+        ...ARTES_MARCIAIS.map((arte) =>
+          se(['arte', 'outrasArtes'], arte.key, multipla(`movimentos_${arte.key}`, `Movimentos frequentes — ${arte.nome}`, MOVIMENTOS_LUTA[arte.key] ?? [])),
+        ),
+        numeros('tempoTreino', '', [
+          { key: 'tempoTreinoMin', rotulo: 'Tempo médio de treino (minutos)', sufixo: 'min', placeholder: 'Ex.: 90' },
+        ]),
+        unica('mudancaVolume', 'Houve mudança recente de volume ou intensidade?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Contexto competitivo', [simNao('compete', 'Participa de competições?')]),
+      secao('Sintomas e limitações', [
+        ...ARTES_MARCIAIS.map((arte) =>
+          se(
+            ['arte', 'outrasArtes'],
+            arte.key,
+            selecao(`queixa_${arte.key}`, `Movimento ou situação associada à queixa — ${arte.nome}`, [
+              ...(MOVIMENTOS_LUTA[arte.key] ?? []),
+              o('contatoImpacto', 'Contato / impacto'),
+              o('aposTreino', 'Após o treino'),
+              o('outro', 'Outro'),
+            ]),
+          ),
+        ),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade na modalidade',
+          'Ex.: dor ao finalizar, insegurança após queda, desconforto nos chutes...',
+        ),
+      ]),
     ],
   },
   handebol: {
@@ -895,8 +1011,12 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
 
 export function perguntaVisivel(p: Pergunta, respostas: Record<string, string | string[]> | undefined): boolean {
   if (!p.mostrarSe) return true
-  const v = respostas?.[p.mostrarSe.key]
-  return Array.isArray(v) ? v.includes(p.mostrarSe.valor) : v === p.mostrarSe.valor
+  const { key, valor } = p.mostrarSe
+  // Várias chaves: aparece se qualquer uma tiver o valor (ex.: arte principal OU outras artes).
+  return (typeof key === 'string' ? [key] : key).some((k) => {
+    const v = respostas?.[k]
+    return Array.isArray(v) ? v.includes(valor) : v === valor
+  })
 }
 
 /** Marca/desmarca na múltipla escolha respeitando a ordem do catálogo e as opções exclusivas. */
@@ -942,7 +1062,7 @@ export function linhasRespostas(respostas: Record<string, string | string[]> | u
         }
         continue
       }
-      const rotulo = p.rotulo.replace(/\s*\(múltipla escolha\)$/i, '')
+      const rotulo = p.rotulo.replace(/\s*\((múltipla escolha|opcional)\)$/i, '')
       let valor = ''
       if (p.tipo === 'numeros') {
         valor = (p.campos ?? [])
