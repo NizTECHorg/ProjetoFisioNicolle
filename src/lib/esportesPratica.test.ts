@@ -718,3 +718,30 @@ test('snowboard: questionário próprio; "como ocorreu a queda" só com queda', 
 test('todos os esportes do catálogo têm questionário próprio', () => {
   for (const esporte of ESPORTES) ok(praticaDoEsporte(esporte.key).secoes?.length, `sem questionário: ${esporte.key}`)
 })
+
+test('outro: modelo universal (submodalidade, ambiente, demandas, gestos) e sintomas genéricos', () => {
+  const pratica = praticaDoEsporte('outro')
+  ok(pratica.sintomasGenericos)
+  deepEqual(
+    resumoEsportes({
+      esportes: [
+        {
+          esporte: 'outro',
+          outro: 'Escalada',
+          respostas: { submodalidade: 'Boulder', ambiente: 'indoor', demandas: ['forca', 'coordenacao'] },
+          sintomas: 'Dor no dedo ao travar',
+        },
+      ],
+    })[0],
+    {
+      label: 'Escalada',
+      linhas: [
+        'Submodalidade ou especialidade: Boulder',
+        'Ambiente predominante: Indoor / ambiente fechado',
+        'Demandas físicas predominantes: Força, Coordenação',
+        'Sintomas na prática: Dor no dedo ao travar',
+      ],
+      problemas: [],
+    },
+  )
+})

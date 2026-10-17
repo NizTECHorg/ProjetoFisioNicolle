@@ -325,8 +325,8 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
               {entrada.esporte === ESPORTE_OUTRO ? (
                 <Input
                   id={`${idBase}-outro`}
-                  label="Qual esporte?"
-                  hint="Só o nome do esporte."
+                  label="Qual esporte pratica?"
+                  placeholder="Ex.: escalada, surf, remo, skate..."
                   maxLength={ESPORTE_OUTRO_MAX}
                   value={entrada.outro ?? ''}
                   disabled={disabled}
@@ -443,7 +443,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                 onChange={(event) => set({ praticaObs: event.target.value })}
               />
 
-              {pratica.secoes?.length ? null : (
+              {pratica.secoes?.length && !pratica.sintomasGenericos ? null : (
               <div className="space-y-3">
                 <SubTitulo>Sintomas na prática</SubTitulo>
                 <OpcoesChips

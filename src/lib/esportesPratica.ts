@@ -43,6 +43,8 @@ export type PraticaEsporte = {
   secoes?: readonly SecaoPerguntas[]
   /** O questionário já pergunta o volume: esconde o campo genérico "Volume". */
   volumeProprio?: boolean
+  /** Mantém o bloco genérico "Sintomas na prática" mesmo com questionário próprio. */
+  sintomasGenericos?: boolean
 }
 
 const o = (key: string, nome: string): OpcaoPratica => ({ key, nome })
@@ -190,7 +192,41 @@ const ESTILOS_DANCA: OpcaoPratica[] = [
   o('outra', 'Outra'),
 ]
 
-const PRATICA_OUTRO: PraticaEsporte = { volumeDica: 'ex.: 4 h por semana', modalidades: [], caracteristicas: [] }
+// Modelo universal para modalidades fora do catálogo. O nome do esporte usa o campo "outro" da entrada.
+const PRATICA_OUTRO: PraticaEsporte = {
+  volumeDica: 'ex.: 4 h por semana',
+  modalidades: [],
+  caracteristicas: [],
+  sintomasGenericos: true,
+  secoes: [
+    secao('Identificação da modalidade', [
+      textoCurto('submodalidade', 'Submodalidade ou especialidade', 'Ex.: boulder, surf de ondas grandes...'),
+      unica('ambiente', 'Ambiente predominante', [
+        o('indoor', 'Indoor / ambiente fechado'),
+        o('outdoor', 'Outdoor / ambiente externo'),
+        o('misto', 'Misto'),
+        o('naoSeAplica', 'Outro / não se aplica'),
+      ]),
+    ]),
+    secao('Características da prática', [
+      multipla('demandas', 'Demandas físicas predominantes (múltipla escolha)', [
+        o('forca', 'Força'),
+        o('potencia', 'Potência'),
+        o('resistencia', 'Resistência'),
+        o('mobilidade', 'Mobilidade'),
+        o('equilibrio', 'Equilíbrio'),
+        o('coordenacao', 'Coordenação'),
+        o('velocidade', 'Velocidade / agilidade'),
+        o('contato', 'Contato / impacto'),
+      ]),
+      textoLongo(
+        'movimentos',
+        'Movimentos e gestos específicos da modalidade',
+        'Ex.: suspensão pelos braços, remada, aterrissagens, rotações...',
+      ),
+    ]),
+  ],
+}
 
 export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   volei: {
