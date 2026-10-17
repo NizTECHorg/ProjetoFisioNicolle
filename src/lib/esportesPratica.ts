@@ -1257,10 +1257,99 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   ski: {
     volumeDica: 'ex.: 7 dias por temporada',
-    modalidades: [o('pista', 'Pista'), o('freeride', 'Fora de pista (freeride)'), o('park', 'Park / saltos'), o('crossCountry', 'Cross-country'), o('competicao', 'Competição')],
-    caracteristicas: [
-      g('Pistas', [o('faceis', 'Verde / azul'), o('dificeis', 'Vermelha / preta'), o('moguls', 'Moguls')]),
-      g('Temporada', [o('preparacao', 'Faz preparação física antes'), o('equipProprio', 'Equipamento próprio'), o('equipAlugado', 'Equipamento alugado')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e experiência', [
+        unica('modalidade', 'Modalidade principal', [
+          o('alpino', 'Esqui alpino / pista'),
+          o('freeride', 'Freeride / fora de pista'),
+          o('freestyle', 'Freestyle / park'),
+          o('crossCountry', 'Cross-country / esqui de fundo'),
+        ]),
+        unica('experiencia', 'Experiência acumulada', [
+          o('primeira', 'Primeira temporada'),
+          o('1a3', '1–3 temporadas'),
+          o('4a10', '4–10 temporadas'),
+          o('mais10', 'Mais de 10 temporadas'),
+        ]),
+        numeros('volume', '', [
+          { key: 'diasTemporada', rotulo: 'Dias por temporada', sufixo: 'dias/temporada', placeholder: 'Ex.: 10' },
+          { key: 'horasDia', rotulo: 'Horas por dia', sufixo: 'h/dia', placeholder: 'Ex.: 5' },
+        ]),
+      ]),
+      secao('Terreno e técnica', [
+        multipla('terrenos', 'Terrenos habitualmente praticados', [
+          o('preparada', 'Pista preparada'),
+          o('ingreme', 'Pista íngreme'),
+          o('moguls', 'Moguls / bumps'),
+          o('irregular', 'Neve irregular'),
+          o('powder', 'Powder / neve profunda'),
+          o('park', 'Park / saltos'),
+        ]),
+        unica('curva', 'Tipo de curva predominante', [
+          o('cunha', 'Cunha / snowplow'),
+          o('paralelas', 'Curvas paralelas'),
+          o('carving', 'Carving'),
+          o('derrapadas', 'Curvas derrapadas / skidded'),
+          o('misto', 'Misto'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+        multipla('dificuldades', 'Dificuldades específicas (múltipla escolha)', [
+          o('velocidade', 'Controle de velocidade'),
+          o('curvasUmLado', 'Curvas para um lado'),
+          o('esquiExterno', 'Carga no esqui externo'),
+          o('terrenoIrregular', 'Terreno irregular'),
+          o('impactos', 'Absorção de impactos'),
+          o('fadiga', 'Fadiga nas descidas'),
+          o('equilibrio', 'Equilíbrio'),
+          o('saltos', 'Saltos / aterrissagens'),
+        ]),
+      ]),
+      secao('Preparação e equipamento', [
+        unica('preparacao', 'Preparação física habitual', [
+          o('especifico', 'Treinamento específico para esqui'),
+          o('geral', 'Treinamento físico geral'),
+          o('nenhuma', 'Não realiza preparação'),
+        ]),
+        unica('equipamento', 'Equipamento utilizado', [
+          o('proprio', 'Próprio'),
+          o('alugado', 'Alugado'),
+          o('ambos', 'Ambos'),
+        ]),
+        unica('mudanca', 'Houve mudança recente de equipamento ou volume?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas durante a prática?'),
+        se(
+          'temSintomas',
+          'sim',
+          selecao('situacao', 'Em qual situação?', [
+            o('curvas', 'Durante as curvas'),
+            o('esquiExterno', 'Ao carregar o esqui externo'),
+            o('frenagem', 'Na frenagem / derrapagem'),
+            o('irregular', 'Em terreno irregular'),
+            o('descidas', 'Após descidas prolongadas'),
+            o('aterrissagens', 'Nas aterrissagens'),
+            o('queda', 'Após queda'),
+            o('outro', 'Outro'),
+          ]),
+        ),
+        se(
+          'temSintomas',
+          'sim',
+          textoLongo(
+            'limitacao',
+            'Principal limitação',
+            'Ex.: dor no joelho durante curvas à direita, fadiga intensa nas descidas...',
+          ),
+        ),
+      ]),
     ],
   },
   snowboard: {

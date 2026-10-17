@@ -33,16 +33,16 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
         anosPratica: '   ',
         volume: '7 dias por temporada',
         modalidades: ['freeride', 'praia', 'freeride'],
-        caracteristicas: ['moguls', 'levantador'],
+        caracteristicas: ['goofy', 'levantador'],
         sintomasMomentos: ['depois', 'antes'],
       },
-      'ski',
+      'snowboard',
     ),
     {
       perfil: 'profissional',
       volume: '7 dias por temporada',
       modalidades: ['freeride'],
-      caracteristicas: ['moguls'],
+      caracteristicas: ['goofy'],
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -634,6 +634,47 @@ test('pilates/yoga: perguntas alternam entre Pilates e Yoga; aparelhos só com a
       'Apresenta sintomas ou dificuldade durante a prática? Sim',
       'Movimento ou postura relacionada à queixa: Ponte',
       'Em qual situação aparece? Ao sustentar a posição',
+    ],
+  )
+})
+
+test('ski: questionário próprio; situação e limitação só com sintomas', () => {
+  const pratica = praticaDoEsporte('ski')
+  ok(pratica.volumeProprio)
+  deepEqual(safeRespostas({ temSintomas: 'nao', situacao: 'queda', limitacao: 'dor' }, pratica), { temSintomas: 'nao' })
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          modalidade: 'alpino',
+          experiencia: '4a10',
+          diasTemporada: '10',
+          horasDia: '5',
+          terrenos: ['preparada', 'moguls'],
+          curva: 'paralelas',
+          dificuldades: ['curvasUmLado'],
+          preparacao: 'geral',
+          equipamento: 'alugado',
+          temSintomas: 'sim',
+          situacao: 'esquiExterno',
+          limitacao: 'Dor no joelho nas curvas à direita',
+        },
+      },
+      'ski',
+    ),
+    [
+      'Modalidade principal: Esqui alpino / pista',
+      'Experiência acumulada: 4–10 temporadas',
+      'Dias por temporada: 10',
+      'Horas por dia: 5',
+      'Terrenos habitualmente praticados: Pista preparada, Moguls / bumps',
+      'Tipo de curva predominante: Curvas paralelas',
+      'Dificuldades específicas: Curvas para um lado',
+      'Preparação física habitual: Treinamento físico geral',
+      'Equipamento utilizado: Alugado',
+      'Apresenta sintomas durante a prática? Sim',
+      'Em qual situação? Ao carregar o esqui externo',
+      'Principal limitação: Dor no joelho nas curvas à direita',
     ],
   )
 })
