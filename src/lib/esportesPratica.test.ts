@@ -23,7 +23,7 @@ test('avaliação esportiva: todo esporte do catálogo tem prática, chaves úni
   }
 })
 
-test('avaliação esportiva: descarta opção de outro esporte, frequência inválida e texto vazio', () => {
+test('avaliação esportiva: descarta campos antigos, frequência inválida e texto vazio', () => {
   deepEqual(
     safeAvaliacaoPratica(
       {
@@ -41,8 +41,7 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
     {
       perfil: 'profissional',
       volume: '7 dias por temporada',
-      modalidades: ['freeride'],
-      caracteristicas: ['goofy'],
+      // Esporte com questionário próprio: modalidades/características antigas não valem mais.
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -677,4 +676,45 @@ test('ski: questionário próprio; situação e limitação só com sintomas', (
       'Principal limitação: Dor no joelho nas curvas à direita',
     ],
   )
+})
+
+test('snowboard: questionário próprio; "como ocorreu a queda" só com queda', () => {
+  const pratica = praticaDoEsporte('snowboard')
+  ok(pratica.volumeProprio)
+  deepEqual(safeRespostas({ queda: 'nao', comoQueda: 'punho', situacao: 'heel' }, pratica), { queda: 'nao', situacao: 'heel' })
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          tipoPratica: ['pista', 'park'],
+          base: 'goofy',
+          switch: 'aprendendo',
+          diasTemporada: '10',
+          terreno: 'variado',
+          borda: 'heel',
+          protecao: ['capacete', 'punho'],
+          queda: 'sim',
+          comoQueda: 'punho',
+          situacao: 'aposQueda',
+        },
+      },
+      'snowboard',
+    ),
+    [
+      'Tipo de prática: Pista, Park / freestyle',
+      'Base habitual: Goofy — pé direito à frente',
+      'Pratica switch? Aprendendo',
+      'Dias por temporada: 10',
+      'Terreno predominante: Terreno variado',
+      'Apresenta maior dificuldade em alguma borda? Heel edge — borda dos calcanhares',
+      'Equipamentos de proteção utilizados: Capacete, Protetor de punho',
+      'Teve queda com lesão ou sintomas recentes? Sim',
+      'Como ocorreu a queda? Apoio sobre a mão / punho',
+      'Situação relacionada aos sintomas ou limitação: Após queda',
+    ],
+  )
+})
+
+test('todos os esportes do catálogo têm questionário próprio', () => {
+  for (const esporte of ESPORTES) ok(praticaDoEsporte(esporte.key).secoes?.length, `sem questionário: ${esporte.key}`)
 })

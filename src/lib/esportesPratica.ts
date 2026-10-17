@@ -46,7 +46,6 @@ export type PraticaEsporte = {
 }
 
 const o = (key: string, nome: string): OpcaoPratica => ({ key, nome })
-const g = (titulo: string, opcoes: OpcaoPratica[]): GrupoPratica => ({ titulo, opcoes })
 
 export const RESPOSTA_TEXTO_MAX = 600
 export const RESPOSTA_NUMERO_MAX = 6
@@ -1354,10 +1353,104 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   snowboard: {
     volumeDica: 'ex.: 7 dias por temporada',
-    modalidades: [o('pista', 'Pista'), o('park', 'Park / freestyle'), o('freeride', 'Fora de pista (freeride)'), o('competicao', 'Competição')],
-    caracteristicas: [
-      g('Base', [o('regular', 'Regular (pé esquerdo à frente)'), o('goofy', 'Goofy (pé direito à frente)')]),
-      g('Temporada', [o('preparacao', 'Faz preparação física antes'), o('equipProprio', 'Equipamento próprio'), o('equipAlugado', 'Equipamento alugado'), o('protetorPunho', 'Usa protetor de punho')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e experiência', [
+        multipla('tipoPratica', 'Tipo de prática (múltipla escolha)', [
+          o('pista', 'Pista'),
+          o('freeride', 'Freeride / fora de pista'),
+          o('park', 'Park / freestyle'),
+          o('competicao', 'Competição'),
+        ]),
+        unica('base', 'Base habitual', [
+          o('regular', 'Regular — pé esquerdo à frente'),
+          o('goofy', 'Goofy — pé direito à frente'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+        unica('switch', 'Pratica switch?', [o('sim', 'Sim'), o('nao', 'Não'), o('aprendendo', 'Aprendendo')]),
+        numeros('volume', '', [
+          { key: 'diasTemporada', rotulo: 'Dias por temporada', sufixo: 'dias/temporada', placeholder: 'Ex.: 10' },
+          { key: 'horasDia', rotulo: 'Horas médias por dia', sufixo: 'h/dia', placeholder: 'Ex.: 5' },
+        ]),
+      ]),
+      secao('Terreno e controle da prancha', [
+        selecao('terreno', 'Terreno predominante', [
+          o('preparada', 'Pista preparada'),
+          o('ingreme', 'Pista íngreme'),
+          o('irregular', 'Neve irregular'),
+          o('powder', 'Powder / neve profunda'),
+          o('park', 'Park / saltos'),
+          o('variado', 'Terreno variado'),
+        ]),
+        unica('borda', 'Apresenta maior dificuldade em alguma borda?', [
+          o('toe', 'Toe edge — borda dos dedos'),
+          o('heel', 'Heel edge — borda dos calcanhares'),
+          o('ambas', 'Ambas'),
+          o('nenhuma', 'Sem dificuldade específica'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+        multipla('dificuldades', 'Outras dificuldades (múltipla escolha)', [
+          o('velocidade', 'Controle de velocidade'),
+          o('transicao', 'Transição entre bordas'),
+          o('curvasUmLado', 'Curvas para um lado'),
+          o('terrenoIrregular', 'Terreno irregular'),
+          o('equilibrio', 'Equilíbrio'),
+          o('impactos', 'Absorção de impactos'),
+          o('saltos', 'Saltos / aterrissagens'),
+          o('fadiga', 'Fadiga nas descidas'),
+        ]),
+      ]),
+      secao('Equipamento e preparação', [
+        unica('preparacao', 'Preparação física antes da temporada', [
+          o('especifico', 'Treinamento específico'),
+          o('geral', 'Treinamento físico geral'),
+          o('nenhuma', 'Não realiza'),
+        ]),
+        multipla('protecao', 'Equipamentos de proteção utilizados', [
+          o('capacete', 'Capacete'),
+          o('punho', 'Protetor de punho'),
+          o('quadril', 'Proteção de quadril / cóccix'),
+          o('coluna', 'Protetor de coluna'),
+        ]),
+        unica('mudancaEquipamento', 'Houve mudança recente na prancha, botas ou fixações?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Histórico de quedas e sintomas', [
+        simNao('queda', 'Teve queda com lesão ou sintomas recentes?'),
+        se(
+          'queda',
+          'sim',
+          selecao('comoQueda', 'Como ocorreu a queda?', [
+            o('punho', 'Apoio sobre a mão / punho'),
+            o('ombro', 'Impacto no ombro'),
+            o('coccix', 'Impacto no cóccix / quadril'),
+            o('cabeca', 'Impacto na cabeça'),
+            o('torcao', 'Torção de joelho / tornozelo'),
+            o('outro', 'Outro mecanismo'),
+          ]),
+        ),
+        selecao('situacao', 'Situação relacionada aos sintomas ou limitação', [
+          o('toe', 'Toe edge'),
+          o('heel', 'Heel edge'),
+          o('transicao', 'Transição entre bordas'),
+          o('frenagem', 'Frenagem'),
+          o('irregular', 'Terreno irregular'),
+          o('saltos', 'Saltos / aterrissagens'),
+          o('aposQueda', 'Após queda'),
+          o('descida', 'Descida prolongada'),
+          o('outro', 'Outro'),
+        ]),
+        textoLongo(
+          'limitacao',
+          'Principal limitação esportiva',
+          'Ex.: insegurança na heel edge, dor no punho após queda, perda de controle nas curvas...',
+        ),
+      ]),
     ],
   },
 }
