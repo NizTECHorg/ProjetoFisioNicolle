@@ -1,6 +1,6 @@
 import { Activity } from 'lucide-react'
-import homiLp from '@/assets/landing/homi-lp.webp'
-import muirLp from '@/assets/landing/muir-lp.webp'
+import mapaHomem from '@/assets/landing/mapa-homem.webp'
+import mapaMulher from '@/assets/landing/mapa-mulher.webp'
 
 // Posições medidas sobre as figuras (frente ~25% e costas ~74% da largura da imagem).
 const PONTOS_A = [
@@ -26,14 +26,14 @@ export function BodyMapMockup() {
   return (
     <div aria-hidden="true" className="max-w-full rounded-xl border border-line bg-surface p-4 shadow-sm">
       <div className="grid grid-cols-2 gap-4">
-        <div className="relative aspect-[640/623] rounded-xl bg-canvas">
-          <img src={homiLp} width={640} height={623} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
+        <div className="relative aspect-[1271/1238] rounded-xl bg-canvas">
+          <img src={mapaHomem} width={960} height={935} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
           {PONTOS_A.map((p, i) => (
             <Ponto key={i} {...p} delay={i * 0.25} />
           ))}
         </div>
-        <div className="relative aspect-[640/623] rounded-xl bg-canvas">
-          <img src={muirLp} width={640} height={623} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
+        <div className="relative aspect-[1271/1238] rounded-xl bg-canvas">
+          <img src={mapaMulher} width={960} height={935} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
           {PONTOS_B.map((p, i) => (
             <Ponto key={i} {...p} delay={0.5} />
           ))}

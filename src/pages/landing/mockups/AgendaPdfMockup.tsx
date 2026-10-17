@@ -31,7 +31,8 @@ export function AgendaPdfMockup() {
                     <span
                       key={j}
                       className={[
-                        'lp-m-pop flex h-7 items-center justify-center rounded-md text-[10px] font-semibold',
+                        // Círculo do tamanho da coluna (até 28px): no celular a coluna é estreita, então a fonte diminui.
+                        'lp-m-pop mx-auto flex aspect-square w-full max-w-7 shrink-0 items-center justify-center rounded-full text-[8px] font-semibold leading-none sm:text-[10px]',
                         b.repete ? 'bg-accent text-white' : 'bg-accent-soft text-[#1e3a8a]',
                       ].join(' ')}
                       style={{ animationDelay: `${delay}s` }}
