@@ -26,8 +26,10 @@ export type Pergunta = {
   opcoes?: readonly OpcaoPratica[]
   campos?: readonly CampoNumero[]
   placeholder?: string
-  /** Só aparece (e só é guardada) quando outra resposta tem esse valor. Ex.: { key: 'trocaCalcado', valor: 'sim' }. */
+  /** Só aparece (e só é guardada) quando outra resposta tem esse valor (ou o inclui, se for múltipla). */
   mostrarSe?: { key: string; valor: string }
+  /** Na múltipla escolha: opções que excluem as demais (ex.: "Nenhum"). */
+  exclusivas?: readonly string[]
 }
 
 export type SecaoPerguntas = { titulo: string; perguntas: readonly Pergunta[] }
@@ -443,11 +445,91 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   natacao: {
     volumeDica: 'ex.: 6 km por semana',
-    modalidades: [o('piscina', 'Piscina'), o('aguasAbertas', 'Águas abertas'), o('master', 'Master / competição')],
-    caracteristicas: [
-      g('Estilos', [o('crawl', 'Crawl'), o('costas', 'Costas'), o('peito', 'Peito'), o('borboleta', 'Borboleta'), o('medley', 'Medley')]),
-      g('Acessórios', [o('palmar', 'Palmar'), o('nadadeira', 'Nadadeira'), o('pullBuoy', 'Pull buoy')]),
-      g('Respiração', [o('respiraUmLado', 'Respira para um lado só'), o('respiraBilateral', 'Respiração bilateral')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e características', [
+        unica('ambiente', 'Ambiente de prática', [
+          o('piscina', 'Piscina'),
+          o('aguasAbertas', 'Águas abertas'),
+          o('ambos', 'Ambos'),
+        ]),
+        multipla('estilos', 'Estilos praticados (múltipla escolha)', [
+          o('crawl', 'Crawl'),
+          o('costas', 'Costas'),
+          o('peito', 'Peito'),
+          o('borboleta', 'Borboleta'),
+          o('medley', 'Medley'),
+        ]),
+        selecao('estiloPredominante', 'Estilo predominante', [
+          o('crawl', 'Crawl'),
+          o('costas', 'Costas'),
+          o('peito', 'Peito'),
+          o('borboleta', 'Borboleta'),
+          o('medley', 'Medley'),
+        ]),
+        se(
+          'estilos',
+          'crawl',
+          unica('respiracaoCrawl', 'Padrão respiratório habitual no crawl', [
+            o('direita', 'Predominantemente à direita'),
+            o('esquerda', 'Predominantemente à esquerda'),
+            o('alterna', 'Alterna os lados'),
+            o('variavel', 'Variável'),
+          ]),
+        ),
+      ]),
+      secao('Treinamento e carga', [
+        numeros('volume', '', [
+          { key: 'volumeKm', rotulo: 'Volume semanal (km)', sufixo: 'km/semana', placeholder: 'Ex.: 6' },
+          { key: 'mediaSessaoM', rotulo: 'Média por sessão (m)', sufixo: 'm/sessão', placeholder: 'Ex.: 2000' },
+        ]),
+        unica('tipoTreino', 'Tipo de treinamento predominante', [
+          o('tecnica', 'Técnica'),
+          o('resistencia', 'Resistência / contínuo'),
+          o('intervalado', 'Intervalado / velocidade'),
+          o('misto', 'Misto'),
+        ]),
+        {
+          ...multipla('acessorios', 'Acessórios utilizados regularmente', [
+            o('palmar', 'Palmar'),
+            o('nadadeira', 'Nadadeira'),
+            o('pullBuoy', 'Pull buoy'),
+            o('prancha', 'Prancha'),
+            o('snorkel', 'Snorkel frontal'),
+            o('nenhum', 'Nenhum'),
+          ]),
+          exclusivas: ['nenhum'],
+        },
+        unica('mudancaCarga', 'Houve mudança de carga ou equipamento recentemente?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e dificuldades', [
+        simNao('temSintomas', 'Apresenta sintomas ou limitações na natação?'),
+        se(
+          'temSintomas',
+          'sim',
+          selecao('momentoSintoma', 'Em qual momento ou gesto?', [
+            o('entradaMao', 'Entrada da mão na água'),
+            o('tracao', 'Tração / propulsão submersa'),
+            o('recuperacao', 'Recuperação aérea do braço'),
+            o('respiracao', 'Respiração / rotação do tronco'),
+            o('pernada', 'Pernada'),
+            o('virada', 'Virada / impulsão na parede'),
+            o('aposDistancia', 'Após determinada distância'),
+            o('semFase', 'Sem fase específica'),
+          ]),
+        ),
+        textoLongo(
+          'descricao',
+          'Descrição da dificuldade',
+          'Ex.: dor no ombro durante a recuperação, desconforto na pernada de peito...',
+        ),
+      ]),
     ],
   },
   musculacao: {
@@ -626,7 +708,9 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
       }
       const v = raw[p.key]
       if (p.tipo === 'multipla') {
-        const keys = filtrarOpcoes(v, p.opcoes ?? [])
+        let keys = filtrarOpcoes(v, p.opcoes ?? [])
+        // "Nenhum" junto com outras opções não faz sentido: ficam as outras.
+        if (keys.length > 1) keys = keys.filter((k) => !(p.exclusivas ?? []).includes(k))
         if (keys.length) out[p.key] = keys
       } else if (p.tipo === 'textoLongo' || p.tipo === 'texto') {
         const t = texto(v, p.tipo === 'texto' ? RESPOSTA_TEXTO_CURTO_MAX : RESPOSTA_TEXTO_MAX)
@@ -642,7 +726,18 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
 
 export function perguntaVisivel(p: Pergunta, respostas: Record<string, string | string[]> | undefined): boolean {
   if (!p.mostrarSe) return true
-  return respostas?.[p.mostrarSe.key] === p.mostrarSe.valor
+  const v = respostas?.[p.mostrarSe.key]
+  return Array.isArray(v) ? v.includes(p.mostrarSe.valor) : v === p.mostrarSe.valor
+}
+
+/** Marca/desmarca na múltipla escolha respeitando a ordem do catálogo e as opções exclusivas. */
+export function alternarMultipla(p: Pergunta, marcadas: readonly string[], key: string): string[] {
+  const exclusivas = p.exclusivas ?? []
+  let proximo: string[]
+  if (marcadas.includes(key)) proximo = marcadas.filter((k) => k !== key)
+  else if (exclusivas.includes(key)) proximo = [key]
+  else proximo = [...marcadas.filter((k) => !exclusivas.includes(k)), key]
+  return (p.opcoes ?? []).map((op) => op.key).filter((k) => proximo.includes(k))
 }
 
 function chavesDaPergunta(p: Pergunta): string[] {

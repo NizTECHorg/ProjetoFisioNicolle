@@ -5,6 +5,7 @@ import {
   RESPOSTA_NUMERO_MAX,
   RESPOSTA_TEXTO_CURTO_MAX,
   RESPOSTA_TEXTO_MAX,
+  alternarMultipla,
   perguntaVisivel,
   podarRespostas,
   type Pergunta,
@@ -98,15 +99,7 @@ export function QuestionarioEsporte({ idBase, secoes, respostas, onChange, disab
                     className="mt-0.5 h-4 w-4 shrink-0 accent-forest"
                     checked={marcado}
                     disabled={disabled}
-                    onChange={() =>
-                      definir(
-                        p.key,
-                        // Mantém a ordem do catálogo.
-                        opcoes
-                          .map((item) => item.key)
-                          .filter((key) => (key === op.key ? !marcado : marcadas.includes(key))),
-                      )
-                    }
+                    onChange={() => definir(p.key, alternarMultipla(p, marcadas, op.key))}
                   />
                   <span>{op.nome}</span>
                 </label>

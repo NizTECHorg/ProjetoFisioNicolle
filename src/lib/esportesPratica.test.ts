@@ -1,7 +1,14 @@
 import { test } from 'node:test'
 import { deepEqual, equal, ok } from 'node:assert/strict'
 import { ESPORTES, resumoEsportes, safeEsportesLista } from './esportesAvaliacao.ts'
-import { PRATICAS, linhasAvaliacaoPratica, praticaDoEsporte, safeAvaliacaoPratica, safeRespostas } from './esportesPratica.ts'
+import {
+  PRATICAS,
+  alternarMultipla,
+  linhasAvaliacaoPratica,
+  praticaDoEsporte,
+  safeAvaliacaoPratica,
+  safeRespostas,
+} from './esportesPratica.ts'
 import { emptyEvaluationFicha, evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 
 test('avaliação esportiva: todo esporte do catálogo tem prática, chaves únicas por esporte', () => {
@@ -269,6 +276,49 @@ test('tênis: superfície e backhand só aparecem no tênis (beach tennis não)'
       'Volume de prática: 3 sessões/semana · 90 min/sessão',
       'Houve mudança recente de carga ou equipamento? Sim',
       'Qual gesto provoca sintomas ou apresenta dificuldade? Saque',
+    ],
+  )
+})
+
+test('natação: respiração do crawl depende de "Crawl" nos estilos; "Nenhum" é exclusivo', () => {
+  const pratica = praticaDoEsporte('natacao')
+  deepEqual(safeRespostas({ estilos: ['peito'], respiracaoCrawl: 'direita' }, pratica), { estilos: ['peito'] })
+  deepEqual(safeRespostas({ estilos: ['crawl', 'peito'], respiracaoCrawl: 'alterna' }, pratica), {
+    estilos: ['crawl', 'peito'],
+    respiracaoCrawl: 'alterna',
+  })
+  deepEqual(safeRespostas({ acessorios: ['nenhum', 'palmar'] }, pratica), { acessorios: ['palmar'] })
+  const acessorios = pratica.secoes?.[1]?.perguntas.find((p) => p.key === 'acessorios')
+  ok(acessorios)
+  deepEqual(alternarMultipla(acessorios, ['palmar', 'prancha'], 'nenhum'), ['nenhum'])
+  deepEqual(alternarMultipla(acessorios, ['nenhum'], 'nadadeira'), ['nadadeira'])
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          ambiente: 'aguasAbertas',
+          estilos: ['crawl'],
+          estiloPredominante: 'crawl',
+          respiracaoCrawl: 'direita',
+          volumeKm: '6',
+          mediaSessaoM: '2000',
+          tipoTreino: 'resistencia',
+          temSintomas: 'sim',
+          momentoSintoma: 'recuperacao',
+        },
+      },
+      'natacao',
+    ),
+    [
+      'Ambiente de prática: Águas abertas',
+      'Estilos praticados: Crawl',
+      'Estilo predominante: Crawl',
+      'Padrão respiratório habitual no crawl: Predominantemente à direita',
+      'Volume semanal (km): 6',
+      'Média por sessão (m): 2000',
+      'Tipo de treinamento predominante: Resistência / contínuo',
+      'Apresenta sintomas ou limitações na natação? Sim',
+      'Em qual momento ou gesto? Recuperação aérea do braço',
     ],
   )
 })
