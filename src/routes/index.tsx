@@ -31,6 +31,9 @@ const AutonomoFinancePage = lazy(() =>
     default: m.AutonomoFinancePage,
   })),
 )
+const TermsPage = lazy(() =>
+  import('@/pages/TermsPage').then((m) => ({ default: m.TermsPage })),
+)
 const PatientPage = lazy(() =>
   import('@/pages/PatientPage').then((m) => ({ default: m.PatientPage })),
 )
@@ -86,7 +89,7 @@ export function AppRoutes() {
               <Route path="/quadro" element={<KanbanPage />} />
               <Route path="/kanban" element={<Navigate to="/quadro" replace />} />
               <Route path="/conta" element={<AccountPage />} />
-              <Route path="/termos" element={<UnderConstructionPage />} />
+              <Route path="/termos" element={<TermsPage />} />
               <Route path="/testes-especiais" element={<UnderConstructionPage />} />
             </Route>
           </Route>
