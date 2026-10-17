@@ -322,3 +322,38 @@ test('natação: respiração do crawl depende de "Crawl" nos estilos; "Nenhum" 
     ],
   )
 })
+
+test('musculação: questionário próprio sem volume (campo genérico continua)', () => {
+  const pratica = praticaDoEsporte('musculacao')
+  ok(!pratica.volumeProprio)
+  deepEqual(safeRespostas({ temSintomas: 'nao', exercicioSintoma: 'supino', momentoSintoma: 'apos' }, pratica), {
+    temSintomas: 'nao',
+  })
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        volume: '5 treinos de 1 h',
+        respostas: {
+          tipoPratica: 'powerlifting',
+          objetivos: ['forcaMaxima'],
+          exercicios: ['agachamento', 'supino'],
+          intensidade: 'moderada',
+          temSintomas: 'sim',
+          exercicioSintoma: 'Agachamento livre',
+          momentoSintoma: 'excentrica',
+        },
+      },
+      'musculacao',
+    ),
+    [
+      'Volume: 5 treinos de 1 h',
+      'Tipo de prática: Powerlifting',
+      'Objetivos: Força máxima',
+      'Padrões ou exercícios praticados regularmente: Agachamento, Supino',
+      'Intensidade habitual percebida: Moderada — algumas repetições em reserva',
+      'Apresenta sintomas ou dificuldade no treino? Sim',
+      'Exercício associado aos sintomas: Agachamento livre',
+      'Em qual momento do exercício? Durante a descida / fase excêntrica',
+    ],
+  )
+})

@@ -533,12 +533,79 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     ],
   },
   musculacao: {
+    // Sem pergunta de volume no questionário: mantém o campo genérico "Volume".
     volumeDica: 'ex.: 5 treinos de 1 h por semana',
-    modalidades: [o('hipertrofia', 'Hipertrofia'), o('forca', 'Força'), o('powerlifting', 'Powerlifting'), o('condicionamento', 'Condicionamento / saúde')],
-    caracteristicas: [
-      g('Divisão do treino', [o('fullBody', 'Corpo todo'), o('divisaoGrupos', 'Divisão por grupos (ABC…)'), o('superiorInferior', 'Superiores / inferiores')]),
-      g('Exercícios principais', [o('agachamento', 'Agachamento'), o('levantamentoTerra', 'Levantamento terra'), o('supino', 'Supino'), o('desenvolvimento', 'Desenvolvimento (acima da cabeça)')]),
-      g('Carga', [o('cargasAltas', 'Cargas perto da máxima'), o('aumentoRecente', 'Aumento recente de carga')]),
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Características do treinamento', [
+        unica('tipoPratica', 'Tipo de prática', [
+          o('convencional', 'Musculação convencional'),
+          o('powerlifting', 'Powerlifting'),
+          o('outroResistido', 'Outro treinamento resistido'),
+        ]),
+        multipla('objetivos', 'Objetivos (múltipla escolha)', [
+          o('hipertrofia', 'Hipertrofia'),
+          o('forcaMaxima', 'Força máxima'),
+          o('resistencia', 'Resistência muscular'),
+          o('saude', 'Saúde/condicionamento'),
+          o('reabilitacao', 'Reabilitação'),
+          o('outro', 'Outro'),
+        ]),
+        unica('divisao', 'Divisão do treinamento', [
+          o('fullBody', 'Corpo todo (full body)'),
+          o('grupos', 'Divisão por grupos musculares (ABC etc.)'),
+          o('superioresInferiores', 'Superiores / inferiores'),
+          o('outra', 'Outra'),
+        ]),
+      ]),
+      secao('Exercícios e carga', [
+        multipla('exercicios', 'Padrões ou exercícios praticados regularmente', [
+          o('agachamento', 'Agachamento'),
+          o('terra', 'Levantamento terra'),
+          o('supino', 'Supino'),
+          o('desenvolvimento', 'Desenvolvimento'),
+          o('remadas', 'Remadas / puxadas'),
+          o('afundo', 'Afundo / unilateral'),
+          o('isolados', 'Exercícios isolados'),
+          o('outros', 'Outros'),
+        ]),
+        unica('intensidade', 'Intensidade habitual percebida', [
+          o('leve', 'Leve — longe da falha'),
+          o('moderada', 'Moderada — algumas repetições em reserva'),
+          o('alta', 'Alta — frequentemente próximo da falha'),
+          o('variavel', 'Variável conforme o treino'),
+        ]),
+        unica('mudancaTreino', 'Houve mudança recente no treinamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas ou dificuldade no treino?'),
+        se(
+          'temSintomas',
+          'sim',
+          textoCurto('exercicioSintoma', 'Exercício associado aos sintomas', 'Ex.: agachamento livre, supino, terra...'),
+        ),
+        se(
+          'temSintomas',
+          'sim',
+          unica('momentoSintoma', 'Em qual momento do exercício?', [
+            o('excentrica', 'Durante a descida / fase excêntrica'),
+            o('concentrica', 'Durante a subida / fase concêntrica'),
+            o('posicao', 'Em determinada posição ou amplitude'),
+            o('fadiga', 'Com aumento da fadiga ou das repetições'),
+            o('apos', 'Após o exercício'),
+          ]),
+        ),
+        textoLongo(
+          'limitacao',
+          'Principal limitação',
+          'Ex.: dor com cargas elevadas, dificuldade na amplitude, perda de força...',
+        ),
+      ]),
     ],
   },
   crossfit: {

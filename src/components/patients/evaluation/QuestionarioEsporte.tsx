@@ -59,7 +59,8 @@ export function QuestionarioEsporte({ idBase, secoes, respostas, onChange, disab
 
     if (p.tipo === 'unica' || p.tipo === 'simNao') {
       const marcada = texto(p.key)
-      const emLinha = p.tipo === 'simNao' || opcoes.length <= 3
+      // Até 3 opções curtas ficam lado a lado; opções longas ficam uma por linha.
+      const emLinha = p.tipo === 'simNao' || (opcoes.length <= 3 && opcoes.every((op) => op.nome.length <= 14))
       return (
         <fieldset key={p.key} className="space-y-1.5">
           <legend className="pb-1 text-sm font-medium text-muted">{p.rotulo}</legend>
