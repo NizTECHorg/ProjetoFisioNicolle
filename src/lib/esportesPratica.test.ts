@@ -745,3 +745,42 @@ test('outro: modelo universal (submodalidade, ambiente, demandas, gestos) e sint
     },
   )
 })
+
+test('surf: novo esporte com questionário próprio e problemas frequentes', () => {
+  const pratica = praticaDoEsporte('surf')
+  ok(pratica.volumeProprio)
+  deepEqual(
+    resumoEsportes({
+      esportes: [
+        {
+          esporte: 'surf',
+          respostas: {
+            prancha: 'shortboard',
+            base: 'regular',
+            ambiente: ['beachBreak'],
+            movimentos: ['remada', 'popUp'],
+            dificuldadeAgua: 'remada',
+            sessoesSemana: '3',
+            temSintomas: 'sim',
+            gestoSintoma: 'remada',
+          },
+          problemas: ['ombroRemadaSurf'],
+        },
+      ],
+    })[0],
+    {
+      label: 'Surf',
+      linhas: [
+        'Tipo de prancha predominante: Shortboard / pranchinha',
+        'Posição habitual na prancha: Regular — pé esquerdo à frente',
+        'Ambiente predominante: Beach break',
+        'Movimentos realizados frequentemente: Remada, Pop-up',
+        'Principal dificuldade na água: Resistência durante a remada',
+        'Sessões por semana: 3',
+        'Apresenta sintomas ou limitações? Sim',
+        'Gesto ou situação associada aos sintomas: Remada',
+      ],
+      problemas: [{ key: 'ombroRemadaSurf', nome: 'Dor no ombro durante a remada', regiao: 'Ombro' }],
+    },
+  )
+})

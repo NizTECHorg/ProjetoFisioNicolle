@@ -1387,6 +1387,94 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
     ],
   },
+  surf: {
+    volumeDica: 'ex.: 3 sessões por semana',
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Perfil da modalidade', [
+        unica('prancha', 'Tipo de prancha predominante', [
+          o('shortboard', 'Shortboard / pranchinha'),
+          o('longboard', 'Longboard'),
+          o('funboard', 'Funboard / mid-length'),
+          o('softboard', 'Softboard'),
+          o('outro', 'Outro'),
+        ]),
+        unica('base', 'Posição habitual na prancha', [
+          o('regular', 'Regular — pé esquerdo à frente'),
+          o('goofy', 'Goofy — pé direito à frente'),
+          o('variavel', 'Variável / não sabe'),
+        ]),
+        multipla('ambiente', 'Ambiente predominante', [
+          o('beachBreak', 'Beach break'),
+          o('pointBreak', 'Point break'),
+          o('reefBreak', 'Reef break'),
+          o('piscina', 'Piscina de ondas'),
+        ]),
+        unica('ondas', 'Condições de onda habituais', [
+          o('pequenas', 'Pequenas / suaves'),
+          o('intermediarias', 'Intermediárias'),
+          o('grandes', 'Grandes / mais exigentes'),
+          o('variaveis', 'Variáveis'),
+        ]),
+      ]),
+      secao('Gestos e demandas esportivas', [
+        multipla('movimentos', 'Movimentos realizados frequentemente', [
+          o('remada', 'Remada'),
+          o('popUp', 'Pop-up'),
+          o('duckDive', 'Duck dive / joelhinho'),
+          o('espuma', 'Passagem de espuma'),
+          o('bottomTurn', 'Bottom turn'),
+          o('cutback', 'Cutback / manobras'),
+          o('caminhada', 'Caminhada na prancha'),
+          o('aereas', 'Manobras aéreas'),
+        ]),
+        selecao('dificuldadeAgua', 'Principal dificuldade na água', [
+          o('remada', 'Resistência durante a remada'),
+          o('popUp', 'Velocidade e controle no pop-up'),
+          o('equilibrio', 'Equilíbrio na prancha'),
+          o('curvas', 'Execução das curvas'),
+          o('passagem', 'Passagem de ondas'),
+          o('fadiga', 'Fadiga durante a sessão'),
+          o('nenhuma', 'Sem dificuldade específica'),
+        ]),
+      ]),
+      secao('Exposição e carga', [
+        numeros('volume', '', [
+          { key: 'sessoesSemana', rotulo: 'Sessões por semana', sufixo: 'sessões/semana', placeholder: 'Ex.: 3' },
+          { key: 'duracaoMin', rotulo: 'Duração média (min)', sufixo: 'min', placeholder: 'Ex.: 90' },
+        ]),
+        unica('mudancaCarga', 'Houve mudança recente de carga ou equipamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas ou limitações?'),
+        se(
+          'temSintomas',
+          'sim',
+          selecao('gestoSintoma', 'Gesto ou situação associada aos sintomas', [
+            o('remada', 'Remada'),
+            o('popUp', 'Pop-up'),
+            o('duckDive', 'Duck dive'),
+            o('bottomTurn', 'Bottom turn'),
+            o('manobras', 'Manobras'),
+            o('permanencia', 'Permanência sobre a prancha'),
+            o('queda', 'Após queda / impacto'),
+            o('aposSessao', 'Após a sessão'),
+          ]),
+        ),
+        textoLongo(
+          'limitacao',
+          'Principal limitação funcional',
+          'Ex.: dor no ombro após 30 minutos de remada, dificuldade para realizar o pop-up...',
+        ),
+      ]),
+    ],
+  },
   snowboard: {
     volumeDica: 'ex.: 7 dias por temporada',
     modalidades: [],

@@ -261,6 +261,19 @@ export const ESPORTES: readonly Esporte[] = [
       p('cervicalSnowboard', 'Dor cervical (quedas)', 'Coluna cervical', ['Spurling'], ['Amplitude cervical', 'sinais neurológicos']),
       p('coccixSnowboard', 'Contusão do cóccix/lombar (queda sentado)', 'Coluna lombar', ['Quadrante lombar'], ['Dor à palpação do cóccix', 'dor ao sentar']),
     ],
+  },  {
+    key: 'surf',
+    nome: 'Surf',
+    busca: ['surfe', 'prancha', 'onda', 'bodyboard', 'longboard'],
+    problemas: [
+      p('ombroRemadaSurf', 'Dor no ombro durante a remada', 'Ombro', [], ['ADM glenoumeral', 'força dos rotadores', 'função escapular e tolerância à remada']),
+      p('cervicalSurf', 'Dor cervical', 'Coluna cervical', [], ['Mobilidade cervical', 'força/resistência cervical', 'tolerância à posição de remada']),
+      p('lombarSurf', 'Dor lombar', 'Coluna lombar', [], ['Triagem neurológica quando indicada', 'mobilidade', 'tolerância à extensão sustentada']),
+      p('quadrilSurf', 'Dor no quadril', 'Quadril', [], ['Mobilidade', 'força', 'execução do pop-up']),
+      p('joelhoSurf', 'Dor no joelho', 'Joelho', [], ['Força', 'estabilidade', 'tolerância à posição em pé e às manobras']),
+      p('punhoSurf', 'Dor no punho', 'Punho / mão', [], ['Mobilidade', 'força', 'tolerância ao apoio durante o pop-up']),
+      p('traumaSurf', 'Trauma após queda / colisão', 'Geral', [], ['Triagem de fraturas', 'concussão', 'lesões cervicais e outras consequências do impacto']),
+    ],
   },
 ]
 
