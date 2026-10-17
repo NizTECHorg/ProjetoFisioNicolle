@@ -680,10 +680,56 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   ciclismo: {
     volumeDica: 'ex.: 150 km por semana',
-    modalidades: [o('estrada', 'Estrada (speed)'), o('mtb', 'Mountain bike'), o('gravel', 'Gravel'), o('indoor', 'Indoor / spinning'), o('triatlo', 'Triatlo')],
-    caracteristicas: [
-      g('Bike', [o('bikeFit', 'Fez bike fit'), o('pedalClip', 'Pedal clip'), o('trocaBike', 'Troca recente de bike')]),
-      g('Treino', [o('subidas', 'Muitas subidas'), o('pedaisLongos', 'Pedais longos'), o('provas', 'Participa de provas')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e equipamento', [
+        unica('modalidade', 'Modalidade predominante', [
+          o('estrada', 'Estrada / speed'),
+          o('mtb', 'Mountain bike (MTB)'),
+          o('gravel', 'Gravel'),
+          o('indoor', 'Indoor / spinning'),
+          o('triatlo', 'Ciclismo de triatlo / contrarrelógio'),
+        ]),
+        unica('pedal', 'Tipo de pedal', [o('clipado', 'Clipado'), o('plataforma', 'Plataforma'), o('ambos', 'Ambos')]),
+        unica('bikeFit', 'Já realizou bike fit?', [o('sim', 'Sim'), o('nao', 'Não'), o('naoSabe', 'Não sabe')]),
+      ]),
+      secao('Carga e características do pedal', [
+        numeros('volume', '', [
+          { key: 'volumeKm', rotulo: 'Volume semanal (km)', sufixo: 'km/semana', placeholder: 'Ex.: 150' },
+          { key: 'horasSemana', rotulo: 'Horas por semana', sufixo: 'h/semana', placeholder: 'Ex.: 7' },
+          { key: 'pedalLongoHoras', rotulo: 'Pedal mais longo habitual (horas)', sufixo: 'h', placeholder: 'Ex.: 3' },
+        ]),
+        multipla('treinos', 'Tipos de treino frequentes', [
+          o('endurance', 'Endurance'),
+          o('intervalado', 'Intervalado / tiros'),
+          o('subidas', 'Subidas'),
+          o('tecnico', 'Treino técnico'),
+          o('pedaisLongos', 'Pedais longos'),
+          o('competicoes', 'Competições'),
+        ]),
+        unica('mudancaTreino', 'Houve mudança recente de treino ou equipamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        unica('situacaoSintoma', 'Em qual situação aparecem os sintomas?', [
+          o('aposTempo', 'Após determinado tempo pedalando'),
+          o('subidas', 'Durante subidas'),
+          o('intensidade', 'Em maior intensidade'),
+          o('posicao', 'Em determinada posição na bicicleta'),
+          o('descidas', 'Em descidas ou terreno técnico'),
+          o('aposPedal', 'Após o pedal'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade no ciclismo',
+          'Ex.: dor anterior do joelho em subidas, dormência nas mãos após 1 hora...',
+        ),
+      ]),
     ],
   },
   lutas: {

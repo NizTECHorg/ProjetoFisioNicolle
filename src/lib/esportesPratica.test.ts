@@ -31,18 +31,18 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
         nivel: 'mestre',
         frequencia: 9,
         anosPratica: '   ',
-        volume: '150 km por semana',
-        modalidades: ['mtb', 'praia', 'mtb'],
-        caracteristicas: ['subidas', 'levantador'],
+        volume: '4 treinos por semana',
+        modalidades: ['boxe', 'praia', 'boxe'],
+        caracteristicas: ['sparring', 'levantador'],
         sintomasMomentos: ['depois', 'antes'],
       },
-      'ciclismo',
+      'lutas',
     ),
     {
       perfil: 'profissional',
-      volume: '150 km por semana',
-      modalidades: ['mtb'],
-      caracteristicas: ['subidas'],
+      volume: '4 treinos por semana',
+      modalidades: ['boxe'],
+      caracteristicas: ['sparring'],
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -384,6 +384,38 @@ test('crossfit: questionário próprio (participação, componentes, movimentos,
       'Realiza movimentos técnicos ou com carga sob fadiga? Às vezes / depende do treino',
       'Qual exercício provoca sintomas ou dificuldade? Snatch',
       'Em qual situação ocorre? Sob fadiga',
+    ],
+  )
+})
+
+test('ciclismo: questionário próprio (pedal, bike fit, km/horas, situação dos sintomas)', () => {
+  const pratica = praticaDoEsporte('ciclismo')
+  ok(pratica.volumeProprio)
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          modalidade: 'estrada',
+          pedal: 'clipado',
+          bikeFit: 'nao',
+          volumeKm: '150',
+          horasSemana: '7',
+          pedalLongoHoras: '3',
+          treinos: ['endurance', 'subidas'],
+          situacaoSintoma: 'subidas',
+        },
+      },
+      'ciclismo',
+    ),
+    [
+      'Modalidade predominante: Estrada / speed',
+      'Tipo de pedal: Clipado',
+      'Já realizou bike fit? Não',
+      'Volume semanal (km): 150',
+      'Horas por semana: 7',
+      'Pedal mais longo habitual (horas): 3',
+      'Tipos de treino frequentes: Endurance, Subidas',
+      'Em qual situação aparecem os sintomas? Durante subidas',
     ],
   )
 })
