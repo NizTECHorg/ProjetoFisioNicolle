@@ -73,6 +73,20 @@ export function SectionHeading({
 }
 
 export function WaveDivider({ fill, flip }: { fill: string; flip?: boolean }) {
+  if (flip) {
+    // Onda de cima (rodapé): desenhada já invertida, sem rotate — evita fresta de 1px no Safari/mobile.
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 1440 64"
+        preserveAspectRatio="none"
+        overflow="visible"
+        className={['relative z-[1] -mt-px block h-12 w-full md:h-16', fill].join(' ')}
+      >
+        <path d="M1440 32 C 1200 64, 960 64, 720 32 S 240 0, 0 32 L0 -4 L1440 -4 Z" />
+      </svg>
+    )
+  }
   return (
     <svg
       aria-hidden="true"

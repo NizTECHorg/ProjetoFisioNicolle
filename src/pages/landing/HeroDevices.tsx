@@ -144,7 +144,7 @@ export function HeroDevices() {
               alt=""
               width={600}
               height={1199}
-              className="lp-hero-in block h-auto w-full drop-shadow-[0_24px_40px_rgba(11,29,54,0.35)] [animation-delay:350ms]"
+              className="lp-hero-in block h-auto w-full drop-shadow-[0_24px_40px_rgba(11,29,54,0.35)] [animation-delay:350ms] max-sm:drop-shadow-[0_44px_36px_rgba(11,29,54,0.38)]"
               loading="eager"
               decoding="async"
             />

@@ -23,34 +23,34 @@ export function PlansSection() {
           />
         </Reveal>
 
-        <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
+        <div className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-3 md:gap-6">
           {PLANS.map((plan, index) => (
             <Reveal
               key={plan.id}
               delay={index * 120}
               variant="scale"
               className={[
-                'lp-card relative flex flex-col gap-4 rounded-2xl border bg-surface p-6',
+                'lp-card relative flex flex-col gap-3 rounded-2xl border bg-surface p-3 sm:gap-4 sm:p-6',
                 plan.highlighted
                   ? 'border-2 border-accent shadow-[0_24px_60px_rgba(47,125,255,0.25)]'
                   : 'border-line',
               ].join(' ')}
             >
               {plan.badge ? (
-                <span className="absolute right-6 top-6 rounded-full bg-accent px-3 py-1 text-sm font-semibold text-white">
+                <span className="absolute right-6 top-6 rounded-full bg-accent px-3 py-1 text-sm font-semibold text-white max-sm:static max-sm:self-start max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]">
                   {plan.badge}
                 </span>
               ) : null}
-              <h3 className="lp-display text-2xl font-semibold text-ink">{plan.name}</h3>
-              <p className="text-base leading-7 text-muted">{plan.description}</p>
-              <div className="flex flex-wrap items-baseline gap-2">
-                <span className="lp-display text-[32px] font-semibold leading-[1.2] text-ink">
+              <h3 className="lp-display text-lg font-semibold text-ink sm:text-2xl">{plan.name}</h3>
+              <p className="text-xs leading-5 text-muted sm:text-base sm:leading-7">{plan.description}</p>
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <span className="lp-display text-2xl font-semibold leading-[1.2] text-ink sm:text-[32px]">
                   {plan.price}
                 </span>
                 <span className="text-sm text-muted">{PRICE_SUFFIX}</span>
-                <span className="text-sm text-muted">· {PRICE_NOTE}</span>
+                <span className="text-sm text-muted max-sm:hidden">· {PRICE_NOTE}</span>
               </div>
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2 max-sm:gap-1.5 max-sm:[&_li]:gap-2 max-sm:[&_li>span:first-child]:h-5 max-sm:[&_li>span:first-child]:w-5 max-sm:[&_li>span:last-child]:text-xs">
                 {plan.features.map((feature) =>
                   feature.teamOnly ? (
                     <li key={feature.label} className="flex items-start gap-3">
@@ -67,6 +67,7 @@ export function PlansSection() {
               <div className="mt-auto pt-2">
                 <LinkButton
                   to="/cadastro"
+                  className="max-sm:px-2 max-sm:text-xs"
                   fullWidth
                   variant={plan.highlighted ? 'primary' : 'secondary'}
                 >

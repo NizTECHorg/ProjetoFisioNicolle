@@ -233,21 +233,22 @@ function LiveCard({ card, index }: { card: Card; index: number }) {
           onMouseLeave={hover.onMouseLeave}
           className="flex h-full flex-col"
         >
-          <div aria-hidden="true" className={`flex h-36 items-center bg-gradient-to-br px-5 ${tom}`}>
-            {preview}
+          <div aria-hidden="true" className={`flex h-28 items-center bg-gradient-to-br px-3 sm:h-36 sm:px-5 ${tom}`}>
+            {/* No mobile a prévia é reduzida para caber em 2 colunas */}
+            <div className="flex w-full items-center max-sm:w-[139%] max-sm:[zoom:0.72]">{preview}</div>
           </div>
-          <div className="flex flex-col gap-2 p-5">
+          <div className="flex flex-col gap-1.5 p-3 sm:gap-2 sm:p-5">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft sm:h-8 sm:w-8">
                 <Icon size={18} className="text-[#1e3a8a]" aria-hidden="true" />
               </span>
-              <h3 className="text-base font-semibold text-ink">{titulo}</h3>
+              <h3 className="text-sm font-semibold leading-tight text-ink sm:text-base">{titulo}</h3>
             </div>
-            <p className="text-xs font-medium text-muted">
+            <p className="text-[11px] font-medium text-muted sm:text-xs">
               <span className="line-through decoration-error/60">{antes}</span>
               <span className="text-sage"> → resolvido</span>
             </p>
-            <p className="text-sm leading-6 text-muted">{texto}</p>
+            <p className="text-xs leading-5 text-muted sm:text-sm sm:leading-6">{texto}</p>
           </div>
         </div>
       </Reveal>
@@ -258,7 +259,7 @@ function LiveCard({ card, index }: { card: Card; index: number }) {
 /** Cartões com prévias que animam no hover (aceleram e freiam suavemente): o antes e a rotina com o Fluxo. */
 export function LiveCards() {
   return (
-    <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-12 grid grid-cols-2 gap-3 sm:mt-16 sm:gap-6 lg:grid-cols-3">
       {CARDS.map((card, index) => (
         <LiveCard key={card.titulo} card={card} index={index} />
       ))}

@@ -96,7 +96,7 @@ export function LandingPage() {
         <FaqSection />
       </main>
       <LandingFooter />
-      <WhatsAppFab hidden={menuOpen} />
+      <WhatsAppFab hidden={false} />
     </div>
   )
 }

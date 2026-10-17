@@ -18,16 +18,19 @@ export function HeroSection() {
     <section
       id="inicio"
       aria-labelledby="lp-hero-title"
-      className="lp-section relative -mt-16 overflow-hidden bg-[linear-gradient(180deg,#eaf2fd_0%,#f3f8fb_55%,#e6f5f0_100%)] pt-16"
+      className="lp-section relative -mt-16 overflow-hidden max-sm:z-[2] max-sm:overflow-visible bg-[linear-gradient(180deg,#eaf2fd_0%,#f3f8fb_55%,#e6f5f0_100%)] pt-16"
     >
+      {/* Manchas presas na seção (no mobile a seção deixa a sombra do celular passar para o carrossel). */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       <div ref={blobA} aria-hidden="true" className="pointer-events-none absolute -left-32 -top-24">
         <div className="h-[26rem] w-[26rem] rounded-full bg-accent/15 blur-3xl" />
       </div>
       <div ref={blobB} aria-hidden="true" className="pointer-events-none absolute -right-24 top-40">
         <div className="h-[30rem] w-[30rem] rounded-full bg-sage/20 blur-3xl" />
       </div>
+      </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-10 sm:px-6 md:pb-20 md:pt-16 lg:px-8">
+      <div className="relative mx-auto max-w-6xl px-4 pb-4 pt-10 sm:px-6 sm:pb-12 md:pb-20 md:pt-16 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="flex flex-col items-start gap-6 lg:col-span-6">
             <div className="lp-hero-in">
@@ -63,7 +66,7 @@ export function HeroSection() {
                   </defs>
                 </svg>
               </span>
-              , prontuário em ordem.
+              <span className="max-sm:hidden">,</span> prontuário em ordem.
             </h1>
             <p className="lp-hero-in max-w-prose text-base leading-7 text-muted [animation-delay:160ms] md:text-lg md:leading-8">
               O Fluxo reúne avaliação com mapa corporal, evolução das sessões, agenda e financeiro
@@ -80,7 +83,7 @@ export function HeroSection() {
                 Falar no WhatsApp
               </WhatsAppLink>
             </div>
-            <ul className="lp-hero-in flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted [animation-delay:320ms]">
+            <ul className="lp-hero-in flex flex-wrap gap-x-6 max-sm:hidden gap-y-2 text-sm text-muted [animation-delay:320ms]">
               {TRUST.map(({ icon: Icon, label }) => (
                 <li key={label} className="inline-flex items-center gap-2">
                   <Icon size={16} className="text-sage" aria-hidden="true" />

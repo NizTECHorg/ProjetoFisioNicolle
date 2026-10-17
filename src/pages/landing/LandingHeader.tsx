@@ -120,32 +120,44 @@ export function LandingHeader({
         </div>
       </div>
 
-      {menuOpen ? (
-        <div
-          id="lp-mobile-menu"
-          ref={panelRef}
-          onKeyDown={onPanelKeyDown}
-          className="border-b border-line bg-surface shadow-lg lg:hidden"
-        >
-          <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 sm:px-6">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => onMenuOpenChange(false)}
-                className={`${linkClass} w-full rounded-2xl hover:bg-accent-soft`}
-              >
-                {link.label}
-              </a>
-            ))}
-            <div className="pt-3">
-              <LinkButton to="/cadastro" fullWidth onClick={() => onMenuOpenChange(false)}>
-                Começar agora
-              </LinkButton>
+      {/* Sempre montado: abre/fecha deslizando a altura com fade (fechado fica inert). */}
+      <div
+        id="lp-mobile-menu"
+        ref={panelRef}
+        onKeyDown={onPanelKeyDown}
+        inert={menuOpen ? undefined : true}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:hidden',
+          menuOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        ].join(' ')}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-b border-line bg-surface shadow-lg">
+            <div
+              className={[
+                'mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:px-6',
+                menuOpen ? 'translate-y-0' : '-translate-y-3',
+              ].join(' ')}
+            >
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => onMenuOpenChange(false)}
+                  className={`${linkClass} w-full rounded-2xl hover:bg-accent-soft`}
+                >
+                  {link.label}
+                </a>
+              ))}
+              <div className="pt-3">
+                <LinkButton to="/cadastro" fullWidth onClick={() => onMenuOpenChange(false)}>
+                  Começar agora
+                </LinkButton>
+              </div>
             </div>
           </div>
         </div>
-      ) : null}
+      </div>
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden">
         <div
           ref={progressRef}
