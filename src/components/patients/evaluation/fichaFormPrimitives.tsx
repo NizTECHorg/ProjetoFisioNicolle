@@ -172,7 +172,7 @@ export function FichaBlock({
           size={18}
           aria-hidden
           className={[
-            'shrink-0 text-accent transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+            `shrink-0 ${tone === 'danger' ? 'text-error' : 'text-accent'} transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
             aberto ? 'rotate-0' : '-rotate-90',
           ].join(' ')}
         />
