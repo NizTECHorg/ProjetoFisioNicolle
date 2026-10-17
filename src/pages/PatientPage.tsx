@@ -25,7 +25,7 @@ import { PatientFocusAreasPanel } from '@/components/patients/PatientFocusAreasP
 import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
-import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
+import { PatientFilesPanel } from '@/components/patients/PatientFilesPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
@@ -63,7 +63,7 @@ const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
   { label: 'Sessões', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
   { label: 'Avaliações', detail: 'Ficha de avaliação', icon: ClipboardCheck, tab: 'avaliacoes' as const },
-  { label: 'Imagens', detail: 'Fotos e anexos', icon: Images, tab: 'imagens' as const },
+  { label: 'Arquivos', detail: 'Fotos, PDFs e termos', icon: Images, tab: 'imagens' as const },
   { label: 'Dados cadastrais', detail: 'Contato e cadastro', icon: UserRound, tab: 'cadastro' as const },
   { label: 'Agenda', detail: 'Abrir agenda', icon: CalendarDays, to: '/agenda' },
 ] as const
@@ -863,7 +863,7 @@ export function PatientPage() {
             canWrite={canWrite}
           />
         ) : tab === 'imagens' ? (
-          <PatientImagesPanel patientId={dashboard.id} canWrite={canWrite} />
+          <PatientFilesPanel patientId={dashboard.id} canWrite={canWrite} />
         ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />

@@ -393,7 +393,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Imagens</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Arquivos</p>
             <p className="mt-1 text-sm text-muted">Fotos ou PDFs avulsos ou ligados a uma sessão.</p>
           </div>
           {canWrite ? (

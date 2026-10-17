@@ -211,7 +211,7 @@ export function PatientProfileHeader({
               ].join(' ')}
               onClick={() => onTabChange('imagens')}
             >
-              Imagens
+              Arquivos
             </button>
           </nav>
       </div>
