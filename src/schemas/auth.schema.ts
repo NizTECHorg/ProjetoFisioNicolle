@@ -39,6 +39,7 @@ export const registerSchema = z
       message: 'Escolha o tipo de conta',
     }),
     joinCode: z.string().optional(),
+    crefito: z.string().trim().max(40, 'Máximo de 40 caracteres').optional(),
     password: passwordSchema,
     confirmPassword: z.string().min(1, 'Confirme sua senha'),
   })
@@ -185,3 +186,9 @@ export const employeeRoles = [
 ] as const
 
 export type EmployeeRole = (typeof employeeRoles)[number]
+
+export const crefitoFormSchema = z.object({
+  crefito: z.string().trim().max(40, 'Máximo de 40 caracteres'),
+})
+
+export type CrefitoFormData = z.infer<typeof crefitoFormSchema>

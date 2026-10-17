@@ -65,6 +65,8 @@ export interface ClinicProfile {
   avatarUrl: string | null
   isActive: boolean
   accountType: AccountType
+  /** CREFITO do fisio ('' quando ausente). */
+  crefito: string
   createdAt: string
   updatedAt: string
 }

@@ -34,6 +34,7 @@ interface ProfileRow {
   avatar_url: string | null
   is_active: boolean
   account_type: string | null
+  crefito?: string | null
   created_at: string
   updated_at: string
 }
@@ -54,6 +55,7 @@ function mapClinicProfile(row: ProfileRow): ClinicProfile {
     avatarUrl: row.avatar_url,
     isActive: row.is_active,
     accountType: mapAccountType(row.account_type),
+    crefito: row.crefito ?? '',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -121,6 +123,7 @@ export async function signUpWithEmail(
     options: {
       data: {
         full_name: fullName,
+        crefito: parsed.crefito ? sanitizeText(parsed.crefito, 40) : null,
         account_type: parsed.accountType,
         join_code:
           parsed.accountType === 'fisioterapeuta'
@@ -152,7 +155,7 @@ export async function signOut(): Promise<void> {
 export async function fetchProfile(userId: string): Promise<ClinicProfile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, email, role, avatar_url, is_active, account_type, created_at, updated_at')
+    .select('id, full_name, email, role, avatar_url, is_active, account_type, crefito, created_at, updated_at')
     .eq('id', userId)
     .maybeSingle()
 
@@ -181,6 +184,19 @@ export async function updateOwnName(userId: string, fullName: string): Promise<v
 
   if (metadataError) {
     throw new Error(mapAuthError(metadataError))
+  }
+}
+
+export async function updateOwnCrefito(userId: string, crefito: string): Promise<void> {
+  const valor = sanitizeText(crefito.trim(), 40)
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ crefito: valor || null })
+    .eq('id', userId)
+
+  if (error) {
+    throw new Error(mapDbError(error))
   }
 }
 
