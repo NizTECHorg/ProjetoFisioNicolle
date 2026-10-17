@@ -153,10 +153,65 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   futebol: {
     volumeDica: 'ex.: 2 jogos + 2 treinos por semana',
-    modalidades: [o('campo', 'Campo'), o('society', 'Society'), o('futsal', 'Futsal'), o('areia', 'Areia')],
-    caracteristicas: [
-      g('Posição', [o('goleiro', 'Goleiro'), o('zagueiro', 'Zagueiro'), o('lateral', 'Lateral'), o('meioCampo', 'Meio-campo'), o('atacante', 'Atacante')]),
-      g('Piso', [o('gramaNatural', 'Grama natural'), o('gramaSintetica', 'Grama sintética'), o('quadra', 'Quadra')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e prática', [
+        unica('modalidade', 'Modalidade principal', [
+          o('campo', 'Futebol de campo'),
+          o('society', 'Society'),
+          o('futsal', 'Futsal'),
+          o('areia', 'Futebol de areia'),
+        ]),
+        unica('posicao', 'Posição habitual', [
+          o('goleiro', 'Goleiro'),
+          o('zagueiro', 'Zagueiro/defensor'),
+          o('lateral', 'Lateral'),
+          o('meioCampo', 'Meio-campo'),
+          o('atacante', 'Atacante'),
+        ]),
+        selecao('superficie', 'Superfície predominante', [
+          o('gramaNatural', 'Grama natural'),
+          o('gramaSintetica', 'Grama sintética'),
+          o('quadra', 'Quadra (piso)'),
+          o('areia', 'Areia'),
+          o('varia', 'Varia bastante'),
+        ]),
+      ]),
+      secao('Demandas esportivas', [
+        multipla('gestos', 'Gestos mais exigidos ou associados a dificuldades', [
+          o('sprint', 'Sprint'),
+          o('frenagem', 'Frenagem'),
+          o('mudancaDirecao', 'Mudança de direção'),
+          o('chute', 'Chute'),
+          o('salto', 'Salto'),
+          o('contatoFisico', 'Contato físico'),
+        ]),
+        numeros('volume', 'Volume semanal', [
+          { key: 'volumeTreinos', rotulo: 'Treinos/semana', sufixo: 'treinos/semana' },
+          { key: 'volumeJogos', rotulo: 'Jogos/semana', sufixo: 'jogos/semana' },
+          { key: 'volumeMinutos', rotulo: 'Minutos médios por treino ou jogo', sufixo: 'min por treino/jogo' },
+        ]),
+        simNao('mudancaCarga', 'Houve aumento ou mudança recente de carga?'),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('movimentoSintoma', 'Movimento associado aos sintomas', [
+          o('corrida', 'Corrida em velocidade'),
+          o('aceleracao', 'Aceleração'),
+          o('frenagem', 'Frenagem'),
+          o('mudancaDirecao', 'Mudança de direção'),
+          o('chute', 'Chute'),
+          o('saltoAterrissagem', 'Salto/aterrissagem'),
+          o('contatoFisico', 'Contato físico'),
+          o('semMovimento', 'Sem movimento específico'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade para jogar',
+          'Ex.: insegurança no giro, dor ao chutar, perda de velocidade...',
+        ),
+      ]),
     ],
   },
   corrida: {

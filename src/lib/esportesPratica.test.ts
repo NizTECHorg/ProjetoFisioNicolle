@@ -121,3 +121,36 @@ test('avaliação esportiva: linhas para visualização e PDF', () => {
   const resumo = resumoEsportes({ esportes: [{ esporte: 'outro', outro: 'Remo', frequencia: 7 }] })
   deepEqual(resumo[0]?.linhas, ['Frequência: Todo dia'])
 })
+
+test('futebol: questionário próprio com 3 seções e volume em 3 números', () => {
+  const pratica = praticaDoEsporte('futebol')
+  ok(pratica.volumeProprio)
+  deepEqual(pratica.secoes?.map((s) => s.titulo), ['Modalidade e prática', 'Demandas esportivas', 'Sintomas e limitações'])
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          modalidade: 'society',
+          posicao: 'atacante',
+          superficie: 'gramaSintetica',
+          gestos: ['chute', 'sprint'],
+          volumeTreinos: '3',
+          volumeJogos: '1',
+          volumeMinutos: '90',
+          mudancaCarga: 'sim',
+          movimentoSintoma: 'chute',
+        },
+      },
+      'futebol',
+    ),
+    [
+      'Modalidade principal: Society',
+      'Posição habitual: Atacante',
+      'Superfície predominante: Grama sintética',
+      'Gestos mais exigidos ou associados a dificuldades: Sprint, Chute',
+      'Volume semanal: 3 treinos/semana · 1 jogos/semana · 90 min por treino/jogo',
+      'Houve aumento ou mudança recente de carga? Sim',
+      'Movimento associado aos sintomas: Chute',
+    ],
+  )
+})
