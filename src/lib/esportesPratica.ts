@@ -866,10 +866,70 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   handebol: {
     volumeDica: 'ex.: 3 treinos + 1 jogo por semana',
-    modalidades: [o('quadra', 'Quadra'), o('areia', 'Areia')],
-    caracteristicas: [
-      g('Posição', [o('goleiro', 'Goleiro'), o('armador', 'Armador'), o('ponta', 'Ponta'), o('pivo', 'Pivô')]),
-      g('Gestos frequentes', [o('arremessoSalto', 'Arremesso em salto'), o('contato', 'Muito contato físico')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e posição', [
+        unica('modalidade', 'Modalidade', [o('quadra', 'Quadra'), o('areia', 'Areia')]),
+        unica('posicao', 'Posição principal', [
+          o('goleiro', 'Goleiro(a)'),
+          o('armador', 'Armador(a)'),
+          o('ponta', 'Ponta'),
+          o('pivo', 'Pivô'),
+          o('multiplas', 'Múltiplas posições'),
+        ]),
+        unica('maoArremesso', 'Mão preferencial para arremessar', [
+          o('direita', 'Direita'),
+          o('esquerda', 'Esquerda'),
+          o('ambas', 'Ambas'),
+        ]),
+      ]),
+      secao('Gestos e demandas esportivas', [
+        multipla('movimentos', 'Movimentos frequentes (múltipla escolha)', [
+          o('arremessoApoio', 'Arremesso em apoio'),
+          o('arremessoSuspensao', 'Arremesso em suspensão'),
+          o('saltos', 'Saltos / aterrissagens'),
+          o('aceleracaoFrenagem', 'Aceleração / frenagem'),
+          o('mudancasDirecao', 'Mudanças de direção'),
+          o('bloqueiosContato', 'Bloqueios / contato'),
+          o('deslocamentoDefensivo', 'Deslocamento defensivo'),
+          o('defesaQuedas', 'Defesa / quedas'),
+        ]),
+        unica('contato', 'Exposição habitual ao contato físico', [
+          o('baixa', 'Baixa'),
+          o('moderada', 'Moderada'),
+          o('alta', 'Alta'),
+          o('variavel', 'Variável conforme a função ou jogo'),
+        ]),
+      ]),
+      secao('Volume de treinamento', [
+        numeros('volume', '', [
+          { key: 'volumeTreinos', rotulo: 'Treinos/semana', sufixo: 'treinos/semana', placeholder: 'Ex.: 3' },
+          { key: 'volumeJogos', rotulo: 'Jogos/semana', sufixo: 'jogos/semana', placeholder: 'Ex.: 1' },
+          { key: 'duracaoMin', rotulo: 'Duração média da sessão (min)', sufixo: 'min', placeholder: 'Ex.: 90' },
+        ]),
+        unica('mudancaCarga', 'Houve mudança recente na carga?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('movimentoSintoma', 'Movimento associado aos sintomas', [
+          o('arremesso', 'Arremesso'),
+          o('impulsao', 'Impulsão'),
+          o('aterrissagem', 'Aterrissagem'),
+          o('mudancaDirecao', 'Mudança de direção'),
+          o('contatoFisico', 'Contato físico'),
+          o('outro', 'Outro'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade esportiva',
+          'Ex.: dor no arremesso, insegurança ao aterrissar, dificuldade para frear...',
+        ),
+      ]),
     ],
   },
   futevolei: {

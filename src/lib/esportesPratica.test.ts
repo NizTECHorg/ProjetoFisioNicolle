@@ -460,3 +460,43 @@ test('lutas: perguntas mudam conforme a arte; várias artes mostram as perguntas
     ],
   )
 })
+
+test('handebol: questionário próprio com 4 seções', () => {
+  const pratica = praticaDoEsporte('handebol')
+  ok(pratica.volumeProprio)
+  deepEqual(pratica.secoes?.map((s) => s.titulo), [
+    'Modalidade e posição',
+    'Gestos e demandas esportivas',
+    'Volume de treinamento',
+    'Sintomas e limitações',
+  ])
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          modalidade: 'areia',
+          posicao: 'armador',
+          maoArremesso: 'direita',
+          movimentos: ['arremessoSuspensao', 'defesaQuedas'],
+          contato: 'variavel',
+          volumeTreinos: '3',
+          volumeJogos: '1',
+          duracaoMin: '90',
+          movimentoSintoma: 'aterrissagem',
+        },
+      },
+      'handebol',
+    ),
+    [
+      'Modalidade: Areia',
+      'Posição principal: Armador(a)',
+      'Mão preferencial para arremessar: Direita',
+      'Movimentos frequentes: Arremesso em suspensão, Defesa / quedas',
+      'Exposição habitual ao contato físico: Variável conforme a função ou jogo',
+      'Treinos/semana: 3',
+      'Jogos/semana: 1',
+      'Duração média da sessão (min): 90',
+      'Movimento associado aos sintomas: Aterrissagem',
+    ],
+  )
+})
