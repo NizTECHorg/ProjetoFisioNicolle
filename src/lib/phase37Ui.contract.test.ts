@@ -41,7 +41,7 @@ test('REQ-48: arquivos novos não têm console.', () => {
     '../components/terms/TermList.tsx',
     '../components/patients/PatientPicker.tsx',
     '../components/patients/PatientTermsPanel.tsx',
-    '../components/patients/PatientFilesPanel.tsx',
+    '../components/terms/TermsNav.tsx',
     '../services/patientTerms.service.ts',
     '../services/termsPdf.service.ts',
     '../hooks/usePatientTerms.ts',

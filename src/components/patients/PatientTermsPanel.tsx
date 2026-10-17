@@ -12,12 +12,7 @@ export function PatientTermsPanel({ patientId, canWrite }: PatientTermsPanelProp
   const navigate = useNavigate()
   const q = usePatientTerms(patientId)
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Arquivos</p>
-        <p className="mt-1 text-sm text-muted">Termos assinados pelo paciente, em PDF.</p>
-      </div>
-      <TermList
+    <TermList
         terms={q.data}
         isLoading={q.isLoading}
         isError={q.isError}
@@ -32,6 +27,5 @@ export function PatientTermsPanel({ patientId, canWrite }: PatientTermsPanelProp
           </Button>
         }
       />
-    </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FileText, Image, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { PatientTermsPanel } from '@/components/patients/PatientTermsPanel'
 import { SignedPhoto } from '@/components/patients/SignedPhoto'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -30,7 +31,8 @@ type PatientImagesPanelProps = {
   canWrite?: boolean
 }
 
-type GalleryFilter = 'todas' | 'avulsas' | string
+/** 'termos' mostra os termos assinados (Phase 37) no lugar da galeria. */
+type GalleryFilter = 'todas' | 'avulsas' | 'termos' | string
 
 const GALLERY_ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf,.pdf'
 const CAMERA_ACCEPT = 'image/jpeg,image/png,image/webp'
@@ -238,7 +240,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
   })
 
   useEffect(() => {
-    if (filter === 'todas' || filter === 'avulsas') return
+    if (filter === 'todas' || filter === 'avulsas' || filter === 'termos') return
     if (!sessions.some((session) => session.id === filter)) setFilter('todas')
   }, [filter, sessions])
 
@@ -394,9 +396,13 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Arquivos</p>
-            <p className="mt-1 text-sm text-muted">Fotos ou PDFs avulsos ou ligados a uma sessão.</p>
+            <p className="mt-1 text-sm text-muted">
+              {filter === 'termos'
+                ? 'Termos assinados pelo paciente, em PDF.'
+                : 'Fotos ou PDFs avulsos ou ligados a uma sessão.'}
+            </p>
           </div>
-          {canWrite ? (
+          {canWrite && filter !== 'termos' ? (
             <Button type="button" onClick={openUpload}>
               <Plus size={16} />
               Adicionar
@@ -429,6 +435,18 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
           >
             Avulsas
           </button>
+          <button
+            type="button"
+            className={[
+              'shrink-0 rounded-full border px-4 text-sm min-h-11',
+              filter === 'termos'
+                ? 'border-accent bg-accent-soft font-semibold text-forest'
+                : 'border-line bg-surface text-muted',
+            ].join(' ')}
+            onClick={() => setFilter('termos')}
+          >
+            Termos
+          </button>
           {sessions.map((session) => {
             const selected = filter === session.id
             return (
@@ -449,7 +467,9 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
           })}
         </div>
 
-        {isLoading ? (
+        {filter === 'termos' ? (
+          <PatientTermsPanel patientId={patientId} canWrite={canWrite} />
+        ) : isLoading ? (
           <div className="flex min-h-48 items-center justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-forest border-t-transparent" />
           </div>

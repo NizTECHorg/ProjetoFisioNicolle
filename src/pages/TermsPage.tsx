@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { PatientPicker } from '@/components/patients/PatientPicker'
 import { TermCard } from '@/components/terms/TermCard'
 import { TermsHistory } from '@/components/terms/TermsHistory'
+import { TermsNav } from '@/components/terms/TermsNav'
+import { TERMS_SECTION_IDS, termDomId } from '@/components/terms/termsSections'
 import { Input } from '@/components/ui/Input'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { invalidatePatient, usePatient, useUpdatePatient } from '@/hooks/usePatients'
-import { CONSENT_TERMS, type TermValues } from '@/lib/consentTerms'
+import { usePatientTerms } from '@/hooks/usePatientTerms'
+import { CONSENT_TERMS, type TermKey, type TermValues } from '@/lib/consentTerms'
 import { formatCpf, isValidCpf, maskCpf, normalizeCpf } from '@/lib/cpf'
 import { updateOwnCrefito } from '@/services/auth.service'
 import { toast } from '@/stores/toast.store'
@@ -15,6 +18,22 @@ import type { PatientListItem } from '@/types/patient'
 
 const checkLabel = 'flex min-h-11 items-center gap-3 text-sm font-medium text-ink'
 const CPF_ERROR = 'CPF inválido. Confira os números.'
+const WIDE_MEDIA = '(min-width: 768px)'
+
+/** Tablet/desktop: navegação lateral e termos recolhíveis. No celular nada muda. */
+function useWideViewport() {
+  const [wide, setWide] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(WIDE_MEDIA).matches : false,
+  )
+  useEffect(() => {
+    const media = window.matchMedia(WIDE_MEDIA)
+    const sync = () => setWide(media.matches)
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
+  return wide
+}
 
 export function TermsPage() {
   const { user, profile, reloadProfile } = useAuth()
@@ -29,6 +48,31 @@ export function TermsPage() {
   const [guardianOn, setGuardianOn] = useState(false)
   const [guardianName, setGuardianName] = useState('')
   const [guardianCpf, setGuardianCpf] = useState('')
+  const wide = useWideViewport()
+  const [collapsed, setCollapsed] = useState<ReadonlySet<TermKey>>(() => new Set())
+  const patientTerms = usePatientTerms(patient?.id).data
+  const savedKeys = useMemo(
+    () => new Set<TermKey>(patient ? (patientTerms ?? []).map((t) => t.termType) : []),
+    [patient, patientTerms],
+  )
+
+  function toggleCollapsed(key: TermKey) {
+    setCollapsed((current) => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  function expand(key: TermKey) {
+    setCollapsed((current) => {
+      if (!current.has(key)) return current
+      const next = new Set(current)
+      next.delete(key)
+      return next
+    })
+  }
 
   const therapistName = nameEdit ?? profile?.fullName ?? ''
   const crefito = crefitoEdit ?? profile?.crefito ?? ''
@@ -80,10 +124,12 @@ export function TermsPage() {
   const resetKey = `${patient?.id ?? 'none'}|${guardianOn ? 'resp' : 'pac'}`
 
   return (
-    <section className="mx-auto w-full max-w-2xl space-y-6">
+    <section className="mx-auto w-full max-w-2xl space-y-6 md:max-w-5xl">
       <PageHeader className="dash-in" title="Termos" description="Termos de consentimento assinados pelo paciente." />
 
-      <div className="space-y-4 rounded-2xl border border-line bg-surface p-4 md:p-6">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_13rem] md:gap-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-8">
+      <div className="min-w-0 space-y-6">
+      <div id={TERMS_SECTION_IDS.signer} className="scroll-mt-4 space-y-4 rounded-2xl border border-line bg-surface p-4 md:p-6">
         <h2 className="text-xl font-semibold text-ink">Quem assina</h2>
         <PatientPicker value={patient} onChange={changePatient} />
 
@@ -172,11 +218,27 @@ export function TermsPage() {
           patientId={patient?.id ?? null}
           resetKey={resetKey}
           createdByName={profile?.fullName ?? null}
+          domId={termDomId(term.key)}
+          collapsible={wide}
+          collapsed={collapsed.has(term.key)}
+          onToggleCollapsed={() => toggleCollapsed(term.key)}
         />
       ))}
 
-      <div className="pt-8">
+      <div id={TERMS_SECTION_IDS.history} className="scroll-mt-4 pt-8">
         <TermsHistory patientId={patient?.id ?? null} />
+      </div>
+      </div>
+
+      {wide ? (
+        <TermsNav
+          collapsed={collapsed}
+          onToggle={toggleCollapsed}
+          onExpand={expand}
+          onSetAll={(all) => setCollapsed(all ? new Set(CONSENT_TERMS.map((t) => t.key)) : new Set())}
+          saved={savedKeys}
+        />
+      ) : null}
       </div>
     </section>
   )

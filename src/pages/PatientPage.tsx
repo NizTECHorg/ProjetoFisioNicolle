@@ -23,9 +23,9 @@ import {
 import { PatientAlertsPanel } from '@/components/patients/PatientAlertsPanel'
 import { PatientFocusAreasPanel } from '@/components/patients/PatientFocusAreasPanel'
 import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
+import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
-import { PatientFilesPanel } from '@/components/patients/PatientFilesPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
@@ -863,7 +863,7 @@ export function PatientPage() {
             canWrite={canWrite}
           />
         ) : tab === 'imagens' ? (
-          <PatientFilesPanel patientId={dashboard.id} canWrite={canWrite} />
+          <PatientImagesPanel patientId={dashboard.id} canWrite={canWrite} />
         ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />

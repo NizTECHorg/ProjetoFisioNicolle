@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { CloudUpload, Copy, FileDown, Pencil, RotateCcw } from 'lucide-react'
+import { ChevronDown, CloudUpload, Copy, FileDown, Pencil, RotateCcw } from 'lucide-react'
 import { SignaturePad } from '@/components/patients/evaluation/SignaturePad'
 import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
@@ -24,12 +24,30 @@ type TermCardProps = {
   patientId: string | null
   resetKey: string
   createdByName: string | null
+  /** Âncora usada pela navegação lateral (tablet/desktop). */
+  domId?: string
+  /** Só no tablet/desktop: no celular o cartão fica sempre aberto. */
+  collapsible?: boolean
+  collapsed?: boolean
+  onToggleCollapsed?: () => void
 }
 
 const PDF_ERROR = 'Não foi possível gerar o PDF. Tente de novo em instantes.'
 
-export function TermCard({ term, values, patientId, resetKey, createdByName }: TermCardProps) {
+export function TermCard({
+  term,
+  values,
+  patientId,
+  resetKey,
+  createdByName,
+  domId,
+  collapsible = false,
+  collapsed = false,
+  onToggleCollapsed,
+}: TermCardProps) {
   const captionId = useId()
+  const bodyId = useId()
+  const closed = collapsible && collapsed
   const create = useCreatePatientTerm()
   const [signature, setSignature] = useState('')
   const [override, setOverride] = useState<string | null>(null)
@@ -156,14 +174,49 @@ export function TermCard({ term, values, patientId, resetKey, createdByName }: T
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-line bg-surface p-4 md:p-6">
-      <span className="inline-block rounded-full border border-line bg-canvas px-4 py-1 text-sm font-semibold text-forest">
-        {term.category}
-      </span>
-      <div>
-        <h2 className="text-[20px] font-semibold text-ink">{term.title}</h2>
-        <p className="mt-2 text-sm text-muted">{term.subtitle}</p>
+    <section id={domId} className="scroll-mt-4 rounded-2xl border border-line bg-surface p-4 md:p-6">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1 space-y-4">
+          <span className="inline-block rounded-full border border-line bg-canvas px-4 py-1 text-sm font-semibold text-forest">
+            {term.category}
+          </span>
+          <div>
+            <h2 className="text-[20px] font-semibold text-ink">{term.title}</h2>
+            <p className="mt-2 text-sm text-muted">{term.subtitle}</p>
+          </div>
+        </div>
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-expanded={!closed}
+            aria-controls={bodyId}
+            aria-label={closed ? `Mostrar ${term.title}` : `Recolher ${term.title}`}
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-canvas hover:text-ink"
+          >
+            <ChevronDown
+              size={20}
+              aria-hidden
+              className={[
+                'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                closed ? '-rotate-90' : 'rotate-0',
+              ].join(' ')}
+            />
+          </button>
+        ) : null}
       </div>
+
+      {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
+      <div
+        id={bodyId}
+        inert={closed ? true : undefined}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          closed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100',
+        ].join(' ')}
+      >
+      <div className="min-h-0 overflow-hidden">
+      <div className="-mx-1 space-y-4 px-1 pb-1 pt-4">
 
       {!editing ? (
         <Button
@@ -279,6 +332,9 @@ export function TermCard({ term, values, patientId, resetKey, createdByName }: T
       {missing.length > 0 && patientId ? (
         <p className="text-sm text-muted">{formatMissing(missing)}</p>
       ) : null}
+      </div>
+      </div>
+      </div>
     </section>
   )
 }
