@@ -437,9 +437,6 @@
   animation-iteration-count: infinite;
   animation-play-state: paused;
 }
-.lp-live:hover :is(.lp-live-row, .lp-live-slot, .lp-live-now, .lp-live-bar, .lp-live-pop, .lp-live-line, .lp-live-progress, .lp-live-check, .lp-live-ring) {
-  animation-play-state: running;
-}
 
 .lp-live-row {
   animation-name: lp-live-row;
@@ -614,7 +611,12 @@
   animation: lp-m-draw 6s ease-in-out infinite both;
 }
 @keyframes lp-m-draw {
+  /* Some com fade e só "rebobina" quando já está invisível (0% ↔ 100% sem salto). */
   0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  1% {
     stroke-dashoffset: 1;
     opacity: 1;
   }
@@ -623,17 +625,10 @@
     stroke-dashoffset: 0;
     opacity: 1;
   }
-  92% {
+  92%,
+  100% {
     stroke-dashoffset: 0;
     opacity: 0;
-  }
-  93% {
-    stroke-dashoffset: 1;
-    opacity: 0;
-  }
-  100% {
-    stroke-dashoffset: 1;
-    opacity: 1;
   }
 }
 
@@ -663,6 +658,10 @@
 @keyframes lp-m-type {
   0% {
     clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+  1% {
+    clip-path: inset(0 100% 0 0);
     opacity: 1;
   }
   16%,
@@ -670,14 +669,10 @@
     clip-path: inset(0 0 0 0);
     opacity: 1;
   }
-  92% {
+  92%,
+  100% {
     clip-path: inset(0 0 0 0);
     opacity: 0;
-  }
-  93%,
-  100% {
-    clip-path: inset(0 100% 0 0);
-    opacity: 1;
   }
 }
 
@@ -687,6 +682,10 @@
 @keyframes lp-m-fill {
   0% {
     transform: scaleX(0);
+    opacity: 0;
+  }
+  1% {
+    transform: scaleX(0);
     opacity: 1;
   }
   25%,
@@ -694,14 +693,10 @@
     transform: scaleX(1);
     opacity: 1;
   }
-  92% {
+  92%,
+  100% {
     transform: scaleX(1);
     opacity: 0;
-  }
-  93%,
-  100% {
-    transform: scaleX(0);
-    opacity: 1;
   }
 }
 

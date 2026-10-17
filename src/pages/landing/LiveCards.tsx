@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { CalendarDays, Check, ClipboardList, FileText, LineChart, Target, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Reveal } from './LandingUi'
+import { useEasedHover } from './useEasedHover'
 
 // Cada cartão conta um pedaço da rotina: o problema de sempre e como o Fluxo resolve,
 // com uma prévia animada (dados fictícios, só ilustrativos).
@@ -216,38 +217,50 @@ const CARDS: Card[] = [
   },
 ]
 
-/** Cartões com prévias que animam no hover: o problema de antes e a rotina com o Fluxo. */
+function LiveCard({ card, index }: { card: Card; index: number }) {
+  const { icon: Icon, titulo, antes, texto, preview, tom } = card
+  const hover = useEasedHover<HTMLDivElement>()
+  return (
+    <li className="contents">
+      <Reveal
+        delay={(index % 3) * 120}
+        variant="blur"
+        className="lp-card lp-live group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface"
+      >
+        <div
+          ref={hover.ref}
+          onMouseEnter={hover.onMouseEnter}
+          onMouseLeave={hover.onMouseLeave}
+          className="flex h-full flex-col"
+        >
+          <div aria-hidden="true" className={`flex h-36 items-center bg-gradient-to-br px-5 ${tom}`}>
+            {preview}
+          </div>
+          <div className="flex flex-col gap-2 p-5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft">
+                <Icon size={18} className="text-[#1e3a8a]" aria-hidden="true" />
+              </span>
+              <h3 className="text-base font-semibold text-ink">{titulo}</h3>
+            </div>
+            <p className="text-xs font-medium text-muted">
+              <span className="line-through decoration-error/60">{antes}</span>
+              <span className="text-sage"> → resolvido</span>
+            </p>
+            <p className="text-sm leading-6 text-muted">{texto}</p>
+          </div>
+        </div>
+      </Reveal>
+    </li>
+  )
+}
+
+/** Cartões com prévias que animam no hover (aceleram e freiam suavemente): o antes e a rotina com o Fluxo. */
 export function LiveCards() {
   return (
     <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {CARDS.map(({ icon: Icon, titulo, antes, texto, preview, tom }, index) => (
-        <li key={titulo} className="contents">
-          <Reveal
-            delay={(index % 3) * 120}
-            variant="blur"
-            className="lp-card lp-live group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface"
-          >
-            <div
-              aria-hidden="true"
-              className={`flex h-36 items-center bg-gradient-to-br px-5 ${tom}`}
-            >
-              {preview}
-            </div>
-            <div className="flex flex-col gap-2 p-5">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft">
-                  <Icon size={18} className="text-[#1e3a8a]" aria-hidden="true" />
-                </span>
-                <h3 className="text-base font-semibold text-ink">{titulo}</h3>
-              </div>
-              <p className="text-xs font-medium text-muted">
-                <span className="line-through decoration-error/60">{antes}</span>
-                <span className="text-sage"> → resolvido</span>
-              </p>
-              <p className="text-sm leading-6 text-muted">{texto}</p>
-            </div>
-          </Reveal>
-        </li>
+      {CARDS.map((card, index) => (
+        <LiveCard key={card.titulo} card={card} index={index} />
       ))}
     </ul>
   )
