@@ -313,10 +313,65 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   basquete: {
     volumeDica: 'ex.: 3 treinos de 2 h por semana',
-    modalidades: [o('quadra5x5', 'Quadra 5x5'), o('basquete3x3', '3x3')],
-    caracteristicas: [
-      g('Posição', [o('armador', 'Armador'), o('ala', 'Ala'), o('pivo', 'Pivô')]),
-      g('Gestos frequentes', [o('saltos', 'Saltos / rebote'), o('mudancaDirecao', 'Mudanças de direção'), o('arremesso', 'Arremesso')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e posição', [
+        unica('modalidade', 'Modalidade', [o('quadra5x5', 'Quadra 5×5'), o('basquete3x3', '3×3')]),
+        unica('posicao', 'Posição habitual', [
+          o('armador', 'Armador(a)'),
+          o('ala', 'Ala'),
+          o('pivo', 'Pivô'),
+          o('multiplas', 'Múltiplas posições'),
+        ]),
+        unica('maoArremesso', 'Mão preferencial para arremesso', [
+          o('direita', 'Direita'),
+          o('esquerda', 'Esquerda'),
+          o('ambas', 'Ambas'),
+        ]),
+      ]),
+      secao('Demandas da prática', [
+        multipla('gestos', 'Gestos predominantes (múltipla escolha)', [
+          o('saltos', 'Saltos e aterrissagens'),
+          o('mudancasDirecao', 'Mudanças de direção'),
+          o('aceleracaoFrenagem', 'Aceleração e frenagem'),
+          o('arremessos', 'Arremessos'),
+          o('bandejas', 'Bandejas/infiltrações'),
+          o('pivoteios', 'Pivoteios'),
+          o('contatoFisico', 'Contato físico'),
+          o('rebotes', 'Rebotes'),
+        ]),
+        numeros('volume', 'Volume semanal', [
+          { key: 'volumeTreinos', rotulo: 'Treinos/semana', sufixo: 'treinos/semana' },
+          { key: 'volumeJogos', rotulo: 'Jogos/semana', sufixo: 'jogos/semana' },
+        ]),
+        numeros('duracao', '', [
+          { key: 'duracaoMinutos', rotulo: 'Duração média de treino ou jogo (minutos)', sufixo: 'min', placeholder: 'Ex.: 60' },
+        ]),
+        unica('mudancaCarga', 'Houve mudança de carga nas últimas semanas?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('gestoSintoma', 'Em qual gesto aparecem os sintomas ou dificuldades?', [
+          o('impulsao', 'Impulsão para salto'),
+          o('aterrissagem', 'Aterrissagem'),
+          o('frenagem', 'Frenagem'),
+          o('mudancaDirecao', 'Mudança de direção'),
+          o('pivoteio', 'Pivoteio'),
+          o('arremesso', 'Arremesso'),
+          o('contatoFisico', 'Contato físico'),
+          o('semGesto', 'Sem gesto específico'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade esportiva',
+          'Ex.: insegurança ao aterrissar, dor no pivoteio, perda de potência no salto...',
+        ),
+      ]),
     ],
   },
   tenis: {

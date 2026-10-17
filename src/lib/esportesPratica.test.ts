@@ -203,3 +203,36 @@ test('corrida: perguntas condicionais, ritmo min:seg e números em linhas separa
     ],
   )
 })
+
+test('basquete: questionário próprio (mão de arremesso, gestos, volume e duração)', () => {
+  const pratica = praticaDoEsporte('basquete')
+  ok(pratica.volumeProprio)
+  deepEqual(pratica.secoes?.map((s) => s.titulo), ['Modalidade e posição', 'Demandas da prática', 'Sintomas e limitações'])
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          modalidade: 'basquete3x3',
+          posicao: 'ala',
+          maoArremesso: 'esquerda',
+          gestos: ['rebotes', 'saltos'],
+          volumeTreinos: '3',
+          duracaoMinutos: '60',
+          mudancaCarga: 'nao',
+          gestoSintoma: 'pivoteio',
+        },
+      },
+      'basquete',
+    ),
+    [
+      'Modalidade: 3×3',
+      'Posição habitual: Ala',
+      'Mão preferencial para arremesso: Esquerda',
+      'Gestos predominantes: Saltos e aterrissagens, Rebotes',
+      'Volume semanal: 3 treinos/semana',
+      'Duração média de treino ou jogo (minutos): 60',
+      'Houve mudança de carga nas últimas semanas? Não',
+      'Em qual gesto aparecem os sintomas ou dificuldades? Pivoteio',
+    ],
+  )
+})
