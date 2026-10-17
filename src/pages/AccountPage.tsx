@@ -17,14 +17,16 @@ import { preparePatientPhoto } from '@/lib/cropPatientPhoto'
 import {
   accountNameSchema,
   changePasswordSchema,
+  crefitoFormSchema,
   type ChangePasswordFormData,
+  type CrefitoFormData,
 } from '@/schemas/auth.schema'
 import { removeAccountPhoto, signAccountAvatarUrl, uploadAccountPhoto } from '@/services/accountPhoto.service'
 import {
   countAccountDeletionPatients,
   signOutAfterAccountDeletion,
 } from '@/services/accountDeletion.service'
-import { changePassword, updateOwnName } from '@/services/auth.service'
+import { changePassword, updateOwnCrefito, updateOwnName } from '@/services/auth.service'
 import { toast } from '@/stores/toast.store'
 
 const PERMISSION = 'Você não tem permissão para esta ação.'
@@ -32,6 +34,7 @@ const PHOTO_TYPE = 'Envie PNG, JPEG ou WebP.'
 const PHOTO_SIZE = 'A foto deve ter no máximo 8 MB.'
 const PHOTO_SAVE = 'Não foi possível salvar a foto. Tente de novo.'
 const PHOTO_REMOVE = 'Não foi possível remover a foto. Tente de novo.'
+const CREFITO_SAVE = 'Não foi possível salvar. Tente de novo.'
 const NAME_SAVE = 'Não foi possível salvar o nome. Tente de novo.'
 const WRONG_CURRENT_PASSWORD = 'Senha atual incorreta.'
 const SAME_PASSWORD = 'A nova senha deve ser diferente da atual.'
@@ -103,6 +106,34 @@ export function AccountPage() {
     resolver: zodResolver(nameFormSchema),
     defaultValues: { fullName: savedName },
   })
+
+  const savedCrefito = (profile?.crefito ?? '').trim()
+  const {
+    register: registerCrefito,
+    handleSubmit: handleCrefitoSubmit,
+    watch: watchCrefito,
+    reset: resetCrefito,
+    formState: { errors: crefitoErrors, isSubmitting: crefitoSubmitting },
+  } = useForm<CrefitoFormData>({
+    resolver: zodResolver(crefitoFormSchema),
+    defaultValues: { crefito: savedCrefito },
+  })
+  const crefitoUnchanged = (watchCrefito('crefito') ?? '').trim() === savedCrefito
+
+  useEffect(() => {
+    resetCrefito({ crefito: savedCrefito })
+  }, [savedCrefito, resetCrefito])
+
+  async function onCrefitoSubmit(data: CrefitoFormData) {
+    if (!user?.id) return
+    try {
+      await updateOwnCrefito(user.id, data.crefito)
+      await reloadProfile()
+      toast('CREFITO salvo.', 'success')
+    } catch (error) {
+      toast(error instanceof Error && error.message === PERMISSION ? PERMISSION : CREFITO_SAVE, 'error')
+    }
+  }
 
   const nameValue = watch('fullName')
   const nameUnchanged = nameValue.trim() === savedName
@@ -331,6 +362,30 @@ export function AccountPage() {
             </div>
           </form>
         </div>
+      </article>
+
+      <article className="rounded-2xl border border-line bg-surface p-4 text-ink md:p-6">
+        <form
+          onSubmit={handleCrefitoSubmit(onCrefitoSubmit)}
+          className="flex flex-col gap-4"
+          noValidate
+        >
+          <h2 className="text-xl font-semibold leading-[1.2]">CREFITO</h2>
+          <Input
+            label="CREFITO"
+            type="text"
+            autoComplete="off"
+            maxLength={40}
+            placeholder="Ex.: CREFITO-3/123456-F"
+            error={crefitoErrors.crefito?.message}
+            {...registerCrefito('crefito')}
+          />
+          <div>
+            <Button type="submit" isLoading={crefitoSubmitting} disabled={crefitoUnchanged}>
+              Salvar CREFITO
+            </Button>
+          </div>
+        </form>
       </article>
 
       <article className="rounded-2xl border border-line bg-surface p-4 text-ink md:p-6">

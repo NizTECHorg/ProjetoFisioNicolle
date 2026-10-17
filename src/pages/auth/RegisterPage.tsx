@@ -101,6 +101,21 @@ export function RegisterPage() {
           {...register('fullName')}
         />
 
+        <div className="space-y-2">
+          <Input
+            label="CREFITO (opcional)"
+            type="text"
+            autoComplete="off"
+            maxLength={40}
+            placeholder="Ex.: CREFITO-3/123456-F"
+            error={errors.crefito?.message}
+            {...register('crefito')}
+          />
+          <p className="text-sm text-muted">
+            Usado nos termos de consentimento. Você pode preencher depois em Minha conta.
+          </p>
+        </div>
+
         <Input
           label="E-mail"
           type="email"
