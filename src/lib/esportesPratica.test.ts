@@ -500,3 +500,33 @@ test('handebol: questionário próprio com 4 seções', () => {
     ],
   )
 })
+
+test('futevôlei: questionário próprio (participação, perna, areia, fundamentos, volume)', () => {
+  const pratica = praticaDoEsporte('futevolei')
+  ok(pratica.volumeProprio)
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          participacao: ['recreativos'],
+          perna: 'esquerda',
+          areia: 'variavel',
+          movimentos: ['cabeceio', 'recepcaoPeito'],
+          volumeTreinos: '2',
+          volumeJogos: '3',
+          duracaoMin: '90',
+          movimentoSintoma: 'shark',
+        },
+      },
+      'futevolei',
+    ),
+    [
+      'Tipo de participação: Jogos recreativos',
+      'Perna preferencial para os golpes: Esquerda',
+      'Condição predominante da areia: Variável',
+      'Movimentos praticados com frequência: Recepção com peito, Cabeceio',
+      'Volume semanal: 2 treinos/semana · 3 jogos/semana · 90 min por sessão',
+      'Em qual movimento aparecem os sintomas? Shark attack',
+    ],
+  )
+})

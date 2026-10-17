@@ -934,10 +934,71 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   futevolei: {
     volumeDica: 'ex.: 4 jogos de 2 h por semana',
-    modalidades: [o('recreativo', 'Recreativo'), o('torneios', 'Torneios')],
-    caracteristicas: [
-      g('Gestos frequentes', [o('shark', 'Ataque de pé (shark)'), o('cabeceio', 'Cabeceio'), o('peito', 'Recepção de peito'), o('saltos', 'Saltos')]),
-      g('Areia', [o('areiaFofa', 'Areia fofa'), o('areiaCompacta', 'Areia compacta')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Características da prática', [
+        multipla('participacao', 'Tipo de participação', [
+          o('tecnicos', 'Treinos técnicos'),
+          o('recreativos', 'Jogos recreativos'),
+          o('competitivos', 'Treinos competitivos'),
+          o('torneios', 'Torneios'),
+        ]),
+        unica('perna', 'Perna preferencial para os golpes', [
+          o('direita', 'Direita'),
+          o('esquerda', 'Esquerda'),
+          o('ambas', 'Ambas'),
+        ]),
+        unica('areia', 'Condição predominante da areia (opcional)', [
+          o('fofa', 'Areia fofa'),
+          o('compactada', 'Areia compactada'),
+          o('variavel', 'Variável'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+      ]),
+      secao('Fundamentos e demandas esportivas', [
+        multipla('movimentos', 'Movimentos praticados com frequência', [
+          o('recepcaoPe', 'Recepção com pé'),
+          o('recepcaoCoxa', 'Recepção com coxa'),
+          o('recepcaoPeito', 'Recepção com peito'),
+          o('cabeceio', 'Cabeceio'),
+          o('levantamento', 'Levantamento'),
+          o('ataquePe', 'Ataque com o pé'),
+          o('shark', 'Shark attack'),
+          o('bicicleta', 'Bicicleta / acrobacias'),
+          o('saltos', 'Saltos / aterrissagens'),
+          o('deslocamentos', 'Deslocamentos na areia'),
+        ]),
+        numeros('volume', 'Volume semanal', [
+          { key: 'volumeTreinos', rotulo: 'Treinos/semana', sufixo: 'treinos/semana', placeholder: 'Ex.: 2' },
+          { key: 'volumeJogos', rotulo: 'Jogos/semana', sufixo: 'jogos/semana', placeholder: 'Ex.: 3' },
+          { key: 'duracaoMin', rotulo: 'Duração média da sessão (minutos)', sufixo: 'min por sessão', placeholder: 'Ex.: 90' },
+        ]),
+        unica('mudancaCarga', 'Houve aumento ou mudança recente de carga?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('movimentoSintoma', 'Em qual movimento aparecem os sintomas?', [
+          o('cabeceio', 'Cabeceio'),
+          o('recepcao', 'Recepção'),
+          o('ataquePe', 'Ataque com o pé'),
+          o('shark', 'Shark attack'),
+          o('bicicleta', 'Bicicleta'),
+          o('impulsao', 'Impulsão'),
+          o('aterrissagem', 'Aterrissagem'),
+          o('deslocamento', 'Deslocamento na areia'),
+          o('outro', 'Outro'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade esportiva',
+          'Ex.: dor ao elevar a perna, insegurança ao aterrissar, perda de potência no ataque...',
+        ),
+      ]),
     ],
   },
   padel: {
