@@ -27,7 +27,7 @@ export type Pergunta = {
   campos?: readonly CampoNumero[]
   placeholder?: string
   /** Só aparece (e só é guardada) quando outra resposta tem esse valor (ou o inclui, se for múltipla). */
-  mostrarSe?: { key: string | readonly string[]; valor: string }
+  mostrarSe?: { key: string | readonly string[]; valor: string | readonly string[] }
   /** Na múltipla escolha: opções que excluem as demais (ex.: "Nenhum"). */
   exclusivas?: readonly string[]
 }
@@ -62,7 +62,10 @@ const numeros = (key: string, rotulo: string, campos: CampoNumero[]): Pergunta =
 const textoLongo = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'textoLongo', placeholder })
 const textoCurto = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'texto', placeholder })
 /** Pergunta que só aparece quando `key` tem `valor`. */
-const se = (key: string | readonly string[], valor: string, p: Pergunta): Pergunta => ({ ...p, mostrarSe: { key, valor } })
+const se = (key: string | readonly string[], valor: string | readonly string[], p: Pergunta): Pergunta => ({
+  ...p,
+  mostrarSe: { key, valor },
+})
 const secao = (titulo: string, perguntas: Pergunta[]): SecaoPerguntas => ({ titulo, perguntas })
 
 export const PERFIS_ESPORTIVOS: readonly OpcaoPratica[] = [
@@ -1151,10 +1154,105 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     ],
   },
   pilatesYoga: {
+    // Sem volume semanal no questionário (só duração da sessão): mantém o campo genérico "Volume".
     volumeDica: 'ex.: 3 aulas por semana',
-    modalidades: [o('pilatesSolo', 'Pilates solo'), o('pilatesAparelhos', 'Pilates aparelhos'), o('yoga', 'Yoga'), o('yogaDinamica', 'Yoga dinâmica (vinyasa, ashtanga)')],
-    caracteristicas: [
-      g('Posturas frequentes', [o('invertidas', 'Invertidas'), o('extensoes', 'Extensões profundas'), o('flexoes', 'Flexões profundas'), o('equilibrio', 'Equilíbrio')]),
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Modalidade e prática', [
+        unica('pratica', 'Prática principal', [o('pilates', 'Pilates'), o('yoga', 'Yoga')]),
+        se(
+          'pratica',
+          'pilates',
+          unica('tipoPilates', 'Tipo de Pilates', [
+            o('solo', 'Solo / Mat Pilates'),
+            o('aparelhos', 'Aparelhos'),
+            o('ambos', 'Ambos'),
+          ]),
+        ),
+        se(
+          'tipoPilates',
+          ['aparelhos', 'ambos'],
+          multipla('aparelhos', 'Aparelhos utilizados (opcional)', [
+            o('reformer', 'Reformer'),
+            o('cadillac', 'Cadillac / Tower'),
+            o('chair', 'Chair'),
+            o('barrel', 'Barrel'),
+          ]),
+        ),
+        // Yoga: o protótipo só mostra o Pilates; perguntas do Yoga são rascunho clínico.
+        se(
+          'pratica',
+          'yoga',
+          unica('estiloYoga', 'Estilo de Yoga', [
+            o('hatha', 'Hatha'),
+            o('vinyasa', 'Vinyasa / flow'),
+            o('ashtanga', 'Ashtanga'),
+            o('iyengar', 'Iyengar'),
+            o('restaurativo', 'Restaurativo / yin'),
+            o('hot', 'Hot yoga'),
+            o('outro', 'Outro'),
+          ]),
+        ),
+        se(
+          'pratica',
+          'yoga',
+          multipla('posturasYoga', 'Posturas frequentes (opcional)', [
+            o('invertidas', 'Invertidas'),
+            o('extensoes', 'Extensões profundas'),
+            o('flexoes', 'Flexões profundas'),
+            o('torcoes', 'Torções'),
+            o('equilibrio', 'Equilíbrio'),
+            o('apoioBracos', 'Apoio nos braços'),
+          ]),
+        ),
+      ]),
+      secao('Demandas da prática', [
+        multipla('exigencias', 'Movimentos e exigências predominantes', [
+          o('tronco', 'Controle / estabilização do tronco'),
+          o('resistencia', 'Movimentos contra resistência'),
+          o('mobilidade', 'Mobilidade de coluna / quadril'),
+          o('equilibrio', 'Equilíbrio'),
+          o('apoioMmss', 'Apoio de membros superiores'),
+          o('unilaterais', 'Exercícios unilaterais'),
+        ]),
+        numeros('duracao', '', [
+          { key: 'duracaoMin', rotulo: 'Duração média da sessão (minutos)', sufixo: 'min', placeholder: 'Ex.: 60' },
+        ]),
+        unica('mudancaPratica', 'Houve mudança recente na prática?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas ou dificuldade durante a prática?'),
+        se(
+          'temSintomas',
+          'sim',
+          textoCurto(
+            'posturaQueixa',
+            'Movimento ou postura relacionada à queixa',
+            'Ex.: prancha, ponte, extensão da coluna, inversão...',
+          ),
+        ),
+        se(
+          'temSintomas',
+          'sim',
+          unica('situacao', 'Em qual situação aparece?', [
+            o('entrar', 'Ao entrar na posição'),
+            o('sustentar', 'Ao sustentar a posição'),
+            o('sair', 'Ao sair ou fazer a transição'),
+            o('amplitude', 'Em determinada amplitude'),
+            o('apos', 'Após a prática'),
+          ]),
+        ),
+        textoLongo(
+          'limitacao',
+          'Principal limitação funcional',
+          'Ex.: dor no punho em apoio, desconforto lombar na extensão, dificuldade de equilíbrio...',
+        ),
+      ]),
     ],
   },
   ski: {
@@ -1259,10 +1357,11 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
 export function perguntaVisivel(p: Pergunta, respostas: Record<string, string | string[]> | undefined): boolean {
   if (!p.mostrarSe) return true
   const { key, valor } = p.mostrarSe
-  // Várias chaves: aparece se qualquer uma tiver o valor (ex.: arte principal OU outras artes).
+  const valores: readonly string[] = typeof valor === 'string' ? [valor] : valor
+  // Várias chaves: aparece se qualquer uma tiver algum dos valores (ex.: arte principal OU outras artes).
   return (typeof key === 'string' ? [key] : key).some((k) => {
     const v = respostas?.[k]
-    return Array.isArray(v) ? v.includes(valor) : v === valor
+    return Array.isArray(v) ? v.some((item) => valores.includes(item)) : typeof v === 'string' && valores.includes(v)
   })
 }
 

@@ -31,18 +31,18 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
         nivel: 'mestre',
         frequencia: 9,
         anosPratica: '   ',
-        volume: '3 aulas por semana',
-        modalidades: ['yoga', 'praia', 'yoga'],
-        caracteristicas: ['invertidas', 'levantador'],
+        volume: '7 dias por temporada',
+        modalidades: ['freeride', 'praia', 'freeride'],
+        caracteristicas: ['moguls', 'levantador'],
         sintomasMomentos: ['depois', 'antes'],
       },
-      'pilatesYoga',
+      'ski',
     ),
     {
       perfil: 'profissional',
-      volume: '3 aulas por semana',
-      modalidades: ['yoga'],
-      caracteristicas: ['invertidas'],
+      volume: '7 dias por temporada',
+      modalidades: ['freeride'],
+      caracteristicas: ['moguls'],
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -595,6 +595,45 @@ test('dança: ponta só com ballet (principal ou outro estilo); vários estilos'
       'Horas de ensaio/semana: 4',
       'Realiza apresentações ou competições? Sim',
       'Qual movimento está relacionado aos sintomas ou dificuldades? Saltos e aterrissagens',
+    ],
+  )
+})
+
+test('pilates/yoga: perguntas alternam entre Pilates e Yoga; aparelhos só com aparelhos/ambos', () => {
+  const pratica = praticaDoEsporte('pilatesYoga')
+  deepEqual(safeRespostas({ pratica: 'yoga', tipoPilates: 'aparelhos', aparelhos: ['reformer'], estiloYoga: 'hatha' }, pratica), {
+    pratica: 'yoga',
+    estiloYoga: 'hatha',
+  })
+  deepEqual(safeRespostas({ pratica: 'pilates', tipoPilates: 'solo', aparelhos: ['reformer'] }, pratica), {
+    pratica: 'pilates',
+    tipoPilates: 'solo',
+  })
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          pratica: 'pilates',
+          tipoPilates: 'ambos',
+          aparelhos: ['reformer', 'chair'],
+          exigencias: ['tronco'],
+          duracaoMin: '60',
+          temSintomas: 'sim',
+          posturaQueixa: 'Ponte',
+          situacao: 'sustentar',
+        },
+      },
+      'pilatesYoga',
+    ),
+    [
+      'Prática principal: Pilates',
+      'Tipo de Pilates: Ambos',
+      'Aparelhos utilizados: Reformer, Chair',
+      'Movimentos e exigências predominantes: Controle / estabilização do tronco',
+      'Duração média da sessão (minutos): 60',
+      'Apresenta sintomas ou dificuldade durante a prática? Sim',
+      'Movimento ou postura relacionada à queixa: Ponte',
+      'Em qual situação aparece? Ao sustentar a posição',
     ],
   )
 })
