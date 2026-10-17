@@ -4,6 +4,7 @@ import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { Blob, Reveal, WaveDivider } from './LandingUi'
 import { LinkButton, WhatsAppLink } from './LinkButton'
 import { MAKER_NAME, MAKER_URL } from './landing.config'
+import niztechLogo from '@/assets/landing/niztech.webp'
 
 const LINK =
   'inline-flex min-h-10 items-center text-sm text-white/65 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
@@ -124,7 +125,9 @@ export function LandingFooter() {
               rel="noopener noreferrer"
               className="group inline-flex min-h-10 items-center gap-1.5 text-white/70 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              Feito por <span className="font-semibold text-white">{MAKER_NAME}</span>
+              Feito por
+              <img src={niztechLogo} alt="" width={16} height={14} className="h-[1em] w-auto" />
+              <span className="font-semibold text-white">{MAKER_NAME}</span>
               <ArrowUpRight
                 size={16}
                 aria-hidden="true"

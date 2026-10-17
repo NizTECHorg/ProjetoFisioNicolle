@@ -341,10 +341,6 @@
   animation: lp-marquee 38s linear infinite;
 }
 
-.lp-marquee-wrap:hover .lp-marquee {
-  animation-play-state: paused;
-}
-
 @keyframes lp-marquee {
   to {
     transform: translate3d(-50%, 0, 0);

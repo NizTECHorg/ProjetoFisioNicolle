@@ -1,3 +1,5 @@
+import { useEasedHover } from './useEasedHover'
+
 // O que o Fluxo entrega, em poucas palavras (bullet points rolando).
 const ITEMS = [
   'Avaliação completa em 5 páginas',
@@ -15,11 +17,16 @@ const ITEMS = [
 
 /** Recursos rolando (sem fundo próprio), presos à largura do conteúdo e com fade nas bordas. */
 export function FeatureMarquee() {
+  // No hover desacelera aos poucos (não para); ao sair volta à velocidade normal.
+  const hover = useEasedHover<HTMLDivElement>({ dentro: 0.2, fora: 1, duracao: 1200 })
   return (
     <div className="relative bg-surface">
       <p className="sr-only">O Fluxo oferece: {ITEMS.join(', ')}.</p>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div
+          ref={hover.ref}
+          onMouseEnter={hover.onMouseEnter}
+          onMouseLeave={hover.onMouseLeave}
           aria-hidden="true"
           className="lp-marquee-wrap overflow-hidden py-6 [mask-image:linear-gradient(90deg,transparent,#000_14%,#000_86%,transparent)] md:py-8"
         >
