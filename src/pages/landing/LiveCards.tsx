@@ -44,7 +44,7 @@ function Agenda() {
           </li>
         ))}
       </ul>
-      <span className="lp-live-now pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full bg-error/70" />
+      <span className="lp-live-now pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full bg-accent shadow-[0_0_8px_rgba(47,125,255,0.6)]" />
     </div>
   )
 }
@@ -55,13 +55,13 @@ function Financeiro() {
     <div className="flex w-full flex-col gap-2">
       <div className="flex items-baseline justify-between text-xs">
         <span className="text-muted">Sessões pagas</span>
-        <span className="font-semibold text-sage">+18%</span>
+        <span className="font-semibold text-accent">+18%</span>
       </div>
       <div className="flex h-16 items-end gap-1.5">
         {barras.map((h, i) => (
           <span
             key={i}
-            className="lp-live-bar flex-1 origin-bottom rounded-t-md bg-[linear-gradient(180deg,#2f7dff,#24b296)]"
+            className="lp-live-bar flex-1 origin-bottom rounded-t-md bg-[linear-gradient(180deg,#2f7dff,#8cc4ff)]"
             style={{ height: `${h}%`, animationDelay: `${i * 0.25}s` }}
           />
         ))}
@@ -216,7 +216,7 @@ const CARDS: Card[] = [
   },
 ]
 
-/** Cartões com prévias animadas: o problema de antes e a rotina com o Fluxo. */
+/** Cartões com prévias que animam no hover: o problema de antes e a rotina com o Fluxo. */
 export function LiveCards() {
   return (
     <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -225,7 +225,7 @@ export function LiveCards() {
           <Reveal
             delay={(index % 3) * 120}
             variant="blur"
-            className="lp-card group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface"
+            className="lp-card lp-live group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface"
           >
             <div
               aria-hidden="true"
