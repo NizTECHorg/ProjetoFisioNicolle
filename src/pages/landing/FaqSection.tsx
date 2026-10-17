@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { Reveal, SectionHeading, WaveDivider } from './LandingUi'
+import { Reveal, SectionHeading } from './LandingUi'
 import { WhatsAppLink } from './LinkButton'
 
 type FaqItem = { q: string; a: string; whatsapp?: boolean }
@@ -106,7 +106,6 @@ export function FaqSection() {
           })}
         </Reveal>
       </div>
-      <WaveDivider fill="fill-forest" />
     </section>
   )
 }

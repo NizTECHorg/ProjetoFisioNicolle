@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, HeartPulse, ShieldCheck, Smartphone, Sparkles } from 'lucide-react'
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
-import { Blob, Reveal } from './LandingUi'
+import { Blob, Reveal, WaveDivider } from './LandingUi'
 import { LinkButton, WhatsAppLink } from './LinkButton'
 import { MAKER_NAME, MAKER_URL } from './landing.config'
 
@@ -24,9 +24,12 @@ const SELOS = [
 
 export function LandingFooter() {
   return (
-    <div className="relative overflow-hidden bg-forest text-white">
+    <div className="relative -mt-px overflow-hidden bg-forest text-white">
       <Blob className="-left-24 top-0 h-96 w-96 bg-accent/25" />
       <Blob className="-right-24 top-1/3 h-96 w-96 bg-sage/20" />
+      {/* A onda é desenhada aqui dentro (na cor do FAQ, por cima): o degradê das manchas
+          continua por baixo dela, sem a emenda reta entre seções. */}
+      <WaveDivider fill="fill-canvas" flip />
 
       {/* Chamado final */}
       <section aria-labelledby="lp-cta-title" className="lp-section relative">

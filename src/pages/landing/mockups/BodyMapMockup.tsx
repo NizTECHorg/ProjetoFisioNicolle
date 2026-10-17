@@ -2,11 +2,12 @@ import { Activity } from 'lucide-react'
 import homiLp from '@/assets/landing/homi-lp.webp'
 import muirLp from '@/assets/landing/muir-lp.webp'
 
+// Posições medidas sobre as figuras (frente ~25% e costas ~74% da largura da imagem).
 const PONTOS_A = [
-  { left: '30%', top: '22%' },
-  { left: '58%', top: '72%' },
+  { left: '31%', top: '24%' }, // ombro (frente)
+  { left: '74%', top: '42%' }, // lombar (costas)
 ]
-const PONTOS_B = [{ left: '48%', top: '46%' }]
+const PONTOS_B = [{ left: '29%', top: '64%' }] // joelho (frente)
 
 function Ponto({ left, top, delay }: { left: string; top: string; delay: number }) {
   return (

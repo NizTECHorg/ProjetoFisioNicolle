@@ -25,10 +25,8 @@ export function AiDraftMockup() {
       <ul className="mt-4 flex flex-col gap-2.5 rounded-xl bg-canvas p-3">
         {LINHAS.map((l, i) => (
           <li key={l.rotulo} className="flex items-start justify-between gap-2">
-            <p
-              className="lp-m-type min-w-0 text-sm leading-5 text-ink"
-              style={{ animationDelay: `${i * 0.7}s` }}
-            >
+            {/* Uma linha do tempo só (sem delay): entram em sequência e saem em sequência no mesmo ciclo. */}
+            <p className={`lp-m-type lp-m-type-${i} min-w-0 text-sm leading-5 text-ink`}>
               <span className="font-semibold text-[#1e3a8a]">{l.rotulo}: </span>
               {l.texto}
             </p>

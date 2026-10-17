@@ -101,14 +101,19 @@ export function ProductSection() {
               <Reveal
                 variant="scale"
                 delay={120}
-                className={[
-                  'relative rounded-2xl p-4 transition-shadow duration-300 hover:shadow-[0_8px_20px_rgba(11,29,54,0.06)] md:p-6',
-                  index % 2 === 1
-                    ? 'bg-[linear-gradient(135deg,#e6f5f0,#eaf2fd)] lg:order-1'
-                    : 'bg-[linear-gradient(135deg,#eaf2fd,#e6f5f0)]',
-                ].join(' ')}
+                className={index % 2 === 1 ? 'lg:order-1' : ''}
               >
-                {feature.mockup}
+                {/* A sombra fica num elemento próprio: o Reveal já usa a transição para a entrada. */}
+                <div
+                  className={[
+                    'relative rounded-2xl p-4 shadow-[0_8px_20px_rgba(11,29,54,0)] transition-shadow duration-500 ease-out hover:shadow-[0_8px_20px_rgba(11,29,54,0.07)] md:p-6',
+                    index % 2 === 1
+                      ? 'bg-[linear-gradient(135deg,#e6f5f0,#eaf2fd)]'
+                      : 'bg-[linear-gradient(135deg,#eaf2fd,#e6f5f0)]',
+                  ].join(' ')}
+                >
+                  {feature.mockup}
+                </div>
               </Reveal>
             </div>
           ))}
