@@ -193,6 +193,7 @@ export interface Patient {
   phone: string
   email: string
   profession: string
+  cpf: string
   gender: PatientGender | null
   emergencyName: string
   emergencyPhone: string
@@ -269,6 +270,7 @@ export interface UpdatePatientInput {
   email?: string
   birthDate?: string
   profession?: string
+  cpf?: string
   gender?: string
   emergencyName?: string
   emergencyPhone?: string

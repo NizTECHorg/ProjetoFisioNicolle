@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { normalizeCpf } from '@/lib/cpf'
 import { mapDbError, sanitizeText } from '@/lib/security'
 import { narrowAiSummaryFields, narrowSummaryEdits } from '@/lib/patientSummary'
 import { narrowGender } from '@/lib/patientGender'
@@ -32,6 +33,7 @@ interface PatientRow {
   email: string | null
   status: PatientStatus
   profession: string | null
+  cpf?: string | null
   gender: string | null
   emergency_name: string | null
   emergency_phone: string | null
@@ -123,7 +125,7 @@ interface AlertRow {
 const ALERT_COLUMNS = 'id, message, tone, created_at, created_by, created_by_name'
 
 const DETAIL_COLUMNS =
-  'id, full_name, code, birth_date, phone, email, status, profession, gender, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, ai_summary_fields, summary_edits, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by'
+  'id, full_name, code, birth_date, phone, email, status, profession, gender, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, ai_summary_fields, summary_edits, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by, cpf'
 
 const LIST_COLUMNS =
   'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_at, created_by'
@@ -339,6 +341,7 @@ function mapPatient(
     phone: row.phone ?? '—',
     email: row.email ?? '—',
     profession: row.profession ?? '—',
+    cpf: normalizeCpf(row.cpf ?? ''),
     gender: narrowGender(row.gender),
     emergencyName: row.emergency_name ?? '—',
     emergencyPhone: row.emergency_phone ?? '—',
@@ -609,6 +612,11 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
   if (input.email !== undefined) payload.email = emptyToNull(input.email)?.toLowerCase() ?? null
   if (input.profession !== undefined) payload.profession = emptyToNull(input.profession)
   if (input.gender !== undefined) payload.gender = narrowGender(input.gender)
+  if (input.cpf !== undefined) {
+    const cpfDigits = normalizeCpf(input.cpf)
+    if (cpfDigits !== '' && cpfDigits.length !== 11) throw new Error('CPF inválido. Confira os números.')
+    payload.cpf = cpfDigits || null
+  }
   if (input.emergencyName !== undefined) payload.emergency_name = emptyToNull(input.emergencyName)
   if (input.emergencyPhone !== undefined) payload.emergency_phone = emptyToNull(input.emergencyPhone)
   if (input.emergencyRelation !== undefined) {

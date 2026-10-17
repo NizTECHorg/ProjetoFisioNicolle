@@ -1,8 +1,15 @@
 import { z } from 'zod'
 import { parseBrlInput } from '@/schemas/finance.schema'
 import { FOCUS_REGION_KEYS } from '@/lib/focusRegions'
+import { isValidCpf } from '@/lib/cpf'
 import { PATIENT_GENDER_VALUES } from '@/lib/patientGender'
 import type { AlertTone, PatientStatus } from '@/types/patient'
+
+const optionalCpf = z
+  .string()
+  .trim()
+  .optional()
+  .refine((v) => !v || isValidCpf(v), 'CPF inválido. Confira os números.')
 
 const optionalText = (max: number, minWhenFilled = 0) =>
   z
@@ -56,6 +63,7 @@ export const createPatientSchema = z.object({
 })
 
 export const updatePatientSchema = createPatientSchema.extend({
+  cpf: optionalCpf,
   status: patientStatusSchema,
 })
 
@@ -73,6 +81,7 @@ export const identityPatientSchema = z.object({
 
 export const personalSectionSchema = z.object({
   profession: optionalText(80),
+  cpf: optionalCpf,
   gender: z.union([z.literal(''), z.enum(PATIENT_GENDER_VALUES)]),
   email: optionalEmail,
 })
