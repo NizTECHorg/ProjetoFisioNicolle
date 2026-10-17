@@ -74,15 +74,22 @@ test('REQ-47: produto', () => {
     'Resumo e avaliação com IA',
     'Agenda e PDF',
     'A IA usa apenas o que está escrito no prontuário',
-    'Prontuário completo',
-    'Agenda',
-    'Financeiro e analítica',
-    'Equipe',
-    'Exportar PDF',
-    'Metas do tratamento',
-    'Visão do dia e da semana da sua clínica.',
+    '<LiveCards />',
   ])
     has(src, s)
+  // Cartões animados com o "antes" e a solução
+  const cards = read(PRODUCT.replace('ProductSection.tsx', 'LiveCards.tsx'))
+  for (const s of [
+    'Prontuário completo',
+    'Agenda do dia',
+    'Financeiro e analítica',
+    'Equipe',
+    'PDF para o paciente',
+    'Metas do tratamento',
+    'aria-hidden="true"',
+  ])
+    has(cards, s)
+  lacks(cards, 'sem conflito')
   lacks(src, 'sem conflito')
 
   const dir = fileURLToPath(new URL(MOCKUPS_DIR, import.meta.url))

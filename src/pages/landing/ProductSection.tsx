@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
-import { CalendarDays, ClipboardList, FileText, LineChart, Target, Users } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { CheckItem, Reveal, SectionHeading, WaveDivider } from './LandingUi'
+import { LiveCards } from './LiveCards'
 import { AgendaPdfMockup } from './mockups/AgendaPdfMockup'
 import { AiDraftMockup } from './mockups/AiDraftMockup'
 import { BodyMapMockup } from './mockups/BodyMapMockup'
@@ -56,31 +55,6 @@ const FEATURES: Feature[] = [
       'Escolha as seções que entram no documento',
     ],
     mockup: <AgendaPdfMockup />,
-  },
-]
-
-const SMALL: { icon: LucideIcon; title: string; text: string }[] = [
-  {
-    icon: ClipboardList,
-    title: 'Prontuário completo',
-    text: 'Cadastro, histórico e documentos do paciente.',
-  },
-  { icon: CalendarDays, title: 'Agenda', text: 'Visão do dia e da semana da sua clínica.' },
-  {
-    icon: LineChart,
-    title: 'Financeiro e analítica',
-    text: 'Acompanhe cobranças e a atividade do seu consultório.',
-  },
-  { icon: Users, title: 'Equipe', text: 'Fisioterapeutas vinculados à conta da empresa.' },
-  {
-    icon: FileText,
-    title: 'Exportar PDF',
-    text: 'Documentos claros para o paciente e para a clínica.',
-  },
-  {
-    icon: Target,
-    title: 'Metas do tratamento',
-    text: 'Objetivos por paciente com status e datas.',
   },
 ]
 
@@ -140,34 +114,7 @@ export function ProductSection() {
           ))}
         </div>
 
-        <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {SMALL.map(({ icon: Icon, title, text }, index) => (
-            <li key={title} className="contents">
-              <Reveal
-                delay={(index % 3) * 100}
-                variant="blur"
-                className="lp-card flex flex-col gap-4 rounded-2xl border border-line bg-canvas p-4 md:p-6"
-              >
-                <span
-                  className={[
-                    'flex h-12 w-12 items-center justify-center rounded-full',
-                    ['bg-accent-soft', 'bg-sage-soft', 'bg-[#e8ecf8]'][index % 3],
-                  ].join(' ')}
-                >
-                  <Icon
-                    size={24}
-                    className={['text-[#1e3a8a]', 'text-sage', 'text-accent'][index % 3]}
-                    aria-hidden="true"
-                  />
-                </span>
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-base font-semibold text-ink">{title}</h3>
-                  <p className="text-base leading-7 text-muted">{text}</p>
-                </div>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
+        <LiveCards />
       </div>
       <WaveDivider fill="fill-sage-soft" />
     </section>

@@ -420,6 +420,139 @@
   border-radius: 42% 58% 55% 45% / 50% 45% 55% 50%;
 }
 
+/* Cartões vivos da landing (animações contínuas e discretas) */
+.lp-live-row {
+  animation: lp-live-row 4.8s ease-in-out infinite both;
+}
+@keyframes lp-live-row {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  16%,
+  85% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.lp-live-slot {
+  animation: lp-live-slot 3.6s ease-in-out infinite;
+}
+@keyframes lp-live-slot {
+  0%,
+  100% {
+    border-color: #e1e8f0;
+    box-shadow: none;
+  }
+  15%,
+  30% {
+    border-color: #2f7dff;
+    box-shadow: 0 0 0 3px rgba(47, 125, 255, 0.15);
+  }
+}
+
+.lp-live-now {
+  animation: lp-live-now 3.6s ease-in-out infinite;
+}
+@keyframes lp-live-now {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(92px);
+  }
+}
+
+.lp-live-bar {
+  animation: lp-live-bar 2.8s ease-in-out infinite;
+}
+@keyframes lp-live-bar {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.lp-live-pop {
+  animation: lp-live-pop 3s ease-in-out infinite;
+}
+@keyframes lp-live-pop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-4px);
+  }
+  40% {
+    transform: translateY(0);
+  }
+}
+
+.lp-live-line {
+  animation: lp-live-line 3.2s ease-out infinite;
+}
+@keyframes lp-live-line {
+  0% {
+    transform: scaleX(0);
+  }
+  40%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.lp-live-progress {
+  animation: lp-live-progress 3.2s ease-in-out infinite;
+}
+@keyframes lp-live-progress {
+  0% {
+    transform: scaleX(0);
+  }
+  70%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.lp-live-check {
+  animation: lp-live-check 3.2s ease-in-out infinite;
+}
+@keyframes lp-live-check {
+  0%,
+  65% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  75%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lp-live-ring {
+  stroke-dasharray: 100;
+  animation: lp-live-ring 4s ease-in-out infinite;
+}
+@keyframes lp-live-ring {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: 33;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lp-reveal {
     opacity: 1;
@@ -448,8 +581,21 @@
   }
 
   .lp-marquee,
-  .lp-hero-in {
+  .lp-hero-in,
+  .lp-live-row,
+  .lp-live-slot,
+  .lp-live-now,
+  .lp-live-bar,
+  .lp-live-pop,
+  .lp-live-line,
+  .lp-live-progress,
+  .lp-live-check,
+  .lp-live-ring {
     animation: none;
+  }
+
+  .lp-live-ring {
+    stroke-dashoffset: 33;
   }
 
   .lp-parallax {

@@ -78,9 +78,10 @@ export function WaveDivider({ fill, flip }: { fill: string; flip?: boolean }) {
       aria-hidden="true"
       viewBox="0 0 1440 64"
       preserveAspectRatio="none"
-      className={['block h-12 w-full md:h-16', fill, flip ? 'rotate-180' : ''].join(' ')}
+      // -mb-px + z-[1]: a onda cobre 1px da seção seguinte, sem fresta de outra cor na emenda.
+      className={['relative z-[1] -mb-px block h-12 w-full md:h-16', fill, flip ? 'rotate-180' : ''].join(' ')}
     >
-      <path d="M0 32 C 240 0, 480 0, 720 32 S 1200 64, 1440 32 L1440 64 L0 64 Z" />
+      <path d="M0 32 C 240 0, 480 0, 720 32 S 1200 64, 1440 32 L1440 66 L0 66 Z" />
     </svg>
   )
 }
