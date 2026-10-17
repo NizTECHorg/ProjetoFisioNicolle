@@ -177,6 +177,17 @@ const MOVIMENTOS_LUTA: Record<string, OpcaoPratica[]> = {
   ],
 }
 
+const ESTILOS_DANCA: OpcaoPratica[] = [
+  o('ballet', 'Ballet clássico'),
+  o('contemporaneo', 'Contemporâneo'),
+  o('jazz', 'Jazz'),
+  o('urbanas', 'Danças urbanas'),
+  o('salao', 'Dança de salão'),
+  o('pole', 'Pole dance'),
+  o('aerea', 'Dança aérea / tecido / lira'),
+  o('outra', 'Outra'),
+]
+
 const PRATICA_OUTRO: PraticaEsporte = { volumeDica: 'ex.: 4 h por semana', modalidades: [], caracteristicas: [] }
 
 export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
@@ -1080,17 +1091,63 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   danca: {
     volumeDica: 'ex.: 8 h de aula por semana',
-    modalidades: [
-      o('ballet', 'Ballet'),
-      o('contemporaneo', 'Contemporâneo'),
-      o('jazz', 'Jazz'),
-      o('urbanas', 'Danças urbanas'),
-      o('salao', 'Dança de salão'),
-      o('aerea', 'Aérea / pole'),
-    ],
-    caracteristicas: [
-      g('Prática', [o('pontas', 'Sapatilha de ponta'), o('saltos', 'Muitos saltos'), o('chao', 'Trabalho de chão'), o('apresentacoes', 'Apresentações / festivais')]),
-      g('Piso', [o('linoleo', 'Linóleo / tablado'), o('pisoDuro', 'Piso duro')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Estilo e características', [
+        selecao('estilo', 'Estilo principal', ESTILOS_DANCA),
+        // Protótipo: a versão final pode ter estilo predominante e outros secundários.
+        multipla('outrosEstilos', 'Outros estilos praticados (opcional)', ESTILOS_DANCA),
+        se(
+          ['estilo', 'outrosEstilos'],
+          'ballet',
+          unica('ponta', 'Realiza trabalho de ponta?', [o('sim', 'Sim'), o('nao', 'Não'), o('iniciando', 'Iniciando')]),
+        ),
+      ]),
+      secao('Demandas do movimento', [
+        multipla('movimentos', 'Movimentos frequentes', [
+          o('releve', 'Relevé / meia-ponta'),
+          o('piruetas', 'Piruetas / giros'),
+          o('saltos', 'Saltos e aterrissagens'),
+          o('equilibrio', 'Equilíbrio unipodal'),
+          o('amplitudes', 'Grandes amplitudes / développés'),
+          o('ponta', 'Trabalho de ponta'),
+        ]),
+        unica('superficie', 'Superfície predominante (se aplicável)', [
+          o('amortecimento', 'Piso com estrutura de amortecimento'),
+          o('rigido', 'Piso rígido'),
+          o('variavel', 'Variável'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+      ]),
+      secao('Carga da prática', [
+        numeros('carga', '', [
+          { key: 'horasAula', rotulo: 'Horas de aula/semana', sufixo: 'h/semana', placeholder: 'Ex.: 6' },
+          { key: 'horasEnsaio', rotulo: 'Horas de ensaio/semana', sufixo: 'h/semana', placeholder: 'Ex.: 4' },
+        ]),
+        simNao('apresentacoes', 'Realiza apresentações ou competições?'),
+        unica('mudancaCarga', 'Houve mudança recente na carga ou técnica?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('movimentoSintoma', 'Qual movimento está relacionado aos sintomas ou dificuldades?', [
+          o('releve', 'Relevé / meia-ponta'),
+          o('piruetas', 'Piruetas / giros'),
+          o('saltos', 'Saltos e aterrissagens'),
+          o('equilibrio', 'Equilíbrio unipodal'),
+          o('amplitudes', 'Grandes amplitudes / développés'),
+          o('ponta', 'Trabalho de ponta'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade funcional',
+          'Ex.: dor ao fazer relevé, insegurança na aterrissagem, limitação na inversão...',
+        ),
+      ]),
     ],
   },
   pilatesYoga: {

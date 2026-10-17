@@ -31,18 +31,18 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
         nivel: 'mestre',
         frequencia: 9,
         anosPratica: '   ',
-        volume: '8 h de aula por semana',
-        modalidades: ['ballet', 'praia', 'ballet'],
-        caracteristicas: ['pontas', 'levantador'],
+        volume: '3 aulas por semana',
+        modalidades: ['yoga', 'praia', 'yoga'],
+        caracteristicas: ['invertidas', 'levantador'],
         sintomasMomentos: ['depois', 'antes'],
       },
-      'danca',
+      'pilatesYoga',
     ),
     {
       perfil: 'profissional',
-      volume: '8 h de aula por semana',
-      modalidades: ['ballet'],
-      caracteristicas: ['pontas'],
+      volume: '3 aulas por semana',
+      modalidades: ['yoga'],
+      caracteristicas: ['invertidas'],
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -557,6 +557,44 @@ test('padel: questionário próprio (golpes, deslocamentos, carga, queixa)', () 
       'Duração média (minutos): 90',
       'Houve mudança recente de carga ou equipamento? Não',
       'Golpe ou movimento associado à queixa: Saída de parede',
+    ],
+  )
+})
+
+test('dança: ponta só com ballet (principal ou outro estilo); vários estilos', () => {
+  const pratica = praticaDoEsporte('danca')
+  ok(pratica.volumeProprio)
+  deepEqual(safeRespostas({ estilo: 'jazz', ponta: 'sim' }, pratica), { estilo: 'jazz' })
+  deepEqual(safeRespostas({ estilo: 'jazz', outrosEstilos: ['ballet'], ponta: 'iniciando' }, pratica), {
+    estilo: 'jazz',
+    outrosEstilos: ['ballet'],
+    ponta: 'iniciando',
+  })
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          estilo: 'ballet',
+          ponta: 'nao',
+          movimentos: ['releve', 'piruetas'],
+          superficie: 'rigido',
+          horasAula: '6',
+          horasEnsaio: '4',
+          apresentacoes: 'sim',
+          movimentoSintoma: 'saltos',
+        },
+      },
+      'danca',
+    ),
+    [
+      'Estilo principal: Ballet clássico',
+      'Realiza trabalho de ponta? Não',
+      'Movimentos frequentes: Relevé / meia-ponta, Piruetas / giros',
+      'Superfície predominante (se aplicável): Piso rígido',
+      'Horas de aula/semana: 6',
+      'Horas de ensaio/semana: 4',
+      'Realiza apresentações ou competições? Sim',
+      'Qual movimento está relacionado aos sintomas ou dificuldades? Saltos e aterrissagens',
     ],
   )
 })
