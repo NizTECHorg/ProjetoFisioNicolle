@@ -784,3 +784,38 @@ test('surf: novo esporte com questionário próprio e problemas frequentes', () 
     },
   )
 })
+
+test('circo: artes circenses com questionário próprio e sintomas condicionais', () => {
+  const pratica = praticaDoEsporte('circo')
+  ok(pratica.volumeProprio)
+  deepEqual(safeRespostas({ temSintomas: 'nao', movimentoQueixa: 'inversoes', momento: 'apos' }, pratica), { temSintomas: 'nao' })
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          modalidade: 'tecido',
+          contexto: ['aulas'],
+          movimentos: ['subidas', 'travas'],
+          demanda: 'preensao',
+          treinosSemana: '3',
+          horasSessao: '2',
+          temSintomas: 'sim',
+          movimentoQueixa: 'suspensoes',
+          momento: 'sustentacao',
+        },
+      },
+      'circo',
+    ),
+    [
+      'Modalidade circense principal: Tecido acrobático',
+      'Contexto da prática: Aulas regulares',
+      'Movimentos e habilidades frequentes: Subidas e escaladas, Travas / enrolamentos',
+      'Principal demanda ou dificuldade: Força de preensão / pegada',
+      'Treinos por semana: 3',
+      'Horas por sessão: 2',
+      'Apresenta dor ou dificuldade na prática? Sim',
+      'Movimento relacionado à queixa: Suspensões',
+      'Momento dos sintomas: Sustentação da posição',
+    ],
+  )
+})

@@ -20,7 +20,7 @@ import { CATALOGO_TESTES, fold } from './mobilidadePalpacao.ts'
 
 const KEY_RE = /^[a-z][a-zA-Z0-9]{0,63}$/
 
-test('REQ-44: catálogo tem 18 esportes na ordem esperada', () => {
+test('REQ-44: catálogo tem 19 esportes na ordem esperada', () => {
   deepEqual(
     ESPORTES.map((e) => e.key),
     [
@@ -42,9 +42,10 @@ test('REQ-44: catálogo tem 18 esportes na ordem esperada', () => {
       'ski',
       'snowboard',
       'surf',
+      'circo',
     ],
   )
-  equal(ESPORTES.length, 18)
+  equal(ESPORTES.length, 19)
   ok(!ESPORTES.some((e) => e.key === ESPORTE_OUTRO))
 })
 
@@ -112,7 +113,7 @@ test('REQ-44: avaliarTexto junta testes e achados', () => {
 
 test('REQ-44: buscarEsportes ignora acento e usa sinônimos', () => {
   const keys = (q: string) => buscarEsportes(q).map((e) => e.key)
-  equal(buscarEsportes('').length, 18)
+  equal(buscarEsportes('').length, 19)
   ok(keys('VOLEI').includes('volei'))
   ok(keys('vôlei').includes('volei'))
   ok(keys('beach').includes('tenis'))

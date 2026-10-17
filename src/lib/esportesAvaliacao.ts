@@ -274,6 +274,20 @@ export const ESPORTES: readonly Esporte[] = [
       p('punhoSurf', 'Dor no punho', 'Punho / mão', [], ['Mobilidade', 'força', 'tolerância ao apoio durante o pop-up']),
       p('traumaSurf', 'Trauma após queda / colisão', 'Geral', [], ['Triagem de fraturas', 'concussão', 'lesões cervicais e outras consequências do impacto']),
     ],
+  },  {
+    key: 'circo',
+    nome: 'Artes circenses',
+    busca: ['circo', 'tecido acrobatico', 'lira', 'trapezio', 'acrobacia', 'malabarismo', 'aereo'],
+    problemas: [
+      p('ombroCirco', 'Dor no ombro / instabilidade', 'Ombro', [], ['ADM e força de rotação', 'controle escapular', 'estabilidade quando indicada e tolerância à suspensão']),
+      p('punhoCirco', 'Dor no punho', 'Punho / mão', [], ['Mobilidade', 'força', 'estabilidade e capacidade de suportar peso sobre as mãos']),
+      p('cotoveloCirco', 'Dor no cotovelo', 'Cotovelo', [], ['Força de preensão', 'flexores/extensores', 'testes específicos e tolerância à pegada']),
+      p('cervicalCirco', 'Dor cervical', 'Coluna cervical', [], ['Mobilidade', 'avaliação neurológica quando indicada', 'investigação de trauma ou inversões']),
+      p('lombarCirco', 'Dor lombar', 'Coluna lombar', [], ['Mobilidade', 'força', 'controle funcional e tolerância às extensões/acrobacias']),
+      p('quadrilCirco', 'Dor no quadril / adutores', 'Quadril', [], ['Força', 'mobilidade e avaliação de figuras com grandes amplitudes']),
+      p('joelhoTornozeloCirco', 'Dor no joelho / tornozelo', 'Joelho / tornozelo', [], ['Força', 'estabilidade', 'avaliação ligamentar quando indicada e aterrissagens']),
+      p('traumaCirco', 'Lesão traumática após queda', 'Geral', [], ['Triagem de fratura', 'lesão neurológica e concussão conforme mecanismo']),
+    ],
   },
 ]
 

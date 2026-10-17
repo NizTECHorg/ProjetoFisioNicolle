@@ -1475,6 +1475,99 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
     ],
   },
+  circo: {
+    volumeDica: 'ex.: 3 treinos de 2 h por semana',
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e participação', [
+        unica('modalidade', 'Modalidade circense principal', [
+          o('tecido', 'Tecido acrobático'),
+          o('lira', 'Lira / aro aéreo'),
+          o('trapezio', 'Trapézio'),
+          o('acrobaciasSolo', 'Acrobacias de solo'),
+          o('paradaMaos', 'Parada de mãos / hand balancing'),
+          o('equilibrio', 'Equilíbrio — corda bamba, arame, perna de pau'),
+          o('malabarismo', 'Malabarismo / manipulação'),
+          o('outra', 'Outra modalidade'),
+        ]),
+        multipla('contexto', 'Contexto da prática (múltipla escolha)', [
+          o('aulas', 'Aulas regulares'),
+          o('treinoLivre', 'Treino livre'),
+          o('ensaios', 'Ensaios'),
+          o('apresentacoes', 'Apresentações profissionais'),
+        ]),
+      ]),
+      secao('Demandas específicas', [
+        multipla('movimentos', 'Movimentos e habilidades frequentes', [
+          o('subidas', 'Subidas e escaladas'),
+          o('suspensoes', 'Suspensões'),
+          o('inversoes', 'Inversões'),
+          o('travas', 'Travas / enrolamentos'),
+          o('quedas', 'Quedas controladas'),
+          o('transicoes', 'Transições aéreas'),
+        ]),
+        selecao('demanda', 'Principal demanda ou dificuldade', [
+          o('preensao', 'Força de preensão / pegada'),
+          o('sustentacao', 'Sustentação do peso corporal'),
+          o('equilibrio', 'Equilíbrio e controle corporal'),
+          o('mobilidade', 'Mobilidade / amplitude'),
+          o('resistencia', 'Resistência / fadiga'),
+          o('transicoes', 'Transições / coordenação'),
+          o('saltos', 'Saltos e aterrissagens'),
+          o('nenhuma', 'Sem dificuldade específica'),
+        ]),
+      ]),
+      secao('Treinamento e exposição', [
+        numeros('volume', '', [
+          { key: 'treinosSemana', rotulo: 'Treinos por semana', sufixo: 'treinos/semana', placeholder: 'Ex.: 3' },
+          { key: 'horasSessao', rotulo: 'Horas por sessão', sufixo: 'h/sessão', placeholder: 'Ex.: 2' },
+          { key: 'horasEnsaio', rotulo: 'Horas extras de ensaio/semana', sufixo: 'h/semana', placeholder: 'Ex.: 4' },
+        ]),
+        unica('mudancaTreino', 'Houve mudança recente no treinamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Histórico de sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta dor ou dificuldade na prática?'),
+        se(
+          'temSintomas',
+          'sim',
+          selecao('movimentoQueixa', 'Movimento relacionado à queixa', [
+            ...[
+          o('subidas', 'Subidas e escaladas'),
+          o('suspensoes', 'Suspensões'),
+          o('inversoes', 'Inversões'),
+          o('travas', 'Travas / enrolamentos'),
+          o('quedas', 'Quedas controladas'),
+          o('transicoes', 'Transições aéreas'),
+        ],
+            o('aposQueda', 'Após queda / impacto'),
+            o('outro', 'Outro'),
+          ]),
+        ),
+        se(
+          'temSintomas',
+          'sim',
+          unica('momento', 'Momento dos sintomas', [
+            o('entrada', 'Entrada na figura / movimento'),
+            o('sustentacao', 'Sustentação da posição'),
+            o('saida', 'Saída ou transição'),
+            o('fadiga', 'Com fadiga ou repetições'),
+            o('apos', 'Após a prática'),
+          ]),
+        ),
+        textoLongo(
+          'limitacao',
+          'Principal limitação funcional',
+          'Ex.: dor no ombro em suspensão, desconforto no punho em handstand, insegurança na queda...',
+        ),
+      ]),
+    ],
+  },
   snowboard: {
     volumeDica: 'ex.: 7 dias por temporada',
     modalidades: [],

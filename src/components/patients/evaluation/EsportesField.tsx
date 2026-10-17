@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 import type { UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
@@ -107,6 +107,54 @@ function OpcoesChips({
   )
 }
 
+/** Título com seta (>) que abre/fecha o conteúdo deslizando; fechado fica inert. */
+function Recolhivel({
+  id,
+  fechado,
+  onToggle,
+  titulo,
+  children,
+}: {
+  id: string
+  fechado: boolean
+  onToggle: () => void
+  titulo: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        aria-expanded={!fechado}
+        aria-controls={id}
+        onClick={onToggle}
+        className="group -mx-1 flex min-h-8 max-w-full items-center gap-1.5 rounded-lg px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+      >
+        <span className="min-w-0">{titulo}</span>
+        <ChevronDown
+          size={16}
+          aria-hidden
+          className={[
+            'shrink-0 opacity-40 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-80 motion-reduce:transition-none',
+            fechado ? '-rotate-90' : 'rotate-0',
+          ].join(' ')}
+        />
+      </button>
+      {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
+      <div
+        id={id}
+        inert={fechado ? true : undefined}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          fechado ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100',
+        ].join(' ')}
+      >
+        <div className="min-h-0 overflow-hidden">{children}</div>
+      </div>
+    </div>
+  )
+}
+
 function SubTitulo({ children }: { children: string }) {
   return <p className="pt-1 text-xs font-semibold uppercase tracking-wide text-muted">{children}</p>
 }
@@ -137,6 +185,16 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
   const [recolhidos, setRecolhidos] = useState<ReadonlySet<string>>(() => new Set())
 
   const [problemasFechados, setProblemasFechados] = useState<ReadonlySet<string>>(() => new Set())
+  const [questionariosFechados, setQuestionariosFechados] = useState<ReadonlySet<string>>(() => new Set())
+
+  function alternarQuestionario(key: string) {
+    setQuestionariosFechados((atual) => {
+      const proximo = new Set(atual)
+      if (proximo.has(key)) proximo.delete(key)
+      else proximo.add(key)
+      return proximo
+    })
+  }
 
   function alternarProblemas(key: string) {
     setProblemasFechados((atual) => {
@@ -398,15 +456,23 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
               </div>
 
               {pratica.secoes?.length ? (
-                <div className="space-y-3 rounded-2xl border border-line bg-surface p-4">
-                  <SubTitulo>{`Avaliação esportiva · ${rotuloEsporte(entrada)}`}</SubTitulo>
-                  <QuestionarioEsporte
-                    idBase={idBase}
-                    secoes={pratica.secoes}
-                    respostas={entrada.respostas}
-                    onChange={(respostas) => set({ respostas })}
-                    disabled={disabled}
-                  />
+                <div className="rounded-2xl border border-line bg-surface p-4">
+                  <Recolhivel
+                    id={`${idBase}-questionario`}
+                    fechado={questionariosFechados.has(entrada.esporte)}
+                    onToggle={() => alternarQuestionario(entrada.esporte)}
+                    titulo={`Avaliação esportiva · ${rotuloEsporte(entrada)}`}
+                  >
+                    <div className="pt-2">
+                      <QuestionarioEsporte
+                        idBase={idBase}
+                        secoes={pratica.secoes}
+                        respostas={entrada.respostas}
+                        onChange={(respostas) => set({ respostas })}
+                        disabled={disabled}
+                      />
+                    </div>
+                  </Recolhivel>
                 </div>
               ) : pratica.modalidades.length > 0 || pratica.caracteristicas.length > 0 ? (
                 <div className="space-y-3">
@@ -467,39 +533,20 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
               )}
 
               {catalogo && problemas.length > 0 ? (
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    aria-expanded={!problemasFechados.has(entrada.esporte)}
-                    aria-controls={`esporte-${entrada.esporte}-problemas`}
-                    onClick={() => alternarProblemas(entrada.esporte)}
-                    className="group -mx-1 flex min-h-8 max-w-full items-center gap-1.5 rounded-lg px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
-                  >
-                    <span className="min-w-0">
+                <Recolhivel
+                  id={`esporte-${entrada.esporte}-problemas`}
+                  fechado={problemasFechados.has(entrada.esporte)}
+                  onToggle={() => alternarProblemas(entrada.esporte)}
+                  titulo={
+                    <>
                       Problemas frequentes no {catalogo.nome}
                       {marcados.size > 0 ? (
                         <span className="font-normal normal-case tracking-normal"> · {marcados.size} marcado{marcados.size > 1 ? 's' : ''}</span>
                       ) : null}
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      aria-hidden
-                      className={[
-                        'shrink-0 opacity-40 transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-80 motion-reduce:transition-none',
-                        problemasFechados.has(entrada.esporte) ? '-rotate-90' : 'rotate-0',
-                      ].join(' ')}
-                    />
-                  </button>
-                  {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
-                  <div
-                    id={`esporte-${entrada.esporte}-problemas`}
-                    inert={problemasFechados.has(entrada.esporte) ? true : undefined}
-                    className={[
-                      'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-                      problemasFechados.has(entrada.esporte) ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100',
-                    ].join(' ')}
-                  >
-                    <div className="min-h-0 space-y-2 overflow-hidden">
+                    </>
+                  }
+                >
+                    <div className="space-y-2">
                   {problemas.map((p) => {
                     const avaliar = avaliarTexto(p)
                     return (
@@ -523,8 +570,7 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                     )
                   })}
                     </div>
-                  </div>
-                </div>
+                </Recolhivel>
               ) : null}
             </div>
           </section>
