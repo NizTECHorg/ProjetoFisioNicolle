@@ -13,6 +13,9 @@ const LandingPage = lazy(() =>
     default: m.LandingPage,
   })),
 )
+const NotFoundPage = lazy(() =>
+  import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
+)
 const AppShell = lazy(() =>
   import('@/components/layout/AppShell').then((m) => ({ default: m.AppShell })),
 )
@@ -85,11 +88,11 @@ export function AppRoutes() {
               <Route path="/conta" element={<AccountPage />} />
               <Route path="/termos" element={<UnderConstructionPage />} />
               <Route path="/testes-especiais" element={<UnderConstructionPage />} />
-              <Route path="*" element={<Navigate to="/pacientes" replace />} />
             </Route>
           </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Endereço inexistente (logado ou não): página 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </ChunkErrorBoundary>

@@ -65,3 +65,12 @@ test('REQ-47: LP isolada do app', () => {
       lacks(src, s)
   }
 })
+
+test('404: endereço inexistente mostra a página NotFound (lazy), sem redirecionar', () => {
+  const routes = read('../routes/index.tsx')
+  has(routes, "import('@/pages/NotFoundPage')")
+  has(routes, '<Route path="*" element={<NotFoundPage />} />')
+  lacks(routes, '<Route path="*" element={<Navigate')
+  const page = read('../pages/NotFoundPage.tsx')
+  for (const s of ['Erro 404', 'to="/"', 'navigate(-1)', '<h1']) has(page, s)
+})

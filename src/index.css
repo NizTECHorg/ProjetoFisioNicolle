@@ -794,6 +794,30 @@
   }
 }
 
+/* Página 404: o anel do "0" enche e esvazia; o ponto dá a volta */
+.nf-anel {
+  stroke-dasharray: 100;
+  animation: nf-anel 4s ease-in-out infinite;
+}
+@keyframes nf-anel {
+  0%,
+  100% {
+    stroke-dashoffset: 70;
+  }
+  50% {
+    stroke-dashoffset: 10;
+  }
+}
+.nf-orbita {
+  transform-origin: 60px 60px;
+  animation: nf-orbita 6s linear infinite;
+}
+@keyframes nf-orbita {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lp-reveal {
     opacity: 1;
@@ -822,6 +846,8 @@
   }
 
   .lp-marquee,
+  .nf-anel,
+  .nf-orbita,
   .lp-hero-in,
   .lp-live-row,
   .lp-live-slot,
