@@ -609,16 +609,72 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     ],
   },
   crossfit: {
+    // Sem pergunta de volume no questionário: mantém o campo genérico "Volume".
     volumeDica: 'ex.: 5 aulas por semana',
-    modalidades: [o('aulasBox', 'Aulas no box'), o('competicao', 'Competição')],
-    caracteristicas: [
-      g('Movimentos frequentes', [
-        o('olimpicos', 'Levantamentos olímpicos'),
-        o('ginasticos', 'Ginásticos (barra, argolas)'),
-        o('kipping', 'Kipping'),
-        o('overhead', 'Acima da cabeça'),
-        o('saltos', 'Saltos (box jump, corda)'),
-        o('corridaRemo', 'Corrida / remo'),
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Características da prática', [
+        multipla('participacao', 'Tipo de participação', [
+          o('aulas', 'Aulas regulares'),
+          o('individual', 'Treino individual'),
+          o('preparacao', 'Preparação competitiva'),
+          o('competicoes', 'Competições ocasionais'),
+        ]),
+        multipla('componentes', 'Componentes frequentes do treinamento', [
+          o('wod', 'WOD / Metcon'),
+          o('forca', 'Força'),
+          o('lpo', 'LPO'),
+          o('ginasticos', 'Ginásticos'),
+          o('aerobico', 'Condicionamento aeróbico'),
+        ]),
+        unica('execucao', 'Execução dos treinos', [
+          o('rx', 'Predominantemente Rx'),
+          o('scaling', 'Predominantemente adaptado (scaling)'),
+          o('alterna', 'Alterna Rx e adaptações'),
+        ]),
+      ]),
+      secao('Movimentos e demandas', [
+        multipla('movimentos', 'Movimentos realizados frequentemente', [
+          o('olimpicos', 'Levantamentos olímpicos'),
+          o('agachamentosTerra', 'Agachamentos e terra'),
+          o('overhead', 'Movimentos overhead'),
+          o('ginasticosBarra', 'Ginásticos em barra/argolas'),
+          o('invertidos', 'Movimentos invertidos'),
+          o('saltosCorda', 'Saltos e corda'),
+          o('corrida', 'Corrida'),
+          o('remoBike', 'Remo / bike'),
+        ]),
+        unica('sobFadiga', 'Realiza movimentos técnicos ou com carga sob fadiga?', [
+          o('frequentemente', 'Frequentemente'),
+          o('asVezes', 'Às vezes / depende do treino'),
+          o('raramente', 'Raramente'),
+        ]),
+        unica('mudancaCarga', 'Houve mudança recente na carga de treinamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        textoCurto(
+          'exercicioSintoma',
+          'Qual exercício provoca sintomas ou dificuldade?',
+          'Ex.: snatch, toes-to-bar, overhead squat...',
+        ),
+        unica('situacao', 'Em qual situação ocorre?', [
+          o('carga', 'Com aumento de carga'),
+          o('repeticoes', 'Com aumento de repetições'),
+          o('fadiga', 'Sob fadiga'),
+          o('amplitude', 'Em determinada amplitude'),
+          o('fase', 'Durante uma fase específica do movimento'),
+          o('aposTreino', 'Após o treino'),
+        ]),
+        textoLongo(
+          'limitacao',
+          'Principal limitação esportiva',
+          'Ex.: dificuldade de manter o braço acima da cabeça, dor ao aterrissar dos saltos...',
+        ),
       ]),
     ],
   },

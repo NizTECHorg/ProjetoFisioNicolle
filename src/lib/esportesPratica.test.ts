@@ -357,3 +357,33 @@ test('musculação: questionário próprio sem volume (campo genérico continua)
     ],
   )
 })
+
+test('crossfit: questionário próprio (participação, componentes, movimentos, situação)', () => {
+  const pratica = praticaDoEsporte('crossfit')
+  ok(!pratica.volumeProprio)
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          participacao: ['aulas', 'competicoes'],
+          componentes: ['wod', 'forca'],
+          execucao: 'alterna',
+          movimentos: ['olimpicos', 'remoBike'],
+          sobFadiga: 'asVezes',
+          exercicioSintoma: 'Snatch',
+          situacao: 'fadiga',
+        },
+      },
+      'crossfit',
+    ),
+    [
+      'Tipo de participação: Aulas regulares, Competições ocasionais',
+      'Componentes frequentes do treinamento: WOD / Metcon, Força',
+      'Execução dos treinos: Alterna Rx e adaptações',
+      'Movimentos realizados frequentemente: Levantamentos olímpicos, Remo / bike',
+      'Realiza movimentos técnicos ou com carga sob fadiga? Às vezes / depende do treino',
+      'Qual exercício provoca sintomas ou dificuldade? Snatch',
+      'Em qual situação ocorre? Sob fadiga',
+    ],
+  )
+})
