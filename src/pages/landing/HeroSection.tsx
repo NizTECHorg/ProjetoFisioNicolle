@@ -95,7 +95,7 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-      <WaveDivider fill="fill-forest" />
+      <WaveDivider fill="fill-surface" />
     </section>
   )
 }

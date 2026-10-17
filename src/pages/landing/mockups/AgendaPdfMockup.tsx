@@ -10,7 +10,7 @@ const BLOCKS: Record<number, { ini: string; repete?: boolean }[]> = {
   4: [{ ini: 'BR' }, { ini: 'FA' }],
 }
 
-/** Semana com sessões repetidas e PDF. No hover, as sessões entram e o PDF se monta. */
+/** Semana com sessões repetidas e PDF. As sessões entram e o PDF se monta em loop. */
 export function AgendaPdfMockup() {
   let ordem = 0
   return (
@@ -31,7 +31,7 @@ export function AgendaPdfMockup() {
                     <span
                       key={j}
                       className={[
-                        'lp-h-pop flex h-7 items-center justify-center rounded-md text-[10px] font-semibold',
+                        'lp-m-pop flex h-7 items-center justify-center rounded-md text-[10px] font-semibold',
                         b.repete ? 'bg-accent text-white' : 'bg-accent-soft text-[#1e3a8a]',
                       ].join(' ')}
                       style={{ animationDelay: `${delay}s` }}
@@ -55,12 +55,12 @@ export function AgendaPdfMockup() {
         {[100, 85, 95, 70, 90].map((w, i) => (
           <span
             key={i}
-            className="lp-h-fill block h-1.5 origin-left rounded-full bg-ink/15"
+            className="lp-m-fill block h-1.5 origin-left rounded-full bg-ink/15"
             style={{ width: `${w}%`, animationDelay: `${0.3 + i * 0.12}s` }}
           />
         ))}
         <span
-          className="lp-h-pop absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-sage text-white shadow"
+          className="lp-m-pop absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-sage text-white shadow"
           style={{ animationDelay: '1s' }}
         >
           <Check size={14} />

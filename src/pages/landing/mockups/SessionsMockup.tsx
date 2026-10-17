@@ -26,7 +26,7 @@ function corEva(eva: number): string {
   return 'bg-sage/15 text-[#0f766e]'
 }
 
-/** Sessões com EVA e gráfico de evolução. No hover, a linha se desenha e as sessões entram. */
+/** Sessões com EVA e gráfico de evolução. A linha se desenha e as sessões entram em loop. */
 export function SessionsMockup() {
   return (
     <div aria-hidden="true" className="max-w-full rounded-xl border border-line bg-surface p-4 shadow-sm">
@@ -37,7 +37,7 @@ export function SessionsMockup() {
           </span>
           <p className="text-sm font-semibold text-ink">Paciente Exemplo</p>
         </div>
-        <span className="lp-h-glow inline-flex items-center gap-1.5 rounded-full bg-sage/15 px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
+        <span className="lp-m-glow inline-flex items-center gap-1.5 rounded-full bg-sage/15 px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
           <TrendingDown size={14} />
           Dor 7 → 2
         </span>
@@ -46,7 +46,7 @@ export function SessionsMockup() {
         {SESSIONS.map((s, i) => (
           <li
             key={s.label}
-            className="lp-h-pop flex items-center justify-between gap-2 rounded-xl border border-line bg-canvas px-3 py-2"
+            className="lp-m-pop flex items-center justify-between gap-2 rounded-xl border border-line bg-canvas px-3 py-2"
             style={{ animationDelay: `${i * 0.15}s` }}
           >
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-ink">
@@ -71,11 +71,11 @@ export function SessionsMockup() {
           <line key={y} x1="10" x2="266" y1={y} y2={y} stroke="#e1e8f0" strokeDasharray="3 4" />
         ))}
         <path d={AREA} fill="url(#lp-sessions-area)" />
-        <path className="lp-h-draw" d={LINE} stroke="#2f7dff" strokeWidth="2.5" strokeLinecap="round" pathLength={1} />
+        <path className="lp-m-draw" d={LINE} stroke="#2f7dff" strokeWidth="2.5" strokeLinecap="round" pathLength={1} />
         {POINTS.map((p, i) => (
           <circle
             key={p.x}
-            className="lp-h-pop"
+            className="lp-m-pop"
             style={{ animationDelay: `${0.2 + i * 0.18}s`, transformOrigin: `${p.x}px ${p.y}px` }}
             cx={p.x}
             cy={p.y}
@@ -86,7 +86,7 @@ export function SessionsMockup() {
           />
         ))}
         <circle
-          className="lp-h-ping"
+          className="lp-m-ping"
           style={{ transformOrigin: `${LAST.x}px ${LAST.y}px` }}
           cx={LAST.x}
           cy={LAST.y}

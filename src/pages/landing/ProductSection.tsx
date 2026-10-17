@@ -102,7 +102,7 @@ export function ProductSection() {
                 variant="scale"
                 delay={120}
                 className={[
-                  'lp-live relative rounded-2xl p-4 transition-shadow duration-300 hover:shadow-[0_24px_60px_rgba(11,29,54,0.10)] md:p-6',
+                  'relative rounded-2xl p-4 transition-shadow duration-300 hover:shadow-[0_24px_60px_rgba(11,29,54,0.10)] md:p-6',
                   index % 2 === 1
                     ? 'bg-[linear-gradient(135deg,#e6f5f0,#eaf2fd)] lg:order-1'
                     : 'bg-[linear-gradient(135deg,#eaf2fd,#e6f5f0)]',

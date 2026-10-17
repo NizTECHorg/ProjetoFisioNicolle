@@ -7,13 +7,13 @@ const LINHAS = [
   { rotulo: 'Conduta', texto: 'Fortalecimento de core e mobilidade.', origem: 'Sessão 6' },
 ]
 
-/** Resumo com IA. No hover, o texto é "digitado" linha a linha e o botão de revisão acende. */
+/** Resumo com IA. O texto é "digitado" linha a linha em loop. */
 export function AiDraftMockup() {
   return (
     <div aria-hidden="true" className="max-w-full rounded-xl border border-line bg-surface p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 text-sm font-semibold text-ink">
-          <span className="lp-h-spin inline-flex">
+          <span className="lp-m-wobble inline-flex">
             <Sparkles size={16} className="text-accent" />
           </span>
           Resumo
@@ -26,7 +26,7 @@ export function AiDraftMockup() {
         {LINHAS.map((l, i) => (
           <li key={l.rotulo} className="flex items-start justify-between gap-2">
             <p
-              className="lp-h-type min-w-0 text-sm leading-5 text-ink"
+              className="lp-m-type min-w-0 text-sm leading-5 text-ink"
               style={{ animationDelay: `${i * 0.7}s` }}
             >
               <span className="font-semibold text-[#1e3a8a]">{l.rotulo}: </span>
@@ -41,7 +41,7 @@ export function AiDraftMockup() {
       </ul>
       <div className="mt-4 flex items-center justify-between gap-2">
         <p className="text-xs text-muted">Só usa o que está escrito</p>
-        <span className="lp-h-glow inline-flex items-center gap-1.5 rounded-2xl bg-forest px-4 py-2 text-sm font-semibold text-white">
+        <span className="lp-m-glow inline-flex items-center gap-1.5 rounded-2xl bg-forest px-4 py-2 text-sm font-semibold text-white">
           <Check size={14} />
           Revisar e salvar
         </span>

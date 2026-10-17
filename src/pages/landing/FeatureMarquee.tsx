@@ -1,5 +1,3 @@
-import { WaveDivider } from './LandingUi'
-
 // O que o Fluxo entrega, em poucas palavras (bullet points rolando).
 const ITEMS = [
   'Avaliação completa em 5 páginas',
@@ -15,10 +13,10 @@ const ITEMS = [
   'Funciona no celular',
 ]
 
-/** Faixa escura com os recursos rolando, presa à largura do conteúdo e com fade nas bordas. */
+/** Recursos rolando (sem fundo próprio), presos à largura do conteúdo e com fade nas bordas. */
 export function FeatureMarquee() {
   return (
-    <div className="relative bg-forest text-white">
+    <div className="relative bg-surface">
       <p className="sr-only">O Fluxo oferece: {ITEMS.join(', ')}.</p>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div
@@ -31,7 +29,7 @@ export function FeatureMarquee() {
                 {ITEMS.map((label) => (
                   <li
                     key={label}
-                    className="inline-flex items-center gap-3 whitespace-nowrap pr-8 text-sm font-medium text-white/85 md:pr-10 md:text-base"
+                    className="inline-flex items-center gap-3 whitespace-nowrap pr-8 text-sm font-medium text-ink/80 md:pr-10 md:text-base"
                   >
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
                     {label}
@@ -42,7 +40,6 @@ export function FeatureMarquee() {
           </div>
         </div>
       </div>
-      <WaveDivider fill="fill-surface" />
     </div>
   )
 }
