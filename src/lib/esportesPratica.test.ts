@@ -24,18 +24,18 @@ test('avaliação esportiva: descarta opção de outro esporte, frequência inv�
         nivel: 'mestre',
         frequencia: 9,
         anosPratica: '   ',
-        volume: '30 km por semana',
-        modalidades: ['trilha', 'praia', 'trilha'],
-        caracteristicas: ['maratona', 'levantador'],
+        volume: '150 km por semana',
+        modalidades: ['mtb', 'praia', 'mtb'],
+        caracteristicas: ['subidas', 'levantador'],
         sintomasMomentos: ['depois', 'antes'],
       },
-      'corrida',
+      'ciclismo',
     ),
     {
       perfil: 'profissional',
-      volume: '30 km por semana',
-      modalidades: ['trilha'],
-      caracteristicas: ['maratona'],
+      volume: '150 km por semana',
+      modalidades: ['mtb'],
+      caracteristicas: ['subidas'],
       sintomasMomentos: ['antes', 'depois'],
     },
   )
@@ -151,6 +151,55 @@ test('futebol: questionário próprio com 3 seções e volume em 3 números', ()
       'Volume semanal: 3 treinos/semana · 1 jogos/semana · 90 min por treino/jogo',
       'Houve aumento ou mudança recente de carga? Sim',
       'Movimento associado aos sintomas: Chute',
+    ],
+  )
+})
+
+test('corrida: perguntas condicionais, ritmo min:seg e números em linhas separadas', () => {
+  const pratica = praticaDoEsporte('corrida')
+  ok(pratica.volumeProprio)
+  // "Não" na troca de calçado apaga as respostas que dependiam do "Sim"
+  deepEqual(
+    safeRespostas(
+      { trocaCalcado: 'nao', trocaQuando: '2 semanas', trocaModelo: 'sim', ritmo: '6:00', kmSemanaAtual: '30', maiorTreino: 'x' },
+      pratica,
+    ),
+    { trocaCalcado: 'nao', ritmo: '6:00', kmSemanaAtual: '30' },
+  )
+  deepEqual(safeRespostas({ ritmo: '6:75' }, pratica), {})
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          superficie: ['rua', 'trilha'],
+          distancia: 'meiaMaratona',
+          calcado: ['placaCarbono'],
+          trocaCalcado: 'sim',
+          trocaQuando: '3 semanas',
+          trocaSintomas: 'sim',
+          kmSemanaAtual: '30',
+          ritmo: '5:40',
+          mudancaCarga: 'naoSabe',
+          temSintomas: 'sim',
+          inicioSintomas: 'aposDistancia',
+          evolucaoSintomas: 'aumentam',
+        },
+      },
+      'corrida',
+    ),
+    [
+      'Superfície ou modalidade: Rua, Trilha',
+      'Distância principal de treino ou prova: Meia maratona (21 km)',
+      'Tipo de calçado utilizado: Com placa de carbono',
+      'Houve troca recente de calçado? Sim',
+      'Há quanto tempo? 3 semanas',
+      'Os sintomas começaram ou mudaram após a troca? Sim',
+      'Km/semana atual: 30',
+      'Ritmo habitual (min/km): 5:40',
+      'Houve mudança na carga nas últimas 4 semanas? Não sabe',
+      'Apresenta sintomas relacionados à corrida? Sim',
+      'Quando começam os sintomas? Após determinada distância ou tempo',
+      'Como evoluem durante a corrida? Aumentam progressivamente',
     ],
   )
 })

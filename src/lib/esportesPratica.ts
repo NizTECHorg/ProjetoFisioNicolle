@@ -7,9 +7,16 @@ export type GrupoPratica = { titulo: string; opcoes: OpcaoPratica[] }
 
 // —— Perguntas específicas de cada esporte (questionário próprio) ——
 
-export type TipoPergunta = 'unica' | 'multipla' | 'selecao' | 'simNao' | 'numeros' | 'textoLongo'
+export type TipoPergunta = 'unica' | 'multipla' | 'selecao' | 'simNao' | 'numeros' | 'texto' | 'textoLongo'
 
-export type CampoNumero = { key: string; rotulo: string; sufixo: string }
+export type CampoNumero = {
+  key: string
+  rotulo: string
+  sufixo: string
+  placeholder?: string
+  /** 'pace' aceita minutos:segundos (ex.: 6:00). Padrão: número (vírgula ou ponto). */
+  formato?: 'pace'
+}
 
 export type Pergunta = {
   /** Chave da resposta (única dentro do esporte). Para 'numeros', cada campo usa a própria key. */
@@ -19,6 +26,8 @@ export type Pergunta = {
   opcoes?: readonly OpcaoPratica[]
   campos?: readonly CampoNumero[]
   placeholder?: string
+  /** Só aparece (e só é guardada) quando outra resposta tem esse valor. Ex.: { key: 'trocaCalcado', valor: 'sim' }. */
+  mostrarSe?: { key: string; valor: string }
 }
 
 export type SecaoPerguntas = { titulo: string; perguntas: readonly Pergunta[] }
@@ -39,6 +48,7 @@ const g = (titulo: string, opcoes: OpcaoPratica[]): GrupoPratica => ({ titulo, o
 
 export const RESPOSTA_TEXTO_MAX = 600
 export const RESPOSTA_NUMERO_MAX = 6
+export const RESPOSTA_TEXTO_CURTO_MAX = 80
 
 export const SIM_NAO: readonly OpcaoPratica[] = [o('sim', 'Sim'), o('nao', 'Não')]
 
@@ -48,6 +58,9 @@ const selecao = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta 
 const simNao = (key: string, rotulo: string): Pergunta => ({ key, rotulo, tipo: 'simNao', opcoes: SIM_NAO })
 const numeros = (key: string, rotulo: string, campos: CampoNumero[]): Pergunta => ({ key, rotulo, tipo: 'numeros', campos })
 const textoLongo = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'textoLongo', placeholder })
+const textoCurto = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'texto', placeholder })
+/** Pergunta que só aparece quando `key` tem `valor`. */
+const se = (key: string, valor: string, p: Pergunta): Pergunta => ({ ...p, mostrarSe: { key, valor } })
 const secao = (titulo: string, perguntas: Pergunta[]): SecaoPerguntas => ({ titulo, perguntas })
 
 export const PERFIS_ESPORTIVOS: readonly OpcaoPratica[] = [
@@ -216,11 +229,86 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   corrida: {
     volumeDica: 'ex.: 30 km por semana',
-    modalidades: [o('rua', 'Rua'), o('trilha', 'Trilha'), o('pista', 'Pista'), o('esteira', 'Esteira')],
-    caracteristicas: [
-      g('Distância principal', [o('ate10k', 'Até 10 km'), o('meiaMaratona', 'Meia maratona'), o('maratona', 'Maratona'), o('ultra', 'Ultramaratona')]),
-      g('Treino', [o('intervalado', 'Intervalado / tiros'), o('longao', 'Longão'), o('subidas', 'Subidas'), o('provas', 'Participa de provas')]),
-      g('Calçado', [o('tenisAmortecido', 'Tênis com amortecimento'), o('tenisMinimalista', 'Minimalista'), o('trocaRecente', 'Troca recente de tênis')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Características da prática', [
+        multipla('superficie', 'Superfície ou modalidade (múltipla escolha)', [
+          o('rua', 'Rua'),
+          o('trilha', 'Trilha'),
+          o('pista', 'Pista'),
+          o('esteira', 'Esteira'),
+        ]),
+        unica('distancia', 'Distância principal de treino ou prova', [
+          o('ate5k', 'Até 5 km'),
+          o('10k', '10 km'),
+          o('meiaMaratona', 'Meia maratona (21 km)'),
+          o('maratona', 'Maratona (42 km)'),
+          o('ultra', 'Ultramaratona'),
+          o('outras', 'Outras distâncias'),
+        ]),
+        multipla('treinos', 'Tipos de treino realizados', [
+          o('rodagemLeve', 'Rodagem leve'),
+          o('intervalado', 'Intervalado / tiros'),
+          o('ritmo', 'Ritmo / tempo'),
+          o('longao', 'Longão'),
+          o('subidas', 'Subidas'),
+          o('descidas', 'Descidas'),
+        ]),
+        multipla('calcado', 'Tipo de calçado utilizado (múltipla escolha)', [
+          o('convencional', 'Convencional'),
+          o('maximalista', 'Maximalista (alto amortecimento)'),
+          o('minimalista', 'Minimalista'),
+          o('placaCarbono', 'Com placa de carbono'),
+          o('naoSabe', 'Não sabe informar'),
+        ]),
+        simNao('trocaCalcado', 'Houve troca recente de calçado?'),
+        se('trocaCalcado', 'sim', textoCurto('trocaQuando', 'Há quanto tempo?', 'Ex.: 3 semanas')),
+        se('trocaCalcado', 'sim', simNao('trocaModelo', 'Mudou o modelo ou as características do tênis?')),
+        se('trocaCalcado', 'sim', simNao('trocaSintomas', 'Os sintomas começaram ou mudaram após a troca?')),
+      ]),
+      secao('Volume e intensidade', [
+        numeros('volume', '', [
+          { key: 'kmSemanaAtual', rotulo: 'Km/semana atual', sufixo: 'km/semana', placeholder: 'Ex.: 30' },
+          { key: 'kmSemanaHabitual', rotulo: 'Km/semana habitual', sufixo: 'km/semana', placeholder: 'Ex.: 20' },
+          { key: 'maiorTreino', rotulo: 'Maior treino (km)', sufixo: 'km', placeholder: 'Ex.: 12' },
+          { key: 'ritmo', rotulo: 'Ritmo habitual (min/km)', sufixo: 'min/km', placeholder: 'Ex.: 6:00', formato: 'pace' },
+        ]),
+        unica('mudancaCarga', 'Houve mudança na carga nas últimas 4 semanas?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas relacionados à corrida?'),
+        se(
+          'temSintomas',
+          'sim',
+          unica('inicioSintomas', 'Quando começam os sintomas?', [
+            o('inicio', 'No início da corrida'),
+            o('aposDistancia', 'Após determinada distância ou tempo'),
+            o('maiorVelocidade', 'Em maior velocidade ou intensidade'),
+            o('aposTreino', 'Após o treino'),
+          ]),
+        ),
+        se(
+          'temSintomas',
+          'sim',
+          unica('evolucaoSintomas', 'Como evoluem durante a corrida?', [
+            o('diminuem', 'Diminuem ao continuar'),
+            o('aumentam', 'Aumentam progressivamente'),
+            o('semelhantes', 'Permanecem semelhantes'),
+            o('variaveis', 'São variáveis'),
+          ]),
+        ),
+        textoLongo(
+          'limitacao',
+          'Descreva a limitação e a resposta nas 24 horas seguintes',
+          'Ex.: dor após 5 km, piora em descidas e persiste no dia seguinte...',
+        ),
+      ]),
     ],
   },
   basquete: {
@@ -413,6 +501,11 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
         for (const campo of p.campos ?? []) {
           const v = raw[campo.key]
           if (typeof v !== 'string') continue
+          if (campo.formato === 'pace') {
+            const t = v.trim().slice(0, RESPOSTA_NUMERO_MAX)
+            if (/^\d{1,2}:[0-5]\d$/.test(t)) out[campo.key] = t
+            continue
+          }
           const n = v.replace(',', '.').trim().slice(0, RESPOSTA_NUMERO_MAX)
           if (/^\d+(\.\d+)?$/.test(n)) out[campo.key] = n
         }
@@ -422,13 +515,36 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
       if (p.tipo === 'multipla') {
         const keys = filtrarOpcoes(v, p.opcoes ?? [])
         if (keys.length) out[p.key] = keys
-      } else if (p.tipo === 'textoLongo') {
-        const t = texto(v, RESPOSTA_TEXTO_MAX)
+      } else if (p.tipo === 'textoLongo' || p.tipo === 'texto') {
+        const t = texto(v, p.tipo === 'texto' ? RESPOSTA_TEXTO_CURTO_MAX : RESPOSTA_TEXTO_MAX)
         if (t) out[p.key] = t
       } else {
         const k = opcao(v, p.opcoes ?? [])
         if (k) out[p.key] = k
       }
+    }
+  }
+  return podarRespostas(out, pratica.secoes ?? [])
+}
+
+export function perguntaVisivel(p: Pergunta, respostas: Record<string, string | string[]> | undefined): boolean {
+  if (!p.mostrarSe) return true
+  return respostas?.[p.mostrarSe.key] === p.mostrarSe.valor
+}
+
+function chavesDaPergunta(p: Pergunta): string[] {
+  return p.tipo === 'numeros' ? (p.campos ?? []).map((c) => c.key) : [p.key]
+}
+
+/** Tira respostas de perguntas que deixaram de aparecer (ex.: marcou "Não" depois de responder o "Sim"). */
+export function podarRespostas(
+  respostas: Record<string, string | string[]>,
+  secoes: readonly SecaoPerguntas[],
+): Record<string, string | string[]> {
+  const out = { ...respostas }
+  for (const sec of secoes) {
+    for (const p of sec.perguntas) {
+      if (!perguntaVisivel(p, out)) for (const key of chavesDaPergunta(p)) delete out[key]
     }
   }
   return out
@@ -440,6 +556,15 @@ export function linhasRespostas(respostas: Record<string, string | string[]> | u
   const linhas: string[] = []
   for (const sec of pratica.secoes ?? []) {
     for (const p of sec.perguntas) {
+      if (!perguntaVisivel(p, respostas)) continue
+      if (p.tipo === 'numeros' && !p.rotulo) {
+        // Sem rótulo de grupo: cada campo vira sua própria linha.
+        for (const c of p.campos ?? []) {
+          const v = respostas[c.key]
+          if (typeof v === 'string') linhas.push(`${c.rotulo}: ${v}`)
+        }
+        continue
+      }
       const rotulo = p.rotulo.replace(/\s*\(múltipla escolha\)$/i, '')
       let valor = ''
       if (p.tipo === 'numeros') {
@@ -450,7 +575,7 @@ export function linhasRespostas(respostas: Record<string, string | string[]> | u
       } else if (p.tipo === 'multipla') {
         const v = respostas[p.key]
         valor = Array.isArray(v) ? nomes(v, p.opcoes ?? []) : ''
-      } else if (p.tipo === 'textoLongo') {
+      } else if (p.tipo === 'textoLongo' || p.tipo === 'texto') {
         const v = respostas[p.key]
         valor = typeof v === 'string' ? v.trim() : ''
       } else {
