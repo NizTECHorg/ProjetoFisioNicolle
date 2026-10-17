@@ -530,3 +530,33 @@ test('futevôlei: questionário próprio (participação, perna, areia, fundamen
     ],
   )
 })
+
+test('padel: questionário próprio (golpes, deslocamentos, carga, queixa)', () => {
+  const pratica = praticaDoEsporte('padel')
+  ok(pratica.volumeProprio)
+  deepEqual(
+    linhasAvaliacaoPratica(
+      {
+        respostas: {
+          lado: 'esquerda',
+          golpes: ['vibora', 'smash'],
+          deslocamentos: ['recuos', 'giros'],
+          volumeTreinos: '2',
+          duracaoMin: '90',
+          mudancaCarga: 'nao',
+          golpeSintoma: 'saidaParede',
+        },
+      },
+      'padel',
+    ),
+    [
+      'Lado da quadra: Esquerda (revés)',
+      'Golpes frequentes: Smash, Víbora',
+      'Padrões de deslocamento predominantes: Recuos e recuperação, Giros / reposicionamento',
+      'Treinos/semana: 2',
+      'Duração média (minutos): 90',
+      'Houve mudança recente de carga ou equipamento? Não',
+      'Golpe ou movimento associado à queixa: Saída de parede',
+    ],
+  )
+})

@@ -1003,10 +1003,79 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
   },
   padel: {
     volumeDica: 'ex.: 3 jogos de 1h30 por semana',
-    modalidades: [o('recreativo', 'Recreativo'), o('torneios', 'Torneios')],
-    caracteristicas: [
-      g('Lado da quadra', [o('direita', 'Direita (drive)'), o('esquerda', 'Esquerda (revés)')]),
-      g('Golpes frequentes', [o('smash', 'Smash'), o('bandejaVibora', 'Bandeja / víbora'), o('saidaParede', 'Saída de parede')]),
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      // Seção 01 e golpes da 02 não aparecem nas imagens: rascunho a partir do cadastro anterior do padel.
+      secao('Características da prática', [
+        multipla('participacao', 'Tipo de participação', [
+          o('aulas', 'Aulas'),
+          o('recreativos', 'Jogos recreativos'),
+          o('torneios', 'Torneios'),
+        ]),
+        unica('lado', 'Lado da quadra', [
+          o('direita', 'Direita (drive)'),
+          o('esquerda', 'Esquerda (revés)'),
+          o('ambos', 'Ambos'),
+        ]),
+        unica('bracoDominante', 'Braço dominante para os golpes', [
+          o('direito', 'Direito'),
+          o('esquerdo', 'Esquerdo'),
+        ]),
+      ]),
+      secao('Golpes e deslocamentos', [
+        multipla('golpes', 'Golpes frequentes (múltipla escolha)', [
+          o('smash', 'Smash'),
+          o('bandeja', 'Bandeja'),
+          o('vibora', 'Víbora'),
+          o('voleio', 'Voleio'),
+          o('forehand', 'Forehand'),
+          o('backhand', 'Backhand'),
+          o('saidaParede', 'Saída de parede'),
+        ]),
+        multipla('deslocamentos', 'Padrões de deslocamento predominantes', [
+          o('laterais', 'Deslocamentos laterais'),
+          o('aceleracaoFrenagem', 'Aceleração / frenagem'),
+          o('mudancasDirecao', 'Mudanças de direção'),
+          o('recuos', 'Recuos e recuperação'),
+          o('giros', 'Giros / reposicionamento'),
+          o('saltos', 'Saltos / aterrissagens'),
+        ]),
+      ]),
+      secao('Carga de treinamento', [
+        numeros('volume', '', [
+          { key: 'volumeTreinos', rotulo: 'Treinos/semana', sufixo: 'treinos/semana', placeholder: 'Ex.: 2' },
+          { key: 'volumeJogos', rotulo: 'Jogos/semana', sufixo: 'jogos/semana', placeholder: 'Ex.: 3' },
+          { key: 'duracaoMin', rotulo: 'Duração média (minutos)', sufixo: 'min', placeholder: 'Ex.: 90' },
+        ]),
+        unica('mudancaCarga', 'Houve mudança recente de carga ou equipamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        selecao('golpeSintoma', 'Golpe ou movimento associado à queixa', [
+          ...[
+          o('smash', 'Smash'),
+          o('bandeja', 'Bandeja'),
+          o('vibora', 'Víbora'),
+          o('voleio', 'Voleio'),
+          o('forehand', 'Forehand'),
+          o('backhand', 'Backhand'),
+          o('saidaParede', 'Saída de parede'),
+        ],
+          o('frenagem', 'Frenagem'),
+          o('mudancaDirecao', 'Mudança de direção'),
+          o('outro', 'Outro'),
+        ]),
+        textoLongo(
+          'dificuldade',
+          'Principal dificuldade esportiva',
+          'Ex.: dor no ombro no smash, desconforto no cotovelo, dificuldade ao recuar...',
+        ),
+      ]),
     ],
   },
   danca: {
