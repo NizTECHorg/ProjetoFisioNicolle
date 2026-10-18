@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createSession, listSessionsInRange, updateSessionStatus } from '@/services/calendar.service'
+import { deletePatientSession } from '@/services/sessions.service'
 import {
   createCard,
   createColumn,
@@ -49,6 +50,19 @@ export function useUpdateSessionStatus() {
       void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
       void qc.invalidateQueries({ queryKey: ['patients'] })
       toast('Status atualizado', 'success')
+    },
+    onError,
+  })
+}
+
+export function useDeleteSession() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sessionId: string) => deletePatientSession(sessionId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
+      void qc.invalidateQueries({ queryKey: ['patients'] })
+      toast('Sessão removida', 'success')
     },
     onError,
   })

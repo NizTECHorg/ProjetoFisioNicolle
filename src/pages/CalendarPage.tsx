@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarClock, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { CalendarClock, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
@@ -9,7 +9,8 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
-import { useCalendarSessions, useCreateSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
+import { useCalendarSessions, useCreateSession, useDeleteSession, useBoard, useUpdateSessionStatus } from '@/hooks/useClinic'
+import type { CalendarSession } from '@/services/calendar.service'
 import {
   useDisconnectGoogleCalendar,
   useEnsureGoogleCalendarVaulted,
@@ -80,6 +81,7 @@ export function CalendarPage() {
   const [therapistId, setTherapistId] = useState('')
   const [disconnectOpen, setDisconnectOpen] = useState(false)
   const [needsReconnect, setNeedsReconnect] = useState(false)
+  const [pendingDeleteSession, setPendingDeleteSession] = useState<CalendarSession | null>(null)
 
   const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
   const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
@@ -93,6 +95,7 @@ export function CalendarPage() {
     [patients, patientQuery],
   )
   const create = useCreateSession()
+  const deleteSession = useDeleteSession()
   const { profile } = useAuth()
   const isCompany = canManageTeam(profile?.accountType)
   const { data: team } = useTeam()
@@ -572,19 +575,30 @@ export function CalendarPage() {
 
               {daySessions.map((session) => (
                 <div key={session.id} className="rounded-2xl border border-line p-3">
-                  <Link to={`/pacientes/${session.patientId}`} className="flex items-center gap-3">
-                    <PatientAvatar name={session.patientName} tone={session.photoTone} photoUrl={session.photoUrl} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-ink">{session.patientName}</span>
-                      <span className="block text-xs text-muted">
-                        {new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(
-                          new Date(session.scheduledAt),
-                        )}{' '}
-                        · {session.type} · {session.place}
-                        {session.therapistName ? ` · ${session.therapistName}` : ''}
+                  <div className="flex items-start justify-between gap-2">
+                    <Link to={`/pacientes/${session.patientId}`} className="flex min-w-0 flex-1 items-center gap-3">
+                      <PatientAvatar name={session.patientName} tone={session.photoTone} photoUrl={session.photoUrl} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-ink">{session.patientName}</span>
+                        <span className="block text-xs text-muted">
+                          {new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(
+                            new Date(session.scheduledAt),
+                          )}{' '}
+                          · {session.type} · {session.place}
+                          {session.therapistName ? ` · ${session.therapistName}` : ''}
+                        </span>
                       </span>
-                    </span>
-                  </Link>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label="Excluir sessão"
+                      title="Excluir sessão"
+                      onClick={() => setPendingDeleteSession(session)}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                   <div className="mt-3 flex items-center gap-3">
                     <span className="text-[11px] capitalize text-muted">{session.status}</span>
                     {session.status === 'agendada' ? (
@@ -848,6 +862,30 @@ export function CalendarPage() {
         onConfirm={handleDisconnectConfirm}
       />
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteSession)}
+        title="Tem certeza que deseja excluir essa agenda?"
+        description={
+          pendingDeleteSession
+            ? `A sessão de ${pendingDeleteSession.patientName} às ${new Intl.DateTimeFormat('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(pendingDeleteSession.scheduledAt))} será removida.`
+            : ''
+        }
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        tone="danger"
+        isLoading={deleteSession.isPending}
+        onClose={() => setPendingDeleteSession(null)}
+        onConfirm={() => {
+          if (!pendingDeleteSession) return
+          deleteSession.mutate(pendingDeleteSession.id, {
+            onSuccess: () => setPendingDeleteSession(null),
+          })
+        }}
+      />
     </section>
   )
 }
