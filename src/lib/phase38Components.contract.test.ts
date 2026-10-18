@@ -42,7 +42,7 @@ test('REQ-49: navegação dos testes segue o contrato', () => {
     'aria-expanded={open}',
     "aria-current={current ? 'true' : undefined}",
     'Em breve',
-    'rotate-180',
+    '-rotate-90',
     'motion-reduce:transition-none',
     'min-h-10',
     'max-h-[calc(100dvh-8rem)]',

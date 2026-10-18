@@ -15,8 +15,9 @@ interface SpecialTestsNavProps {
 }
 
 /**
- * Navegação da página Testes especiais (tablet/desktop): fixa na rolagem (sticky no topo da
- * coluna direita, que estica na altura da página) e rola por dentro quando passa da tela.
+ * Navegação da página Testes especiais (tablet/desktop), no mesmo estilo da lateral da avaliação
+ * e da de Termos: fixa na rolagem (sticky dentro da coluna, que estica na altura da página).
+ * Linha da região seleciona e abre a lista; a seta só abre/fecha.
  */
 export function SpecialTestsNav({
   regions,
@@ -43,70 +44,72 @@ export function SpecialTestsNav({
     })
   }
 
-  const total = regions.reduce((sum, region) => sum + region.tests.length, 0)
+  function expand(id: SpecialTestRegionId) {
+    setExpanded((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+  }
 
   return (
-    <aside
-      aria-label="Navegação dos testes"
-      className="sticky top-4 flex max-h-[calc(100dvh-8rem)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
-    >
-      <div className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-4">
-        <span
-          aria-hidden
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1e3a8a] text-white"
-        >
-          <ClipboardList size={18} strokeWidth={2} />
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink">Regiões e testes</p>
-          <p className="text-sm text-muted">{total === 1 ? '1 teste disponível' : `${total} testes disponíveis`}</p>
-        </div>
-      </div>
+    <aside aria-label="Navegação dos testes" className="h-full">
+      <div className="sticky top-4 flex max-h-[calc(100dvh-8rem)] flex-col">
+        <p className="shrink-0 px-2 pb-3 text-sm font-semibold text-ink">Regiões e testes</p>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 [scrollbar-width:thin]">
-        <ul className="space-y-1">
+        <nav className="-mr-4 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-4 [scrollbar-gutter:stable] [scrollbar-width:thin]">
           {regions.map((region) => {
             const open = expanded.has(region.id)
             const active = region.id === activeRegionId
-            const hasTests = region.tests.length > 0
             const listId = `special-tests-nav-${region.id}`
             return (
-              <li key={region.id}>
-                <button
-                  type="button"
-                  aria-expanded={open}
-                  aria-controls={listId}
-                  onClick={() => {
-                    toggle(region.id)
-                    onSelectRegion(region.id)
-                  }}
+              <div key={region.id}>
+                <div
                   className={[
-                    'flex min-h-10 w-full items-center gap-2 rounded-xl px-2.5 text-left text-sm transition-colors',
-                    active ? 'bg-accent-soft font-semibold text-[#1e3a8a]' : 'font-medium text-ink hover:bg-canvas',
+                    'flex min-h-10 items-center rounded-xl transition-colors',
+                    active ? 'bg-accent-soft' : 'hover:bg-canvas',
                   ].join(' ')}
                 >
-                  <span className="min-w-0 flex-1 truncate">{region.label}</span>
-                  <span
+                  <button
+                    type="button"
+                    onClick={() => {
+                      expand(region.id)
+                      onSelectRegion(region.id)
+                    }}
+                    aria-current={active ? 'true' : undefined}
                     className={[
-                      'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold',
-                      hasTests
-                        ? active
-                          ? 'bg-[#1e3a8a] text-white'
-                          : 'bg-accent-soft text-[#1e3a8a]'
-                        : 'bg-canvas font-medium text-muted',
+                      'flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-l-xl pl-2.5 text-left text-sm',
+                      active ? 'font-semibold text-[#1e3a8a]' : 'font-medium text-ink',
                     ].join(' ')}
                   >
-                    {hasTests ? String(region.tests.length) : 'Em breve'}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    aria-hidden
-                    className={[
-                      'shrink-0 text-muted transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-                      open ? 'rotate-180' : 'rotate-0',
-                    ].join(' ')}
-                  />
-                </button>
+                    <span
+                      aria-hidden
+                      className={[
+                        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors',
+                        active ? 'bg-[#1e3a8a] text-white' : 'bg-canvas text-muted',
+                      ].join(' ')}
+                    >
+                      <ClipboardList size={14} strokeWidth={2} />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{region.label}</span>
+                    <span className="shrink-0 text-xs font-medium text-muted">
+                      {region.tests.length > 0 ? region.tests.length : 'Em breve'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggle(region.id)}
+                    aria-expanded={open}
+                    aria-controls={listId}
+                    aria-label={open ? `Recolher testes de ${region.label}` : `Mostrar testes de ${region.label}`}
+                    className="flex h-10 w-9 shrink-0 items-center justify-center rounded-r-xl text-muted transition-colors hover:text-ink"
+                  >
+                    <ChevronDown
+                      size={16}
+                      aria-hidden
+                      className={[
+                        'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                        open ? 'rotate-0' : '-rotate-90',
+                      ].join(' ')}
+                    />
+                  </button>
+                </div>
 
                 {/* Abre/fecha deslizando a altura (grid 1fr/0fr) com fade; fechado fica inert. */}
                 <div
@@ -118,8 +121,8 @@ export function SpecialTestsNav({
                   ].join(' ')}
                 >
                   <div className="min-h-0 overflow-hidden">
-                    {hasTests ? (
-                      <ul className="mb-1 ml-4 mt-1 space-y-0.5 border-l border-line pl-2">
+                    {region.tests.length > 0 ? (
+                      <ul className="mb-1 ml-3 mt-0.5 space-y-0.5">
                         {region.tests.map((test) => {
                           const current = test.id === currentTestId
                           return (
@@ -129,7 +132,7 @@ export function SpecialTestsNav({
                                 aria-current={current ? 'true' : undefined}
                                 onClick={(e) => onOpenTest(region.id, test.id, e.currentTarget)}
                                 className={[
-                                  'flex min-h-10 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors',
+                                  'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors',
                                   current
                                     ? 'bg-accent-soft font-semibold text-[#1e3a8a]'
                                     : 'text-muted hover:bg-canvas hover:text-ink',
@@ -142,24 +145,22 @@ export function SpecialTestsNav({
                                     current ? 'bg-accent' : 'bg-line',
                                   ].join(' ')}
                                 />
-                                <span className="min-w-0">{test.name}</span>
+                                <span className="min-w-0 truncate">{test.name}</span>
                               </button>
                             </li>
                           )
                         })}
                       </ul>
                     ) : (
-                      <p className="mb-1 ml-4 mt-1 border-l border-line py-2 pl-4 text-sm text-muted">
-                        Os testes de {region.label} ainda estão sendo preparados.
-                      </p>
+                      <p className="mb-1 ml-3 mt-0.5 px-2 py-1.5 text-xs text-muted">Em breve</p>
                     )}
                   </div>
                 </div>
-              </li>
+              </div>
             )
           })}
-        </ul>
-      </nav>
+        </nav>
+      </div>
     </aside>
   )
 }
