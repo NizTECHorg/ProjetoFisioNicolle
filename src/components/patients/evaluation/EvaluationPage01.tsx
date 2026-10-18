@@ -33,11 +33,11 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
           <LineField label="Profissão / ocupação" name="ficha.anamnese.identificacao.profissao" register={register} disabled={disabled} />
           <LineField label="Peso (kg)" name="ficha.anamnese.identificacao.peso" register={register} disabled={disabled} />
           <LineField label="Altura (m ou cm)" name="ficha.anamnese.identificacao.altura" register={register} disabled={disabled} />
+          <LineField label="Contato / Número" name="ficha.anamnese.identificacao.contato" register={register} disabled={disabled} />
+          <LineField label="Data da avaliação (na ficha)" name="ficha.anamnese.identificacao.dataAvaliacao" register={register} disabled={disabled} />
         </div>
         <TextField label="Endereço residencial" name="ficha.anamnese.identificacao.enderecoResidencial" register={register} rows={2} disabled={disabled} />
         <TextField label="Endereço profissional (quando aplicável)" name="ficha.anamnese.identificacao.enderecoProfissional" register={register} rows={2} disabled={disabled} />
-        <TextField label="Contato" name="ficha.anamnese.identificacao.contato" register={register} rows={2} disabled={disabled} />
-        <LineField label="Data da avaliação (na ficha)" name="ficha.anamnese.identificacao.dataAvaliacao" register={register} disabled={disabled} />
         <p className="text-xs text-muted">
           Campos mínimos alinhados à Resolução COFFITO nº 414/2012 — cópia editável nesta avaliação.
         </p>

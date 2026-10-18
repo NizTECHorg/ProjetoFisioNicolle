@@ -63,7 +63,7 @@ function optionalEnum<T extends [string, ...string[]]>(values: T) {
 
 const medidaLadoSchema = z.object({
   valor: optionalText(200),
-  unidade: optionalEnum(['minutos', 'km', 'repeticoes']),
+  unidade: optionalEnum(['minutos', 'horas', 'km', 'repeticoes']),
 })
 
 const capacidadeAtividadeSchema = z.object({
@@ -409,6 +409,9 @@ export const evaluationFichaSchema = z.object({
             .default({}),
           horasDia: optionalText(80),
           praticaAtividadeFisica: optionalEnum(['nao', 'sim']),
+          atividadeQual: optionalText(200),
+          atividadeFrequencia: optionalText(80),
+          atividadeHorasDia: optionalText(80),
           atividadeQualFreq: optionalText(400),
           esporte: z.preprocess((v) => safeEsporte(v), z.string().optional()),
           esporteOutro: optionalText(ESPORTE_OUTRO_MAX),

@@ -1,5 +1,5 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
-import { ATIVIDADES, formatLinha } from '@/lib/atividadeCapacidade'
+import { ATIVIDADES, formatAtividadeFisica, formatLinha } from '@/lib/atividadeCapacidade'
 import { resumoEsportes } from '@/lib/esportesAvaliacao'
 import {
   formatAchado,
@@ -418,11 +418,12 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       variavel: 'Variável',
     },
   )
+  const atividadeFisicaResumo = formatAtividadeFisica(funcao?.rotina)
   const hasRotina =
     trabalhoItems.length > 0 ||
     textFilled(funcao?.rotina?.horasDia) ||
     Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(funcao?.rotina?.atividadeQualFreq)
+    textFilled(atividadeFisicaResumo)
   pushBlock(items, {
     id: '03.C',
     label: 'Rotina e demanda',
@@ -431,7 +432,7 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     preview: previewFrom(
       trabalhoItems[0],
       funcao?.rotina?.horasDia,
-      funcao?.rotina?.atividadeQualFreq,
+      atividadeFisicaResumo,
     ),
   })
 

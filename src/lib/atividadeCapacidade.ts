@@ -24,12 +24,13 @@ export const ATIVIDADES = [
 
 export type AtividadeKey = (typeof ATIVIDADES)[number]['key']
 
-export const UNIDADES = ['minutos', 'km', 'repeticoes'] as const
+export const UNIDADES = ['minutos', 'horas', 'km', 'repeticoes'] as const
 
 export type Unidade = (typeof UNIDADES)[number]
 
 export const UNIDADE_ROTULO: Record<Unidade, string> = {
   minutos: 'minutos',
+  horas: 'horas',
   km: 'km',
   repeticoes: 'repetições',
 }
@@ -40,7 +41,7 @@ export type LadoMedida = {
 }
 
 function isUnidade(value: string | undefined): value is Unidade {
-  return value === 'minutos' || value === 'km' || value === 'repeticoes'
+  return value === 'minutos' || value === 'horas' || value === 'km' || value === 'repeticoes'
 }
 
 function textoMedida(valor: string | undefined): string {
@@ -257,3 +258,55 @@ export function normalizeAtividadesAfetadas(value: unknown): AtividadesAfetadasN
 
   return migrateLegacy(value, flags, outraDetalhe)
 }
+
+export const ATIVIDADE_FREQUENCIA_OPTIONS = [
+  { value: '', label: 'Selecione…' },
+  { value: '1x na semana', label: '1x na semana' },
+  { value: '2x na semana', label: '2x na semana' },
+  { value: '3x na semana', label: '3x na semana' },
+  { value: '4x na semana', label: '4x na semana' },
+  { value: '5x na semana', label: '5x na semana' },
+  { value: '6x na semana', label: '6x na semana' },
+  { value: 'todos os dias', label: 'Todos os dias da semana' },
+]
+
+export function formatHorasPorDia(horasRaw?: string): string {
+  const h = typeof horasRaw === 'string' ? horasRaw.trim() : ''
+  if (!h) return ''
+  if (/^\d+([.,]\d+)?$/.test(h)) {
+    const num = Number(h.replace(',', '.'))
+    return num === 1 ? '1 hora por dia' : `${h} horas por dia`
+  }
+  if (/por dia/i.test(h)) return h
+  if (/hora/i.test(h)) return `${h} por dia`
+  return `${h} horas por dia`
+}
+
+export function formatAtividadeFisica(rotina?: {
+  atividadeQual?: string
+  atividadeFrequencia?: string
+  atividadeHorasDia?: string
+  atividadeQualFreq?: string
+}): string {
+  if (!rotina) return ''
+  const qual = typeof rotina.atividadeQual === 'string' ? rotina.atividadeQual.trim() : ''
+  const freq = typeof rotina.atividadeFrequencia === 'string' ? rotina.atividadeFrequencia.trim() : ''
+  const horas = formatHorasPorDia(rotina.atividadeHorasDia)
+
+  if (qual || freq || horas) {
+    const parts: string[] = []
+    if (qual) {
+      parts.push(/^faz\s+/i.test(qual) ? qual : `Faz ${qual}`)
+    }
+    if (freq) {
+      parts.push(parts.length > 0 ? freq.toLowerCase() : freq)
+    }
+    if (horas) {
+      parts.push(horas)
+    }
+    return parts.join(' ')
+  }
+
+  return typeof rotina.atividadeQualFreq === 'string' ? rotina.atividadeQualFreq.trim() : ''
+}
+

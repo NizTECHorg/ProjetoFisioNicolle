@@ -2,7 +2,7 @@ import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { BodyDrawingPad } from '@/components/patients/evaluation/BodyDrawingPad'
 import { safeBodyStrokes } from '@/lib/bodyDrawing'
 import { DetailLeaf } from '@/components/patients/evaluation/fichaFormPrimitives'
-import { ATIVIDADES, formatMiolo } from '@/lib/atividadeCapacidade'
+import { ATIVIDADES, formatAtividadeFisica, formatMiolo } from '@/lib/atividadeCapacidade'
 import { resumoEsportes } from '@/lib/esportesAvaliacao'
 import { FOCUS_REGIONS } from '@/lib/focusRegions'
 import {
@@ -155,6 +155,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
           label="Registro anterior"
           value={atividades?.textoLegado?.trim() ? atividades.textoLegado : undefined}
         />
+        <DetailLeaf label="Atividade física" value={formatAtividadeFisica(funcao?.rotina)} />
         <DetailLeaf label="Boa melhora" value={funcao?.expectativas?.boaMelhora} />
         <DetailLeaf label="Triagem — observações" value={funcao?.triagemSeguranca?.observacoes} />
         <DetailLeaf label="Medicamentos" value={funcao?.medicacoes?.medicamentos} />
