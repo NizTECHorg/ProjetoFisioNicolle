@@ -1629,6 +1629,8 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     ['Gênero', id?.genero],
     ['Estado civil', id?.estadoCivil],
     ['Profissão', id?.profissao],
+    ['Peso', id?.peso],
+    ['Altura', id?.altura],
     ['Endereço residencial', id?.enderecoResidencial],
     ['Endereço profissional', id?.enderecoProfissional],
     ['Contato', id?.contato],

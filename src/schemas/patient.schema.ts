@@ -166,10 +166,14 @@ export type PatientGoalFormData = z.infer<typeof patientGoalSchema>
 export const sessionFormSchema = z
   .object({
     mode: z.enum(['agendar', 'realizada']),
-    scheduledAt: z.string().trim().min(1, 'Informe data e horário'),
-    sessionType: optionalText(80),
+    scheduledAt: z.string().trim().min(1, 'Campo obrigatório: informe a data e o horário'),
+    sessionType: z
+      .string()
+      .trim()
+      .min(1, 'Campo obrigatório: informe o tipo da sessão')
+      .max(80, 'Máximo de 80 caracteres'),
     place: optionalText(80),
-    therapistId: z.string(),
+    therapistId: z.string().trim().min(1, 'Campo obrigatório: selecione o profissional'),
     patientState: optionalText(4000),
     changesSinceLast: optionalText(4000),
     conducts: optionalText(4000),

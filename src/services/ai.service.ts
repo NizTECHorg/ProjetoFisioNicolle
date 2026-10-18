@@ -73,5 +73,5 @@ export async function generateEvolutionFromAudio(
 
   const parsed = data as { text?: string } | null
   const rawText = parsed?.text || ''
-  return stripMarkdown(rawText)
+  return stripMarkdown(rawText).slice(0, 4000)
 }

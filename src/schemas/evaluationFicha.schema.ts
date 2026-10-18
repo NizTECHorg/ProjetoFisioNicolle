@@ -171,6 +171,8 @@ export const evaluationFichaSchema = z.object({
           genero: optionalText(80),
           estadoCivil: optionalText(80),
           profissao: optionalText(120),
+          peso: optionalText(40),
+          altura: optionalText(40),
           enderecoResidencial: optionalText(500),
           enderecoProfissional: optionalText(500),
           contato: optionalText(500),

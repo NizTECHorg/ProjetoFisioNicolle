@@ -84,7 +84,7 @@ export function PatientSessionEditorForm({
   onCancel,
   onSuccess,
 }: PatientSessionEditorFormProps) {
-  const { profile } = useAuth()
+  const { user, profile } = useAuth()
   const showFinance = canSeeFinance(profile?.accountType)
   const { data: therapists = [] } = useActiveTherapists()
   const { data: prices = [], isLoading: pricesLoading } = useFinancePrices()
@@ -95,9 +95,16 @@ export function PatientSessionEditorForm({
   })
   const updateSession = useUpdatePatientSession(patientId)
 
+  const defaultTherapistId = useMemo(() => {
+    if (user?.id && therapists.some((item) => item.id === user.id)) {
+      return user.id
+    }
+    return therapists[0]?.id ?? ''
+  }, [therapists, user?.id])
+
   const therapistOptions = useMemo(
     () => [
-      { value: '', label: 'Selecione…' },
+      { value: '', label: 'Selecione o profissional…' },
       ...therapists.map((item) => ({ value: item.id, label: item.fullName })),
     ],
     [therapists],
@@ -142,9 +149,9 @@ export function PatientSessionEditorForm({
       form.reset({
         mode: editing.status === 'realizada' ? 'realizada' : 'agendar',
         scheduledAt: toDatetimeLocalValue(editing.scheduledAt),
-        sessionType: editing.type,
+        sessionType: editing.type || 'Sessão',
         place: editing.place === '—' ? '' : editing.place,
-        therapistId: editing.therapistId ?? '',
+        therapistId: editing.therapistId || defaultTherapistId,
         patientState: editing.evolution?.patientState ?? '',
         changesSinceLast: editing.evolution?.changesSinceLast ?? '',
         conducts: editing.evolution?.conducts ?? '',
@@ -160,7 +167,7 @@ export function PatientSessionEditorForm({
       scheduledAt: defaultScheduledLocal(),
       sessionType: 'Sessão',
       place: '',
-      therapistId: '',
+      therapistId: defaultTherapistId,
       patientState: '',
       changesSinceLast: '',
       conducts: draftConducts ?? '',
@@ -169,7 +176,7 @@ export function PatientSessionEditorForm({
       nextPlan: '',
       ...emptyFinanceFields,
     })
-  }, [editing, draftConducts, form, therapists, charge, showFinance])
+  }, [editing, draftConducts, form, defaultTherapistId, charge, showFinance])
 
   function onSubmit(values: SessionFormData) {
     const therapist = therapists.find((item) => item.id === values.therapistId)
@@ -178,8 +185,8 @@ export function PatientSessionEditorForm({
       scheduledAt: fromDatetimeLocalValue(values.scheduledAt),
       sessionType: values.sessionType,
       place: values.place,
-      therapistId: therapist?.id ?? null,
-      therapistName: therapist?.fullName ?? '',
+      therapistId: therapist?.id ?? (values.therapistId || null),
+      therapistName: therapist?.fullName ?? profile?.fullName ?? '',
       patientState: values.patientState,
       changesSinceLast: values.changesSinceLast,
       conducts: values.conducts,
@@ -227,6 +234,11 @@ export function PatientSessionEditorForm({
   }
 
   const saving = createSession.isPending || updateSession.isPending
+  const hasRequiredErrors = Boolean(
+    form.formState.errors.scheduledAt ||
+      form.formState.errors.therapistId ||
+      form.formState.errors.sessionType,
+  )
 
   return (
     <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
@@ -253,8 +265,12 @@ export function PatientSessionEditorForm({
         </button>
       </div>
 
+      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-xs text-ink">
+        <span className="font-semibold">Campos obrigatórios (*):</span> Data e horário, Profissional e Tipo. O local e todos os campos da evolução clínica são opcionais — se não estiverem preenchidos, não são exigidos para salvar.
+      </div>
+
       <Input
-        label="Data e horário"
+        label="Data e horário *"
         type="datetime-local"
         error={form.formState.errors.scheduledAt?.message}
         {...form.register('scheduledAt')}
@@ -262,29 +278,28 @@ export function PatientSessionEditorForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Select
-          label="Profissional"
+          label="Profissional *"
           options={therapistOptions}
           error={form.formState.errors.therapistId?.message}
           {...form.register('therapistId')}
         />
         <Input
-          label="Tipo"
+          label="Tipo *"
+          placeholder="Ex.: Sessão, Retorno, Avaliação"
           error={form.formState.errors.sessionType?.message}
           {...form.register('sessionType')}
         />
         <Input
-          label="Local"
+          label="Local (opcional)"
+          placeholder="Ex.: Consultório 1, Domiciliar"
           error={form.formState.errors.place?.message}
           {...form.register('place')}
         />
       </div>
-      <p className="text-sm text-muted">
-        Esses campos são opcionais. Dá para salvar só com a data e completar o restante depois.
-      </p>
 
       {showFinance ? (
         <div className="space-y-4">
-          <p className="text-sm font-semibold text-ink">Valor da consulta</p>
+          <p className="text-sm font-semibold text-ink">Valor da consulta (opcional)</p>
           <input type="hidden" {...form.register('priceId')} />
           <div className="grid gap-4 sm:grid-cols-2">
             {!pricesLoading && prices.length > 0 ? (
@@ -347,47 +362,56 @@ export function PatientSessionEditorForm({
 
       <div className="space-y-4 border-t border-line pt-4">
         <p className="text-sm text-muted">
-          {mode === 'realizada'
-            ? 'A evolução é opcional. A sessão realizada entra na Agenda e na atividade do dashboard mesmo sem estes textos.'
-            : 'A evolução é opcional. A sessão agendada entra na Agenda e na atividade do dashboard mesmo sem estes textos.'}
+          Todos os campos da evolução abaixo são <span className="font-medium text-ink">opcionais</span>. Preencha apenas os que desejar (ou use a gravação por voz da IA).
         </p>
         <Textarea
-          label="Estado do paciente"
+          label="Estado do paciente (opcional)"
           rows={3}
           error={form.formState.errors.patientState?.message}
           {...form.register('patientState')}
         />
         <Textarea
-          label="Condutas realizadas"
+          label="Condutas realizadas (opcional)"
           rows={3}
           error={form.formState.errors.conducts?.message}
           {...form.register('conducts')}
         />
         <Textarea
-          label="Mudanças desde a última sessão"
+          label="Mudanças desde a última sessão (opcional)"
           rows={2}
           error={form.formState.errors.changesSinceLast?.message}
           {...form.register('changesSinceLast')}
         />
         <Textarea
-          label="Resposta ao tratamento"
+          label="Resposta ao tratamento (opcional)"
           rows={2}
           error={form.formState.errors.treatmentResponse?.message}
           {...form.register('treatmentResponse')}
         />
         <Textarea
-          label="Intercorrências"
+          label="Intercorrências (opcional)"
           rows={2}
           error={form.formState.errors.incidents?.message}
           {...form.register('incidents')}
         />
         <Textarea
-          label="Planejamento"
+          label="Planejamento (opcional)"
           rows={2}
           error={form.formState.errors.nextPlan?.message}
           {...form.register('nextPlan')}
         />
       </div>
+
+      {hasRequiredErrors ? (
+        <div role="alert" className="rounded-xl border border-error/30 bg-error/10 px-3.5 py-2.5 text-xs text-error">
+          <p className="font-semibold">Atenção — preencha os campos obrigatórios para salvar:</p>
+          <ul className="mt-1 list-inside list-disc space-y-0.5">
+            {form.formState.errors.scheduledAt ? <li>Data e horário</li> : null}
+            {form.formState.errors.therapistId ? <li>Profissional</li> : null}
+            {form.formState.errors.sessionType ? <li>Tipo da sessão</li> : null}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>

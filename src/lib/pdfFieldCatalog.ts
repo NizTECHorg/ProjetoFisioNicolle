@@ -113,6 +113,8 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     id?.genero,
     id?.estadoCivil,
     id?.profissao,
+    id?.peso,
+    id?.altura,
     id?.enderecoResidencial,
     id?.enderecoProfissional,
     id?.contato,

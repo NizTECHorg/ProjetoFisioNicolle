@@ -31,6 +31,8 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
           <LineField label="Gênero" name="ficha.anamnese.identificacao.genero" register={register} disabled={disabled} />
           <LineField label="Estado civil" name="ficha.anamnese.identificacao.estadoCivil" register={register} disabled={disabled} />
           <LineField label="Profissão / ocupação" name="ficha.anamnese.identificacao.profissao" register={register} disabled={disabled} />
+          <LineField label="Peso (kg)" name="ficha.anamnese.identificacao.peso" register={register} disabled={disabled} />
+          <LineField label="Altura (m ou cm)" name="ficha.anamnese.identificacao.altura" register={register} disabled={disabled} />
         </div>
         <TextField label="Endereço residencial" name="ficha.anamnese.identificacao.enderecoResidencial" register={register} rows={2} disabled={disabled} />
         <TextField label="Endereço profissional (quando aplicável)" name="ficha.anamnese.identificacao.enderecoProfissional" register={register} rows={2} disabled={disabled} />

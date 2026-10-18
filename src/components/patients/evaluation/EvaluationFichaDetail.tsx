@@ -79,6 +79,8 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Nome" value={id?.nomeCompleto} />
         <DetailLeaf label="Nascimento" value={id?.dataNascimento} />
         <DetailLeaf label="Profissão" value={id?.profissao} />
+        <DetailLeaf label="Peso" value={id?.peso} />
+        <DetailLeaf label="Altura" value={id?.altura} />
         <DetailLeaf label="Contato" value={id?.contato} />
         <DetailLeaf label="Queixa" value={queixa?.oQueTrouxe} />
         <DetailLeaf label="Região" value={queixa?.regiao} />
