@@ -195,6 +195,12 @@ export interface Patient {
   profession: string
   cpf: string
   gender: PatientGender | null
+  naturalidade: string
+  estadoCivil: string
+  peso: string
+  altura: string
+  enderecoResidencial: string
+  enderecoProfissional: string
   emergencyName: string
   emergencyPhone: string
   emergencyRelation: string
@@ -272,6 +278,12 @@ export interface UpdatePatientInput {
   profession?: string
   cpf?: string
   gender?: string
+  naturalidade?: string
+  estadoCivil?: string
+  peso?: string
+  altura?: string
+  enderecoResidencial?: string
+  enderecoProfissional?: string
   emergencyName?: string
   emergencyPhone?: string
   emergencyRelation?: string

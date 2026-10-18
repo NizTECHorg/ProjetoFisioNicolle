@@ -261,6 +261,136 @@ export async function listPatientEvaluations(patientId: string): Promise<Patient
   return rows.map((row) => mapEvaluation(row, oldest?.id === row.id))
 }
 
+function parseIsoBirthDate(raw: string | undefined): string | null {
+  const trimmed = raw?.trim() ?? ''
+  if (!trimmed) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+  const brMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (brMatch) {
+    return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`
+  }
+  return null
+}
+
+function parseGenderFromFicha(raw: string | undefined): string | null {
+  const normalized = (raw?.trim() ?? '').toLowerCase()
+  if (!normalized) return null
+  if (['masculino', 'homem', 'm', 'masc'].includes(normalized)) return 'masculino'
+  if (['feminino', 'mulher', 'f', 'fem'].includes(normalized)) return 'feminino'
+  if (['outro', 'outros'].includes(normalized)) return 'outro'
+  if (['nao_informado', 'não informado', 'prefere não informar'].includes(normalized)) {
+    return 'nao_informado'
+  }
+  return null
+}
+
+async function syncPatientFromEvaluation(
+  patientId: string,
+  input: UpsertPatientEvaluationInput,
+): Promise<void> {
+  const parsed = evaluationFichaSchema.safeParse(input.ficha ?? {})
+  if (!parsed.success) return
+  const ficha = parsed.data
+  const id = ficha.anamnese?.identificacao
+
+  const payload: Record<string, string | number | null> = {}
+
+  const nomeCompleto = id?.nomeCompleto?.trim() ?? ''
+  if (nomeCompleto.length >= 2 && nomeCompleto.length <= 120) {
+    payload.full_name = nomeCompleto
+  }
+
+  const birthDate = parseIsoBirthDate(id?.dataNascimento)
+  if (birthDate) {
+    payload.birth_date = birthDate
+  }
+
+  const naturalidade = id?.naturalidade?.trim()
+  if (naturalidade) payload.naturalidade = naturalidade.slice(0, 120)
+
+  const gender = parseGenderFromFicha(id?.genero)
+  if (gender) payload.gender = gender
+
+  const estadoCivil = id?.estadoCivil?.trim()
+  if (estadoCivil) payload.estado_civil = estadoCivil.slice(0, 80)
+
+  const profissao = id?.profissao?.trim()
+  if (profissao) payload.profession = profissao.slice(0, 80)
+
+  const peso = id?.peso?.trim()
+  if (peso) payload.peso = peso.slice(0, 40)
+
+  const altura = id?.altura?.trim()
+  if (altura) payload.altura = altura.slice(0, 40)
+
+  const enderecoResidencial = id?.enderecoResidencial?.trim()
+  if (enderecoResidencial) payload.endereco_residencial = enderecoResidencial.slice(0, 500)
+
+  const enderecoProfissional = id?.enderecoProfissional?.trim()
+  if (enderecoProfissional) payload.endereco_profissional = enderecoProfissional.slice(0, 500)
+
+  const contato = id?.contato?.trim() ?? ''
+  if (contato) {
+    const emailMatch = contato.match(/[^\s·|/,;]+@[^\s·|/,;]+\.[^\s·|/,;]+/)
+    if (emailMatch) {
+      payload.email = emailMatch[0].toLowerCase()
+    }
+    const remainingPhone = contato
+      .replace(emailMatch?.[0] ?? '', '')
+      .replace(/^[·|/,;\-\s]+|[·|/,;\-\s]+$/g, '')
+      .trim()
+    if (remainingPhone) {
+      payload.phone = remainingPhone.slice(0, 30)
+    }
+  }
+
+  const therapistName =
+    input.therapistName?.trim() || ficha.avaliacaoPlano?.profissional?.fisioterapeuta?.trim()
+  if (therapistName) {
+    payload.therapist_name = therapistName.slice(0, 120)
+  }
+
+  const complaint = ficha.anamnese?.queixa?.oQueTrouxe?.trim() || input.mainComplaint?.trim()
+  if (complaint) {
+    payload.complaint = complaint.slice(0, 2000)
+  }
+
+  const diagnosis =
+    ficha.avaliacaoPlano?.sintese?.diagnosticoFisio?.trim() || input.physioDiagnosis?.trim()
+  if (diagnosis) {
+    payload.diagnosis = diagnosis.slice(0, 2000)
+  }
+
+  const frequency = ficha.avaliacaoPlano?.planejamento?.frequencia?.trim()
+  if (frequency) {
+    payload.frequency = frequency.slice(0, 80)
+  }
+
+  const qtdRaw = ficha.avaliacaoPlano?.planejamento?.qtdAtendimentos?.trim()
+  const qtdMatch = qtdRaw?.match(/\d+/)
+  if (qtdMatch) {
+    const qtd = Number(qtdMatch[0])
+    if (Number.isInteger(qtd) && qtd > 0 && qtd <= 9999) {
+      payload.sessions_planned = qtd
+    }
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(input.performedOn)) {
+    const { data: currentPatient } = await supabase
+      .from('patients')
+      .select('treatment_started_on')
+      .eq('id', patientId)
+      .maybeSingle()
+    if (currentPatient && !(currentPatient as { treatment_started_on?: string | null }).treatment_started_on) {
+      payload.treatment_started_on = input.performedOn
+    }
+  }
+
+  if (Object.keys(payload).length === 0) return
+
+  await supabase.from('patients').update(payload).eq('id', patientId)
+}
+
 export async function createPatientEvaluation(
   patientId: string,
   input: UpsertPatientEvaluationInput,
@@ -273,21 +403,28 @@ export async function createPatientEvaluation(
     created_by_name: author.name,
   })
   throwIfError(error)
+  await syncPatientFromEvaluation(patientId, input)
 }
 
 export async function updatePatientEvaluation(
   evaluationId: string,
   input: UpsertPatientEvaluationInput,
 ): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('patient_evaluations')
     .update({
       ...toRow(input),
       updated_at: new Date().toISOString(),
     })
     .eq('id', evaluationId)
+    .select('patient_id')
+    .maybeSingle()
 
   throwIfError(error)
+  const patientId = (data as { patient_id?: string } | null)?.patient_id
+  if (patientId) {
+    await syncPatientFromEvaluation(patientId, input)
+  }
 }
 
 export async function deletePatientEvaluation(evaluationId: string): Promise<void> {

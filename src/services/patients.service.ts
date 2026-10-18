@@ -35,6 +35,12 @@ interface PatientRow {
   profession: string | null
   cpf?: string | null
   gender: string | null
+  naturalidade?: string | null
+  estado_civil?: string | null
+  peso?: string | null
+  altura?: string | null
+  endereco_residencial?: string | null
+  endereco_profissional?: string | null
   emergency_name: string | null
   emergency_phone: string | null
   emergency_relation: string | null
@@ -125,7 +131,7 @@ interface AlertRow {
 const ALERT_COLUMNS = 'id, message, tone, created_at, created_by, created_by_name'
 
 const DETAIL_COLUMNS =
-  'id, full_name, code, birth_date, phone, email, status, profession, gender, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, ai_summary_fields, summary_edits, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by, cpf'
+  'id, full_name, code, birth_date, phone, email, status, profession, gender, naturalidade, estado_civil, peso, altura, endereco_residencial, endereco_profissional, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, ai_summary_fields, summary_edits, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by, cpf'
 
 const LIST_COLUMNS =
   'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_at, created_by'
@@ -343,6 +349,12 @@ function mapPatient(
     profession: row.profession ?? '—',
     cpf: normalizeCpf(row.cpf ?? ''),
     gender: narrowGender(row.gender),
+    naturalidade: row.naturalidade ?? '—',
+    estadoCivil: row.estado_civil ?? '—',
+    peso: row.peso ?? '—',
+    altura: row.altura ?? '—',
+    enderecoResidencial: row.endereco_residencial ?? '—',
+    enderecoProfissional: row.endereco_profissional ?? '—',
     emergencyName: row.emergency_name ?? '—',
     emergencyPhone: row.emergency_phone ?? '—',
     emergencyRelation: row.emergency_relation ?? '—',
@@ -612,6 +624,16 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
   if (input.email !== undefined) payload.email = emptyToNull(input.email)?.toLowerCase() ?? null
   if (input.profession !== undefined) payload.profession = emptyToNull(input.profession)
   if (input.gender !== undefined) payload.gender = narrowGender(input.gender)
+  if (input.naturalidade !== undefined) payload.naturalidade = emptyToNull(input.naturalidade)
+  if (input.estadoCivil !== undefined) payload.estado_civil = emptyToNull(input.estadoCivil)
+  if (input.peso !== undefined) payload.peso = emptyToNull(input.peso)
+  if (input.altura !== undefined) payload.altura = emptyToNull(input.altura)
+  if (input.enderecoResidencial !== undefined) {
+    payload.endereco_residencial = emptyToNull(input.enderecoResidencial)
+  }
+  if (input.enderecoProfissional !== undefined) {
+    payload.endereco_profissional = emptyToNull(input.enderecoProfissional)
+  }
   if (input.cpf !== undefined) {
     const cpfDigits = normalizeCpf(input.cpf)
     if (cpfDigits !== '' && cpfDigits.length !== 11) throw new Error('CPF inválido. Confira os números.')

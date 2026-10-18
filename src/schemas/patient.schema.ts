@@ -80,10 +80,18 @@ export const identityPatientSchema = z.object({
 })
 
 export const personalSectionSchema = z.object({
+  birthDate: optionalDate,
+  phone: optionalText(30),
   profession: optionalText(80),
   cpf: optionalCpf,
   gender: z.union([z.literal(''), z.enum(PATIENT_GENDER_VALUES)]),
   email: optionalEmail,
+  naturalidade: optionalText(120),
+  estadoCivil: optionalText(80),
+  peso: optionalText(40),
+  altura: optionalText(40),
+  enderecoResidencial: optionalText(500),
+  enderecoProfissional: optionalText(500),
 })
 
 export const emergencySectionSchema = z.object({

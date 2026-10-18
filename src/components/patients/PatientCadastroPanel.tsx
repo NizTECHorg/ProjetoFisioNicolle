@@ -142,10 +142,18 @@ export function PatientCadastroPanel({
     }
     if (section === 'personal') {
       personalForm.reset({
+        birthDate: patient.birthDateRaw ?? '',
+        phone: dash(patient.phone),
         profession: dash(patient.profession),
         cpf: formatCpf(patient.cpf),
         gender: patient.gender ?? '',
         email: dash(patient.email),
+        naturalidade: dash(patient.naturalidade),
+        estadoCivil: dash(patient.estadoCivil),
+        peso: dash(patient.peso),
+        altura: dash(patient.altura),
+        enderecoResidencial: dash(patient.enderecoResidencial),
+        enderecoProfissional: dash(patient.enderecoProfissional),
       })
     }
     if (section === 'emergency') {
@@ -179,13 +187,21 @@ export function PatientCadastroPanel({
     <>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <EditableCard title="Pessoais" onEdit={canWrite ? () => setSection('personal') : undefined}>
-          <Field label="Profissão" value={patient.profession} />
-          <Field label="CPF" value={patient.cpf ? formatCpf(patient.cpf) : ''} />
+          <Field label="Data de nascimento" value={patient.birthDate} />
+          <Field label="Telefone / Contato" value={patient.phone} />
+          <Field label="E-mail" value={patient.email} />
           <Field
-            label="Sexo"
+            label="Sexo / Gênero"
             value={patientGenderOptions.find((o) => o.value === (patient.gender ?? '') && o.value !== '')?.label ?? '—'}
           />
-          <Field label="E-mail" value={patient.email} />
+          <Field label="Estado civil" value={patient.estadoCivil} />
+          <Field label="Naturalidade" value={patient.naturalidade} />
+          <Field label="Profissão" value={patient.profession} />
+          <Field label="Peso (kg)" value={patient.peso} />
+          <Field label="Altura" value={patient.altura} />
+          <Field label="CPF" value={patient.cpf ? formatCpf(patient.cpf) : ''} />
+          <Field label="Endereço residencial" value={patient.enderecoResidencial} />
+          <Field label="Endereço profissional" value={patient.enderecoProfissional} />
         </EditableCard>
         <EditableCard title="Emergência" onEdit={canWrite ? () => setSection('emergency') : undefined}>
           <Field label="Nome" value={patient.emergencyName} />
@@ -275,47 +291,101 @@ export function PatientCadastroPanel({
       <Modal
         open={section === 'personal'}
         title="Dados pessoais"
-        description="Profissão, sexo e e-mail deste card."
+        description="Identificação, dados pessoais e endereço do paciente."
         onClose={() => setSection(null)}
       >
         <form
           className="space-y-4"
           onSubmit={personalForm.handleSubmit((values) =>
             save({
+              birthDate: values.birthDate,
+              phone: values.phone,
               profession: values.profession,
               cpf: values.cpf ?? '',
               gender: values.gender,
               email: values.email,
+              naturalidade: values.naturalidade,
+              estadoCivil: values.estadoCivil,
+              peso: values.peso,
+              altura: values.altura,
+              enderecoResidencial: values.enderecoResidencial,
+              enderecoProfissional: values.enderecoProfissional,
             }),
           )}
         >
-          <Input
-            label="Profissão"
-            error={personalForm.formState.errors.profession?.message}
-            {...personalForm.register('profession')}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Data de nascimento"
+              type="date"
+              error={personalForm.formState.errors.birthDate?.message}
+              {...personalForm.register('birthDate')}
+            />
+            <Input
+              label="Telefone / Contato"
+              type="tel"
+              error={personalForm.formState.errors.phone?.message}
+              {...personalForm.register('phone')}
+            />
+            <Select
+              label="Sexo / Gênero"
+              options={patientGenderOptions}
+              error={personalForm.formState.errors.gender?.message}
+              {...personalForm.register('gender')}
+            />
+            <Input
+              label="Estado civil"
+              error={personalForm.formState.errors.estadoCivil?.message}
+              {...personalForm.register('estadoCivil')}
+            />
+            <Input
+              label="Naturalidade"
+              error={personalForm.formState.errors.naturalidade?.message}
+              {...personalForm.register('naturalidade')}
+            />
+            <Input
+              label="Profissão"
+              error={personalForm.formState.errors.profession?.message}
+              {...personalForm.register('profession')}
+            />
+            <Input
+              label="Peso (kg)"
+              error={personalForm.formState.errors.peso?.message}
+              {...personalForm.register('peso')}
+            />
+            <Input
+              label="Altura (m ou cm)"
+              error={personalForm.formState.errors.altura?.message}
+              {...personalForm.register('altura')}
+            />
+            <Input
+              label="CPF (opcional)"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="000.000.000-00"
+              maxLength={14}
+              error={personalForm.formState.errors.cpf?.message}
+              {...personalForm.register('cpf', {
+                onChange: (e) => personalForm.setValue('cpf', formatCpf(e.target.value)),
+              })}
+            />
+            <Input
+              label="E-mail"
+              type="email"
+              error={personalForm.formState.errors.email?.message}
+              {...personalForm.register('email')}
+            />
+          </div>
+          <Textarea
+            label="Endereço residencial"
+            rows={2}
+            error={personalForm.formState.errors.enderecoResidencial?.message}
+            {...personalForm.register('enderecoResidencial')}
           />
-          <Input
-            label="CPF (opcional)"
-            inputMode="numeric"
-            autoComplete="off"
-            placeholder="000.000.000-00"
-            maxLength={14}
-            error={personalForm.formState.errors.cpf?.message}
-            {...personalForm.register('cpf', {
-              onChange: (e) => personalForm.setValue('cpf', formatCpf(e.target.value)),
-            })}
-          />
-          <Select
-            label="Sexo"
-            options={patientGenderOptions}
-            error={personalForm.formState.errors.gender?.message}
-            {...personalForm.register('gender')}
-          />
-          <Input
-            label="E-mail"
-            type="email"
-            error={personalForm.formState.errors.email?.message}
-            {...personalForm.register('email')}
+          <Textarea
+            label="Endereço profissional"
+            rows={2}
+            error={personalForm.formState.errors.enderecoProfissional?.message}
+            {...personalForm.register('enderecoProfissional')}
           />
           <FormActions onClose={() => setSection(null)} isLoading={update.isPending} />
         </form>

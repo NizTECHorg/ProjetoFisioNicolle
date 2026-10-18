@@ -177,6 +177,12 @@ export function PatientEvaluationPanel({
         phone: patientDetail.phone,
         email: patientDetail.email,
         gender: patientDetail.gender,
+        naturalidade: patientDetail.naturalidade,
+        estadoCivil: patientDetail.estadoCivil,
+        peso: patientDetail.peso,
+        altura: patientDetail.altura,
+        enderecoResidencial: patientDetail.enderecoResidencial,
+        enderecoProfissional: patientDetail.enderecoProfissional,
       }
     }
     if (patientName) return { name: patientName }

@@ -32,6 +32,12 @@ export type EvaluationPatientSnapshot = {
   phone?: string
   email?: string
   gender?: string | null
+  naturalidade?: string
+  estadoCivil?: string
+  peso?: string
+  altura?: string
+  enderecoResidencial?: string
+  enderecoProfissional?: string
 }
 
 function dash(value: string | null | undefined) {
@@ -60,8 +66,14 @@ function prefillIdentification(
           ...id,
           nomeCompleto: id.nomeCompleto || dash(snapshot.name),
           dataNascimento: id.dataNascimento || dash(snapshot.birthDateRaw) || dash(snapshot.birthDate),
+          naturalidade: id.naturalidade || dash(snapshot.naturalidade),
           genero: id.genero || genderLabel(snapshot.gender),
+          estadoCivil: id.estadoCivil || dash(snapshot.estadoCivil),
           profissao: id.profissao || dash(snapshot.profession),
+          peso: id.peso || dash(snapshot.peso),
+          altura: id.altura || dash(snapshot.altura),
+          enderecoResidencial: id.enderecoResidencial || dash(snapshot.enderecoResidencial),
+          enderecoProfissional: id.enderecoProfissional || dash(snapshot.enderecoProfissional),
           contato: id.contato || contactFromSnapshot(snapshot),
           dataAvaliacao: id.dataAvaliacao || base.performedOn,
         },
