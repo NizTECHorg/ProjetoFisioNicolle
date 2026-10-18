@@ -116,8 +116,11 @@ export function isRegionId(value: string | null | undefined): value is SpecialTe
 export function findRegion(id: SpecialTestRegionId): SpecialTestRegion {
   return (
     SPECIAL_TEST_REGIONS.find((r) => r.id === id) ??
-    SPECIAL_TEST_REGIONS.find((r) => r.id === DEFAULT_REGION_ID) ??
-    SPECIAL_TEST_REGIONS[0]
+    SPECIAL_TEST_REGIONS.find((r) => r.id === DEFAULT_REGION_ID) ?? {
+      id: DEFAULT_REGION_ID,
+      label: 'Coluna',
+      tests: [],
+    }
   )
 }
 

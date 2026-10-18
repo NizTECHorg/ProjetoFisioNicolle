@@ -10,7 +10,7 @@ import {
   searchSpecialTests,
 } from './testesEspeciais.ts'
 
-const coluna = SPECIAL_TEST_REGIONS[0]
+const coluna = findRegion('coluna')
 
 const EXPECTED = [
   {
@@ -89,6 +89,7 @@ test('REQ-49: Coluna tem os 6 testes na ordem, e as outras regiões estão vazia
 test('REQ-49: textos literais dos 6 testes da Coluna', () => {
   EXPECTED.forEach((expected, i) => {
     const actual = coluna.tests[i]
+    if (!actual) throw new Error(`teste ausente: ${expected.id}`)
     equal(actual.summary, expected.summary)
     equal(actual.technique, expected.technique)
     equal(actual.interpretation, expected.interpretation)
