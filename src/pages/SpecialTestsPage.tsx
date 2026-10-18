@@ -120,7 +120,7 @@ export function SpecialTestsPage() {
     hits.length === 0 ? 'Nenhum teste encontrado.' : hits.length === 1 ? '1 teste' : `${hits.length} testes`
 
   return (
-    <section className="mx-auto w-full max-w-7xl md:flex md:items-start md:gap-6">
+    <section className="mx-auto w-full max-w-7xl md:flex md:items-stretch md:gap-6">
       <div className="min-w-0 space-y-4 md:flex-1 xl:flex-[2]">
         <PageHeader
           className="dash-in"

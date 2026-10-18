@@ -67,7 +67,7 @@ export function SpecialTestPanel({ test, regionLabel, onClose }: PanelProps) {
       onKeyDown={(e) => {
         if (e.key === 'Escape') onClose()
       }}
-      className="sticky top-0 max-h-full self-start overflow-y-auto rounded-2xl border border-line bg-surface p-6"
+      className="sticky top-4 max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface p-6 shadow-sm"
     >
       <div className="mb-4 flex items-center justify-between gap-2">
         <button
