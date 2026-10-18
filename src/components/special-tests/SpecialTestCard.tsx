@@ -1,9 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import type { SpecialTest } from '@/lib/testesEspeciais'
-
-export function specialTestCardDomId(testId: string): string {
-  return `special-test-${testId}`
-}
+import { specialTestCardDomId } from './specialTestDom'
 
 interface SpecialTestCardProps {
   test: SpecialTest
