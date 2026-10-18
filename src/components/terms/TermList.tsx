@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import { Download, ExternalLink, Trash2 } from 'lucide-react'
+import { Download, ExternalLink, Loader2, Mail, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useDeletePatientTerm } from '@/hooks/usePatientTerms'
 import { buildTermFileName } from '@/lib/consentTerms'
+import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
+import { sendPatientTerm } from '@/services/patientDocumentSend.service'
 import { getPatientTermDownloadUrl } from '@/services/patientTerms.service'
 import { toast } from '@/stores/toast.store'
 import type { PatientTerm } from '@/types/patientTerm'
@@ -37,7 +39,21 @@ export function TermList({
   emptyAction,
 }: TermListProps) {
   const [pending, setPending] = useState<PatientTerm | null>(null)
+  const [sendingId, setSendingId] = useState<string | null>(null)
   const del = useDeletePatientTerm()
+
+  async function sendEmail(term: PatientTerm) {
+    if (sendingId) return
+    setSendingId(term.id)
+    try {
+      await sendPatientTerm({ patientId: term.patientId, termId: term.id })
+      toast(PATIENT_AI_COPY.sendEmailSuccess, 'success')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : PATIENT_AI_COPY.sendEmailError, 'error')
+    } finally {
+      setSendingId(null)
+    }
+  }
 
   async function download(term: PatientTerm) {
     try {
@@ -102,7 +118,7 @@ export function TermList({
               </p>
               <p className="text-sm text-muted">{`Assinado por: ${term.guardianName ?? term.patientName}`}</p>
             </div>
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1 sm:shrink-0">
               <button
                 type="button"
                 className={actionClass}
@@ -119,6 +135,23 @@ export function TermList({
                 <Download size={16} />
                 <span className="hidden sm:inline">Baixar</span>
               </button>
+              {canDelete(term) ? (
+                <button
+                  type="button"
+                  className={actionClass}
+                  aria-label={PATIENT_AI_COPY.sendEmail}
+                  disabled={sendingId !== null}
+                  aria-busy={sendingId === term.id}
+                  onClick={() => void sendEmail(term)}
+                >
+                  {sendingId === term.id ? (
+                    <Loader2 size={16} className="animate-spin motion-reduce:animate-none" />
+                  ) : (
+                    <Mail size={16} />
+                  )}
+                  <span className="hidden sm:inline">{PATIENT_AI_COPY.sendEmail}</span>
+                </button>
+              ) : null}
               {canDelete(term) ? (
                 <button
                   type="button"
