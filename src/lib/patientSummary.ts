@@ -28,21 +28,21 @@ export const SUMMARY_FIELD_LABELS: Record<SummaryFieldKey, string> = {
 }
 
 export const SUMMARY_FIELD_MAX: Record<SummaryFieldKey, number> = {
-  summary: 1500,
-  treatmentPlan: 500,
-  evolution: 500,
-  conducts: 500,
-  nextSessionPlan: 400,
-  painLimitations: 500,
+  summary: 3000,
+  treatmentPlan: 1000,
+  evolution: 1000,
+  conducts: 1000,
+  nextSessionPlan: 800,
+  painLimitations: 1000,
 }
 
 export const SUMMARY_FIELD_ROWS: Record<SummaryFieldKey, number> = {
-  summary: 6,
-  treatmentPlan: 3,
-  evolution: 3,
-  conducts: 3,
+  summary: 8,
+  treatmentPlan: 4,
+  evolution: 4,
+  conducts: 4,
   nextSessionPlan: 3,
-  painLimitations: 3,
+  painLimitations: 4,
 }
 
 const AI_SUMMARY_STORED_KEYS = [
@@ -170,24 +170,24 @@ export const aiSummaryResponseSchema = z.object({
 
 /** Formulário do modal. Campo vazio é válido: apaga o texto. A copy é a da UI-SPEC. */
 export const summaryEditsSchema = z.object({
-  summary: z.string().trim().max(SUMMARY_FIELD_MAX.summary, 'Use no máximo 1500 caracteres.'),
+  summary: z.string().trim().max(SUMMARY_FIELD_MAX.summary, 'Use no máximo 3000 caracteres.'),
   treatmentPlan: z
     .string()
     .trim()
-    .max(SUMMARY_FIELD_MAX.treatmentPlan, 'Use no máximo 500 caracteres.'),
+    .max(SUMMARY_FIELD_MAX.treatmentPlan, 'Use no máximo 1000 caracteres.'),
   evolution: z
     .string()
     .trim()
-    .max(SUMMARY_FIELD_MAX.evolution, 'Use no máximo 500 caracteres.'),
-  conducts: z.string().trim().max(SUMMARY_FIELD_MAX.conducts, 'Use no máximo 500 caracteres.'),
+    .max(SUMMARY_FIELD_MAX.evolution, 'Use no máximo 1000 caracteres.'),
+  conducts: z.string().trim().max(SUMMARY_FIELD_MAX.conducts, 'Use no máximo 1000 caracteres.'),
   nextSessionPlan: z
     .string()
     .trim()
-    .max(SUMMARY_FIELD_MAX.nextSessionPlan, 'Use no máximo 400 caracteres.'),
+    .max(SUMMARY_FIELD_MAX.nextSessionPlan, 'Use no máximo 800 caracteres.'),
   painLimitations: z
     .string()
     .trim()
-    .max(SUMMARY_FIELD_MAX.painLimitations, 'Use no máximo 500 caracteres.'),
+    .max(SUMMARY_FIELD_MAX.painLimitations, 'Use no máximo 1000 caracteres.'),
 })
 
 export type SummaryEditsFormData = z.infer<typeof summaryEditsSchema>

@@ -96,6 +96,7 @@ export const MAX_AI_REPORT_BYTES = 8 * 1024 * 1024
 
 export const patientAiSummaryInvokeSchema = z.object({
   patientId: z.string().uuid(),
+  evaluationId: z.string().uuid().optional(),
   userHint: z
     .string()
     .trim()

@@ -143,6 +143,7 @@ export async function generatePatientAiSummary(
   const { data, error } = await supabase.functions.invoke('patient-ai-summary', {
     body: {
       patientId: parsed.patientId,
+      evaluationId: parsed.evaluationId,
       userHint: parsed.userHint,
     },
   })

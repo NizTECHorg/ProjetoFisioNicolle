@@ -81,6 +81,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
   const [mode, setMode] = useState<ComposerMode>('resumo')
   const [userHint, setUserHint] = useState('')
+  const [resumoEvaluationId, setResumoEvaluationId] = useState('all')
   const [pdfScope, setPdfScope] = useState<PdfExportScope>('avaliacao')
   const [evaluationId, setEvaluationId] = useState(LATEST_EVAL_VALUE)
   const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(() => new Set())
@@ -104,6 +105,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
   useEffect(() => {
     setSavedReport(null)
     setSending(null)
+    setResumoEvaluationId('all')
   }, [patientId])
 
   const sessionsForPicker = useMemo(() => {
@@ -130,6 +132,11 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
       const label = name ? `${name} · ${datePart}${initial}` : `${datePart}${initial}`
       return { value: evaluation.id, label }
     }),
+  ]
+
+  const resumoEvaluationOptions = [
+    { value: 'all', label: 'Todas as fichas de avaliação (contexto completo)' },
+    ...evaluationOptions,
   ]
 
   function toggleSession(id: string) {
@@ -171,8 +178,15 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     setGeneratingTarget('resumo')
     try {
       const hint = userHint.trim()
+      const resolvedEvaluationId =
+        resumoEvaluationId === 'all'
+          ? undefined
+          : resumoEvaluationId === LATEST_EVAL_VALUE
+            ? evaluations[0]?.id
+            : resumoEvaluationId
       await generatePatientAiSummary({
         patientId,
+        evaluationId: resolvedEvaluationId,
         userHint: hint.length > 0 ? hint : undefined,
       })
       invalidatePatient(qc, patientId)
@@ -511,6 +525,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
 
       {mode === 'resumo' ? (
         <div className="mt-4 space-y-4">
+          {hasEvaluations ? (
+            <Select
+              label="Ficha de avaliação para resumir"
+              value={resumoEvaluationId}
+              options={resumoEvaluationOptions}
+              onChange={(event) => setResumoEvaluationId(event.target.value)}
+            />
+          ) : null}
           <Textarea
             label="Descrição adicional (opcional)"
             placeholder="Ex.: dor no joelho direito ao subir escada"

@@ -73,13 +73,13 @@ test('REQ-33.4: aiSummaryResponseSchema descarta opcional só com espaços', () 
 
 test('REQ-33.4: aiSummaryResponseSchema corta texto acima do limite sem lançar', () => {
   const parsed = aiSummaryResponseSchema.parse({
-    summary: 's'.repeat(1600),
-    treatmentPlan: 'p'.repeat(600),
-    nextSessionPlan: 'n'.repeat(450),
+    summary: 's'.repeat(3100),
+    treatmentPlan: 'p'.repeat(1100),
+    nextSessionPlan: 'n'.repeat(850),
   })
-  equal(parsed.summary.length, 1500)
-  equal(parsed.treatmentPlan?.length, 500)
-  equal(parsed.nextSessionPlan?.length, 400)
+  equal(parsed.summary.length, 3000)
+  equal(parsed.treatmentPlan?.length, 1000)
+  equal(parsed.nextSessionPlan?.length, 800)
 })
 
 test('REQ-33.4: aiSummaryResponseSchema descarta chave desconhecida', () => {
@@ -92,14 +92,14 @@ test('REQ-33.4: summaryEditsSchema aceita os seis campos vazios', () => {
   ok(result.success)
 })
 
-test('REQ-33.4: summaryEditsSchema recusa 401 caracteres em nextSessionPlan', () => {
+test('REQ-33.4: summaryEditsSchema recusa 801 caracteres em nextSessionPlan', () => {
   const result = summaryEditsSchema.safeParse({
     ...EMPTY_FIELDS,
-    nextSessionPlan: 'a'.repeat(401),
+    nextSessionPlan: 'a'.repeat(801),
   })
   ok(!result.success)
   if (result.success) return
-  equal(result.error.issues[0]?.message, 'Use no máximo 400 caracteres.')
+  equal(result.error.issues[0]?.message, 'Use no máximo 800 caracteres.')
 })
 
 test('REQ-33.2: narrowAiSummaryFields descarta número, chave fora do conjunto e summary', () => {

@@ -226,21 +226,69 @@ function toRow(input: UpsertPatientEvaluationInput) {
 
   const mirroredComplaint =
     blankText(input.mainComplaint) || blankText(ficha.anamnese?.queixa?.oQueTrouxe)
+  const mirroredAnamnesis =
+    blankText(input.anamnesis) || blankText(ficha.anamnese?.historiaAtual?.comoComecou)
+  const mirroredHistory =
+    blankText(input.history) || blankText(ficha.anamnese?.historicoPregresso?.observacoes)
+
+  const evaParts = [
+    ficha.sintomas?.intensidade?.agora !== undefined ? `EVA agora: ${ficha.sintomas.intensidade.agora}/10` : '',
+    ficha.sintomas?.intensidade?.melhor !== undefined ? `EVA melhor: ${ficha.sintomas.intensidade.melhor}/10` : '',
+    ficha.sintomas?.intensidade?.pior !== undefined ? `EVA pior: ${ficha.sintomas.intensidade.pior}/10` : '',
+    ficha.sintomas?.piora?.detalhe?.trim() ? `Piora: ${ficha.sintomas.piora.detalhe.trim()}` : '',
+    ficha.sintomas?.melhora?.detalhe?.trim() ? `Melhora: ${ficha.sintomas.melhora.detalhe.trim()}` : '',
+  ].filter(Boolean)
+  const mirroredPain = blankText(input.pain) || evaParts.join(' · ')
+
+  const limParts = [
+    ficha.funcao?.limitacaoFuncional?.item1?.trim(),
+    ficha.funcao?.limitacaoFuncional?.item2?.trim(),
+    ficha.funcao?.limitacaoFuncional?.item3?.trim(),
+  ].filter(Boolean)
+  const mirroredLimitations = blankText(input.limitations) || limParts.join('; ')
+
+  const goalParts = [
+    ficha.funcao?.expectativas?.boaMelhora?.trim(),
+    ficha.avaliacaoPlano?.objetivos?.curto1?.trim(),
+    ficha.avaliacaoPlano?.objetivos?.curto2?.trim(),
+    ficha.avaliacaoPlano?.objetivos?.medioLongo1?.trim(),
+    ficha.avaliacaoPlano?.objetivos?.medioLongo2?.trim(),
+  ].filter(Boolean)
+  const mirroredGoals = blankText(input.goals) || goalParts.join(' · ')
+
+  const mirroredPhysicalExam =
+    blankText(input.physicalExam) || blankText(ficha.avaliacaoPlano?.inspecao?.achados)
+  const mirroredTests =
+    blankText(input.tests) || blankText(ficha.avaliacaoPlano?.palpacaoTestes?.testesRegistroAnterior)
+  const mirroredMeasurements =
+    blankText(input.measurements) || blankText(ficha.avaliacaoPlano?.palpacaoTestes?.resultados)
+  const mirroredDiagnosis =
+    blankText(input.physioDiagnosis) || blankText(ficha.avaliacaoPlano?.sintese?.diagnosticoFisio)
+  const mirroredPlan =
+    blankText(input.plan) ||
+    [
+      ficha.avaliacaoPlano?.planejamento?.frequencia?.trim()
+        ? `Frequência: ${ficha.avaliacaoPlano.planejamento.frequencia.trim()}`
+        : '',
+      ficha.avaliacaoPlano?.planejamento?.criteriosProgressao?.trim(),
+    ]
+      .filter(Boolean)
+      .join(' · ')
 
   return {
     performed_on: input.performedOn,
     ficha: ficha as unknown as Record<string, unknown>,
-    anamnesis: blankText(input.anamnesis),
+    anamnesis: mirroredAnamnesis,
     main_complaint: mirroredComplaint,
-    history: blankText(input.history),
-    pain: blankText(input.pain),
-    limitations: blankText(input.limitations),
-    goals: blankText(input.goals),
-    physical_exam: blankText(input.physicalExam),
-    tests: blankText(input.tests),
-    measurements: blankText(input.measurements),
-    physio_diagnosis: blankText(input.physioDiagnosis),
-    plan: blankText(input.plan),
+    history: mirroredHistory,
+    pain: mirroredPain,
+    limitations: mirroredLimitations,
+    goals: mirroredGoals,
+    physical_exam: mirroredPhysicalExam,
+    tests: mirroredTests,
+    measurements: mirroredMeasurements,
+    physio_diagnosis: mirroredDiagnosis,
+    plan: mirroredPlan,
     therapist_id: input.therapistId || null,
     therapist_name: blankText(input.therapistName),
   }
