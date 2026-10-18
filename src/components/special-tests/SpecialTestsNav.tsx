@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, ClipboardList } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
+import { SpecialTestRegionIcon } from '@/components/special-tests/SpecialTestRegionIcon'
 import type { SpecialTestRegion, SpecialTestRegionId } from '@/lib/testesEspeciais'
 
 interface SpecialTestsNavProps {
@@ -85,7 +86,7 @@ export function SpecialTestsNav({
                         active ? 'bg-[#1e3a8a] text-white' : 'bg-canvas text-muted',
                       ].join(' ')}
                     >
-                      <ClipboardList size={14} strokeWidth={2} />
+                      <SpecialTestRegionIcon regionId={region.id} />
                     </span>
                     <span className="min-w-0 flex-1 truncate">{region.label}</span>
                     <span className="shrink-0 text-xs font-medium text-muted">
