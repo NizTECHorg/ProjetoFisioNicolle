@@ -54,10 +54,8 @@ const KanbanPage = lazy(() => import('@/pages/KanbanPage').then((m) => ({ defaul
 const AccountPage = lazy(() =>
   import('@/pages/AccountPage').then((m) => ({ default: m.AccountPage })),
 )
-const UnderConstructionPage = lazy(() =>
-  import('@/pages/UnderConstructionPage').then((m) => ({
-    default: m.UnderConstructionPage,
-  })),
+const SpecialTestsPage = lazy(() =>
+  import('@/pages/SpecialTestsPage').then((m) => ({ default: m.SpecialTestsPage })),
 )
 
 export function AppRoutes() {
@@ -90,7 +88,7 @@ export function AppRoutes() {
               <Route path="/kanban" element={<Navigate to="/quadro" replace />} />
               <Route path="/conta" element={<AccountPage />} />
               <Route path="/termos" element={<TermsPage />} />
-              <Route path="/testes-especiais" element={<UnderConstructionPage />} />
+              <Route path="/testes-especiais" element={<SpecialTestsPage />} />
             </Route>
           </Route>
 

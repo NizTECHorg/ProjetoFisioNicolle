@@ -10,7 +10,7 @@ test('REQ-48: rota /termos usa TermsPage via lazy', () => {
   const routes = read('../routes/index.tsx')
   ok(routes.includes("import('@/pages/TermsPage')"))
   ok(routes.includes('path="/termos" element={<TermsPage />}'))
-  ok(routes.includes('path="/testes-especiais" element={<UnderConstructionPage />}'))
+  ok(routes.includes('path="/testes-especiais" element={<SpecialTestsPage />}'))
 })
 
 test('REQ-48: ficha do paciente tem a área Arquivos na aba imagens', () => {
