@@ -121,7 +121,7 @@ export function SpecialTestsPage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl md:flex md:items-stretch md:gap-6">
-      <div className="min-w-0 space-y-4 md:flex-1 xl:flex-[2]">
+      <div className="min-w-0 space-y-4 md:flex-1">
         <PageHeader
           className="dash-in"
           title="Testes Especiais Ortopédicos"
@@ -223,7 +223,7 @@ export function SpecialTestsPage() {
       </div>
 
       {isTabletUp ? (
-        <div className="md:w-72 md:shrink-0 xl:w-auto xl:min-w-0 xl:flex-[3]">
+        <div className="md:w-72 md:shrink-0 xl:w-auto xl:min-w-0 xl:flex-1">
           {isDesktop && openHit ? (
             <SpecialTestPanel
               test={openHit.test}
