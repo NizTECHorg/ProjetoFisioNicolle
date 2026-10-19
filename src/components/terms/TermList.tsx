@@ -68,7 +68,7 @@ export function TermList({
         toast(PATIENT_AI_COPY.sendFileUnavailable, 'error')
         return
       }
-      const popup = openPatientDocumentWhatsApp(resolved.digits, url)
+      const popup = openPatientDocumentWhatsApp(resolved.digits, url, 'Segue o termo assinado.')
       if (popup === null) {
         toast(PATIENT_AI_COPY.sendWhatsAppBlocked, 'error')
         return

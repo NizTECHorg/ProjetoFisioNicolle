@@ -119,9 +119,13 @@ export async function signPatientDocumentUrl(
   }
 }
 
-export function openPatientDocumentWhatsApp(digits: string, signedUrl: string): Window | null {
+export function openPatientDocumentWhatsApp(
+  digits: string,
+  signedUrl: string,
+  message: string = PATIENT_AI_COPY.whatsappMessage,
+): Window | null {
   if (!signedUrl.startsWith('https://')) return null
-  const text = `${PATIENT_AI_COPY.whatsappMessage} ${signedUrl}`
+  const text = `${message} ${signedUrl}`
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
   const popup = window.open(href, '_blank')
   if (popup === null) return null
