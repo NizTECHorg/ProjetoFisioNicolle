@@ -15,6 +15,10 @@ const PILARES = [
   { icon: UsersRound, label: 'Integração entre profissionais' },
 ]
 
+// Zoom leve no hover de cada aparelho, entrando e saindo devagar.
+const ZOOM =
+  'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] motion-reduce:transition-none motion-reduce:hover:scale-100'
+
 /** Sobre o Fluxo: o produto em primeiro plano e a assinatura de quem idealizou, discreta. */
 export function CreatorSection() {
   return (
@@ -38,7 +42,7 @@ export function CreatorSection() {
                   height={1067}
                   loading="lazy"
                   decoding="async"
-                  className="absolute left-0 top-[12%] w-[82%] -rotate-[4deg] drop-shadow-[0_24px_40px_rgba(11,29,54,0.16)]"
+                  className={`absolute left-0 top-[12%] w-[82%] -rotate-[4deg] drop-shadow-[0_24px_40px_rgba(11,29,54,0.16)] ${ZOOM}`}
                 />
               ) : null}
               {HERO_MOBILE_IMAGE ? (
@@ -49,7 +53,7 @@ export function CreatorSection() {
                   height={1199}
                   loading="lazy"
                   decoding="async"
-                  className="absolute bottom-[2%] right-[4%] w-[28%] rotate-[3deg] drop-shadow-[0_24px_36px_rgba(11,29,54,0.22)]"
+                  className={`absolute bottom-[2%] right-[4%] w-[28%] rotate-[3deg] drop-shadow-[0_24px_36px_rgba(11,29,54,0.22)] ${ZOOM}`}
                 />
               ) : null}
             </div>
