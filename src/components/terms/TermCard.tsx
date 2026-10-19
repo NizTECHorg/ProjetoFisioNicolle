@@ -26,7 +26,7 @@ type TermCardProps = {
   createdByName: string | null
   /** Âncora usada pela navegação lateral (tablet/desktop). */
   domId?: string
-  /** Só no tablet/desktop: no celular o cartão fica sempre aberto. */
+  /** Mostra a seta de recolher o cartão. */
   collapsible?: boolean
   collapsed?: boolean
   onToggleCollapsed?: () => void

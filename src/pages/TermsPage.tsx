@@ -20,7 +20,7 @@ const checkLabel = 'flex min-h-11 items-center gap-3 text-sm font-medium text-in
 const CPF_ERROR = 'CPF inválido. Confira os números.'
 const WIDE_MEDIA = '(min-width: 768px)'
 
-/** Tablet/desktop: navegação lateral e termos recolhíveis. No celular nada muda. */
+/** Tablet/desktop: navegação lateral. Os termos são recolhíveis em todas as larguras. */
 function useWideViewport() {
   const [wide, setWide] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia(WIDE_MEDIA).matches : false,
@@ -219,7 +219,7 @@ export function TermsPage() {
           resetKey={resetKey}
           createdByName={profile?.fullName ?? null}
           domId={termDomId(term.key)}
-          collapsible={wide}
+          collapsible
           collapsed={collapsed.has(term.key)}
           onToggleCollapsed={() => toggleCollapsed(term.key)}
         />
