@@ -4,6 +4,7 @@ import { LiveCards } from './LiveCards'
 import { AgendaPdfMockup } from './mockups/AgendaPdfMockup'
 import { AiDraftMockup } from './mockups/AiDraftMockup'
 import { BodyMapMockup } from './mockups/BodyMapMockup'
+import { ReportsMockup } from './mockups/ReportsMockup'
 import { SessionsMockup } from './mockups/SessionsMockup'
 
 type Feature = {
@@ -55,6 +56,16 @@ const FEATURES: Feature[] = [
       'Escolha as seções que entram no documento',
     ],
     mockup: <AgendaPdfMockup />,
+  },
+  {
+    title: 'Relatórios e integração com a equipe',
+    text: 'Compartilhe avaliação, tratamento e evolução do paciente com médicos, convênios e os demais profissionais da equipe multidisciplinar.',
+    bullets: [
+      'Relatórios clínicos para médicos, com avaliação, conduta e evolução',
+      'Relatórios para convênios, com a documentação clínica organizada',
+      'Comunicação com a equipe multidisciplinar que acompanha o paciente',
+    ],
+    mockup: <ReportsMockup />,
   },
 ]
 

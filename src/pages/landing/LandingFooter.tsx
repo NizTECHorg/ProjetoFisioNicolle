@@ -3,7 +3,7 @@ import { ArrowUpRight, HeartPulse, ShieldCheck, Smartphone, Sparkles } from 'luc
 import { BrandWordmark } from '@/components/brand/BrandWordmark'
 import { Blob, Reveal, WaveDivider } from './LandingUi'
 import { LinkButton, WhatsAppLink } from './LinkButton'
-import { MAKER_NAME, MAKER_URL } from './landing.config'
+import { INSTAGRAM_URL, MAKER_NAME, MAKER_URL } from './landing.config'
 import niztechLogo from '@/assets/landing/niztech.webp'
 
 const LINK =
@@ -11,7 +11,7 @@ const LINK =
 
 const PRODUCT_LINKS = [
   { href: '#produto', label: 'Produto' },
-  { href: '#criadora', label: 'Criadora' },
+  { href: '#sobre', label: 'Sobre' },
   { href: '#para-quem', label: 'Para quem' },
   { href: '#planos', label: 'Planos' },
   { href: '#faq', label: 'FAQ' },
@@ -85,10 +85,23 @@ export function LandingFooter() {
                 Prontuário, avaliação, evolução, agenda e financeiro para fisioterapeutas autônomos e
                 clínicas — em um só lugar.
               </p>
-              <WhatsAppLink
-                variant="outlineLight"
-                className="w-fit focus-visible:outline-white"
-              />
+              <div className="flex items-center gap-3">
+                <WhatsAppLink
+                  variant="outlineLight"
+                  className="w-fit focus-visible:outline-white"
+                />
+                {INSTAGRAM_URL ? (
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram do Fluxo"
+                    className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    <InstagramIcon />
+                  </a>
+                ) : null}
+              </div>
             </div>
             <nav aria-label="Produto" className="flex flex-col md:col-span-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/40">Produto</p>
@@ -138,5 +151,26 @@ export function LandingFooter() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// O lucide não tem mais ícones de marca: contorno do Instagram no mesmo traço dos demais.
+function InstagramIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.4" cy="6.6" r="0.6" fill="currentColor" />
+    </svg>
   )
 }

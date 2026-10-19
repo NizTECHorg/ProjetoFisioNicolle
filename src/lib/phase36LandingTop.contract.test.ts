@@ -20,7 +20,7 @@ test('REQ-47: header', () => {
     'aria-controls="lp-mobile-menu"',
     "'Escape'",
     "'#produto'",
-    "'#criadora'",
+    "'#sobre'",
     "'#para-quem'",
     "'#planos'",
     "'#faq'",
@@ -94,7 +94,7 @@ test('REQ-47: produto', () => {
 
   const dir = fileURLToPath(new URL(MOCKUPS_DIR, import.meta.url))
   const files = readdirSync(dir).filter((f) => f.endsWith('.tsx'))
-  ok(files.length === 4, 'devem existir 4 mockups')
+  ok(files.length === 5, 'devem existir 5 mockups')
   for (const f of files) {
     const m = read(MOCKUPS_DIR + f)
     has(m, 'aria-hidden="true"')

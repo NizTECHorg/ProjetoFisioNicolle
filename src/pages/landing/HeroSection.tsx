@@ -43,6 +43,8 @@ export function HeroSection() {
               className="lp-display lp-hero-in text-[42px] font-semibold leading-[1.04] text-ink [animation-delay:80ms] sm:text-[56px] lg:text-[64px]"
             >
               Cuidado em{' '}
+              {/* A vírgula fica presa à palavra (whitespace-nowrap) para nunca quebrar sozinha para a linha de baixo. */}
+              <span className="whitespace-nowrap">
               <span className="relative inline-block whitespace-nowrap">
                 <em className="lp-gradient-text pr-1 font-semibold">movimento</em>
                 <svg
@@ -66,7 +68,9 @@ export function HeroSection() {
                   </defs>
                 </svg>
               </span>
-              <span className="max-sm:hidden">,</span> prontuário em ordem.
+              <span className="-ml-1 max-sm:hidden">,</span>
+              </span>{' '}
+              prontuário em ordem.
             </h1>
             <p className="lp-hero-in max-w-prose text-base leading-7 text-muted [animation-delay:160ms] md:text-lg md:leading-8">
               O Fluxo reúne avaliação com mapa corporal, evolução das sessões, agenda e financeiro

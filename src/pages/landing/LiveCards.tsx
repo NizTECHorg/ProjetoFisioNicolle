@@ -92,7 +92,7 @@ function Equipe() {
         ))}
       </div>
       <div className="text-right text-xs">
-        <p className="font-semibold text-ink">3 fisios</p>
+        <p className="font-semibold text-ink">3 fisioterapeutas</p>
         <p className="text-muted">cada um com os seus</p>
       </div>
     </div>
@@ -195,7 +195,7 @@ const CARDS: Card[] = [
     icon: Users,
     titulo: 'Equipe',
     antes: 'Informação que se perde',
-    texto: 'Cada fisio cuida dos seus pacientes; a clínica enxerga tudo.',
+    texto: 'Cada fisioterapeuta cuida dos seus pacientes; a clínica enxerga tudo.',
     preview: <Equipe />,
     tom: 'from-accent-soft to-white',
   },

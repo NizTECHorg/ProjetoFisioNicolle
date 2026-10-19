@@ -1,4 +1,4 @@
-// Constantes editáveis da landing page — troque aqui o WhatsApp, os preços e a foto/bio da criadora
+// Constantes editáveis da landing page — troque aqui o WhatsApp, os preços, o Sobre o Fluxo e o Instagram
 
 // DDI+DDD+número, só dígitos (placeholder até o número real ser informado)
 export const WHATSAPP_NUMBER = '5500000000000'
@@ -33,6 +33,7 @@ export const PLANS: readonly LandingPlan[] = [
       { label: 'Agenda com sessões repetidas', teamOnly: false },
       { label: 'Resumo e avaliação com IA (você revisa)', teamOnly: false },
       { label: 'Exportar PDF', teamOnly: false },
+      { label: 'Relatórios para médicos e convênios', teamOnly: false },
       { label: 'Financeiro próprio', teamOnly: false },
     ],
   },
@@ -47,19 +48,23 @@ export const PLANS: readonly LandingPlan[] = [
       { label: 'Tudo do plano Autônomo', teamOnly: false },
       { label: 'Fisioterapeutas vinculados à conta', teamOnly: true },
       { label: 'Empresa vê e gerencia tudo da equipe', teamOnly: true },
-      { label: 'Cada fisio com seus próprios pacientes', teamOnly: true },
+      { label: 'Cada fisioterapeuta com seus próprios pacientes', teamOnly: true },
       { label: 'Registro de alterações por item', teamOnly: true },
+      { label: 'Integração entre os profissionais da equipe', teamOnly: true },
     ],
   },
 ]
 
-export const CREATOR_NAME = 'Nicolle'
-// Caminho público da foto (ex.: '/nicolle.webp'); null mostra o placeholder
-export const CREATOR_PHOTO_SRC: string | null = null
-export const CREATOR_PHOTO_ALT = 'Nicolle, fisioterapeuta e criadora do Fluxo'
-export const CREATOR_BIO =
-  'A Nicolle é fisioterapeuta e criou o Fluxo a partir da própria rotina no consultório: papéis espalhados, fichas longas e pouco tempo para o que importa. O Fluxo nasceu para deixar o registro clínico simples, bonito e do jeito que o fisioterapeuta trabalha.'
-export const CREATOR_SIGNATURE = 'Nicolle, fisioterapeuta e criadora do Fluxo'
+// Seção "Sobre o Fluxo": assinatura de quem idealizou e textos
+export const CREATOR_NAME = 'Nicolle Bandeira'
+export const CREATOR_ROLE = 'Fisioterapeuta e idealizadora do Fluxo'
+export const ABOUT_PARAGRAPHS = [
+  'O Fluxo nasceu da experiência real na fisioterapia e da necessidade de tornar a rotina clínica mais simples, organizada e integrada.',
+  'Desenvolvido a partir dos desafios cotidianos da profissão, une conhecimento clínico e tecnologia para facilitar registros, acompanhar a evolução dos pacientes e fortalecer a comunicação entre profissionais.',
+] as const
+
+// Instagram do Fluxo no rodapé (URL completa, ex.: 'https://www.instagram.com/fluxo'); null esconde o ícone
+export const INSTAGRAM_URL: string | null = null
 
 // Capturas do app no hero. null mostra a prévia ilustrada (placeholder).
 // Coloque as imagens em public/ (ex.: '/landing/app-desktop.webp') e troque aqui.

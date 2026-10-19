@@ -20,11 +20,15 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: 'Como funciona para equipes?',
-    a: 'A empresa cria a conta e vincula os fisioterapeutas. Cada fisio vê apenas os próprios pacientes, e a empresa acompanha tudo, com registro de quem alterou o quê e quando.',
+    a: 'A empresa cria a conta e vincula os fisioterapeutas. Cada fisioterapeuta vê apenas os próprios pacientes, e a empresa acompanha tudo, com registro de quem alterou o quê e quando.',
   },
   {
     q: 'Posso exportar em PDF?',
     a: 'Sim. Você exporta avaliação e evolução em PDF no formato de ficha, escolhendo quais seções incluir.',
+  },
+  {
+    q: 'Consigo compartilhar com médicos, convênios e a equipe?',
+    a: 'Sim. Você gera relatórios clínicos com avaliação, tratamento e evolução do paciente para enviar ao médico, ao convênio e aos demais profissionais da equipe multidisciplinar.',
   },
   {
     q: 'Quanto custa? Existe período de teste?',

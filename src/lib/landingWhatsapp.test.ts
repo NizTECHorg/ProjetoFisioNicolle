@@ -2,8 +2,10 @@ import { test } from 'node:test'
 import { deepEqual, equal, ok, match } from 'node:assert/strict'
 import { buildWhatsAppLink } from './landingWhatsapp.ts'
 import {
-  CREATOR_BIO,
-  CREATOR_PHOTO_SRC,
+  ABOUT_PARAGRAPHS,
+  CREATOR_NAME,
+  CREATOR_ROLE,
+  INSTAGRAM_URL,
   PLANS,
   PRICE_PLACEHOLDER,
   WHATSAPP_MESSAGE,
@@ -47,7 +49,9 @@ test('config — planos', () => {
   }
 })
 
-test('config — criadora', () => {
-  equal(CREATOR_PHOTO_SRC, null)
-  ok(CREATOR_BIO.startsWith('A Nicolle é fisioterapeuta'))
+test('config — sobre o Fluxo', () => {
+  equal(CREATOR_NAME, 'Nicolle Bandeira')
+  equal(CREATOR_ROLE, 'Fisioterapeuta e idealizadora do Fluxo')
+  equal(ABOUT_PARAGRAPHS.length, 2)
+  ok(INSTAGRAM_URL === null || INSTAGRAM_URL.startsWith('https://www.instagram.com/'))
 })

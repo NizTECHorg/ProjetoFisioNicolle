@@ -10,18 +10,34 @@ const DIR = '../pages/landing/'
 const has = (src: string, needle: string) => ok(src.includes(needle), `deveria conter: ${needle}`)
 const lacks = (src: string, needle: string) => ok(!src.includes(needle), `não deveria conter: ${needle}`)
 
-test('REQ-47: criadora', () => {
+test('REQ-47: sobre o Fluxo', () => {
   const src = read(`${DIR}CreatorSection.tsx`)
   for (const s of [
-    'id="criadora"',
-    'CREATOR_PHOTO_SRC',
-    'CREATOR_BIO',
-    'Foto da Nicolle (em breve)',
-    'Feito por quem vive a fisioterapia',
+    'id="sobre"',
+    'Sobre o Fluxo',
+    'A prática clínica inspira.',
+    'A tecnologia transforma.',
+    'CREATOR_NAME',
+    'CREATOR_ROLE',
+    'Conheça o Fluxo',
+    'Integração entre profissionais',
     'lp-blob-shape',
   ])
     has(src, s)
-  lacks(src, 'Nicolle é fisioterapeuta')
+})
+
+test('REQ-47: sem a abreviação "fisio" nos textos da landing', () => {
+  for (const f of readdirSync(fileURLToPath(new URL(DIR, import.meta.url)))) {
+    if (!f.endsWith('.ts') && !f.endsWith('.tsx')) continue
+    const src = read(`${DIR}${f}`)
+    ok(!/\bf[ií]sios?\b/i.test(src), `${f} usa "fisio"`)
+  }
+})
+
+test('REQ-47: relatórios para médicos e convênios e equipe multidisciplinar', () => {
+  const product = read(`${DIR}ProductSection.tsx`)
+  for (const s of ['Relatórios e integração com a equipe', 'médicos', 'convênios', 'equipe multidisciplinar', '<ReportsMockup />'])
+    has(product, s)
 })
 
 test('REQ-47: para quem', () => {
@@ -69,9 +85,10 @@ test('REQ-47: faq', () => {
     'Quanto custa? Existe período de teste?',
     'Como peço ajuda ou suporte?',
     'Preciso ser empresa para usar?',
+    'Consigo compartilhar com médicos, convênios e a equipe?',
   ])
     has(src, s)
-  ok((src.match(/^\s+q: '/gm) ?? []).length === 8, 'deveria ter 8 perguntas')
+  ok((src.match(/^\s+q: '/gm) ?? []).length === 9, 'deveria ter 9 perguntas')
 })
 
 test('REQ-47: footer e fab', () => {

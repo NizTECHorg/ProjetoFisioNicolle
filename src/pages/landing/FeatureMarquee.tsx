@@ -10,6 +10,8 @@ const ITEMS = [
   'Agenda com sessões repetidas',
   'Resumo do caso com IA',
   'PDF pronto para o paciente',
+  'Relatórios para médicos e convênios',
+  'Integração com a equipe multidisciplinar',
   'Financeiro por sessão',
   'Equipe com acesso controlado',
   'Funciona no celular',

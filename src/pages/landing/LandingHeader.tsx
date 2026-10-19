@@ -5,7 +5,7 @@ import { LinkButton } from './LinkButton'
 
 const NAV_LINKS = [
   { href: '#produto', label: 'Produto' },
-  { href: '#criadora', label: 'Criadora' },
+  { href: '#sobre', label: 'Sobre' },
   { href: '#para-quem', label: 'Para quem' },
   { href: '#planos', label: 'Planos' },
   { href: '#faq', label: 'FAQ' },

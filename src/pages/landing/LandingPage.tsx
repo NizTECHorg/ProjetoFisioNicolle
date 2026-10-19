@@ -12,7 +12,7 @@ import { WhatsAppFab } from './WhatsAppFab'
 import { updateParallax } from './useParallax'
 import { useLandingFont } from './useLandingFont'
 
-const SECTION_IDS = ['produto', 'criadora', 'para-quem', 'planos', 'faq']
+const SECTION_IDS = ['produto', 'sobre', 'para-quem', 'planos', 'faq']
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
