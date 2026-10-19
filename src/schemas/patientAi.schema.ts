@@ -115,14 +115,6 @@ export const patientDocumentSendSchema = z.object({
 
 export type PatientDocumentSendInput = z.infer<typeof patientDocumentSendSchema>
 
-/** Body of send-patient-term. Destination comes from patients.email, never this object. */
-export const patientTermSendSchema = z.object({
-  patientId: z.string().uuid(),
-  termId: z.string().uuid(),
-})
-
-export type PatientTermSendInput = z.infer<typeof patientTermSendSchema>
-
 /** Evolução multi-sessão invoke (D-04) — cap 12 sessions. */
 export const patientAiEvolucaoInvokeSchema = z.object({
   patientId: z.string().uuid(),

@@ -2,9 +2,7 @@ import { supabase } from '@/lib/supabase/client'
 import {
   PATIENT_AI_COPY,
   patientDocumentSendSchema,
-  patientTermSendSchema,
   type PatientDocumentSendInput,
-  type PatientTermSendInput,
 } from '@/schemas/patientAi.schema'
 
 interface FunctionsErrorBody {
@@ -81,27 +79,6 @@ export async function sendPatientDocument(input: PatientDocumentSendInput): Prom
     body: {
       patientId: parsed.patientId,
       reportId: parsed.reportId,
-    },
-  })
-
-  if (error) {
-    const payload = await readFunctionsErrorPayload(error, data)
-    throw new Error(messageFromSendPayload(payload))
-  }
-
-  if (data && typeof data === 'object' && 'error' in data && (data as { error?: unknown }).error) {
-    const payload = await readFunctionsErrorPayload(null, data)
-    throw new Error(messageFromSendPayload(payload))
-  }
-}
-
-/** Envia ao paciente, por e-mail, um termo assinado salvo na nuvem (Phase 37). O destino vem de patients.email. */
-export async function sendPatientTerm(input: PatientTermSendInput): Promise<void> {
-  const parsed = patientTermSendSchema.parse(input)
-  const { data, error } = await supabase.functions.invoke('send-patient-term', {
-    body: {
-      patientId: parsed.patientId,
-      termId: parsed.termId,
     },
   })
 

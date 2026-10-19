@@ -180,3 +180,25 @@ export async function getPatientTermDownloadUrl(storagePath: string, fileName: s
   if (!data?.signedUrl) throw new Error(SAVE_FAILED)
   return data.signedUrl
 }
+
+const SHARE_URL_SECONDS = 604800
+
+/** Link de 7 dias do PDF assinado para mandar ao paciente pelo WhatsApp; null se o caminho não for da pasta do paciente. */
+export async function getPatientTermShareUrl(
+  storagePath: string,
+  patientId: string,
+  fileName: string,
+): Promise<string | null> {
+  const folder = storagePath.split('/')[0]?.toLowerCase() ?? ''
+  if (!patientId || folder !== patientId.toLowerCase()) return null
+  try {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(storagePath, SHARE_URL_SECONDS, { download: fileName })
+    const url = data?.signedUrl
+    if (error || typeof url !== 'string' || !url.startsWith('https')) return null
+    return url
+  } catch {
+    return null
+  }
+}
