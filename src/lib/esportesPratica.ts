@@ -55,9 +55,20 @@ export const RESPOSTA_TEXTO_CURTO_MAX = 80
 
 export const SIM_NAO: readonly OpcaoPratica[] = [o('sim', 'Sim'), o('nao', 'Não')]
 
-const unica = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => ({ key, rotulo, tipo: 'unica', opcoes })
+// Opções do tipo "nenhum / não sabe": marcar uma delas desmarca as outras (e vice-versa).
+const EXCLUSIVAS_PADRAO: readonly string[] = ['nao', 'naoSabe', 'nenhum', 'nenhuma', 'semGesto', 'semMovimento', 'semFase']
+/**
+ * Todas as perguntas de escolha dos questionários aceitam mais de uma opção (pedido do profissional).
+ * `unica` e `selecao` continuam no catálogo por legibilidade, mas viram múltipla escolha; respostas antigas
+ * (texto único) são lidas como lista de um item em `safeRespostas`. Sim/Não continua com uma resposta só.
+ */
+const comoMultipla = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => {
+  const exclusivas = opcoes.map((op) => op.key).filter((k) => EXCLUSIVAS_PADRAO.includes(k))
+  return { key, rotulo, tipo: 'multipla', opcoes, ...(exclusivas.length ? { exclusivas } : {}) }
+}
+const unica = comoMultipla
 const multipla = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => ({ key, rotulo, tipo: 'multipla', opcoes })
-const selecao = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta => ({ key, rotulo, tipo: 'selecao', opcoes })
+const selecao = comoMultipla
 const simNao = (key: string, rotulo: string): Pergunta => ({ key, rotulo, tipo: 'simNao', opcoes: SIM_NAO })
 const numeros = (key: string, rotulo: string, campos: CampoNumero[]): Pergunta => ({ key, rotulo, tipo: 'numeros', campos })
 const textoLongo = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'textoLongo', placeholder })

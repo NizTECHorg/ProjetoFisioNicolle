@@ -249,7 +249,7 @@ test('fase 39: migração em leitura de tenis/beachTennis e pilatesYoga/pilates/
       {
         esporte: 'beachTennis',
         nivel: 'avancado',
-        respostas: { formato: 'duplas', gestoSintoma: ['saque'] },
+        respostas: { formato: ['duplas'], gestoSintoma: ['saque'] },
         problemas: ['epicondilalgiaLateral'],
       },
     ],
@@ -270,7 +270,7 @@ test('fase 39: migração em leitura de tenis/beachTennis e pilatesYoga/pilates/
     [
       {
         esporte: 'yoga',
-        respostas: { estiloYoga: 'hatha', temSintomas: 'sim', situacao: ['sair'] },
+        respostas: { estiloYoga: ['hatha'], temSintomas: 'sim', situacao: ['sair'] },
         problemas: ['dorPunhoApoio'],
       },
     ],
@@ -278,7 +278,7 @@ test('fase 39: migração em leitura de tenis/beachTennis e pilatesYoga/pilates/
   equal(safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { pratica: 'pilates' } }])[0]?.esporte, 'pilates')
   const sem = safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { temSintomas: 'sim', situacao: 'sair' } }])
   equal(sem[0]?.esporte, 'pilatesYoga')
-  deepEqual(sem[0]?.respostas, { temSintomas: 'sim', situacao: 'sair' })
+  deepEqual(sem[0]?.respostas, { temSintomas: 'sim', situacao: ['sair'] })
 })
 
 test('fase 39: dedupe após migração, resumo e ficha antiga', () => {
@@ -299,4 +299,12 @@ test('fase 39: dedupe após migração, resumo e ficha antiga', () => {
     },
   })
   deepEqual(parsed.funcao.esportes?.map((e) => e.esporte), ['beachTennis', 'yoga'])
+})
+
+test('fase 39: respostas em lista de um item (múltipla escolha) também migram', () => {
+  equal(safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { pratica: ['yoga'] } }])[0]?.esporte, 'yoga')
+  equal(safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { pratica: ['pilates'] } }])[0]?.esporte, 'pilates')
+  equal(safeEsportesLista([{ esporte: 'tenis', respostas: { esporte: ['beachTennis'] } }])[0]?.esporte, 'beachTennis')
+  // Duas práticas marcadas = ambíguo: não migra.
+  equal(safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { pratica: ['pilates', 'yoga'] } }])[0]?.esporte, 'pilatesYoga')
 })

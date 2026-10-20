@@ -16,6 +16,15 @@ import {
 } from './esportesPratica.ts'
 import { emptyEvaluationFicha, evaluationFichaSchema } from '../schemas/evaluationFicha.schema.ts'
 
+/**
+ * Entradas de teste no formato antigo (texto único nas perguntas que viraram múltipla escolha): passam por
+ * safeAvaliacaoPratica como na leitura real e depois são formatadas — prova que o legado continua aparecendo.
+ */
+function linhasLegado(entrada: Parameters<typeof linhasAvaliacaoPratica>[0], esporte: string): string[] {
+  const respostas = safeRespostas(entrada.respostas, praticaDoEsporte(esporte))
+  return linhasAvaliacaoPratica({ ...entrada, respostas }, esporte)
+}
+
 test('avaliação esportiva: todo esporte do catálogo tem prática, chaves únicas por esporte', () => {
   for (const esporte of ESPORTES) {
     const pratica = PRATICAS[esporte.key]
@@ -57,7 +66,7 @@ test('avaliação esportiva: lista mantém os campos e o schema aceita', () => {
     esporte: 'volei',
     nivel: 'avancado',
     frequencia: 5,
-    respostas: { modalidade: 'praia', posicao: ['ponteiro'], gestos: ['ataque', 'saque'], volumeHoras: '6' },
+    respostas: { modalidade: ['praia'], posicao: ['ponteiro'], gestos: ['ataque', 'saque'], volumeHoras: '6' },
     sintomas: 'Dor no ombro ao atacar',
     problemas: ['dorOmbroAtaque'],
   }
@@ -88,10 +97,10 @@ test('vôlei: questionário saneia respostas (opção inválida, ordem, números
       pratica,
     ),
     {
-      modalidade: 'quadra',
+      modalidade: ['quadra'],
       gestos: ['ataque', 'saque'],
       volumeHoras: '6.5',
-      cargaSaltos: 'alta',
+      cargaSaltos: ['alta'],
       mudancaVolume: 'sim',
       faseSintoma: ['aterrissagem'],
     },
@@ -100,7 +109,7 @@ test('vôlei: questionário saneia respostas (opção inválida, ordem, números
 
 test('avaliação esportiva: linhas para visualização e PDF', () => {
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         nivel: 'intermediario',
         frequencia: 3,
@@ -138,7 +147,7 @@ test('futebol: questionário próprio com 3 seções e volume em 3 números', ()
   ok(pratica.volumeProprio)
   deepEqual(pratica.secoes?.map((s) => s.titulo), ['Modalidade e prática', 'Demandas esportivas', 'Sintomas e limitações'])
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           modalidade: 'society',
@@ -179,7 +188,7 @@ test('corrida: perguntas condicionais, ritmo min:seg e números em linhas separa
   )
   deepEqual(safeRespostas({ ritmo: '6:75' }, pratica), {})
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           superficie: ['rua', 'trilha'],
@@ -220,7 +229,7 @@ test('basquete: questionário próprio (mão de arremesso, gestos, volume e dura
   ok(pratica.volumeProprio)
   deepEqual(pratica.secoes?.map((s) => s.titulo), ['Modalidade e posição', 'Demandas da prática', 'Sintomas e limitações'])
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           modalidade: 'basquete3x3',
@@ -257,11 +266,11 @@ test('tênis: sem pergunta "esporte"; superfície e backhand diretas', () => {
   equal(perguntasDe('tenis').some((q) => q.key === 'esporte'), false)
   for (const k of ['superficie', 'backhand']) equal(perguntasDe('tenis').find((q) => q.key === k)?.mostrarSe, undefined)
   deepEqual(safeRespostas({ esporte: 'tenis', superficie: 'saibro', backhand: 'umaMao' }, pratica), {
-    superficie: 'saibro',
-    backhand: 'umaMao',
+    superficie: ['saibro'],
+    backhand: ['umaMao'],
   })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           formato: 'duplas',
@@ -293,7 +302,7 @@ test('natação: respiração do crawl depende de "Crawl" nos estilos; "Nenhum" 
   deepEqual(safeRespostas({ estilos: ['peito'], respiracaoCrawl: 'direita' }, pratica), { estilos: ['peito'] })
   deepEqual(safeRespostas({ estilos: ['crawl', 'peito'], respiracaoCrawl: 'alterna' }, pratica), {
     estilos: ['crawl', 'peito'],
-    respiracaoCrawl: 'alterna',
+    respiracaoCrawl: ['alterna'],
   })
   deepEqual(safeRespostas({ acessorios: ['nenhum', 'palmar'] }, pratica), { acessorios: ['palmar'] })
   const acessorios = pratica.secoes?.[1]?.perguntas.find((p) => p.key === 'acessorios')
@@ -301,7 +310,7 @@ test('natação: respiração do crawl depende de "Crawl" nos estilos; "Nenhum" 
   deepEqual(alternarMultipla(acessorios, ['palmar', 'prancha'], 'nenhum'), ['nenhum'])
   deepEqual(alternarMultipla(acessorios, ['nenhum'], 'nadadeira'), ['nadadeira'])
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           ambiente: 'aguasAbertas',
@@ -338,7 +347,7 @@ test('musculação: questionário próprio sem volume (campo genérico continua)
     temSintomas: 'nao',
   })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         volume: '5 treinos de 1 h',
         respostas: {
@@ -370,7 +379,7 @@ test('crossfit: questionário próprio (participação, componentes, movimentos,
   const pratica = praticaDoEsporte('crossfit')
   ok(!pratica.volumeProprio)
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           participacao: ['aulas', 'competicoes'],
@@ -400,7 +409,7 @@ test('ciclismo: questionário próprio (pedal, bike fit, km/horas, situação do
   const pratica = praticaDoEsporte('ciclismo')
   ok(pratica.volumeProprio)
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           modalidade: 'estrada',
@@ -436,10 +445,10 @@ test('lutas: perguntas mudam conforme a arte; várias artes mostram as perguntas
       { arte: 'muayThai', preferenciaCombate: 'guarda', movimentos_jiuJitsu: ['raspagens'], movimentos_muayThai: ['chutes'] },
       pratica,
     ),
-    { arte: 'muayThai', movimentos_muayThai: ['chutes'] },
+    { arte: ['muayThai'], movimentos_muayThai: ['chutes'] },
   )
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           arte: 'jiuJitsu',
@@ -479,7 +488,7 @@ test('handebol: questionário próprio com 4 seções', () => {
     'Sintomas e limitações',
   ])
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           modalidade: 'areia',
@@ -513,7 +522,7 @@ test('futevôlei: questionário próprio (participação, perna, areia, fundamen
   const pratica = praticaDoEsporte('futevolei')
   ok(pratica.volumeProprio)
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           participacao: ['recreativos'],
@@ -543,7 +552,7 @@ test('padel: questionário próprio (golpes, deslocamentos, carga, queixa)', () 
   const pratica = praticaDoEsporte('padel')
   ok(pratica.volumeProprio)
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           lado: 'esquerda',
@@ -572,14 +581,14 @@ test('padel: questionário próprio (golpes, deslocamentos, carga, queixa)', () 
 test('dança: ponta só com ballet (principal ou outro estilo); vários estilos', () => {
   const pratica = praticaDoEsporte('danca')
   ok(pratica.volumeProprio)
-  deepEqual(safeRespostas({ estilo: 'jazz', ponta: 'sim' }, pratica), { estilo: 'jazz' })
+  deepEqual(safeRespostas({ estilo: 'jazz', ponta: 'sim' }, pratica), { estilo: ['jazz'] })
   deepEqual(safeRespostas({ estilo: 'jazz', outrosEstilos: ['ballet'], ponta: 'iniciando' }, pratica), {
-    estilo: 'jazz',
+    estilo: ['jazz'],
     outrosEstilos: ['ballet'],
-    ponta: 'iniciando',
+    ponta: ['iniciando'],
   })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           estilo: 'ballet',
@@ -610,15 +619,15 @@ test('dança: ponta só com ballet (principal ou outro estilo); vários estilos'
 test('pilates/yoga: perguntas alternam entre Pilates e Yoga; aparelhos só com aparelhos/ambos', () => {
   const pratica = praticaDoEsporte('pilatesYoga')
   deepEqual(safeRespostas({ pratica: 'yoga', tipoPilates: 'aparelhos', aparelhos: ['reformer'], estiloYoga: 'hatha' }, pratica), {
-    pratica: 'yoga',
-    estiloYoga: 'hatha',
+    pratica: ['yoga'],
+    estiloYoga: ['hatha'],
   })
   deepEqual(safeRespostas({ pratica: 'pilates', tipoPilates: 'solo', aparelhos: ['reformer'] }, pratica), {
-    pratica: 'pilates',
-    tipoPilates: 'solo',
+    pratica: ['pilates'],
+    tipoPilates: ['solo'],
   })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           pratica: 'pilates',
@@ -651,7 +660,7 @@ test('ski: questionário próprio; situação e limitação só com sintomas', (
   ok(pratica.volumeProprio)
   deepEqual(safeRespostas({ temSintomas: 'nao', situacao: 'queda', limitacao: 'dor' }, pratica), { temSintomas: 'nao' })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           modalidade: 'alpino',
@@ -692,7 +701,7 @@ test('snowboard: questionário próprio; "como ocorreu a queda" só com queda', 
   ok(pratica.volumeProprio)
   deepEqual(safeRespostas({ queda: 'nao', comoQueda: 'punho', situacao: 'heel' }, pratica), { queda: 'nao', situacao: ['heel'] })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           tipoPratica: ['pista', 'park'],
@@ -799,7 +808,7 @@ test('circo: artes circenses com questionário próprio e sintomas condicionais'
   ok(pratica.volumeProprio)
   deepEqual(safeRespostas({ temSintomas: 'nao', movimentoQueixa: ['inversoes'], momento: 'apos' }, pratica), { temSintomas: 'nao' })
   deepEqual(
-    linhasAvaliacaoPratica(
+    linhasLegado(
       {
         respostas: {
           modalidade: 'tecido',
@@ -989,6 +998,47 @@ test('fase 39: novos questionários caminhada, beach tennis, pilates e yoga', ()
       { tipoPilates: 'aparelhos', aparelhos: ['reformer'], situacao: 'sustentar', temSintomas: 'sim' },
       praticaDoEsporte('pilates'),
     ),
-    { tipoPilates: 'aparelhos', aparelhos: ['reformer'], temSintomas: 'sim', situacao: ['sustentar'] },
+    { tipoPilates: ['aparelhos'], aparelhos: ['reformer'], temSintomas: 'sim', situacao: ['sustentar'] },
   )
+})
+
+test('fase 39: toda pergunta de escolha dos questionários é múltipla (só Sim/Não fica única)', () => {
+  for (const [esporte, pratica] of Object.entries(PRATICAS)) {
+    for (const sec of pratica.secoes ?? []) {
+      for (const q of sec.perguntas) {
+        if (!q.opcoes?.length) continue
+        if (q.tipo === 'simNao') continue
+        equal(q.tipo, 'multipla', `${esporte}/${q.key} deveria aceitar várias opções`)
+      }
+    }
+  }
+})
+
+test('fase 39: opções "não / nenhum / não sabe" são exclusivas por padrão', () => {
+  const q = perguntasDe('corrida').find((p) => p.key === 'mudancaCarga')
+  ok(q)
+  ok(q.exclusivas?.includes('naoSabe'))
+  deepEqual(alternarMultipla(q, ['sim'], 'naoSabe'), ['naoSabe'])
+  deepEqual(alternarMultipla(q, ['naoSabe'], 'sim'), ['sim'])
+  const n = perguntasDe('natacao').find((p) => p.key === 'acessorios')
+  ok(n)
+  deepEqual(alternarMultipla(n, ['palmar', 'prancha'], 'nenhum'), ['nenhum'])
+})
+
+test('fase 39: duas opções em pergunta que era de escolha única são mantidas e impressas "A, B"', () => {
+  const pratica = praticaDoEsporte('tenis')
+  const q = perguntasDe('tenis').find((p) => p.key === 'superficie')
+  const [a, b] = q?.opcoes ?? []
+  ok(a && b)
+  const duas = safeRespostas({ superficie: [b.key, a.key] }, pratica)
+  deepEqual(duas.superficie, [a.key, b.key])
+  ok(linhasRespostas(duas, pratica).includes(`Superfície predominante: ${a.nome}, ${b.nome}`))
+  // Legado em texto único continua valendo como lista de um item.
+  deepEqual(safeRespostas({ superficie: a.key }, pratica).superficie, [a.key])
+})
+
+test('fase 39: Sim/Não continua com uma resposta só', () => {
+  const pratica = praticaDoEsporte('corrida')
+  deepEqual(safeRespostas({ trocaCalcado: ['sim', 'nao'] }, pratica), {})
+  deepEqual(safeRespostas({ trocaCalcado: 'sim' }, pratica), { trocaCalcado: 'sim' })
 })

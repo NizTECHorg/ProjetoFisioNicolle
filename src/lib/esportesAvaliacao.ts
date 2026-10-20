@@ -427,13 +427,17 @@ function migrarEsporte(esporte: string, raw: Record<string, unknown>): { esporte
   const respostas = raw.respostas
   if (!respostas || typeof respostas !== 'object' || Array.isArray(respostas)) return { esporte, raw }
   const r = respostas as Record<string, unknown>
+  // As perguntas viraram múltipla escolha: a resposta pode estar como texto (antiga) ou lista de um item.
+  const unico = (v: unknown): unknown => (Array.isArray(v) && v.length === 1 ? v[0] : v)
+  const esporteResp = unico(r.esporte)
+  const pratica = unico(r.pratica)
   let novo: string | undefined
   let chave = ''
-  if (esporte === 'tenis' && r.esporte === 'beachTennis') {
+  if (esporte === 'tenis' && esporteResp === 'beachTennis') {
     novo = 'beachTennis'
     chave = 'esporte'
-  } else if (esporte === 'pilatesYoga' && (r.pratica === 'pilates' || r.pratica === 'yoga')) {
-    novo = r.pratica
+  } else if (esporte === 'pilatesYoga' && (pratica === 'pilates' || pratica === 'yoga')) {
+    novo = pratica
     chave = 'pratica'
   }
   if (!novo) return { esporte, raw }
