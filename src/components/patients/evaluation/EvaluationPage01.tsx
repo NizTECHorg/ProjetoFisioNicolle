@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import {
@@ -8,6 +9,8 @@ import {
   RadioRow,
   TextField,
 } from '@/components/patients/evaluation/fichaFormPrimitives'
+import { ATIVIDADE_FREQUENCIA_OPTIONS, formatAtividadeFisica } from '@/lib/atividadeCapacidade'
+import { Select } from '@/components/ui/Select'
 import { EsportesField } from '@/components/patients/evaluation/EsportesField'
 
 type PageProps = {
@@ -20,6 +23,38 @@ type PageProps = {
 export function EvaluationPage01({ register, watch, setValue, readOnly }: PageProps) {
   const jaAconteceu = watch('ficha.anamnese.historiaAtual.jaAconteceuAntes')
   const disabled = readOnly
+
+  const praticaAtividadeFisica = watch('ficha.funcao.rotina.praticaAtividadeFisica')
+  const atividadeQual = watch('ficha.funcao.rotina.atividadeQual')
+  const atividadeFrequencia = watch('ficha.funcao.rotina.atividadeFrequencia')
+  const atividadeHorasDia = watch('ficha.funcao.rotina.atividadeHorasDia')
+  const atividadeQualFreq = watch('ficha.funcao.rotina.atividadeQualFreq')
+
+  const resumoAtividade = formatAtividadeFisica({
+    atividadeQual,
+    atividadeFrequencia,
+    atividadeHorasDia,
+    atividadeQualFreq,
+  })
+
+  useEffect(() => {
+    const hasStructured =
+      Boolean(atividadeQual?.trim()) ||
+      Boolean(atividadeFrequencia?.trim()) ||
+      Boolean(atividadeHorasDia?.trim())
+    if (hasStructured) {
+      const synthesized = formatAtividadeFisica({
+        atividadeQual,
+        atividadeFrequencia,
+        atividadeHorasDia,
+      })
+      if ((atividadeQualFreq ?? '') !== synthesized) {
+        setValue('ficha.funcao.rotina.atividadeQualFreq', synthesized, {
+          shouldDirty: true,
+        })
+      }
+    }
+  }, [atividadeQual, atividadeFrequencia, atividadeHorasDia, atividadeQualFreq, setValue])
 
   return (
     <div className="space-y-4">
@@ -112,6 +147,45 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
       </FichaBlock>
 
       <FichaBlock letter="D" title="Esportes">
+        <RadioRow
+          legend="Pratica atividade física?"
+          name="ficha.funcao.rotina.praticaAtividadeFisica"
+          register={register}
+          disabled={disabled}
+          options={[
+            { value: 'nao', label: 'Não' },
+            { value: 'sim', label: 'Sim' },
+          ]}
+        />
+        {praticaAtividadeFisica === 'sim' ? (
+          <div className="space-y-2">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <LineField
+                label="Qual atividade"
+                name="ficha.funcao.rotina.atividadeQual"
+                register={register}
+                disabled={disabled}
+              />
+              <Select
+                label="Frequência"
+                options={ATIVIDADE_FREQUENCIA_OPTIONS}
+                disabled={disabled}
+                {...register('ficha.funcao.rotina.atividadeFrequencia')}
+              />
+              <LineField
+                label="Quantas horas por dia"
+                name="ficha.funcao.rotina.atividadeHorasDia"
+                register={register}
+                disabled={disabled}
+              />
+            </div>
+            {resumoAtividade ? (
+              <p className="text-xs font-medium text-forest">
+                Resumo: {resumoAtividade}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <EsportesField watch={watch} setValue={setValue} disabled={disabled} />
       </FichaBlock>
 

@@ -1,19 +1,12 @@
 import { useEffect, useRef } from 'react'
 import type { FieldPath, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
-import {
-  ATIVIDADES,
-  ATIVIDADE_FREQUENCIA_OPTIONS,
-  formatAtividadeFisica,
-  type AtividadeKey,
-} from '@/lib/atividadeCapacidade'
-import { Select } from '@/components/ui/Select'
+import { ATIVIDADES, type AtividadeKey } from '@/lib/atividadeCapacidade'
 import {
   BoolCheck,
   CheckboxGrid,
   FichaBlock,
   LineField,
-  RadioRow,
   TextField,
 } from '@/components/patients/evaluation/fichaFormPrimitives'
 
@@ -95,38 +88,6 @@ export function EvaluationPage03({ register, watch, setValue, readOnly }: PagePr
   const previousMarked = useRef<string | null>(null)
   const textoLegado = watch('ficha.funcao.atividadesAfetadas.textoLegado')
   const legado = typeof textoLegado === 'string' ? textoLegado.trim() : ''
-
-  const praticaAtividadeFisica = watch('ficha.funcao.rotina.praticaAtividadeFisica')
-  const atividadeQual = watch('ficha.funcao.rotina.atividadeQual')
-  const atividadeFrequencia = watch('ficha.funcao.rotina.atividadeFrequencia')
-  const atividadeHorasDia = watch('ficha.funcao.rotina.atividadeHorasDia')
-  const atividadeQualFreq = watch('ficha.funcao.rotina.atividadeQualFreq')
-
-  const resumoAtividade = formatAtividadeFisica({
-    atividadeQual,
-    atividadeFrequencia,
-    atividadeHorasDia,
-    atividadeQualFreq,
-  })
-
-  useEffect(() => {
-    const hasStructured =
-      Boolean(atividadeQual?.trim()) ||
-      Boolean(atividadeFrequencia?.trim()) ||
-      Boolean(atividadeHorasDia?.trim())
-    if (hasStructured) {
-      const synthesized = formatAtividadeFisica({
-        atividadeQual,
-        atividadeFrequencia,
-        atividadeHorasDia,
-      })
-      if ((atividadeQualFreq ?? '') !== synthesized) {
-        setValue('ficha.funcao.rotina.atividadeQualFreq', synthesized, {
-          shouldDirty: true,
-        })
-      }
-    }
-  }, [atividadeQual, atividadeFrequencia, atividadeHorasDia, atividadeQualFreq, setValue])
 
   useEffect(() => {
     const previous = previousMarked.current
@@ -221,45 +182,6 @@ export function EvaluationPage03({ register, watch, setValue, readOnly }: PagePr
           </CheckboxGrid>
         </fieldset>
         <LineField label="Horas/dia" name="ficha.funcao.rotina.horasDia" register={register} disabled={disabled} />
-        <RadioRow
-          legend="Pratica atividade física?"
-          name="ficha.funcao.rotina.praticaAtividadeFisica"
-          register={register}
-          disabled={disabled}
-          options={[
-            { value: 'nao', label: 'Não' },
-            { value: 'sim', label: 'Sim' },
-          ]}
-        />
-        {praticaAtividadeFisica === 'sim' ? (
-          <div className="space-y-2">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <LineField
-                label="Qual atividade"
-                name="ficha.funcao.rotina.atividadeQual"
-                register={register}
-                disabled={disabled}
-              />
-              <Select
-                label="Frequência"
-                options={ATIVIDADE_FREQUENCIA_OPTIONS}
-                disabled={disabled}
-                {...register('ficha.funcao.rotina.atividadeFrequencia')}
-              />
-              <LineField
-                label="Quantas horas por dia"
-                name="ficha.funcao.rotina.atividadeHorasDia"
-                register={register}
-                disabled={disabled}
-              />
-            </div>
-            {resumoAtividade ? (
-              <p className="text-xs font-medium text-forest">
-                Resumo: {resumoAtividade}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
       </FichaBlock>
 
       <FichaBlock letter="D" title="Expectativas e objetivos do paciente">
