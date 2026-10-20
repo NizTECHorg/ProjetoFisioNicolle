@@ -1,4 +1,6 @@
 import { test } from 'node:test'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { deepEqual, equal, ok } from 'node:assert/strict'
 import { ESPORTES, resumoEsportes, safeEsportesLista } from './esportesAvaliacao.ts'
 import {
@@ -42,7 +44,7 @@ test('avaliação esportiva: descarta campos antigos, frequência inválida e te
       'snowboard',
     ),
     {
-      perfil: 'profissional',
+      perfil: ['profissional'],
       volume: '7 dias por temporada',
       // Esporte com questionário próprio: modalidades/características antigas não valem mais.
       sintomasMomentos: ['antes', 'depois'],
@@ -903,4 +905,51 @@ test('fase 39: natação e lutas preservam condição e legado do gesto', () => 
   const r = safeRespostas({ temSintomas: 'nao', momentoSintoma: ['virada', 'outro'], momentoSintomaOutro: 'x' }, praticaDoEsporte('natacao'))
   ok(!('momentoSintoma' in r) && !('momentoSintomaOutro' in r))
   deepEqual(safeRespostas({ arte: 'judo', queixa_judo: 'outro' }, praticaDoEsporte('lutas')).queixa_judo, ['outro'])
+})
+
+test('fase 39: perfil, situação e dominância são listas; texto único antigo vira lista de um item', () => {
+  deepEqual(safeAvaliacaoPratica({ perfil: 'profissional', situacao: 'limitado', dominancia: 'direito' }, 'volei'), {
+    perfil: ['profissional'],
+    situacao: ['limitado'],
+    dominancia: ['direito'],
+  })
+  deepEqual(
+    safeAvaliacaoPratica(
+      { perfil: ['profissional', 'recreativo', 'recreativo', 'xx'], situacao: ['afastado', 'normal'], dominancia: ['esquerdo', 'direito'] },
+      'volei',
+    ),
+    { perfil: ['recreativo', 'profissional'], situacao: ['normal', 'afastado'], dominancia: ['direito', 'esquerdo'] },
+  )
+  for (const v of ['xx', [], 42]) equal(safeAvaliacaoPratica({ perfil: v }, 'volei').perfil, undefined)
+  equal(safeAvaliacaoPratica({ nivel: ['avancado'] }, 'volei').nivel, undefined)
+  equal(safeAvaliacaoPratica({ nivel: 'intermediario' }, 'volei').nivel, 'intermediario')
+})
+
+test('fase 39: linhas de perfil/situação/dominância juntam nomes com vírgula', () => {
+  const linhas = linhasAvaliacaoPratica(
+    { perfil: ['recreativo', 'amadorCompetitivo'], nivel: 'avancado', situacao: ['limitado'], dominancia: ['direito', 'esquerdo'] },
+    'volei',
+  )
+  for (const l of ['Perfil: Recreativo, Amador competitivo', 'Nível: Avançado', 'Situação atual: Praticando com limitação', 'Lado dominante: Direito, Esquerdo'])
+    ok(linhas.includes(l), l)
+  const legado = linhasAvaliacaoPratica(safeAvaliacaoPratica({ perfil: 'profissional', dominancia: 'ambos' }, 'volei'), 'volei')
+  ok(legado.includes('Perfil: Profissional') && legado.includes('Lado dominante: Ambos'))
+})
+
+test('fase 39: schema aceita perfil/situação/dominância antigos e novos', () => {
+  const ficha = emptyEvaluationFicha()
+  const parse = (e: object) =>
+    evaluationFichaSchema.parse({ ...ficha, funcao: { ...ficha.funcao, esportes: [e] } }).funcao.esportes?.[0]
+  const a = parse({ esporte: 'volei', perfil: 'recreativo', situacao: 'normal', dominancia: 'esquerdo', nivel: 'atleta' })
+  deepEqual([a?.perfil, a?.situacao, a?.dominancia, a?.nivel], [['recreativo'], ['normal'], ['esquerdo'], 'avancado'])
+  deepEqual(parse({ esporte: 'volei', perfil: ['recreativo', 'profissional'] })?.perfil, ['recreativo', 'profissional'])
+})
+
+test('fase 39: EsportesField usa múltipla para perfil/situação/lado e única só para nível', () => {
+  const src = readFileSync(fileURLToPath(new URL('../components/patients/evaluation/EsportesField.tsx', import.meta.url)), 'utf8')
+  for (const c of ['perfil', 'situacao', 'dominancia']) {
+    ok(src.includes(`alternarNaLista(entrada.${c}, key)`), c)
+    ok(!src.includes(`escolher(entrada.esporte, '${c}'`), c)
+  }
+  ok(src.includes("escolher(entrada.esporte, 'nivel'"))
 })

@@ -1726,6 +1726,11 @@ function opcao(value: unknown, opcoes: readonly OpcaoPratica[]): string | undefi
   return typeof value === 'string' && opcoes.some((op) => op.key === value) ? value : undefined
 }
 
+/** Texto único antigo vira lista de um item; depois só chaves do catálogo, sem repetir. */
+function opcoesLista(value: unknown, opcoes: readonly OpcaoPratica[]): string[] {
+  return filtrarOpcoes(typeof value === 'string' ? [value] : value, opcoes)
+}
+
 function texto(value: unknown, max: number): string | undefined {
   if (typeof value !== 'string') return undefined
   const out = value.slice(0, max)
@@ -1733,10 +1738,11 @@ function texto(value: unknown, max: number): string | undefined {
 }
 
 export type AvaliacaoPratica = {
-  perfil?: string
+  // Avaliações antigas gravaram texto único; a leitura converte em lista de um item (checklist 6.2, decisão A2).
+  perfil?: string[]
   nivel?: string
-  situacao?: string
-  dominancia?: string
+  situacao?: string[]
+  dominancia?: string[]
   anosPratica?: string
   frequencia?: number
   volume?: string
@@ -1870,15 +1876,15 @@ export function linhasRespostas(respostas: Record<string, string | string[]> | u
 export function safeAvaliacaoPratica(raw: Record<string, unknown>, esporteKey: string): AvaliacaoPratica {
   const pratica = praticaDoEsporte(esporteKey)
   const out: AvaliacaoPratica = {}
-  const perfil = opcao(raw.perfil, PERFIS_ESPORTIVOS)
-  if (perfil) out.perfil = perfil
+  const perfil = opcoesLista(raw.perfil, PERFIS_ESPORTIVOS)
+  if (perfil.length) out.perfil = perfil
   // Avaliações antigas gravaram 'atleta' (checklist 6.2); lido como 'avancado', o próximo salvamento grava o valor novo.
   const nivel = opcao(raw.nivel === 'atleta' ? 'avancado' : raw.nivel, NIVEIS_ESPORTIVOS)
   if (nivel) out.nivel = nivel
-  const situacao = opcao(raw.situacao, SITUACOES_PRATICA)
-  if (situacao) out.situacao = situacao
-  const dominancia = opcao(raw.dominancia, DOMINANCIAS)
-  if (dominancia) out.dominancia = dominancia
+  const situacao = opcoesLista(raw.situacao, SITUACOES_PRATICA)
+  if (situacao.length) out.situacao = situacao
+  const dominancia = opcoesLista(raw.dominancia, DOMINANCIAS)
+  if (dominancia.length) out.dominancia = dominancia
   const anos = texto(raw.anosPratica, ANOS_PRATICA_MAX)
   if (anos) out.anosPratica = anos
   const freq = raw.frequencia
@@ -1919,10 +1925,10 @@ export function linhasAvaliacaoPratica(entrada: AvaliacaoPratica, esporteKey: st
   const add = (rotulo: string, valor: string | undefined) => {
     if (valor && valor.trim()) linhas.push(`${rotulo}: ${valor.trim()}`)
   }
-  add('Perfil', nomeDe(entrada.perfil, PERFIS_ESPORTIVOS))
+  add('Perfil', nomes(entrada.perfil, PERFIS_ESPORTIVOS))
   add('Nível', nomeDe(entrada.nivel, NIVEIS_ESPORTIVOS))
-  add('Situação atual', nomeDe(entrada.situacao, SITUACOES_PRATICA))
-  add('Lado dominante', nomeDe(entrada.dominancia, DOMINANCIAS))
+  add('Situação atual', nomes(entrada.situacao, SITUACOES_PRATICA))
+  add('Lado dominante', nomes(entrada.dominancia, DOMINANCIAS))
   add('Tempo de prática', entrada.anosPratica)
   add('Frequência', entrada.frequencia ? rotuloFrequencia(entrada.frequencia) : undefined)
   add('Volume', entrada.volume)

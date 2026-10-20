@@ -11,9 +11,12 @@ import {
 } from '../lib/esportesAvaliacao.ts'
 import {
   ANOS_PRATICA_MAX,
+  DOMINANCIAS,
   FREQUENCIA_MAX,
+  PERFIS_ESPORTIVOS,
   PRATICA_OBS_MAX,
   SINTOMAS_MAX,
+  SITUACOES_PRATICA,
   VOLUME_MAX,
 } from '../lib/esportesPratica.ts'
 import { SIGNATURE_MAX_CHARS } from '../lib/signaturePath.ts'
@@ -434,10 +437,10 @@ export const evaluationFichaSchema = z.object({
               outro: z.string().max(ESPORTE_OUTRO_MAX).optional(),
               problemas: z.array(z.string()).max(ESPORTE_PROBLEMAS_MAX).optional(),
               // Avaliação esportiva (já saneada por safeEsportesLista).
-              perfil: z.string().optional(),
+              perfil: z.array(z.string()).max(PERFIS_ESPORTIVOS.length).optional(),
               nivel: z.string().optional(),
-              situacao: z.string().optional(),
-              dominancia: z.string().optional(),
+              situacao: z.array(z.string()).max(SITUACOES_PRATICA.length).optional(),
+              dominancia: z.array(z.string()).max(DOMINANCIAS.length).optional(),
               anosPratica: z.string().max(ANOS_PRATICA_MAX).optional(),
               frequencia: z.number().int().min(1).max(FREQUENCIA_MAX).optional(),
               volume: z.string().max(VOLUME_MAX).optional(),

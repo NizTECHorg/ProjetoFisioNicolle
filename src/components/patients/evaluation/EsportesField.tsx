@@ -269,8 +269,8 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
     gravar(lista.map((e) => (e.esporte === esporte ? limpar({ ...e, ...patch }) : e)))
   }
 
-  /** Escolha única: clicar na mesma opção desmarca. */
-  function escolher(esporte: string, campo: 'perfil' | 'nivel' | 'situacao' | 'dominancia', atual: string | undefined, key: string) {
+  /** Escolha única (só o nível; perfil, situação e lado dominante são múltiplos): clicar na mesma opção desmarca. */
+  function escolher(esporte: string, campo: 'nivel', atual: string | undefined, key: string) {
     atualizar(esporte, { [campo]: atual === key ? undefined : key } as Partial<AvaliacaoPratica>)
   }
 
@@ -398,8 +398,8 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                   <OpcoesChips
                     legenda="Perfil"
                     opcoes={PERFIS_ESPORTIVOS}
-                    marcadas={entrada.perfil ? [entrada.perfil] : []}
-                    onToggle={(key) => escolher(entrada.esporte, 'perfil', entrada.perfil, key)}
+                    marcadas={entrada.perfil ?? []}
+                    onToggle={(key) => set({ perfil: alternarNaLista(entrada.perfil, key) })}
                     disabled={disabled}
                   />
                   <OpcoesChips
@@ -412,15 +412,15 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                   <OpcoesChips
                     legenda="Situação atual"
                     opcoes={SITUACOES_PRATICA}
-                    marcadas={entrada.situacao ? [entrada.situacao] : []}
-                    onToggle={(key) => escolher(entrada.esporte, 'situacao', entrada.situacao, key)}
+                    marcadas={entrada.situacao ?? []}
+                    onToggle={(key) => set({ situacao: alternarNaLista(entrada.situacao, key) })}
                     disabled={disabled}
                   />
                   <OpcoesChips
                     legenda="Lado dominante"
                     opcoes={DOMINANCIAS}
-                    marcadas={entrada.dominancia ? [entrada.dominancia] : []}
-                    onToggle={(key) => escolher(entrada.esporte, 'dominancia', entrada.dominancia, key)}
+                    marcadas={entrada.dominancia ?? []}
+                    onToggle={(key) => set({ dominancia: alternarNaLista(entrada.dominancia, key) })}
                     disabled={disabled}
                   />
                 </div>
