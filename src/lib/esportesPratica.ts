@@ -456,6 +456,65 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
     ],
   },
+  // REVISAO CLINICA: questionário redigido na Phase 39 — revisar com a Nicolle (não bloqueante)
+  caminhada: {
+    volumeDica: 'ex.: 5 caminhadas de 40 min por semana',
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e ambiente', [
+        multipla('tipo', 'Tipo de caminhada (múltipla escolha)', [
+          o('lazer', 'Recreativa / lazer'),
+          o('acelerada', 'Caminhada acelerada / fitness'),
+          o('trilha', 'Trilha / trekking'),
+          o('esteira', 'Esteira'),
+          o('nordica', 'Caminhada nórdica (com bastões)'),
+        ]),
+        multipla('terreno', 'Terreno predominante (múltipla escolha)', [
+          o('asfalto', 'Asfalto / calçada'),
+          o('terra', 'Terra / trilha'),
+          o('esteira', 'Esteira'),
+          o('areia', 'Areia'),
+          o('ladeiras', 'Subidas e ladeiras'),
+        ]),
+        unica('calcado', 'Calçado mais usado', [
+          o('tenisCorrida', 'Tênis de corrida/caminhada'),
+          o('tenisCasual', 'Tênis casual'),
+          o('bota', 'Bota de trilha'),
+          o('outro', 'Outro'),
+        ]),
+      ]),
+      secao('Demandas e volume', [
+        numeros('volume', 'Volume de prática', [
+          { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
+          { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
+        ]),
+        simNao('carga', 'Caminha com carga (mochila, colete, pesos)?'),
+        simNao('mudancaVolume', 'Houve mudança recente de volume, ritmo ou terreno?'),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas ou dificuldade ao caminhar?'),
+        ...gestosSintoma(
+          'gestoSintoma',
+          'Em qual gesto ou situação aparecem os sintomas?',
+          [
+            o('apoioCalcanhar', 'Apoio do calcanhar'),
+            o('impulsao', 'Impulsão / saída do pé'),
+            o('subidas', 'Subidas'),
+            o('descidas', 'Descidas'),
+            o('escadas', 'Escadas'),
+            o('irregular', 'Terreno irregular'),
+            o('ritmo', 'Ritmo acelerado'),
+            o('aposDistancia', 'Após determinada distância'),
+            o('apos', 'Após a caminhada'),
+          ],
+          { quando: { key: 'temSintomas', valor: 'sim' } },
+        ),
+        textoLongo('limitacao', 'Principal limitação', 'Ex.: dor no calcanhar ao acordar, dor no joelho nas descidas...'),
+      ]),
+    ],
+  },
   basquete: {
     volumeDica: 'ex.: 3 treinos de 2 h por semana',
     modalidades: [],
@@ -529,25 +588,19 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     volumeProprio: true,
     secoes: [
       secao('Modalidade e características', [
-        unica('esporte', 'Esporte praticado', [o('tenis', 'Tênis'), o('beachTennis', 'Beach tennis')]),
         unica('formato', 'Formato de jogo', [o('simples', 'Simples'), o('duplas', 'Duplas'), o('ambos', 'Ambos')]),
         unica('bracoDominante', 'Braço dominante para os golpes', [
           o('direito', 'Direito'),
           o('esquerdo', 'Esquerdo'),
           o('ambos', 'Ambos'),
         ]),
-        // Só no tênis: no beach tennis a quadra é sempre de areia e o backhand é outro gesto.
-        se(
-          'esporte',
-          'tenis',
-          unica('superficie', 'Superfície predominante', [
-            o('saibro', 'Saibro'),
-            o('quadraDura', 'Quadra dura'),
-            o('grama', 'Grama'),
-            o('outra', 'Outra'),
-          ]),
-        ),
-        se('esporte', 'tenis', unica('backhand', 'Backhand', [o('umaMao', 'Uma mão'), o('duasMaos', 'Duas mãos')])),
+        unica('superficie', 'Superfície predominante', [
+          o('saibro', 'Saibro'),
+          o('quadraDura', 'Quadra dura'),
+          o('grama', 'Grama'),
+          o('outra', 'Outra'),
+        ]),
+        unica('backhand', 'Backhand', [o('umaMao', 'Uma mão'), o('duasMaos', 'Duas mãos')]),
         unica('estilo', 'Estilo predominante de jogo', [
           o('fundo', 'Fundo de quadra'),
           o('rede', 'Jogo de rede'),
@@ -587,6 +640,66 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           'limitacao',
           'Principal limitação na modalidade',
           'Ex.: dor no saque, perda de potência, dificuldade para alcançar bolas laterais...',
+        ),
+      ]),
+    ],
+  },
+  // REVISAO CLINICA: questionário redigido na Phase 39 — revisar com a Nicolle (não bloqueante)
+  beachTennis: {
+    volumeDica: 'ex.: 3 jogos de 1h30 por semana',
+    modalidades: [],
+    caracteristicas: [],
+    volumeProprio: true,
+    secoes: [
+      secao('Modalidade e características', [
+        unica('formato', 'Formato de jogo', [o('simples', 'Simples'), o('duplas', 'Duplas'), o('ambos', 'Ambos')]),
+        unica('bracoDominante', 'Braço dominante para os golpes', [
+          o('direito', 'Direito'),
+          o('esquerdo', 'Esquerdo'),
+          o('ambos', 'Ambos'),
+        ]),
+        unica('estilo', 'Estilo predominante de jogo', [
+          o('fundo', 'Fundo de quadra'),
+          o('rede', 'Jogo de rede'),
+          o('misto', 'Misto'),
+        ]),
+      ]),
+      secao('Demandas esportivas', [
+        multipla('gestos', 'Gestos frequentes (múltipla escolha)', [
+          o('forehand', 'Forehand'),
+          o('backhand', 'Backhand'),
+          o('saque', 'Saque'),
+          o('voleio', 'Voleio'),
+          o('smash', 'Smash'),
+          o('slice', 'Slice'),
+          o('deslocamentoLateral', 'Deslocamento lateral'),
+          o('frenagem', 'Frenagem e mudança de direção'),
+          o('deslocamentoAreia', 'Deslocamento na areia'),
+          o('salto', 'Salto'),
+        ]),
+        numeros('volume', 'Volume de prática', [
+          { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
+          { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
+        ]),
+        simNao('mudancaCarga', 'Houve mudança recente de carga ou equipamento?'),
+      ]),
+      secao('Sintomas e limitações', [
+        ...gestosSintoma('gestoSintoma', 'Qual gesto provoca sintomas ou apresenta dificuldade?', [
+          o('saque', 'Saque'),
+          o('forehand', 'Forehand'),
+          o('backhand', 'Backhand'),
+          o('voleio', 'Voleio'),
+          o('smash', 'Smash'),
+          o('deslocamento', 'Deslocamento'),
+          o('frenagem', 'Frenagem'),
+          o('slice', 'Slice'),
+          o('mudancaDirecao', 'Mudança de direção'),
+          o('saltoAterrissagem', 'Salto / aterrissagem na areia'),
+        ]),
+        textoLongo(
+          'limitacao',
+          'Principal limitação na modalidade',
+          'Ex.: dor no saque, perda de potência, dificuldade para deslocar na areia...',
         ),
       ]),
     ],
@@ -1215,6 +1328,164 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
     ],
   },
+  // REVISAO CLINICA: questionário redigido na Phase 39 — revisar com a Nicolle (não bloqueante)
+  pilates: {
+    volumeDica: 'ex.: 3 aulas por semana',
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Modalidade e prática', [
+        unica('tipoPilates', 'Tipo de Pilates', [
+          o('solo', 'Solo / Mat Pilates'),
+          o('aparelhos', 'Aparelhos'),
+          o('ambos', 'Ambos'),
+        ]),
+        se(
+          'tipoPilates',
+          ['aparelhos', 'ambos'],
+          multipla('aparelhos', 'Aparelhos utilizados (opcional)', [
+            o('reformer', 'Reformer'),
+            o('cadillac', 'Cadillac / Tower'),
+            o('chair', 'Chair'),
+            o('barrel', 'Barrel'),
+          ]),
+        ),
+      ]),
+      secao('Demandas da prática', [
+        multipla('exigencias', 'Movimentos e exigências predominantes', [
+          o('tronco', 'Controle / estabilização do tronco'),
+          o('resistencia', 'Movimentos contra resistência'),
+          o('mobilidade', 'Mobilidade de coluna / quadril'),
+          o('equilibrio', 'Equilíbrio'),
+          o('apoioMmss', 'Apoio de membros superiores'),
+          o('unilaterais', 'Exercícios unilaterais'),
+        ]),
+        numeros('duracao', '', [
+          { key: 'duracaoMin', rotulo: 'Duração média da sessão (minutos)', sufixo: 'min', placeholder: 'Ex.: 60' },
+        ]),
+        unica('mudancaPratica', 'Houve mudança recente na prática?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas ou dificuldade durante a prática?'),
+        se(
+          'temSintomas',
+          'sim',
+          textoCurto(
+            'posturaQueixa',
+            'Movimento ou postura relacionada à queixa',
+            'Ex.: prancha, ponte, extensão da coluna, inversão...',
+          ),
+        ),
+        ...gestosSintoma(
+          'situacao',
+          'Em qual situação ou movimento aparece?',
+          [
+            o('entrar', 'Ao entrar na posição'),
+            o('sustentar', 'Ao sustentar a posição'),
+            o('sair', 'Ao sair ou fazer a transição'),
+            o('amplitude', 'Em determinada amplitude'),
+            o('apos', 'Após a prática'),
+            o('flexaoTronco', 'Flexão de tronco'),
+            o('extensaoTronco', 'Extensão de tronco'),
+            o('rotacaoTronco', 'Rotação de tronco'),
+            o('pranchas', 'Pranchas / apoio nas mãos'),
+            o('unipodal', 'Exercícios unipodais'),
+          ],
+          { quando: { key: 'temSintomas', valor: 'sim' } },
+        ),
+        textoLongo(
+          'limitacao',
+          'Principal limitação funcional',
+          'Ex.: dor no punho em apoio, desconforto lombar na extensão, dificuldade de equilíbrio...',
+        ),
+      ]),
+    ],
+  },
+  // REVISAO CLINICA: questionário redigido na Phase 39 — revisar com a Nicolle (não bloqueante)
+  yoga: {
+    volumeDica: 'ex.: 3 aulas por semana',
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Estilo e prática', [
+        unica('estiloYoga', 'Estilo de Yoga', [
+          o('hatha', 'Hatha'),
+          o('vinyasa', 'Vinyasa / flow'),
+          o('ashtanga', 'Ashtanga'),
+          o('iyengar', 'Iyengar'),
+          o('restaurativo', 'Restaurativo / yin'),
+          o('hot', 'Hot yoga'),
+          o('outro', 'Outro'),
+        ]),
+        multipla('posturasYoga', 'Posturas frequentes (opcional)', [
+          o('invertidas', 'Invertidas'),
+          o('extensoes', 'Extensões profundas'),
+          o('flexoes', 'Flexões profundas'),
+          o('torcoes', 'Torções'),
+          o('equilibrio', 'Equilíbrio'),
+          o('apoioBracos', 'Apoio nos braços'),
+        ]),
+      ]),
+      secao('Demandas da prática', [
+        multipla('exigencias', 'Movimentos e exigências predominantes', [
+          o('tronco', 'Controle / estabilização do tronco'),
+          o('resistencia', 'Movimentos contra resistência'),
+          o('mobilidade', 'Mobilidade de coluna / quadril'),
+          o('equilibrio', 'Equilíbrio'),
+          o('apoioMmss', 'Apoio de membros superiores'),
+          o('unilaterais', 'Exercícios unilaterais'),
+        ]),
+        numeros('duracao', '', [
+          { key: 'duracaoMin', rotulo: 'Duração média da sessão (minutos)', sufixo: 'min', placeholder: 'Ex.: 60' },
+        ]),
+        unica('mudancaPratica', 'Houve mudança recente na prática?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        simNao('temSintomas', 'Apresenta sintomas ou dificuldade durante a prática?'),
+        se(
+          'temSintomas',
+          'sim',
+          textoCurto(
+            'posturaQueixa',
+            'Movimento ou postura relacionada à queixa',
+            'Ex.: prancha, ponte, extensão da coluna, inversão...',
+          ),
+        ),
+        ...gestosSintoma(
+          'situacao',
+          'Em qual situação ou movimento aparece?',
+          [
+            o('entrar', 'Ao entrar na posição'),
+            o('sustentar', 'Ao sustentar a posição'),
+            o('sair', 'Ao sair ou fazer a transição'),
+            o('amplitude', 'Em determinada amplitude'),
+            o('apos', 'Após a prática'),
+            o('invertidas', 'Posturas invertidas'),
+            o('extensoes', 'Extensões profundas'),
+            o('flexoes', 'Flexões profundas'),
+            o('torcoes', 'Torções'),
+            o('equilibrio', 'Posturas de equilíbrio'),
+            o('apoioBracos', 'Apoio nos braços'),
+          ],
+          { quando: { key: 'temSintomas', valor: 'sim' } },
+        ),
+        textoLongo(
+          'limitacao',
+          'Principal limitação funcional',
+          'Ex.: dor no punho em apoio, desconforto lombar na extensão, dificuldade de equilíbrio...',
+        ),
+      ]),
+    ],
+  },
+  // Legado (Phase 39): avaliações antigas "Pilates / yoga" sem a prática marcada. Oculto do seletor.
   pilatesYoga: {
     // Sem volume semanal no questionário (só duração da sessão): mantém o campo genérico "Volume".
     volumeDica: 'ex.: 3 aulas por semana',
@@ -1695,6 +1966,10 @@ export const PERGUNTAS_GESTO_SINTOMA: Readonly<Record<string, readonly string[]>
   futebol: ['movimentoSintoma'],
   basquete: ['gestoSintoma'],
   tenis: ['gestoSintoma'],
+  beachTennis: ['gestoSintoma'],
+  caminhada: ['gestoSintoma'],
+  pilates: ['situacao'],
+  yoga: ['situacao'],
   natacao: ['momentoSintoma'],
   lutas: ARTES_MARCIAIS.map((a) => `queixa_${a.key}`),
   handebol: ['movimentoSintoma'],

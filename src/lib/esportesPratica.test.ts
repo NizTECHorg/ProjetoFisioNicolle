@@ -248,17 +248,22 @@ test('basquete: questionário próprio (mão de arremesso, gestos, volume e dura
   )
 })
 
-test('tênis: superfície e backhand só aparecem no tênis (beach tennis não)', () => {
+function perguntasDe(esporte: string) {
+  return praticaDoEsporte(esporte).secoes?.flatMap((s) => s.perguntas) ?? []
+}
+
+test('tênis: sem pergunta "esporte"; superfície e backhand diretas', () => {
   const pratica = praticaDoEsporte('tenis')
-  deepEqual(
-    safeRespostas({ esporte: 'beachTennis', superficie: 'saibro', backhand: 'umaMao', estilo: 'rede' }, pratica),
-    { esporte: 'beachTennis', estilo: 'rede' },
-  )
+  equal(perguntasDe('tenis').some((q) => q.key === 'esporte'), false)
+  for (const k of ['superficie', 'backhand']) equal(perguntasDe('tenis').find((q) => q.key === k)?.mostrarSe, undefined)
+  deepEqual(safeRespostas({ esporte: 'tenis', superficie: 'saibro', backhand: 'umaMao' }, pratica), {
+    superficie: 'saibro',
+    backhand: 'umaMao',
+  })
   deepEqual(
     linhasAvaliacaoPratica(
       {
         respostas: {
-          esporte: 'tenis',
           formato: 'duplas',
           superficie: 'saibro',
           backhand: 'duasMaos',
@@ -272,7 +277,6 @@ test('tênis: superfície e backhand só aparecem no tênis (beach tennis não)'
       'tenis',
     ),
     [
-      'Esporte praticado: Tênis',
       'Formato de jogo: Duplas',
       'Superfície predominante: Saibro',
       'Backhand: Duas mãos',
@@ -952,4 +956,39 @@ test('fase 39: EsportesField usa múltipla para perfil/situação/lado e única 
     ok(!src.includes(`escolher(entrada.esporte, '${c}'`), c)
   }
   ok(src.includes("escolher(entrada.esporte, 'nivel'"))
+})
+
+test('fase 39: novos questionários caminhada, beach tennis, pilates e yoga', () => {
+  for (const k of ['caminhada', 'beachTennis', 'pilates', 'yoga', 'pilatesYoga']) ok(PRATICAS[k], k)
+  const keys = (e: string) => perguntasDe(e).map((q) => q.key)
+  for (const e of ['caminhada', 'beachTennis', 'pilates', 'yoga']) {
+    const ks = keys(e)
+    equal(new Set(ks).size, ks.length, `pergunta repetida em ${e}`)
+    for (const q of perguntasDe(e)) {
+      const os = (q.opcoes ?? []).map((x) => x.key)
+      equal(new Set(os).size, os.length, `opção repetida em ${e}.${q.key}`)
+    }
+  }
+  const bt = keys('beachTennis')
+  for (const k of ['esporte', 'superficie', 'backhand']) equal(bt.includes(k), false, k)
+  for (const k of ['formato', 'bracoDominante', 'estilo', 'gestos', 'volumeSessoes', 'mudancaCarga', 'gestoSintoma', 'limitacao'])
+    ok(bt.includes(k) || k === 'volumeSessoes', k)
+  const pi = keys('pilates')
+  for (const k of ['pratica', 'estiloYoga', 'posturasYoga']) equal(pi.includes(k), false, k)
+  equal(perguntasDe('pilates').find((q) => q.key === 'tipoPilates')?.mostrarSe, undefined)
+  const yo = keys('yoga')
+  for (const k of ['pratica', 'tipoPilates', 'aparelhos']) equal(yo.includes(k), false, k)
+  equal(perguntasDe('yoga').find((q) => q.key === 'estiloYoga')?.mostrarSe, undefined)
+  equal(perguntasDe('yoga').find((q) => q.key === 'posturasYoga')?.mostrarSe, undefined)
+  deepEqual(PERGUNTAS_GESTO_SINTOMA.caminhada, ['gestoSintoma'])
+  deepEqual(PERGUNTAS_GESTO_SINTOMA.beachTennis, ['gestoSintoma'])
+  deepEqual(PERGUNTAS_GESTO_SINTOMA.pilates, ['situacao'])
+  deepEqual(PERGUNTAS_GESTO_SINTOMA.yoga, ['situacao'])
+  deepEqual(
+    safeRespostas(
+      { tipoPilates: 'aparelhos', aparelhos: ['reformer'], situacao: 'sustentar', temSintomas: 'sim' },
+      praticaDoEsporte('pilates'),
+    ),
+    { tipoPilates: 'aparelhos', aparelhos: ['reformer'], temSintomas: 'sim', situacao: ['sustentar'] },
+  )
 })
