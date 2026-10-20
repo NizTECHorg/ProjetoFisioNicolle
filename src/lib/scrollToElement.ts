@@ -7,16 +7,16 @@ function contemRolagem(el: HTMLElement): boolean {
   return (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight
 }
 
-export function scrollToElement(target: HTMLElement | null | undefined, offset = 16): void {
+export function scrollToElement(target: HTMLElement | null | undefined, offset = 16, behavior: ScrollBehavior = 'smooth'): void {
   if (!target) return
   let pai = target.parentElement
   while (pai && pai !== document.body && !contemRolagem(pai)) pai = pai.parentElement
 
   if (pai && pai !== document.body) {
     const topo = target.getBoundingClientRect().top - pai.getBoundingClientRect().top + pai.scrollTop - offset
-    pai.scrollTo({ top: Math.max(0, topo), behavior: 'smooth' })
+    pai.scrollTo({ top: Math.max(0, topo), behavior })
     return
   }
   const topo = target.getBoundingClientRect().top + window.scrollY - offset
-  window.scrollTo({ top: Math.max(0, topo), behavior: 'smooth' })
+  window.scrollTo({ top: Math.max(0, topo), behavior })
 }
