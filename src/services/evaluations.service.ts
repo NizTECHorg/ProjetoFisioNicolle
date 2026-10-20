@@ -442,16 +442,21 @@ async function syncPatientFromEvaluation(
 export async function createPatientEvaluation(
   patientId: string,
   input: UpsertPatientEvaluationInput,
-): Promise<void> {
+): Promise<string> {
   const author = await resolveAuthor()
-  const { error } = await supabase.from('patient_evaluations').insert({
-    patient_id: patientId,
-    ...toRow(input),
-    created_by: author.userId,
-    created_by_name: author.name,
-  })
+  const { data, error } = await supabase
+    .from('patient_evaluations')
+    .insert({
+      patient_id: patientId,
+      ...toRow(input),
+      created_by: author.userId,
+      created_by_name: author.name,
+    })
+    .select('id')
+    .single()
   throwIfError(error)
   await syncPatientFromEvaluation(patientId, input)
+  return (data as { id: string }).id
 }
 
 export async function updatePatientEvaluation(

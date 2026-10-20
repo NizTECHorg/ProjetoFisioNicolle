@@ -308,7 +308,7 @@ export function useActiveTherapists() {
 
 export function useCreatePatientSession(
   patientId: string,
-  toastOptions?: { action?: ToastAction; errorMessage?: string },
+  toastOptions?: { action?: ToastAction; errorMessage?: string; successMessage?: string },
 ) {
   const qc = useQueryClient()
   return useMutation({
@@ -390,7 +390,7 @@ export function usePatientEvaluations(patientId: string | undefined) {
 
 export function useCreatePatientEvaluation(
   patientId: string,
-  toastOptions?: { action?: ToastAction; errorMessage?: string },
+  toastOptions?: { action?: ToastAction; errorMessage?: string; successMessage?: string },
 ) {
   const qc = useQueryClient()
   return useMutation({
@@ -399,7 +399,7 @@ export function useCreatePatientEvaluation(
     onSuccess: () => {
       invalidatePatient(qc, patientId)
       toast(
-        'Avaliação salva',
+        toastOptions?.successMessage ?? 'Avaliação salva',
         'success',
         toastOptions?.action ? { action: toastOptions.action } : undefined,
       )
@@ -413,7 +413,10 @@ export function useCreatePatientEvaluation(
   })
 }
 
-export function useUpdatePatientEvaluation(patientId: string) {
+export function useUpdatePatientEvaluation(
+  patientId: string,
+  toastOptions?: { successMessage?: string; errorMessage?: string },
+) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -425,9 +428,12 @@ export function useUpdatePatientEvaluation(patientId: string) {
     }) => updatePatientEvaluation(evaluationId, input),
     onSuccess: () => {
       invalidatePatient(qc, patientId)
-      toast('Avaliação atualizada', 'success')
+      toast(toastOptions?.successMessage ?? 'Avaliação atualizada', 'success')
     },
-    onError,
+    onError: (error: unknown) => {
+      if (toastOptions?.errorMessage) toast(toastOptions.errorMessage, 'error')
+      else onError(error)
+    },
   })
 }
 
