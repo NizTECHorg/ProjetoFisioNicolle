@@ -4,7 +4,9 @@ import { ESPORTES, resumoEsportes, safeEsportesLista } from './esportesAvaliacao
 import {
   PRATICAS,
   alternarMultipla,
+  NIVEIS_ESPORTIVOS,
   linhasAvaliacaoPratica,
+  linhasRespostas,
   praticaDoEsporte,
   safeAvaliacaoPratica,
   safeRespostas,
@@ -50,9 +52,9 @@ test('avaliação esportiva: descarta campos antigos, frequência inválida e te
 test('avaliação esportiva: lista mantém os campos e o schema aceita', () => {
   const entrada = {
     esporte: 'volei',
-    nivel: 'atleta',
+    nivel: 'avancado',
     frequencia: 5,
-    respostas: { modalidade: 'praia', posicao: 'ponteiro', gestos: ['ataque', 'saque'], volumeHoras: '6' },
+    respostas: { modalidade: 'praia', posicao: ['ponteiro'], gestos: ['ataque', 'saque'], volumeHoras: '6' },
     sintomas: 'Dor no ombro ao atacar',
     problemas: ['dorOmbroAtaque'],
   }
@@ -70,7 +72,7 @@ test('vôlei: questionário saneia respostas (opção inválida, ordem, números
     safeRespostas(
       {
         modalidade: 'quadra',
-        posicao: 'goleiro',
+        posicao: ['goleiro'],
         gestos: ['saque', 'ataque', 'xx', 'saque'],
         volumeHoras: '6,5',
         volumeJogos: 'muitos',
@@ -101,7 +103,7 @@ test('avaliação esportiva: linhas para visualização e PDF', () => {
         frequencia: 3,
         respostas: {
           modalidade: 'praia',
-          posicao: 'libero',
+          posicao: ['libero'],
           gestos: ['recepcao', 'defesa'],
           volumeHoras: '6',
           volumeJogos: '2',
@@ -137,7 +139,7 @@ test('futebol: questionário próprio com 3 seções e volume em 3 números', ()
       {
         respostas: {
           modalidade: 'society',
-          posicao: 'atacante',
+          posicao: ['atacante'],
           superficie: 'gramaSintetica',
           gestos: ['chute', 'sprint'],
           volumeTreinos: '3',
@@ -219,7 +221,7 @@ test('basquete: questionário próprio (mão de arremesso, gestos, volume e dura
       {
         respostas: {
           modalidade: 'basquete3x3',
-          posicao: 'ala',
+          posicao: ['ala'],
           maoArremesso: 'esquerda',
           gestos: ['rebotes', 'saltos'],
           volumeTreinos: '3',
@@ -474,7 +476,7 @@ test('handebol: questionário próprio com 4 seções', () => {
       {
         respostas: {
           modalidade: 'areia',
-          posicao: 'armador',
+          posicao: ['armador'],
           maoArremesso: 'direita',
           movimentos: ['arremessoSuspensao', 'defesaQuedas'],
           contato: 'variavel',
@@ -818,4 +820,36 @@ test('circo: artes circenses com questionário próprio e sintomas condicionais'
       'Momento dos sintomas: Sustentação da posição',
     ],
   )
+})
+
+test('fase 39: nível Avançado substitui Atleta e o valor antigo é lido como Avançado', () => {
+  deepEqual(NIVEIS_ESPORTIVOS.map((n) => n.key), ['iniciante', 'intermediario', 'avancado'])
+  equal(NIVEIS_ESPORTIVOS[2].nome, 'Avançado')
+  equal(safeAvaliacaoPratica({ nivel: 'atleta' }, 'volei').nivel, 'avancado')
+  equal(safeAvaliacaoPratica({ nivel: 'avancado' }, 'volei').nivel, 'avancado')
+  equal(safeAvaliacaoPratica({ nivel: 'pro' }, 'volei').nivel, undefined)
+  ok(linhasAvaliacaoPratica(safeAvaliacaoPratica({ nivel: 'atleta' }, 'volei'), 'volei').includes('Nível: Avançado'))
+})
+
+test('fase 39: posição é múltipla e o texto único antigo continua aparecendo', () => {
+  for (const k of ['volei', 'futebol', 'basquete', 'handebol']) {
+    const p = PRATICAS[k].secoes?.flatMap((s) => s.perguntas).find((q) => q.key === 'posicao')
+    equal(p?.tipo, 'multipla', k)
+  }
+  deepEqual(safeRespostas({ posicao: 'ala' }, PRATICAS.basquete), { posicao: ['ala'] })
+  deepEqual(safeRespostas({ posicao: ['ala', 'pivo'] }, PRATICAS.basquete), { posicao: ['ala', 'pivo'] })
+  deepEqual(safeRespostas({ posicao: 'inexistente' }, PRATICAS.basquete), {})
+  ok(linhasRespostas({ posicao: ['ala', 'pivo'] }, PRATICAS.basquete).includes('Posição habitual: Ala, Pivô'))
+  ok(linhasRespostas(safeRespostas({ posicao: 'ala' }, PRATICAS.basquete), PRATICAS.basquete).includes('Posição habitual: Ala'))
+})
+
+test('fase 39: ficha antiga (atleta + posição em texto) passa pelo schema', () => {
+  const ficha = emptyEvaluationFicha()
+  const parsed = evaluationFichaSchema.parse({
+    ...ficha,
+    funcao: { ...ficha.funcao, esportes: [{ esporte: 'basquete', nivel: 'atleta', respostas: { posicao: 'ala' } }] },
+  })
+  const e = parsed.funcao.esportes?.[0]
+  equal(e?.nivel, 'avancado')
+  deepEqual(e?.respostas?.posicao, ['ala'])
 })

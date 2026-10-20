@@ -78,7 +78,7 @@ export const PERFIS_ESPORTIVOS: readonly OpcaoPratica[] = [
 export const NIVEIS_ESPORTIVOS: readonly OpcaoPratica[] = [
   o('iniciante', 'Iniciante'),
   o('intermediario', 'Intermediário'),
-  o('atleta', 'Atleta'),
+  o('avancado', 'Avançado'),
 ]
 
 export const SITUACOES_PRATICA: readonly OpcaoPratica[] = [
@@ -237,7 +237,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     secoes: [
       secao('Modalidade e posição', [
         unica('modalidade', 'Modalidade', [o('quadra', 'Quadra'), o('praia', 'Praia')]),
-        unica('posicao', 'Posição principal', [
+        multipla('posicao', 'Posição principal (múltipla escolha)', [
           o('levantador', 'Levantador(a)'),
           o('ponteiro', 'Ponteiro(a)'),
           o('oposto', 'Oposto(a)'),
@@ -298,7 +298,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('futsal', 'Futsal'),
           o('areia', 'Futebol de areia'),
         ]),
-        unica('posicao', 'Posição habitual', [
+        multipla('posicao', 'Posição habitual (múltipla escolha)', [
           o('goleiro', 'Goleiro'),
           o('zagueiro', 'Zagueiro/defensor'),
           o('lateral', 'Lateral'),
@@ -440,7 +440,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     secoes: [
       secao('Modalidade e posição', [
         unica('modalidade', 'Modalidade', [o('quadra5x5', 'Quadra 5×5'), o('basquete3x3', '3×3')]),
-        unica('posicao', 'Posição habitual', [
+        multipla('posicao', 'Posição habitual (múltipla escolha)', [
           o('armador', 'Armador(a)'),
           o('ala', 'Ala'),
           o('pivo', 'Pivô'),
@@ -921,7 +921,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
     secoes: [
       secao('Modalidade e posição', [
         unica('modalidade', 'Modalidade', [o('quadra', 'Quadra'), o('areia', 'Areia')]),
-        unica('posicao', 'Posição principal', [
+        multipla('posicao', 'Posição principal (múltipla escolha)', [
           o('goleiro', 'Goleiro(a)'),
           o('armador', 'Armador(a)'),
           o('ponta', 'Ponta'),
@@ -1737,7 +1737,8 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
       }
       const v = raw[p.key]
       if (p.tipo === 'multipla') {
-        let keys = filtrarOpcoes(v, p.opcoes ?? [])
+        // Pergunta que era escolha única e virou múltipla mantém a resposta antiga como lista de um item.
+        let keys = filtrarOpcoes(typeof v === 'string' ? [v] : v, p.opcoes ?? [])
         // "Nenhum" junto com outras opções não faz sentido: ficam as outras.
         if (keys.length > 1) keys = keys.filter((k) => !(p.exclusivas ?? []).includes(k))
         if (keys.length) out[p.key] = keys
@@ -1836,7 +1837,8 @@ export function safeAvaliacaoPratica(raw: Record<string, unknown>, esporteKey: s
   const out: AvaliacaoPratica = {}
   const perfil = opcao(raw.perfil, PERFIS_ESPORTIVOS)
   if (perfil) out.perfil = perfil
-  const nivel = opcao(raw.nivel, NIVEIS_ESPORTIVOS)
+  // Avaliações antigas gravaram 'atleta' (checklist 6.2); lido como 'avancado', o próximo salvamento grava o valor novo.
+  const nivel = opcao(raw.nivel === 'atleta' ? 'avancado' : raw.nivel, NIVEIS_ESPORTIVOS)
   if (nivel) out.nivel = nivel
   const situacao = opcao(raw.situacao, SITUACOES_PRATICA)
   if (situacao) out.situacao = situacao
