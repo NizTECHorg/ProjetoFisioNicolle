@@ -341,7 +341,7 @@ export function PatientEvaluationPanel({
           </ul>
 
           {selected ? (
-            <article className="group rounded-2xl border border-line bg-surface p-5">
+            <article className="rounded-2xl border border-line bg-surface p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -364,22 +364,24 @@ export function PatientEvaluationPanel({
                   </p>
                 </div>
                 {canWrite ? (
-                  <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                  <div className="flex shrink-0 gap-1">
                     <button
                       type="button"
                       aria-label="Editar avaliação"
+                      title="Editar avaliação"
                       onClick={() => openEdit(selected)}
                       className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={18} />
                     </button>
                     <button
                       type="button"
                       aria-label="Excluir avaliação"
+                      title="Excluir avaliação"
                       onClick={() => setPendingDelete(selected)}
                       className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-error"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 ) : null}
