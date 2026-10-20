@@ -13,6 +13,7 @@ import {
   safeEsporteProblemas,
   ESPORTES_MAX,
   esportesDaFuncao,
+  esportePorKey,
   resumoEsportes,
   safeEsportesLista,
 } from './esportesAvaliacao.ts'
@@ -20,15 +21,17 @@ import { CATALOGO_TESTES, fold } from './mobilidadePalpacao.ts'
 
 const KEY_RE = /^[a-z][a-zA-Z0-9]{0,63}$/
 
-test('REQ-44: catálogo tem 19 esportes na ordem esperada', () => {
+test('REQ-44: catálogo tem 23 esportes (22 visíveis) na ordem esperada', () => {
   deepEqual(
     ESPORTES.map((e) => e.key),
     [
       'volei',
       'futebol',
       'corrida',
+      'caminhada',
       'basquete',
       'tenis',
+      'beachTennis',
       'natacao',
       'musculacao',
       'crossfit',
@@ -38,6 +41,8 @@ test('REQ-44: catálogo tem 19 esportes na ordem esperada', () => {
       'futevolei',
       'padel',
       'danca',
+      'pilates',
+      'yoga',
       'pilatesYoga',
       'ski',
       'snowboard',
@@ -45,7 +50,8 @@ test('REQ-44: catálogo tem 19 esportes na ordem esperada', () => {
       'circo',
     ],
   )
-  equal(ESPORTES.length, 19)
+  equal(ESPORTES.length, 23)
+  deepEqual(ESPORTES.filter((e) => e.legado).map((e) => e.key), ['pilatesYoga'])
   ok(!ESPORTES.some((e) => e.key === ESPORTE_OUTRO))
 })
 
@@ -113,13 +119,20 @@ test('REQ-44: avaliarTexto junta testes e achados', () => {
 
 test('REQ-44: buscarEsportes ignora acento e usa sinônimos', () => {
   const keys = (q: string) => buscarEsportes(q).map((e) => e.key)
-  equal(buscarEsportes('').length, 19)
+  equal(buscarEsportes('').length, 22)
+  ok(!keys('').includes('pilatesYoga'))
   ok(keys('VOLEI').includes('volei'))
   ok(keys('vôlei').includes('volei'))
-  ok(keys('beach').includes('tenis'))
+  ok(keys('beach').includes('beachTennis'))
+  ok(!keys('beach').includes('tenis'))
+  ok(keys('pilates').includes('pilates'))
+  ok(keys('caminhada').includes('caminhada'))
+  equal(esportePorKey('pilatesYoga')?.nome, 'Pilates / yoga')
+  equal(safeEsporte('pilatesYoga'), 'pilatesYoga')
   ok(keys('jiu').includes('lutas'))
   ok(keys('ballet').includes('danca'))
-  ok(keys('yoga').includes('pilatesYoga'))
+  ok(keys('yoga').includes('yoga'))
+  ok(!keys('yoga').includes('pilatesYoga'))
   ok(keys('academia').includes('musculacao'))
 })
 
@@ -220,4 +233,70 @@ test('vários esportes: resumo traz rótulo e problemas marcados de cada esporte
   equal(resumo[0]?.problemas[0]?.regiao, 'Joelho')
   equal(resumo[1]?.label, 'Remo')
   equal(resumo[1]?.problemas.length, 0)
+})
+
+test('fase 39: migração em leitura de tenis/beachTennis e pilatesYoga/pilates/yoga', () => {
+  deepEqual(
+    safeEsportesLista([
+      {
+        esporte: 'tenis',
+        nivel: 'atleta',
+        problemas: ['epicondilalgiaLateral'],
+        respostas: { esporte: 'beachTennis', formato: 'duplas', gestoSintoma: 'saque' },
+      },
+    ]),
+    [
+      {
+        esporte: 'beachTennis',
+        nivel: 'avancado',
+        respostas: { formato: 'duplas', gestoSintoma: ['saque'] },
+        problemas: ['epicondilalgiaLateral'],
+      },
+    ],
+  )
+  for (const respostas of [{ esporte: 'tenis' }, {}, undefined]) {
+    const [e] = safeEsportesLista([{ esporte: 'tenis', respostas }])
+    equal(e?.esporte, 'tenis')
+    equal(e?.respostas?.esporte, undefined)
+  }
+  deepEqual(
+    safeEsportesLista([
+      {
+        esporte: 'pilatesYoga',
+        respostas: { pratica: 'yoga', estiloYoga: 'hatha', temSintomas: 'sim', situacao: 'sair' },
+        problemas: ['dorPunhoApoio'],
+      },
+    ]),
+    [
+      {
+        esporte: 'yoga',
+        respostas: { estiloYoga: 'hatha', temSintomas: 'sim', situacao: ['sair'] },
+        problemas: ['dorPunhoApoio'],
+      },
+    ],
+  )
+  equal(safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { pratica: 'pilates' } }])[0]?.esporte, 'pilates')
+  const sem = safeEsportesLista([{ esporte: 'pilatesYoga', respostas: { temSintomas: 'sim', situacao: 'sair' } }])
+  equal(sem[0]?.esporte, 'pilatesYoga')
+  deepEqual(sem[0]?.respostas, { temSintomas: 'sim', situacao: 'sair' })
+})
+
+test('fase 39: dedupe após migração, resumo e ficha antiga', () => {
+  const lista = safeEsportesLista([
+    { esporte: 'pilates' },
+    { esporte: 'pilatesYoga', respostas: { pratica: 'pilates' } },
+  ])
+  equal(lista.length, 1)
+  equal(lista[0]?.esporte, 'pilates')
+  equal(resumoEsportes({ esportes: [{ esporte: 'tenis', respostas: { esporte: 'beachTennis' } }] })[0]?.label, 'Beach Tennis')
+  equal(esportesDaFuncao({ rotina: { esporte: 'pilatesYoga' } })[0]?.esporte, 'pilatesYoga')
+  const parsed = evaluationFichaSchema.parse({
+    funcao: {
+      esportes: [
+        { esporte: 'tenis', respostas: { esporte: 'beachTennis' } },
+        { esporte: 'pilatesYoga', respostas: { pratica: 'yoga' } },
+      ],
+    },
+  })
+  deepEqual(parsed.funcao.esportes?.map((e) => e.esporte), ['beachTennis', 'yoga'])
 })

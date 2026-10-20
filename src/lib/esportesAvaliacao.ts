@@ -18,6 +18,8 @@ export type Esporte = {
   nome: string
   busca: string[]
   problemas: EsporteProblema[]
+  /** Só para avaliações antigas: resolvido por chave, fora do seletor. */
+  legado?: true
 }
 
 export const ESPORTE_OUTRO = 'outro'
@@ -72,6 +74,20 @@ export const ESPORTES: readonly Esporte[] = [
       p('fraturaEstresse', 'Dor óssea focal por sobrecarga (reação/fratura por estresse)', 'Perna / pé', [], ['Dor focal à palpação', 'dor no salto unipodal (hop test)']),
     ],
   },
+  // REVISAO CLINICA: caminhada redigida na Phase 39 a partir de corrida
+  {
+    key: 'caminhada',
+    nome: 'Caminhada',
+    busca: ['caminhar', 'trekking', 'trilha', 'marcha', 'walking'],
+    problemas: [
+      p('fascitePlantar', 'Dor plantar no calcanhar (fascite plantar)', 'Pé', ['Windlass'], ['Dor à palpação da origem na fáscia', 'dor nos primeiros passos']),
+      p('estresseTibial', 'Dor na face medial da tíbia (shin splints)', 'Perna', ['Navicular Drop'], ['Dor à palpação da borda posteromedial da tíbia', 'aumento recente de volume']),
+      p('dorPatelofemoral', 'Dor anterior do joelho (patelofemoral)', 'Joelho', ['Patellar Grind'], ['Dor em descidas e escadas', 'controle de valgo dinâmico']),
+      p('tendinopatiaAquiles', 'Dor no tendão de Aquiles', 'Tornozelo / pé', ['Thompson'], ['Dor em subidas', 'elevação unipodal do calcanhar']),
+      p('dorLombarCaminhada', 'Dor lombar ao caminhar', 'Coluna lombar', ['Quadrante lombar'], ['Dor em extensão', 'tolerância à distância']),
+      p('entorseTornozelo', 'Entorse de tornozelo', 'Tornozelo', ['Gaveta anterior', 'Talar Tilt'], ['Equilíbrio unipodal']),
+    ],
+  },
   {
     key: 'basquete',
     nome: 'Basquete',
@@ -85,11 +101,25 @@ export const ESPORTES: readonly Esporte[] = [
       p('tendinopatiaAquiles', 'Dor no tendão de Aquiles', 'Tornozelo / pé', ['Thompson'], ['Dor à palpação', 'elevação unipodal do calcanhar']),
     ],
   },
-  // REVISAO CLINICA: evidência baixa (33-RESEARCH) - beach tennis extrapolado de tênis + padel
+  // REVISAO CLINICA: evidência baixa (33-RESEARCH) - tênis extrapolado de padel (Phase 39: beach tennis separado)
   {
     key: 'tenis',
-    nome: 'Tênis / beach tennis',
-    busca: ['beach tennis', 'tenis de praia', 'raquete'],
+    nome: 'Tênis',
+    busca: ['raquete', 'tenis de quadra'],
+    problemas: [
+      p('epicondilalgiaLateral', 'Dor lateral do cotovelo (epicondilalgia)', 'Cotovelo', ['Cozen', 'Mill', 'Maudsley'], ['Dor à palpação do epicôndilo lateral', 'força de preensão dolorosa']),
+      p('dorOmbroRaquete', 'Dor no ombro (saque/smash)', 'Ombro', ['Hawkins-Kennedy', 'Jobe / Empty Can'], ['Discinesia escapular', 'déficit de rotação interna']),
+      p('dorLombarRotacao', 'Dor lombar (rotação/extensão)', 'Coluna lombar', ['Quadrante lombar'], ['Dor em extensão/rotação', 'controle do tronco']),
+      p('entorseTornozelo', 'Entorse de tornozelo', 'Tornozelo', ['Gaveta anterior', 'Talar Tilt'], ['Equilíbrio unipodal']),
+      p('dorPunhoRaquete', 'Dor no punho (cubital/radial)', 'Punho / mão', ['TFCC Load Test', 'Finkelstein'], ['Dor à palpação ulnar ou radial', 'força de preensão']),
+      p('dorJoelhoQuadra', 'Dor no joelho (patelofemoral/menisco)', 'Joelho', ['Patellar Grind', 'McMurray'], ['Dor no agachamento unilateral', 'dor na linha articular']),
+    ],
+  },
+  // REVISAO CLINICA: beach tennis extrapolado de tênis + padel (Phase 39)
+  {
+    key: 'beachTennis',
+    nome: 'Beach Tennis',
+    busca: ['beach tennis', 'beach', 'tenis de praia', 'raquete'],
     problemas: [
       p('epicondilalgiaLateral', 'Dor lateral do cotovelo (epicondilalgia)', 'Cotovelo', ['Cozen', 'Mill', 'Maudsley'], ['Dor à palpação do epicôndilo lateral', 'força de preensão dolorosa']),
       p('dorOmbroRaquete', 'Dor no ombro (saque/smash)', 'Ombro', ['Hawkins-Kennedy', 'Jobe / Empty Can'], ['Discinesia escapular', 'déficit de rotação interna']),
@@ -219,10 +249,39 @@ export const ESPORTES: readonly Esporte[] = [
     ],
   },
   // REVISAO CLINICA: evidência baixa (33-RESEARCH) - eventos adversos leves, locais genéricos
+  // REVISAO CLINICA: pilates e yoga separados na Phase 39 (mesmos problemas do antigo Pilates / yoga)
+  {
+    key: 'pilates',
+    nome: 'Pilates',
+    busca: ['mat pilates', 'reformer', 'studio'],
+    problemas: [
+      p('dorLombarPilatesYoga', 'Dor lombar', 'Coluna lombar', ['Quadrante lombar'], ['Dor em flexão/extensão', 'controle de tronco']),
+      p('dorOmbroPilatesYoga', 'Dor no ombro (apoios e posturas overhead)', 'Ombro', ['Hawkins-Kennedy'], ['Dor em elevação ou apoio', 'controle escapular']),
+      p('dorPunhoApoio', 'Dor no punho (posturas de apoio)', 'Punho / mão', ['TFCC Load Test'], ['Dor em extensão de punho com carga']),
+      p('dorJoelhoPilatesYoga', 'Dor no joelho (lótus, rotação em carga)', 'Joelho', ['McMurray', 'Thessaly'], ['Dor na linha articular', 'dor em rotação com carga']),
+      p('dorCervicalPilatesYoga', 'Dor cervical', 'Coluna cervical', ['Spurling'], ['Rotação cervical', 'dor em posturas invertidas']),
+      p('dorIsquiotibialProximal', 'Dor proximal posterior da coxa (alongamento extremo)', 'Coxa', [], ['Dor à palpação da inserção isquiática', 'dor em alongamento']),
+    ],
+  },
+  {
+    key: 'yoga',
+    nome: 'Yoga',
+    busca: ['ioga', 'hatha', 'vinyasa', 'ashtanga'],
+    problemas: [
+      p('dorLombarPilatesYoga', 'Dor lombar', 'Coluna lombar', ['Quadrante lombar'], ['Dor em flexão/extensão', 'controle de tronco']),
+      p('dorOmbroPilatesYoga', 'Dor no ombro (apoios e posturas overhead)', 'Ombro', ['Hawkins-Kennedy'], ['Dor em elevação ou apoio', 'controle escapular']),
+      p('dorPunhoApoio', 'Dor no punho (posturas de apoio)', 'Punho / mão', ['TFCC Load Test'], ['Dor em extensão de punho com carga']),
+      p('dorJoelhoPilatesYoga', 'Dor no joelho (lótus, rotação em carga)', 'Joelho', ['McMurray', 'Thessaly'], ['Dor na linha articular', 'dor em rotação com carga']),
+      p('dorCervicalPilatesYoga', 'Dor cervical', 'Coluna cervical', ['Spurling'], ['Rotação cervical', 'dor em posturas invertidas']),
+      p('dorIsquiotibialProximal', 'Dor proximal posterior da coxa (alongamento extremo)', 'Coxa', [], ['Dor à palpação da inserção isquiática', 'dor em alongamento']),
+    ],
+  },
+  // Legado (Phase 39): oculto do seletor; avaliações antigas com a prática marcada migram para pilates/yoga em safeEsportesLista.
   {
     key: 'pilatesYoga',
     nome: 'Pilates / yoga',
     busca: ['pilates', 'yoga'],
+    legado: true,
     problemas: [
       p('dorLombarPilatesYoga', 'Dor lombar', 'Coluna lombar', ['Quadrante lombar'], ['Dor em flexão/extensão', 'controle de tronco']),
       p('dorOmbroPilatesYoga', 'Dor no ombro (apoios e posturas overhead)', 'Ombro', ['Hawkins-Kennedy'], ['Dor em elevação ou apoio', 'controle escapular']),
@@ -326,8 +385,9 @@ export function avaliarTexto(p: EsporteProblema): string {
 
 export function buscarEsportes(query: string): readonly Esporte[] {
   const q = fold(query.trim())
-  if (!q) return ESPORTES
-  return ESPORTES.filter((e) => fold(e.nome).includes(q) || e.busca.some((b) => fold(b).includes(q)))
+  const visiveis = ESPORTES.filter((e) => !e.legado)
+  if (!q) return visiveis
+  return visiveis.filter((e) => fold(e.nome).includes(q) || e.busca.some((b) => fold(b).includes(q)))
 }
 
 export type ResumoEsporte = {
@@ -362,15 +422,37 @@ export const ESPORTES_MAX = ESPORTES.length + 1
 /** Esporte escolhido + avaliação esportiva dele (perfil, nível, volume, sintomas…) + problemas marcados. */
 export type EsporteEntrada = { esporte: string; outro?: string; problemas?: string[] } & AvaliacaoPratica
 
+/** Avaliações antigas: 'tenis' com beach tennis e 'pilatesYoga' com a prática marcada viram o esporte novo. */
+function migrarEsporte(esporte: string, raw: Record<string, unknown>): { esporte: string; raw: Record<string, unknown> } {
+  const respostas = raw.respostas
+  if (!respostas || typeof respostas !== 'object' || Array.isArray(respostas)) return { esporte, raw }
+  const r = respostas as Record<string, unknown>
+  let novo: string | undefined
+  let chave = ''
+  if (esporte === 'tenis' && r.esporte === 'beachTennis') {
+    novo = 'beachTennis'
+    chave = 'esporte'
+  } else if (esporte === 'pilatesYoga' && (r.pratica === 'pilates' || r.pratica === 'yoga')) {
+    novo = r.pratica
+    chave = 'pratica'
+  }
+  if (!novo) return { esporte, raw }
+  const { [chave]: _descartada, ...resto } = r
+  void _descartada
+  return { esporte: novo, raw: { ...raw, respostas: resto } }
+}
+
 /** Lista tolerante: descarta esporte desconhecido, repetido, problema de outro esporte; corta em ESPORTES_MAX. */
 export function safeEsportesLista(value: unknown): EsporteEntrada[] {
   if (!Array.isArray(value)) return []
   const out: EsporteEntrada[] = []
   for (const item of value) {
     if (!item || typeof item !== 'object') continue
-    const raw = item as Record<string, unknown>
-    const esporte = safeEsporte(raw.esporte)
-    if (!esporte || out.some((e) => e.esporte === esporte)) continue
+    const bruto = item as Record<string, unknown>
+    const original = safeEsporte(bruto.esporte)
+    if (!original) continue
+    const { esporte, raw } = migrarEsporte(original, bruto)
+    if (out.some((e) => e.esporte === esporte)) continue
     const entrada: EsporteEntrada = { esporte, ...safeAvaliacaoPratica(raw, esporte) }
     if (esporte === ESPORTE_OUTRO) {
       const outro = typeof raw.outro === 'string' ? raw.outro.slice(0, ESPORTE_OUTRO_MAX) : ''
