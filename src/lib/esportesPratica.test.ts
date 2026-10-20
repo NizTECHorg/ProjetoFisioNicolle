@@ -5,6 +5,7 @@ import {
   PRATICAS,
   alternarMultipla,
   NIVEIS_ESPORTIVOS,
+  PERGUNTAS_GESTO_SINTOMA,
   linhasAvaliacaoPratica,
   linhasRespostas,
   praticaDoEsporte,
@@ -78,7 +79,7 @@ test('vôlei: questionário saneia respostas (opção inválida, ordem, números
         volumeJogos: 'muitos',
         cargaSaltos: 'alta',
         mudancaVolume: 'sim',
-        faseSintoma: 'aterrissagem',
+        faseSintoma: ['aterrissagem'],
         dificuldade: '   ',
         inventada: 'x',
       },
@@ -90,7 +91,7 @@ test('vôlei: questionário saneia respostas (opção inválida, ordem, números
       volumeHoras: '6.5',
       cargaSaltos: 'alta',
       mudancaVolume: 'sim',
-      faseSintoma: 'aterrissagem',
+      faseSintoma: ['aterrissagem'],
     },
   )
 })
@@ -108,7 +109,7 @@ test('avaliação esportiva: linhas para visualização e PDF', () => {
           volumeHoras: '6',
           volumeJogos: '2',
           mudancaVolume: 'nao',
-          faseSintoma: 'aterrissagem',
+          faseSintoma: ['aterrissagem'],
           dificuldade: 'Insegurança na aterrissagem',
         },
       },
@@ -146,7 +147,7 @@ test('futebol: questionário próprio com 3 seções e volume em 3 números', ()
           volumeJogos: '1',
           volumeMinutos: '90',
           mudancaCarga: 'sim',
-          movimentoSintoma: 'chute',
+          movimentoSintoma: ['chute'],
         },
       },
       'futebol',
@@ -227,7 +228,7 @@ test('basquete: questionário próprio (mão de arremesso, gestos, volume e dura
           volumeTreinos: '3',
           duracaoMinutos: '60',
           mudancaCarga: 'nao',
-          gestoSintoma: 'pivoteio',
+          gestoSintoma: ['pivoteio'],
         },
       },
       'basquete',
@@ -263,7 +264,7 @@ test('tênis: superfície e backhand só aparecem no tênis (beach tennis não)'
           volumeSessoes: '3',
           volumeMinutos: '90',
           mudancaCarga: 'sim',
-          gestoSintoma: 'saque',
+          gestoSintoma: ['saque'],
         },
       },
       'tenis',
@@ -305,7 +306,7 @@ test('natação: respiração do crawl depende de "Crawl" nos estilos; "Nenhum" 
           mediaSessaoM: '2000',
           tipoTreino: 'resistencia',
           temSintomas: 'sim',
-          momentoSintoma: 'recuperacao',
+          momentoSintoma: ['recuperacao'],
         },
       },
       'natacao',
@@ -443,7 +444,7 @@ test('lutas: perguntas mudam conforme a arte; várias artes mostram as perguntas
           movimentos_muayThai: ['joelhadas'],
           tempoTreinoMin: '90',
           compete: 'nao',
-          queixa_jiuJitsu: 'finalizacoes',
+          queixa_jiuJitsu: ['finalizacoes'],
         },
       },
       'lutas',
@@ -483,7 +484,7 @@ test('handebol: questionário próprio com 4 seções', () => {
           volumeTreinos: '3',
           volumeJogos: '1',
           duracaoMin: '90',
-          movimentoSintoma: 'aterrissagem',
+          movimentoSintoma: ['aterrissagem'],
         },
       },
       'handebol',
@@ -516,7 +517,7 @@ test('futevôlei: questionário próprio (participação, perna, areia, fundamen
           volumeTreinos: '2',
           volumeJogos: '3',
           duracaoMin: '90',
-          movimentoSintoma: 'shark',
+          movimentoSintoma: ['shark'],
         },
       },
       'futevolei',
@@ -545,7 +546,7 @@ test('padel: questionário próprio (golpes, deslocamentos, carga, queixa)', () 
           volumeTreinos: '2',
           duracaoMin: '90',
           mudancaCarga: 'nao',
-          golpeSintoma: 'saidaParede',
+          golpeSintoma: ['saidaParede'],
         },
       },
       'padel',
@@ -582,7 +583,7 @@ test('dança: ponta só com ballet (principal ou outro estilo); vários estilos'
           horasAula: '6',
           horasEnsaio: '4',
           apresentacoes: 'sim',
-          movimentoSintoma: 'saltos',
+          movimentoSintoma: ['saltos'],
         },
       },
       'danca',
@@ -657,7 +658,7 @@ test('ski: questionário próprio; situação e limitação só com sintomas', (
           preparacao: 'geral',
           equipamento: 'alugado',
           temSintomas: 'sim',
-          situacao: 'esquiExterno',
+          situacao: ['esquiExterno'],
           limitacao: 'Dor no joelho nas curvas à direita',
         },
       },
@@ -683,7 +684,7 @@ test('ski: questionário próprio; situação e limitação só com sintomas', (
 test('snowboard: questionário próprio; "como ocorreu a queda" só com queda', () => {
   const pratica = praticaDoEsporte('snowboard')
   ok(pratica.volumeProprio)
-  deepEqual(safeRespostas({ queda: 'nao', comoQueda: 'punho', situacao: 'heel' }, pratica), { queda: 'nao', situacao: 'heel' })
+  deepEqual(safeRespostas({ queda: 'nao', comoQueda: 'punho', situacao: 'heel' }, pratica), { queda: 'nao', situacao: ['heel'] })
   deepEqual(
     linhasAvaliacaoPratica(
       {
@@ -697,7 +698,7 @@ test('snowboard: questionário próprio; "como ocorreu a queda" só com queda', 
           protecao: ['capacete', 'punho'],
           queda: 'sim',
           comoQueda: 'punho',
-          situacao: 'aposQueda',
+          situacao: ['aposQueda'],
         },
       },
       'snowboard',
@@ -764,7 +765,7 @@ test('surf: novo esporte com questionário próprio e problemas frequentes', () 
             dificuldadeAgua: 'remada',
             sessoesSemana: '3',
             temSintomas: 'sim',
-            gestoSintoma: 'remada',
+            gestoSintoma: ['remada'],
           },
           problemas: ['ombroRemadaSurf'],
         },
@@ -790,7 +791,7 @@ test('surf: novo esporte com questionário próprio e problemas frequentes', () 
 test('circo: artes circenses com questionário próprio e sintomas condicionais', () => {
   const pratica = praticaDoEsporte('circo')
   ok(pratica.volumeProprio)
-  deepEqual(safeRespostas({ temSintomas: 'nao', movimentoQueixa: 'inversoes', momento: 'apos' }, pratica), { temSintomas: 'nao' })
+  deepEqual(safeRespostas({ temSintomas: 'nao', movimentoQueixa: ['inversoes'], momento: 'apos' }, pratica), { temSintomas: 'nao' })
   deepEqual(
     linhasAvaliacaoPratica(
       {
@@ -802,7 +803,7 @@ test('circo: artes circenses com questionário próprio e sintomas condicionais'
           treinosSemana: '3',
           horasSessao: '2',
           temSintomas: 'sim',
-          movimentoQueixa: 'suspensoes',
+          movimentoQueixa: ['suspensoes'],
           momento: 'sustentacao',
         },
       },
@@ -824,7 +825,7 @@ test('circo: artes circenses com questionário próprio e sintomas condicionais'
 
 test('fase 39: nível Avançado substitui Atleta e o valor antigo é lido como Avançado', () => {
   deepEqual(NIVEIS_ESPORTIVOS.map((n) => n.key), ['iniciante', 'intermediario', 'avancado'])
-  equal(NIVEIS_ESPORTIVOS[2].nome, 'Avançado')
+  equal(NIVEIS_ESPORTIVOS[2]?.nome, 'Avançado')
   equal(safeAvaliacaoPratica({ nivel: 'atleta' }, 'volei').nivel, 'avancado')
   equal(safeAvaliacaoPratica({ nivel: 'avancado' }, 'volei').nivel, 'avancado')
   equal(safeAvaliacaoPratica({ nivel: 'pro' }, 'volei').nivel, undefined)
@@ -833,14 +834,14 @@ test('fase 39: nível Avançado substitui Atleta e o valor antigo é lido como A
 
 test('fase 39: posição é múltipla e o texto único antigo continua aparecendo', () => {
   for (const k of ['volei', 'futebol', 'basquete', 'handebol']) {
-    const p = PRATICAS[k].secoes?.flatMap((s) => s.perguntas).find((q) => q.key === 'posicao')
+    const p = praticaDoEsporte(k).secoes?.flatMap((s) => s.perguntas).find((q) => q.key === 'posicao')
     equal(p?.tipo, 'multipla', k)
   }
-  deepEqual(safeRespostas({ posicao: 'ala' }, PRATICAS.basquete), { posicao: ['ala'] })
-  deepEqual(safeRespostas({ posicao: ['ala', 'pivo'] }, PRATICAS.basquete), { posicao: ['ala', 'pivo'] })
-  deepEqual(safeRespostas({ posicao: 'inexistente' }, PRATICAS.basquete), {})
-  ok(linhasRespostas({ posicao: ['ala', 'pivo'] }, PRATICAS.basquete).includes('Posição habitual: Ala, Pivô'))
-  ok(linhasRespostas(safeRespostas({ posicao: 'ala' }, PRATICAS.basquete), PRATICAS.basquete).includes('Posição habitual: Ala'))
+  deepEqual(safeRespostas({ posicao: 'ala' }, praticaDoEsporte('basquete')), { posicao: ['ala'] })
+  deepEqual(safeRespostas({ posicao: ['ala', 'pivo'] }, praticaDoEsporte('basquete')), { posicao: ['ala', 'pivo'] })
+  deepEqual(safeRespostas({ posicao: 'inexistente' }, praticaDoEsporte('basquete')), {})
+  ok(linhasRespostas({ posicao: ['ala', 'pivo'] }, praticaDoEsporte('basquete')).includes('Posição habitual: Ala, Pivô'))
+  ok(linhasRespostas(safeRespostas({ posicao: 'ala' }, praticaDoEsporte('basquete')), praticaDoEsporte('basquete')).includes('Posição habitual: Ala'))
 })
 
 test('fase 39: ficha antiga (atleta + posição em texto) passa pelo schema', () => {
@@ -852,4 +853,54 @@ test('fase 39: ficha antiga (atleta + posição em texto) passa pelo schema', ()
   const e = parsed.funcao.esportes?.[0]
   equal(e?.nivel, 'avancado')
   deepEqual(e?.respostas?.posicao, ['ala'])
+})
+
+test('fase 39: todas as perguntas de gesto são múltipla escolha com Outros + "Outro gesto"', () => {
+  for (const [esporte, keys] of Object.entries(PERGUNTAS_GESTO_SINTOMA)) {
+    const perguntas = praticaDoEsporte(esporte).secoes?.flatMap((s) => s.perguntas) ?? []
+    ok(keys.length > 0, esporte)
+    for (const key of keys) {
+      const i = perguntas.findIndex((q) => q.key === key)
+      ok(i >= 0, `${esporte}.${key} não existe`)
+      const q = perguntas[i]
+      if (!q) throw new Error('sem pergunta')
+      equal(q.tipo, 'multipla', `${esporte}.${key}`)
+      deepEqual(q.opcoes?.[q.opcoes.length - 1], { key: 'outro', nome: 'Outros' })
+      const chaves = (q.opcoes ?? []).map((op) => op.key)
+      equal(new Set(chaves).size, chaves.length, `opção repetida em ${esporte}.${key}`)
+      const t = perguntas[i + 1]
+      if (!t) throw new Error('sem texto Outro gesto')
+      equal(t.tipo, 'texto')
+      equal(t.key, `${key}Outro`)
+      equal(t.rotulo, 'Outro gesto')
+      deepEqual(t.mostrarSe, { key, valor: 'outro' })
+    }
+  }
+})
+
+test('fase 39: gesto do basquete aceita legado, Outros com texto e exclusiva', () => {
+  deepEqual(safeRespostas({ gestoSintoma: 'pivoteio' }, praticaDoEsporte('basquete')), { gestoSintoma: ['pivoteio'] })
+  deepEqual(
+    safeRespostas({ gestoSintoma: ['aterrissagem', 'outro'], gestoSintomaOutro: 'Bandeja' }, praticaDoEsporte('basquete')),
+    { gestoSintoma: ['aterrissagem', 'outro'], gestoSintomaOutro: 'Bandeja' },
+  )
+  deepEqual(safeRespostas({ gestoSintoma: ['aterrissagem'], gestoSintomaOutro: 'Bandeja' }, praticaDoEsporte('basquete')), {
+    gestoSintoma: ['aterrissagem'],
+  })
+  deepEqual(safeRespostas({ gestoSintoma: ['semGesto', 'aterrissagem'] }, praticaDoEsporte('basquete')), { gestoSintoma: ['aterrissagem'] })
+  const q = praticaDoEsporte('basquete').secoes?.flatMap((s) => s.perguntas).find((p) => p.key === 'gestoSintoma')
+  if (!q) throw new Error('sem pergunta')
+  deepEqual(alternarMultipla(q, ['aterrissagem'], 'semGesto'), ['semGesto'])
+  const r = 'Em qual gesto aparecem os sintomas ou dificuldades?'
+  const linhas = linhasRespostas({ gestoSintoma: ['aterrissagem', 'outro'], gestoSintomaOutro: 'Bandeja' }, praticaDoEsporte('basquete'))
+  ok(linhas.includes(`${r} Aterrissagem, Outros`))
+  ok(linhas.includes('Outro gesto: Bandeja'))
+  const legado = linhasRespostas(safeRespostas({ gestoSintoma: 'pivoteio' }, praticaDoEsporte('basquete')), praticaDoEsporte('basquete'))
+  ok(legado.includes(`${r} Pivoteio`))
+})
+
+test('fase 39: natação e lutas preservam condição e legado do gesto', () => {
+  const r = safeRespostas({ temSintomas: 'nao', momentoSintoma: ['virada', 'outro'], momentoSintomaOutro: 'x' }, praticaDoEsporte('natacao'))
+  ok(!('momentoSintoma' in r) && !('momentoSintomaOutro' in r))
+  deepEqual(safeRespostas({ arte: 'judo', queixa_judo: 'outro' }, praticaDoEsporte('lutas')).queixa_judo, ['outro'])
 })

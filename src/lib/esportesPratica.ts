@@ -67,6 +67,25 @@ const se = (key: string | readonly string[], valor: string | readonly string[], 
   ...p,
   mostrarSe: { key, valor },
 })
+// Checklist 6.3: pergunta de gesto dos sintomas em múltipla escolha, sempre com "Outros" + texto "Outro gesto".
+// A chave da opção segue 'outro' (já gravada em avaliações antigas); só o nome exibido é "Outros".
+// REVISAO CLINICA: gestos acrescentados na Phase 39 (checklist 6.3) — revisar com a Nicolle
+const gestosSintoma = (
+  key: string,
+  rotulo: string,
+  opcoes: OpcaoPratica[],
+  opts?: { exclusivas?: readonly string[]; quando?: Pergunta['mostrarSe'] },
+): Pergunta[] => [
+  {
+    key,
+    rotulo: `${rotulo} (múltipla escolha)`,
+    tipo: 'multipla',
+    opcoes: [...opcoes, o('outro', 'Outros')],
+    ...(opts?.exclusivas ? { exclusivas: opts.exclusivas } : {}),
+    ...(opts?.quando ? { mostrarSe: opts.quando } : {}),
+  },
+  { ...textoCurto(`${key}Outro`, 'Outro gesto', 'Descreva o gesto'), mostrarSe: { key, valor: 'outro' } },
+]
 const secao = (titulo: string, perguntas: Pergunta[]): SecaoPerguntas => ({ titulo, perguntas })
 
 export const PERFIS_ESPORTIVOS: readonly OpcaoPratica[] = [
@@ -269,14 +288,17 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         simNao('mudancaVolume', 'Houve mudança recente no volume ou intensidade?'),
       ]),
       secao('Sintomas e dificuldades', [
-        selecao('faseSintoma', 'Em qual fase do movimento aparecem?', [
+        ...gestosSintoma('faseSintoma', 'Em qual fase do movimento aparecem?', [
           o('aproximacao', 'Aproximação para ataque'),
           o('impulsao', 'Impulsão'),
           o('contatoBola', 'Contato com a bola'),
           o('aterrissagem', 'Aterrissagem'),
           o('deslocamentoLateral', 'Deslocamento lateral'),
+          o('saque', 'Saque'),
+          o('bloqueio', 'Bloqueio'),
+          o('defesa', 'Defesa / mergulho'),
           o('semGesto', 'Sem gesto específico'),
-        ]),
+        ], { exclusivas: ['semGesto'] }),
         textoLongo(
           'dificuldade',
           'Principal dificuldade na modalidade',
@@ -330,7 +352,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         simNao('mudancaCarga', 'Houve aumento ou mudança recente de carga?'),
       ]),
       secao('Sintomas e limitações', [
-        selecao('movimentoSintoma', 'Movimento associado aos sintomas', [
+        ...gestosSintoma('movimentoSintoma', 'Movimento associado aos sintomas', [
           o('corrida', 'Corrida em velocidade'),
           o('aceleracao', 'Aceleração'),
           o('frenagem', 'Frenagem'),
@@ -338,8 +360,10 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('chute', 'Chute'),
           o('saltoAterrissagem', 'Salto/aterrissagem'),
           o('contatoFisico', 'Contato físico'),
+          o('passe', 'Passe / domínio'),
+          o('cabeceio', 'Cabeceio'),
           o('semMovimento', 'Sem movimento específico'),
-        ]),
+        ], { exclusivas: ['semMovimento'] }),
         textoLongo(
           'dificuldade',
           'Principal dificuldade para jogar',
@@ -477,7 +501,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Sintomas e limitações', [
-        selecao('gestoSintoma', 'Em qual gesto aparecem os sintomas ou dificuldades?', [
+        ...gestosSintoma('gestoSintoma', 'Em qual gesto aparecem os sintomas ou dificuldades?', [
           o('impulsao', 'Impulsão para salto'),
           o('aterrissagem', 'Aterrissagem'),
           o('frenagem', 'Frenagem'),
@@ -485,8 +509,11 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('pivoteio', 'Pivoteio'),
           o('arremesso', 'Arremesso'),
           o('contatoFisico', 'Contato físico'),
+          o('corrida', 'Corrida / contra-ataque'),
+          o('rebote', 'Rebote'),
+          o('drible', 'Drible'),
           o('semGesto', 'Sem gesto específico'),
-        ]),
+        ], { exclusivas: ['semGesto'] }),
         textoLongo(
           'dificuldade',
           'Principal dificuldade esportiva',
@@ -545,7 +572,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         simNao('mudancaCarga', 'Houve mudança recente de carga ou equipamento?'),
       ]),
       secao('Sintomas e limitações', [
-        selecao('gestoSintoma', 'Qual gesto provoca sintomas ou apresenta dificuldade?', [
+        ...gestosSintoma('gestoSintoma', 'Qual gesto provoca sintomas ou apresenta dificuldade?', [
           o('saque', 'Saque'),
           o('forehand', 'Forehand'),
           o('backhand', 'Backhand'),
@@ -553,6 +580,8 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('smash', 'Smash'),
           o('deslocamento', 'Deslocamento'),
           o('frenagem', 'Frenagem'),
+          o('slice', 'Slice'),
+          o('mudancaDirecao', 'Mudança de direção'),
         ]),
         textoLongo(
           'limitacao',
@@ -629,10 +658,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
       secao('Sintomas e dificuldades', [
         simNao('temSintomas', 'Apresenta sintomas ou limitações na natação?'),
-        se(
-          'temSintomas',
-          'sim',
-          selecao('momentoSintoma', 'Em qual momento ou gesto?', [
+        ...gestosSintoma('momentoSintoma', 'Em qual momento ou gesto?', [
             o('entradaMao', 'Entrada da mão na água'),
             o('tracao', 'Tração / propulsão submersa'),
             o('recuperacao', 'Recuperação aérea do braço'),
@@ -640,9 +666,9 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
             o('pernada', 'Pernada'),
             o('virada', 'Virada / impulsão na parede'),
             o('aposDistancia', 'Após determinada distância'),
+            o('saida', 'Saída do bloco'),
             o('semFase', 'Sem fase específica'),
-          ]),
-        ),
+          ], { exclusivas: ['semFase'], quando: { key: 'temSintomas', valor: 'sim' } }),
         textoLongo(
           'descricao',
           'Descrição da dificuldade',
@@ -893,16 +919,12 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
       secao('Contexto competitivo', [simNao('compete', 'Participa de competições?')]),
       secao('Sintomas e limitações', [
-        ...ARTES_MARCIAIS.map((arte) =>
-          se(
-            ['arte', 'outrasArtes'],
-            arte.key,
-            selecao(`queixa_${arte.key}`, `Movimento ou situação associada à queixa — ${arte.nome}`, [
-              ...(MOVIMENTOS_LUTA[arte.key] ?? []),
-              o('contatoImpacto', 'Contato / impacto'),
-              o('aposTreino', 'Após o treino'),
-              o('outro', 'Outro'),
-            ]),
+        ...ARTES_MARCIAIS.flatMap((arte) =>
+          gestosSintoma(
+            `queixa_${arte.key}`,
+            `Movimento ou situação associada à queixa — ${arte.nome}`,
+            [...(MOVIMENTOS_LUTA[arte.key] ?? []), o('contatoImpacto', 'Contato / impacto'), o('aposTreino', 'Após o treino')],
+            { quando: { key: ['arte', 'outrasArtes'], valor: arte.key } },
           ),
         ),
         textoLongo(
@@ -965,13 +987,15 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Sintomas e limitações', [
-        selecao('movimentoSintoma', 'Movimento associado aos sintomas', [
+        ...gestosSintoma('movimentoSintoma', 'Movimento associado aos sintomas', [
           o('arremesso', 'Arremesso'),
           o('impulsao', 'Impulsão'),
           o('aterrissagem', 'Aterrissagem'),
           o('mudancaDirecao', 'Mudança de direção'),
           o('contatoFisico', 'Contato físico'),
-          o('outro', 'Outro'),
+          o('corrida', 'Corrida / contra-ataque'),
+          o('finta', 'Finta'),
+          o('defesa', 'Defesa / bloqueio'),
         ]),
         textoLongo(
           'dificuldade',
@@ -1031,7 +1055,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Sintomas e limitações', [
-        selecao('movimentoSintoma', 'Em qual movimento aparecem os sintomas?', [
+        ...gestosSintoma('movimentoSintoma', 'Em qual movimento aparecem os sintomas?', [
           o('cabeceio', 'Cabeceio'),
           o('recepcao', 'Recepção'),
           o('ataquePe', 'Ataque com o pé'),
@@ -1040,7 +1064,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('impulsao', 'Impulsão'),
           o('aterrissagem', 'Aterrissagem'),
           o('deslocamento', 'Deslocamento na areia'),
-          o('outro', 'Outro'),
+          o('mudancaDirecao', 'Mudança de direção'),
         ]),
         textoLongo(
           'dificuldade',
@@ -1105,7 +1129,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Sintomas e limitações', [
-        selecao('golpeSintoma', 'Golpe ou movimento associado à queixa', [
+        ...gestosSintoma('golpeSintoma', 'Golpe ou movimento associado à queixa', [
           ...[
           o('smash', 'Smash'),
           o('bandeja', 'Bandeja'),
@@ -1117,7 +1141,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ],
           o('frenagem', 'Frenagem'),
           o('mudancaDirecao', 'Mudança de direção'),
-          o('outro', 'Outro'),
+          o('saque', 'Saque'),
         ]),
         textoLongo(
           'dificuldade',
@@ -1172,13 +1196,16 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Sintomas e limitações', [
-        selecao('movimentoSintoma', 'Qual movimento está relacionado aos sintomas ou dificuldades?', [
+        ...gestosSintoma('movimentoSintoma', 'Qual movimento está relacionado aos sintomas ou dificuldades?', [
           o('releve', 'Relevé / meia-ponta'),
           o('piruetas', 'Piruetas / giros'),
           o('saltos', 'Saltos e aterrissagens'),
           o('equilibrio', 'Equilíbrio unipodal'),
           o('amplitudes', 'Grandes amplitudes / développés'),
           o('ponta', 'Trabalho de ponta'),
+          o('aterrissagem', 'Aterrissagem'),
+          o('plie', 'Agachamento / plié'),
+          o('chao', 'Trabalho de chão'),
         ]),
         textoLongo(
           'dificuldade',
@@ -1361,10 +1388,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
       secao('Sintomas e limitações', [
         simNao('temSintomas', 'Apresenta sintomas durante a prática?'),
-        se(
-          'temSintomas',
-          'sim',
-          selecao('situacao', 'Em qual situação?', [
+        ...gestosSintoma('situacao', 'Em qual situação?', [
             o('curvas', 'Durante as curvas'),
             o('esquiExterno', 'Ao carregar o esqui externo'),
             o('frenagem', 'Na frenagem / derrapagem'),
@@ -1372,9 +1396,8 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
             o('descidas', 'Após descidas prolongadas'),
             o('aterrissagens', 'Nas aterrissagens'),
             o('queda', 'Após queda'),
-            o('outro', 'Outro'),
-          ]),
-        ),
+            o('agachamento', 'Posição agachada prolongada'),
+          ], { quando: { key: 'temSintomas', valor: 'sim' } }),
         se(
           'temSintomas',
           'sim',
@@ -1453,10 +1476,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
       secao('Sintomas e limitações', [
         simNao('temSintomas', 'Apresenta sintomas ou limitações?'),
-        se(
-          'temSintomas',
-          'sim',
-          selecao('gestoSintoma', 'Gesto ou situação associada aos sintomas', [
+        ...gestosSintoma('gestoSintoma', 'Gesto ou situação associada aos sintomas', [
             o('remada', 'Remada'),
             o('popUp', 'Pop-up'),
             o('duckDive', 'Duck dive'),
@@ -1465,8 +1485,8 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
             o('permanencia', 'Permanência sobre a prancha'),
             o('queda', 'Após queda / impacto'),
             o('aposSessao', 'Após a sessão'),
-          ]),
-        ),
+            o('aterrissagem', 'Aterrissagem de manobras aéreas'),
+          ], { quando: { key: 'temSintomas', valor: 'sim' } }),
         textoLongo(
           'limitacao',
           'Principal limitação funcional',
@@ -1533,10 +1553,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
       secao('Histórico de sintomas e limitações', [
         simNao('temSintomas', 'Apresenta dor ou dificuldade na prática?'),
-        se(
-          'temSintomas',
-          'sim',
-          selecao('movimentoQueixa', 'Movimento relacionado à queixa', [
+        ...gestosSintoma('movimentoQueixa', 'Movimento relacionado à queixa', [
             ...[
           o('subidas', 'Subidas e escaladas'),
           o('suspensoes', 'Suspensões'),
@@ -1546,9 +1563,10 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('transicoes', 'Transições aéreas'),
         ],
             o('aposQueda', 'Após queda / impacto'),
-            o('outro', 'Outro'),
-          ]),
-        ),
+            o('saltos', 'Saltos'),
+            o('aterrissagem', 'Aterrissagem'),
+            o('apoioMaos', 'Apoio nas mãos / parada de mão'),
+          ], { quando: { key: 'temSintomas', valor: 'sim' } }),
         se(
           'temSintomas',
           'sim',
@@ -1651,7 +1669,7 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
             o('outro', 'Outro mecanismo'),
           ]),
         ),
-        selecao('situacao', 'Situação relacionada aos sintomas ou limitação', [
+        ...gestosSintoma('situacao', 'Situação relacionada aos sintomas ou limitação', [
           o('toe', 'Toe edge'),
           o('heel', 'Heel edge'),
           o('transicao', 'Transição entre bordas'),
@@ -1660,7 +1678,6 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('saltos', 'Saltos / aterrissagens'),
           o('aposQueda', 'Após queda'),
           o('descida', 'Descida prolongada'),
-          o('outro', 'Outro'),
         ]),
         textoLongo(
           'limitacao',
@@ -1670,6 +1687,24 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
       ]),
     ],
   },
+}
+
+/** Perguntas de gesto dos sintomas (múltipla escolha + "Outros"); a varredura de teste garante o padrão. */
+export const PERGUNTAS_GESTO_SINTOMA: Readonly<Record<string, readonly string[]>> = {
+  volei: ['faseSintoma'],
+  futebol: ['movimentoSintoma'],
+  basquete: ['gestoSintoma'],
+  tenis: ['gestoSintoma'],
+  natacao: ['momentoSintoma'],
+  lutas: ARTES_MARCIAIS.map((a) => `queixa_${a.key}`),
+  handebol: ['movimentoSintoma'],
+  futevolei: ['movimentoSintoma'],
+  padel: ['golpeSintoma'],
+  danca: ['movimentoSintoma'],
+  ski: ['situacao'],
+  surf: ['gestoSintoma'],
+  circo: ['movimentoQueixa'],
+  snowboard: ['situacao'],
 }
 
 export function praticaDoEsporte(esporteKey: string | undefined): PraticaEsporte {
