@@ -1741,9 +1741,19 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     drawOptionalField(ctx, 'Se sim, quando/como', historia?.jaAconteceuDetalhe)
   }
   const esportesResumo = resumoEsportes(ficha.funcao)
-  if (esportesResumo.length > 0 && isFieldSelected(selected, '01.D')) {
+  const atividadeFisicaResumo = formatAtividadeFisica(ficha.funcao?.rotina)
+  const praticaAtividade = enumLabel(ficha.funcao?.rotina?.praticaAtividadeFisica, {
+    nao: 'Não',
+    sim: 'Sim',
+  })
+  if (
+    (esportesResumo.length > 0 || textFilled(praticaAtividade) || textFilled(atividadeFisicaResumo)) &&
+    isFieldSelected(selected, '01.D')
+  ) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Esportes')
+    drawOptionalField(ctx, 'Pratica atividade física', praticaAtividade)
+    drawOptionalField(ctx, 'Atividade física', atividadeFisicaResumo)
     for (const esporte of esportesResumo) {
       const linhas = [
         ...esporte.linhas,
@@ -1955,12 +1965,9 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
       variavel: 'Variável',
     },
   )
-  const atividadeFisicaResumo = formatAtividadeFisica(funcao?.rotina)
   const hasRotina =
     trabalhoItems.length > 0 ||
-    textFilled(funcao?.rotina?.horasDia) ||
-    Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(atividadeFisicaResumo)
+    textFilled(funcao?.rotina?.horasDia)
 
   const objetivoItems = checkedLabels(
     funcao?.expectativas?.objetivos as Record<string, unknown> | undefined,
@@ -2051,12 +2058,6 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     drawClearSectionTitle(ctx, 'Rotina e demanda')
     drawOptionalBullets(ctx, 'Trabalho', trabalhoItems)
     drawOptionalField(ctx, 'Horas/dia', funcao?.rotina?.horasDia)
-    drawOptionalField(
-      ctx,
-      'Pratica atividade física',
-      enumLabel(funcao?.rotina?.praticaAtividadeFisica, { nao: 'Não', sim: 'Sim' }),
-    )
-    drawOptionalField(ctx, 'Atividade física', atividadeFisicaResumo)
   }
   if (show03D) {
     anyContent = true

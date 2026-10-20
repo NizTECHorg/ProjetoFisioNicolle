@@ -189,8 +189,13 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     id: '01.D',
     label: 'Esportes',
     groupLabel: '01 · Anamnese · Bloco D',
-    filled: esportesResumo.length > 0,
-    preview: previewFrom(esportesResumo.map((e) => e.label).join(', ')),
+    filled:
+      esportesResumo.length > 0 ||
+      Boolean(ficha.funcao?.rotina?.praticaAtividadeFisica) ||
+      textFilled(formatAtividadeFisica(ficha.funcao?.rotina)),
+    preview: previewFrom(
+      esportesResumo.map((e) => e.label).join(', ') || formatAtividadeFisica(ficha.funcao?.rotina),
+    ),
   })
 
   const tratamentoItems = checkedLabels(tratamentos as Record<string, unknown> | undefined, {
@@ -418,12 +423,7 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       variavel: 'Variável',
     },
   )
-  const atividadeFisicaResumo = formatAtividadeFisica(funcao?.rotina)
-  const hasRotina =
-    trabalhoItems.length > 0 ||
-    textFilled(funcao?.rotina?.horasDia) ||
-    Boolean(funcao?.rotina?.praticaAtividadeFisica) ||
-    textFilled(atividadeFisicaResumo)
+  const hasRotina = trabalhoItems.length > 0 || textFilled(funcao?.rotina?.horasDia)
   pushBlock(items, {
     id: '03.C',
     label: 'Rotina e demanda',
@@ -432,7 +432,6 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     preview: previewFrom(
       trabalhoItems[0],
       funcao?.rotina?.horasDia,
-      atividadeFisicaResumo,
     ),
   })
 

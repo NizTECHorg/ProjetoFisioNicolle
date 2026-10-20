@@ -54,3 +54,22 @@ test('REQ-50 (6.6): Page03 não pergunta mais atividade física', () => {
   ok(page.includes('ficha.funcao.rotina.horasDia'))
   ok(page.includes('Rotina e demanda'))
 })
+
+test('REQ-50 (6.6): PDF/detalhe/seletor mostram atividade física junto de Esportes', () => {
+  const pdf = read('../services/patientAiPdf.service.ts')
+  const catalog = read('./pdfFieldCatalog.ts')
+  const detail = read('../components/patients/evaluation/EvaluationFichaDetail.tsx')
+
+  const ocorrencias = pdf.split('Pratica atividade física').length - 1
+  ok(ocorrencias === 1, `PDF deve ter 1 ocorrência, tem ${ocorrencias}`)
+  const pos = pdf.indexOf('Pratica atividade física')
+  ok(pos > pdf.indexOf("'01.D'") && pos < pdf.indexOf('show03C'))
+
+  ok(detail.includes('Pratica atividade física'))
+  ok(detail.indexOf('label="Atividade física"') > 0)
+  ok(detail.indexOf('label="Atividade física"') < detail.indexOf('03 ·'))
+
+  const first = catalog.indexOf('praticaAtividadeFisica')
+  ok(first > catalog.indexOf("id: '01.D'"))
+  ok(catalog.lastIndexOf('praticaAtividadeFisica') < catalog.indexOf("id: '03.C'"))
+})

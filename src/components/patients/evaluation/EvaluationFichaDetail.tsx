@@ -98,6 +98,17 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Como começou" value={historia?.comoComecou} />
         <DetailLeaf label="Achados de exames" value={tratamentos?.achados} />
         <DetailLeaf label="Histórico — observações" value={pregresso?.observacoes} />
+        <DetailLeaf
+          label="Pratica atividade física"
+          value={
+            funcao?.rotina?.praticaAtividadeFisica === 'sim'
+              ? 'Sim'
+              : funcao?.rotina?.praticaAtividadeFisica === 'nao'
+                ? 'Não'
+                : undefined
+          }
+        />
+        <DetailLeaf label="Atividade física" value={formatAtividadeFisica(funcao?.rotina)} />
         {esportesResumo.map((esporte) => (
           <DetailLeaf
             key={esporte.label}
@@ -155,7 +166,6 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
           label="Registro anterior"
           value={atividades?.textoLegado?.trim() ? atividades.textoLegado : undefined}
         />
-        <DetailLeaf label="Atividade física" value={formatAtividadeFisica(funcao?.rotina)} />
         <DetailLeaf label="Boa melhora" value={funcao?.expectativas?.boaMelhora} />
         <DetailLeaf label="Triagem — observações" value={funcao?.triagemSeguranca?.observacoes} />
         <DetailLeaf label="Medicamentos" value={funcao?.medicacoes?.medicamentos} />
