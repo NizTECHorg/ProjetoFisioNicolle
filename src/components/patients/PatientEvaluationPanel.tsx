@@ -294,25 +294,27 @@ export function PatientEvaluationPanel({
       ) : null}
 
       {!isLoading && !isError && !editorOpen && evaluations.length > 0 ? (
-        <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <ul className="space-y-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <ul className="min-w-0 space-y-2">
             {evaluations.map((item) => {
               const active = selected?.id === item.id
               const complete = fichaHasClinicalContent(item.ficha)
               return (
-                <li key={item.id}>
+                <li key={item.id} className="relative min-w-0">
                   <button
                     type="button"
                     onClick={() => setSelectedId(item.id)}
                     className={[
-                      'w-full rounded-xl border p-3 text-left transition',
+                      'w-full min-w-0 rounded-xl border p-3 text-left transition',
+                      canWrite ? 'pr-14 lg:pr-3' : '',
                       active ? 'border-forest bg-surface ring-1 ring-forest' : 'border-line bg-surface/70 hover:bg-surface',
                     ].join(' ')}
                   >
-                    <p className="text-sm font-semibold text-ink">
+                    <p className="truncate text-sm font-semibold text-ink">
                       {item.title || item.performedOnLabel}
                     </p>
-                    <p className="mt-1 truncate text-xs text-muted">
+                    {/* Uma linha só: o texto vai até a borda do card e some em degradê. */}
+                    <p className="mt-1 overflow-hidden whitespace-nowrap text-xs text-muted [mask-image:linear-gradient(to_right,black_75%,transparent)]">
                       {[
                         item.title ? item.performedOnLabel : null,
                         item.mainComplaint || item.ficha?.anamnese?.queixa?.oQueTrouxe || null,
@@ -335,13 +337,25 @@ export function PatientEvaluationPanel({
                       </span>
                     </div>
                   </button>
+                  {/* Mobile: editar direto no card da lista; no desktop fica no cabeçalho do resumo. */}
+                  {canWrite ? (
+                    <button
+                      type="button"
+                      aria-label={`Editar avaliação ${item.title || item.performedOnLabel}`}
+                      title="Editar avaliação"
+                      onClick={() => openEdit(item)}
+                      className="absolute right-2 top-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-forest transition active:scale-95 lg:hidden"
+                    >
+                      <Pencil size={17} />
+                    </button>
+                  ) : null}
                 </li>
               )
             })}
           </ul>
 
           {selected ? (
-            <article className="rounded-2xl border border-line bg-surface p-5">
+            <article className="min-w-0 rounded-2xl border border-line bg-surface p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -364,15 +378,16 @@ export function PatientEvaluationPanel({
                   </p>
                 </div>
                 {canWrite ? (
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     <button
                       type="button"
                       aria-label="Editar avaliação"
                       title="Editar avaliação"
                       onClick={() => openEdit(selected)}
-                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
+                      className="hidden min-h-11 items-center justify-center gap-2 rounded-full bg-forest px-4 text-sm font-semibold text-white shadow-md shadow-forest/20 transition hover:bg-forest-mid active:scale-[0.98] lg:inline-flex"
                     >
                       <Pencil size={18} />
+                      <span>Editar</span>
                     </button>
                     <button
                       type="button"

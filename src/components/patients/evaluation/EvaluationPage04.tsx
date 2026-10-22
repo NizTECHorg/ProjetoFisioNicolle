@@ -21,6 +21,7 @@ import {
 } from '@/lib/mobilidadePalpacao'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { scrollToElement } from '@/lib/scrollToElement'
+import { FORCA_REGIOES, agruparForca, sugestoesForca } from '@/lib/forcaRegioes'
 import { SignaturePad } from '@/components/patients/evaluation/SignaturePad'
 import {
   BoolCheck,
@@ -1653,63 +1654,107 @@ function ForcaTable({
     control,
     name: 'ficha.avaliacaoPlano.forca.linhas',
   })
+  const listaId = useId()
+  const grupos = agruparForca(fields)
+  const usadas = new Set(grupos.map((grupo) => grupo.regiao))
+  const livres = FORCA_REGIOES.filter((regiao) => !usadas.has(regiao.label))
+
+  function adicionar(regiao: string) {
+    append({ regiao, grupo: '', direito: '', esquerdo: '', dor: '', observacao: '' })
+  }
 
   return (
-    <div className="space-y-3">
-      {fields.map((field, index) => (
-        <div
-          key={field.id}
-          className="grid gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))_auto]"
-        >
-          <Input
-            label={`Grupo ${index + 1}`}
-            disabled={disabled}
-            {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.grupo`)}
-          />
-          <Input
-            label={`Direito ${index + 1}`}
-            disabled={disabled}
-            {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.direito`)}
-          />
-          <Input
-            label={`Esquerdo ${index + 1}`}
-            disabled={disabled}
-            {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.esquerdo`)}
-          />
-          <Input
-            label={`Dor ${index + 1}`}
-            disabled={disabled}
-            {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.dor`)}
-          />
-          <Input
-            label={`Observação ${index + 1}`}
-            disabled={disabled}
-            {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.observacao`)}
-          />
-          {!disabled ? (
-            <button
-              type="button"
-              aria-label="Remover linha de força"
-              className="inline-flex min-h-11 items-center justify-center text-sm text-muted hover:text-error sm:mt-7"
-              onClick={() => remove(index)}
-            >
-              Remover
-            </button>
-          ) : (
-            <span />
-          )}
+    <div className="space-y-4">
+      {grupos.map((grupo) => {
+        const sugestoes = sugestoesForca(grupo.regiao)
+        const datalistId = `${listaId}-${grupo.regiao || 'sem-regiao'}`
+        return (
+          <section key={grupo.regiao || 'sem-regiao'} className="space-y-3 rounded-xl border border-line p-3">
+            <h4 className="text-sm font-semibold text-ink">{grupo.regiao || 'Sem região'}</h4>
+            {sugestoes.length > 0 ? (
+              <datalist id={datalistId}>
+                {sugestoes.map((sugestao) => (
+                  <option key={sugestao} value={sugestao} />
+                ))}
+              </datalist>
+            ) : null}
+            {grupo.linhas.map(({ linha, index }, posicao) => (
+              <div
+                key={linha.id}
+                className="grid gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))_auto]"
+              >
+                <Input
+                  label={`Movimento / grupo ${posicao + 1}`}
+                  disabled={disabled}
+                  list={sugestoes.length > 0 ? datalistId : undefined}
+                  {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.grupo`)}
+                />
+                <Input
+                  label="Direito"
+                  disabled={disabled}
+                  {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.direito`)}
+                />
+                <Input
+                  label="Esquerdo"
+                  disabled={disabled}
+                  {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.esquerdo`)}
+                />
+                <Input
+                  label="Dor"
+                  disabled={disabled}
+                  {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.dor`)}
+                />
+                <Input
+                  label="Observação"
+                  disabled={disabled}
+                  {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.observacao`)}
+                />
+                {!disabled ? (
+                  <button
+                    type="button"
+                    aria-label={`Remover linha ${posicao + 1} de ${grupo.regiao || 'sem região'}`}
+                    className="inline-flex min-h-11 items-center justify-center text-sm text-muted hover:text-error sm:mt-7"
+                    onClick={() => remove(index)}
+                  >
+                    Remover
+                  </button>
+                ) : (
+                  <span />
+                )}
+              </div>
+            ))}
+            {!disabled && grupo.regiao ? (
+              <button
+                type="button"
+                onClick={() => adicionar(grupo.regiao)}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-forest hover:bg-accent-soft"
+              >
+                <Plus size={15} aria-hidden />
+                Adicionar em {grupo.regiao}
+              </button>
+            ) : null}
+          </section>
+        )
+      })}
+      {!disabled && livres.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-xs text-muted">
+            {grupos.length === 0 ? 'Escolha a região para registrar a força:' : 'Adicionar outra região:'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {livres.map((regiao) => (
+              <button
+                key={regiao.label}
+                type="button"
+                onClick={() => adicionar(regiao.label)}
+                className="inline-flex min-h-10 items-center gap-1 rounded-full border border-line bg-surface px-3 text-sm text-ink transition hover:border-forest/30 hover:bg-accent-soft"
+              >
+                <Plus size={14} aria-hidden />
+                {regiao.label}
+              </button>
+            ))}
+          </div>
         </div>
-      ))}
-      {!disabled ? (
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() =>
-            append({ grupo: '', direito: '', esquerdo: '', dor: '', observacao: '' })
-          }
-        >
-          Adicionar linha
-        </Button>
       ) : null}
     </div>
   )

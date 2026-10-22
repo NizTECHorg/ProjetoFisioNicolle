@@ -13,20 +13,17 @@ import { useUpdatePatient } from '@/hooks/usePatients'
 import {
   adminSectionSchema,
   emergencySectionSchema,
-  identityPatientSchema,
-  patientStatusOptions,
   personalSectionSchema,
   treatmentSectionSchema,
   type AdminSectionFormData,
   type EmergencySectionFormData,
-  type IdentityPatientFormData,
   type PersonalSectionFormData,
   type TreatmentSectionFormData,
 } from '@/schemas/patient.schema'
 import { formatCpf } from '@/lib/cpf'
 import type { Patient, UpdatePatientInput } from '@/types/patient'
 
-type EditSection = 'identity' | 'personal' | 'emergency' | 'admin' | 'treatment' | null
+type EditSection = 'personal' | 'emergency' | 'admin' | 'treatment' | null
 
 function displayValue(value: string) {
   return value && value !== '—' ? value : '—'
@@ -66,9 +63,9 @@ function EditableCard({
             type="button"
             aria-label={`Editar ${title}`}
             onClick={onEdit}
-            className="rounded-lg p-1.5 text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+            className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
           >
-            <Pencil size={14} />
+            <Pencil size={16} />
           </button>
         ) : null}
       </div>
@@ -97,20 +94,15 @@ function FormActions({ onClose, isLoading }: { onClose: () => void; isLoading: b
 type PatientCadastroPanelProps = {
   patient: Patient
   canWrite?: boolean
-  onRequestIdentityEdit?: (open: () => void) => void
 }
 
 export function PatientCadastroPanel({
   patient,
   canWrite = true,
-  onRequestIdentityEdit,
 }: PatientCadastroPanelProps) {
   const update = useUpdatePatient()
   const [section, setSection] = useState<EditSection>(null)
 
-  const identityForm = useForm<IdentityPatientFormData>({
-    resolver: zodResolver(identityPatientSchema),
-  })
   const personalForm = useForm<PersonalSectionFormData>({
     resolver: zodResolver(personalSectionSchema),
   })
@@ -125,21 +117,7 @@ export function PatientCadastroPanel({
   })
 
   useEffect(() => {
-    if (!canWrite) return
-    onRequestIdentityEdit?.(() => setSection('identity'))
-  }, [onRequestIdentityEdit, canWrite])
-
-  useEffect(() => {
     if (!section) return
-    if (section === 'identity') {
-      identityForm.reset({
-        fullName: patient.name,
-        phone: dash(patient.phone),
-        email: dash(patient.email),
-        birthDate: patient.birthDateRaw ?? '',
-        status: patient.status,
-      })
-    }
     if (section === 'personal') {
       personalForm.reset({
         birthDate: patient.birthDateRaw ?? '',
@@ -177,7 +155,7 @@ export function PatientCadastroPanel({
         frequency: dash(patient.frequency),
       })
     }
-  }, [patient, section, identityForm, personalForm, emergencyForm, adminForm, treatmentForm])
+  }, [patient, section, personalForm, emergencyForm, adminForm, treatmentForm])
 
   function save(input: UpdatePatientInput) {
     update.mutate({ id: patient.id, input }, { onSuccess: () => setSection(null) })
@@ -235,59 +213,6 @@ export function PatientCadastroPanel({
 
       {canWrite ? (
         <>
-      <Modal
-        open={section === 'identity'}
-        title="Dados iniciais"
-        description="Nome, contato e identificação do paciente."
-        onClose={() => setSection(null)}
-      >
-        <form
-          className="space-y-4"
-          onSubmit={identityForm.handleSubmit((values) =>
-            save({
-              fullName: values.fullName,
-              phone: values.phone,
-              email: values.email,
-              birthDate: values.birthDate,
-              status: values.status,
-            }),
-          )}
-        >
-          <Input
-            label="Nome completo"
-            error={identityForm.formState.errors.fullName?.message}
-            {...identityForm.register('fullName')}
-          />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Telefone"
-              type="tel"
-              error={identityForm.formState.errors.phone?.message}
-              {...identityForm.register('phone')}
-            />
-            <Input
-              label="E-mail"
-              type="email"
-              error={identityForm.formState.errors.email?.message}
-              {...identityForm.register('email')}
-            />
-            <Input
-              label="Nascimento"
-              type="date"
-              error={identityForm.formState.errors.birthDate?.message}
-              {...identityForm.register('birthDate')}
-            />
-          </div>
-          <Select
-            label="Status"
-            options={patientStatusOptions}
-            error={identityForm.formState.errors.status?.message}
-            {...identityForm.register('status')}
-          />
-          <FormActions onClose={() => setSection(null)} isLoading={update.isPending} />
-        </form>
-      </Modal>
-
       <Modal
         open={section === 'personal'}
         title="Dados pessoais"

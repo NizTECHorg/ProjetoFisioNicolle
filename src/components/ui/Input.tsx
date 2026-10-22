@@ -1,19 +1,23 @@
 import { forwardRef, type InputHTMLAttributes } from 'react'
+import { RequiredMark } from '@/components/ui/RequiredMark'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
+  /** Mostra o ícone de campo obrigatório ao lado do rótulo. */
+  requiredMark?: boolean
   hint?: string
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, id, className = '', ...props }, ref) => {
+  ({ label, error, requiredMark = false, hint, id, className = '', ...props }, ref) => {
     const inputId = id ?? label.toLowerCase().replace(/\s+/g, '-')
 
     return (
       <div className="space-y-2">
-        <label htmlFor={inputId} className="block text-sm font-medium text-ink">
+        <label htmlFor={inputId} className="flex items-center gap-1.5 text-sm font-medium text-ink">
           {label}
+          {requiredMark ? <RequiredMark /> : null}
         </label>
         <input
           ref={ref}

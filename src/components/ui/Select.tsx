@@ -1,19 +1,23 @@
 import { forwardRef, type SelectHTMLAttributes } from 'react'
+import { RequiredMark } from '@/components/ui/RequiredMark'
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string
   error?: string
+  /** Mostra o ícone de campo obrigatório ao lado do rótulo. */
+  requiredMark?: boolean
   options: Array<{ value: string; label: string }>
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, options, id, className = '', ...props }, ref) => {
+  ({ label, error, requiredMark = false, options, id, className = '', ...props }, ref) => {
     const selectId = id ?? label.toLowerCase().replace(/\s+/g, '-')
 
     return (
       <div className="space-y-2">
-        <label htmlFor={selectId} className="block text-sm font-medium text-ink">
+        <label htmlFor={selectId} className="flex items-center gap-1.5 text-sm font-medium text-ink">
           {label}
+          {requiredMark ? <RequiredMark /> : null}
         </label>
         <select
           ref={ref}

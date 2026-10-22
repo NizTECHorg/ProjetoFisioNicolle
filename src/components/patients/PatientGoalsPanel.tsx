@@ -199,14 +199,14 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
                     </div>
                   )}
                   {canWrite ? (
-                    <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                    <div className="flex shrink-0 flex-col gap-0.5">
                       <button
                         type="button"
                         aria-label="Editar meta"
                         onClick={() => openEdit(goal)}
                         className="rounded-md p-1 text-muted transition hover:bg-white hover:text-forest"
                       >
-                        <Pencil size={12} />
+                        <Pencil size={16} />
                       </button>
                       <button
                         type="button"
@@ -214,7 +214,7 @@ export function PatientGoalsPanel({ patientId, goals, canWrite = true }: Patient
                         onClick={() => setPendingDelete(goal)}
                         className="rounded-md p-1 text-muted transition hover:bg-white hover:text-error"
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   ) : null}

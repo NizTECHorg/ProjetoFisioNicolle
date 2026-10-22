@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { PatientAiFieldPicker } from '@/components/patients/PatientAiFieldPicker'
+import { ResumoDitado } from '@/components/patients/ResumoDitado'
 import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -540,6 +541,14 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
             value={userHint}
             onChange={(event) => setUserHint(event.target.value)}
           />
+          {canWrite ? (
+            <ResumoDitado
+              disabled={busy}
+              onIncorporar={(texto) =>
+                setUserHint((atual) => (atual.trim() ? `${atual.trimEnd()}\n${texto}` : texto).slice(0, 2000))
+              }
+            />
+          ) : null}
           <AiGeneratingButton
             type="button"
             className="w-full sm:w-auto"

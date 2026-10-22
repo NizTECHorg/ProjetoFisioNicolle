@@ -1452,15 +1452,24 @@ async function callGeminiEvolucao(
   return callGeminiWithParse(apiKey, prompt, parseEvolucaoJson)
 }
 
+// Checklist 7.3: ditado do resumo. Transcrição fiel; o profissional revisa antes de usar.
+const AUDIO_TRANSCRICAO_PROMPT = `Transcreva fielmente, em português do Brasil, o que é dito no áudio.
+Diretrizes:
+- Não resuma, não interprete e não acrescente informações.
+- Corrija apenas pontuação e letras maiúsculas; remova hesitações como "é...", "hum".
+- Responda só com o texto transcrito, sem títulos, sem Markdown e sem comentários.
+- Se não houver fala compreensível, responda com uma linha vazia.`
+
 async function callGeminiAudioEvolution(
   apiKey: string,
   audioBase64: string,
   mimeType: string,
   patientContext?: string,
+  promptOverride?: string,
 ): Promise<{ text: string } | { error: 'ai_unavailable' | 'misconfigured' }> {
   let sawKeyError = false
   const cleanMimeType = mimeType.split(';')[0].trim() || 'audio/webm'
-  const promptText = `Você é uma assistente especializada em fisioterapia clínica.
+  const promptText = promptOverride ?? `Você é uma assistente especializada em fisioterapia clínica.
 Sua tarefa é ouvir o áudio gravado da sessão de fisioterapia e redigir uma Evolução Clínica Fisioterapêutica completa, profissional e direta com base no relato.${patientContext || ''}
 
 Organize em texto limpo com os seguintes tópicos:
@@ -1889,6 +1898,8 @@ Deno.serve(async (req: Request) => {
         ? 'evolucao'
         : body.mode === 'audio-evolucao'
           ? 'audio-evolucao'
+          : body.mode === 'audio-transcricao'
+            ? 'audio-transcricao'
           : body.mode === 'resumo' || body.mode === undefined || body.mode === null
             ? 'resumo'
             : null
@@ -1897,7 +1908,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const patientId = typeof body.patientId === 'string' ? body.patientId.trim() : ''
-  if (mode !== 'audio-evolucao' && (!patientId || !UUID_RE.test(patientId))) {
+  const audioMode = mode === 'audio-evolucao' || mode === 'audio-transcricao'
+  if (!audioMode && (!patientId || !UUID_RE.test(patientId))) {
     return jsonResponse({ error: 'invalid_body', code: 'invalid_body' }, 400)
   }
 
@@ -1925,7 +1937,7 @@ Deno.serve(async (req: Request) => {
 
   const userClient = createUserClient(authHeader)
 
-  if (mode === 'audio-evolucao') {
+  if (audioMode) {
     const audioBase64 = typeof body.audioBase64 === 'string' ? body.audioBase64.trim() : ''
     const mimeType = typeof body.mimeType === 'string' ? body.mimeType.trim() : 'audio/webm'
 
@@ -1934,7 +1946,7 @@ Deno.serve(async (req: Request) => {
     }
 
     let patientContext = ''
-    if (patientId && UUID_RE.test(patientId)) {
+    if (mode === 'audio-evolucao' && patientId && UUID_RE.test(patientId)) {
       try {
         const { data: p } = await userClient
           .from('patients')
@@ -1949,7 +1961,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const result = await callGeminiAudioEvolution(apiKey, audioBase64, mimeType, patientContext)
+    const result = await callGeminiAudioEvolution(
+      apiKey,
+      audioBase64,
+      mimeType,
+      patientContext,
+      mode === 'audio-transcricao' ? AUDIO_TRANSCRICAO_PROMPT : undefined,
+    )
     if ('error' in result) {
       if (result.error === 'misconfigured') {
         return jsonResponse({ error: 'misconfigured', code: 'misconfigured' }, 500)

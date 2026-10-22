@@ -8,6 +8,7 @@ import {
   formatMissing,
   getConsentTerm,
   termMissingForSave,
+  CAMPO_CLINICO,
   type TermValues,
 } from './consentTerms.ts'
 
@@ -20,13 +21,14 @@ const full: TermValues = {
 }
 const empty: TermValues = { patientName: '', patientCpf: '', therapistName: '', crefito: '', guardian: null }
 
-test('4 termos na ordem e com metadados', () => {
-  deepEqual(CONSENT_TERMS.map((t) => t.key), ['consentimento', 'liberacao', 'uso_imagem', 'uso_imagem_redes'])
+test('termos na ordem e com metadados', () => {
+  deepEqual(CONSENT_TERMS.map((t) => t.key), ['consentimento', 'liberacao', 'uso_imagem', 'uso_imagem_redes', 'tcle_conduta'])
   deepEqual(CONSENT_TERMS.map((t) => t.category), [
     'Consentimento',
     'Liberação',
     'Uso de Imagem',
     'Uso de Imagem em Redes Sociais',
+    'TCLE · Conduta',
   ])
   equal(getConsentTerm('consentimento').title, 'Termo de Consentimento para Atendimento Fisioterapêutico')
   equal(
@@ -50,6 +52,15 @@ test('valores vazios viram BLANK e nenhum token sobra', () => {
     const filled = fillTerm(t.template, full)
     ok(!filled.includes('{{') && !filled.includes('}}') && !filled.includes(BLANK))
   }
+})
+
+test('TCLE de conduta: campos clínicos podem ficar vazios e o termo salva mesmo assim', () => {
+  const t = getConsentTerm('tcle_conduta')
+  const text = fillTerm(t.template, full)
+  equal(text.split(CAMPO_CLINICO).length - 1, 7)
+  ok(text.includes('Possíveis efeitos colaterais: ' + CAMPO_CLINICO))
+  ok(text.includes('Resolução COFFITO nº 424/2013'))
+  deepEqual(termMissingForSave({ hasPatient: true, signatureOk: true, values: full, text }), [])
 })
 
 test('responsável legal', () => {

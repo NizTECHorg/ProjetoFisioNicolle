@@ -251,9 +251,25 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
   const sintomas = ficha.sintomas
   const marks = sintomas?.mapa?.marks ?? []
   const hasMapa = marks.length > 0
+  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
+  pushBlock(items, {
+    id: '05.A',
+    label: 'Mapa de sintomas',
+    groupLabel: '02 · Sintomas · Bloco A',
+    filled: tracosMapa.length > 0 || textFilled(ficha.mapaSintomas?.observacao),
+    preview: previewFrom(
+      tracosMapa.length > 0
+        ? usedBodyDrawingColors(tracosMapa)
+            .map((item) => item.label)
+            .join(', ')
+        : undefined,
+      ficha.mapaSintomas?.observacao,
+    ),
+  })
+
   pushBlock(items, {
     id: '02.A',
-    label: 'Mapa corporal',
+    label: 'Regiões marcadas',
     groupLabel: '02 · Sintomas · Bloco A',
     filled: hasMapa,
     preview: previewFrom(marks[0]?.regionKey),
@@ -570,7 +586,9 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     label: 'Força',
     groupLabel: '04 · Avaliação e plano · Bloco C',
     filled: forcaRows.length > 0,
-    preview: previewFrom(forcaRows[0]?.grupo),
+    preview: previewFrom(
+      [forcaRows[0]?.regiao, forcaRows[0]?.grupo].filter((parte) => parte?.trim()).join(' · '),
+    ),
   })
 
   const neuroItems = checkedLabels(plano?.neurologico as Record<string, unknown> | undefined, {
@@ -701,21 +719,6 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     ),
   })
 
-  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
-  pushBlock(items, {
-    id: '05.A',
-    label: 'Desenho dos sintomas',
-    groupLabel: '05 · Mapa de sintomas · Bloco A',
-    filled: tracosMapa.length > 0 || textFilled(ficha.mapaSintomas?.observacao),
-    preview: previewFrom(
-      tracosMapa.length > 0
-        ? usedBodyDrawingColors(tracosMapa)
-            .map((item) => item.label)
-            .join(', ')
-        : undefined,
-      ficha.mapaSintomas?.observacao,
-    ),
-  })
 
   return items
 }

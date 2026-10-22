@@ -126,7 +126,11 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
       {/* Seção só com o título (nenhum campo preenchido) some. */}
       <section className="space-y-3 [&:not(:has(>:nth-child(2)))]:hidden">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">02 · Sintomas</p>
-        <DetailLeaf label="Mapa corporal" value={markLabels || null} />
+        {tracosMapa.length > 0 ? (
+          <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} disabled showLegend={false} onChange={() => {}} />
+        ) : null}
+        <DetailLeaf label="Observações do desenho" value={ficha.mapaSintomas?.observacao} />
+        <DetailLeaf label="Regiões marcadas" value={markLabels || null} />
         <DetailLeaf
           label="Característica"
           value={checkedLabels(sintomas?.caracteristica, {
@@ -231,13 +235,6 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
         <DetailLeaf label="Fisioterapeuta" value={plano?.profissional?.fisioterapeuta} />
       </section>
 
-      {tracosMapa.length > 0 || ficha.mapaSintomas?.observacao?.trim() ? (
-        <section className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">05 · Mapa de sintomas</p>
-          {tracosMapa.length > 0 ? <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} disabled showLegend={false} onChange={() => {}} /> : null}
-          <DetailLeaf label="Observações do desenho" value={ficha.mapaSintomas?.observacao} />
-        </section>
-      ) : null}
     </div>
   )
 }

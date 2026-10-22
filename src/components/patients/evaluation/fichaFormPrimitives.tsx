@@ -20,7 +20,6 @@ import {
   ListChecks,
   MessageSquareText,
   Move,
-  PersonStanding,
   Pill,
   ShieldAlert,
   Stethoscope,
@@ -45,7 +44,7 @@ const FICHA_BLOCK_ICONS: Record<string, LucideIcon> = {
   'Tratamentos e investigações anteriores': Stethoscope,
   'Histórico pregresso resumido': ClipboardList,
   // 02 · Sintomas
-  'Mapa corporal': PersonStanding,
+  'Mapa de sintomas': Brush,
   'Característica predominante': Zap,
   'Intensidade (0–10)': Gauge,
   'Comportamento em 24 horas': Clock,
@@ -70,8 +69,6 @@ const FICHA_BLOCK_ICONS: Record<string, LucideIcon> = {
   'Objetivos': Flag,
   'Planejamento': CalendarRange,
   'Identificação profissional': BadgeCheck,
-  // 05 · Mapa de sintomas
-  'Desenho dos sintomas': Brush,
 }
 
 /** id do bloco no DOM (navegação lateral da avaliação no desktop). */

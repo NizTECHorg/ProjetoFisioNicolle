@@ -1,7 +1,7 @@
 // Constantes editáveis da landing page — troque aqui o WhatsApp, os preços, o Sobre o Fluxo e o Instagram
 
-// DDI+DDD+número, só dígitos (placeholder até o número real ser informado)
-export const WHATSAPP_NUMBER = '5500000000000'
+// DDI+DDD+número, só dígitos
+export const WHATSAPP_NUMBER = '5511927162828'
 export const WHATSAPP_MESSAGE = 'Olá! Vim pela página do Fluxo e gostaria de saber mais.'
 
 export const PRICE_PLACEHOLDER = 'R$ —'
@@ -64,7 +64,7 @@ export const ABOUT_PARAGRAPHS = [
 ] as const
 
 // Instagram do Fluxo no rodapé (URL completa, ex.: 'https://www.instagram.com/fluxo'); null esconde o ícone
-export const INSTAGRAM_URL: string | null = null
+export const INSTAGRAM_URL: string | null = 'https://www.instagram.com/fluxo.gestaoclinica/'
 
 // Capturas do app no hero. null mostra a prévia ilustrada (placeholder).
 // Coloque as imagens em public/ (ex.: '/landing/app-desktop.webp') e troque aqui.

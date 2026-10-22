@@ -10,7 +10,7 @@ test('navegação lateral: cada bloco listado existe com a mesma letra e título
   const inicio = FORM.indexOf('export const FICHA_BLOCOS')
   const corpo = FORM.slice(inicio, FORM.indexOf('\n}\n', inicio))
   const paginas = [...corpo.matchAll(/'(0\d)': \[([\s\S]*?)\]/g)]
-  ok(paginas.length === 5, 'esperava 5 páginas')
+  ok(paginas.length === 4, 'esperava 4 páginas (mapa de sintomas na 02 desde o 6.5)')
   for (const [, id = '', lista = ''] of paginas) {
     const pagina = read(`../components/patients/evaluation/EvaluationPage${id}.tsx`)
     for (const [, letter, title] of lista.matchAll(/letter: '([^']+)', title: '([^']+)'/g)) {
@@ -30,8 +30,9 @@ test('navegação lateral só no desktop (xl): chips e botões do fim somem só 
   ok(sidebar.includes('sticky top-4'))
   ok(sidebar.includes('form={formId}'), 'Salvar fora do <form> usa form=')
   ok(sidebar.includes('blocoPreenchido('))
+  ok(sidebar.includes('onClick={() => irParaPagina(proxima.id)}'), 'Próxima fixa junto do Salvar')
   ok(!sidebar.includes('border-l border-line'), 'sem linha à esquerda dos blocos')
   ok(editor.includes('createPortal('))
-  ok(FORM.includes("onPageChange ? 'xl:hidden' : ''"))
+  ok(FORM.includes("hideChipsOnDesktop ? 'xl:hidden' : ''"))
   ok(editor.includes("comLateral ? 'xl:hidden' : ''"))
 })

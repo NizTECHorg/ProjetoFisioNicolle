@@ -18,6 +18,7 @@ type EvolutionRow = {
   next_plan: string | null
   created_at: string
   created_by_name: string | null
+  finalized_at: string | null
 }
 
 type SessionRow = {
@@ -50,7 +51,8 @@ const SESSION_LIST_COLUMNS = `
     incidents,
     next_plan,
     created_at,
-    created_by_name
+    created_by_name,
+    finalized_at
   )
 `
 
@@ -101,6 +103,7 @@ function mapEvolution(row: EvolutionRow | null | undefined): SessionEvolution | 
     nextPlan: row.next_plan,
     createdAt: row.created_at,
     createdByName: row.created_by_name,
+    finalizedAt: row.finalized_at ?? null,
   }
 }
 
@@ -207,6 +210,7 @@ export async function createPatientSession(
     treatment_response: emptyToNull(input.treatmentResponse),
     incidents: emptyToNull(input.incidents),
     next_plan: emptyToNull(input.nextPlan),
+    finalized_at: input.finalizedAt ?? null,
     created_by: author.userId,
     created_by_name: author.name,
   })
@@ -256,6 +260,7 @@ export async function updatePatientSession(
     treatment_response: emptyToNull(input.treatmentResponse),
     incidents: emptyToNull(input.incidents),
     next_plan: emptyToNull(input.nextPlan),
+    ...(input.finalizedAt !== undefined ? { finalized_at: input.finalizedAt } : {}),
   }
 
   if (existingEvolutionId) {

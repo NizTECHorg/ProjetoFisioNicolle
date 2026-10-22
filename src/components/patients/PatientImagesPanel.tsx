@@ -524,7 +524,7 @@ export function PatientImagesPanel({ patientId, canWrite = false }: PatientImage
                     <p className="mt-1 text-xs text-muted">{tileAllocation(image, sessions)}</p>
                   </button>
                   {canWrite ? (
-                    <div className="absolute right-1 top-1 flex opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                    <div className="absolute right-1 top-1 flex">
                       <button
                         type="button"
                         aria-label={pdf ? 'Editar PDF' : 'Editar imagem'}

@@ -2,10 +2,14 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { EvaluationFichaForm, type FichaPageId } from '@/components/patients/evaluation/EvaluationFichaForm'
+import { EvaluationFichaFooter } from '@/components/patients/evaluation/EvaluationFichaFooter'
+import {
+  EvaluationFichaForm,
+  FICHA_PAGES,
+  type FichaPageId,
+} from '@/components/patients/evaluation/EvaluationFichaForm'
 import { EvaluationFichaSidebar } from '@/components/patients/evaluation/EvaluationFichaSidebar'
 import {
   useActiveTherapists,
@@ -17,6 +21,12 @@ import {
   evaluationFormSchema,
   type EvaluationFormData,
 } from '@/schemas/evaluation.schema'
+import {
+  EVALUATION_SAVED_MESSAGE,
+  EVALUATION_SAVE_ERROR,
+  fichaPagerState,
+  shouldBlockImplicitSubmit,
+} from '@/lib/evaluationFooter'
 import { formatTestesParaColuna } from '@/lib/mobilidadePalpacao'
 import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { genderLabel } from '@/lib/patientGender'
@@ -133,6 +143,8 @@ export function PatientEvaluationEditorForm({
 }: PatientEvaluationEditorFormProps) {
   const { data: therapists = [] } = useActiveTherapists()
   const [fichaPage, setFichaPage] = useState<FichaPageId>('01')
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const targetId = editing?.id ?? savedId
   const formId = `avaliacao-${useId()}`
   const comLateral = Boolean(sidebarContainer)
   const createEvaluation = useCreatePatientEvaluation(patientId, {
@@ -140,6 +152,14 @@ export function PatientEvaluationEditorForm({
     errorMessage,
   })
   const updateEvaluation = useUpdatePatientEvaluation(patientId)
+  const createStay = useCreatePatientEvaluation(patientId, {
+    errorMessage: errorMessage ?? EVALUATION_SAVE_ERROR,
+    successMessage: EVALUATION_SAVED_MESSAGE,
+  })
+  const updateStay = useUpdatePatientEvaluation(patientId, {
+    successMessage: EVALUATION_SAVED_MESSAGE,
+    errorMessage: errorMessage ?? EVALUATION_SAVE_ERROR,
+  })
 
   const therapistOptions = useMemo(
     () => [
@@ -198,10 +218,10 @@ export function PatientEvaluationEditorForm({
     return null
   }
 
-  function onSubmit(values: EvaluationFormData) {
+  function buildInput(values: EvaluationFormData) {
     const therapist = therapists.find((item) => item.id === values.therapistId)
     const ficha = values.ficha ?? emptyEvaluationFicha()
-    const input = {
+    return {
       performedOn: values.performedOn,
       ficha,
       mainComplaint: ficha.anamnese?.queixa?.oQueTrouxe ?? values.mainComplaint ?? '',
@@ -218,13 +238,26 @@ export function PatientEvaluationEditorForm({
       therapistId: therapist?.id ?? null,
       therapistName: therapist?.fullName ?? null,
     }
+  }
 
-    if (editing) {
-      updateEvaluation.mutate({ evaluationId: editing.id, input }, { onSuccess })
+  function onSubmit(values: EvaluationFormData) {
+    const input = buildInput(values)
+    if (targetId) {
+      updateEvaluation.mutate({ evaluationId: targetId, input }, { onSuccess })
       return
     }
-
     createEvaluation.mutate(input, { onSuccess })
+  }
+
+  function onSaveStay(values: EvaluationFormData) {
+    const input = buildInput(values)
+    if (targetId) {
+      updateStay.mutate({ evaluationId: targetId, input })
+      return
+    }
+    createStay.mutate(input, {
+      onSuccess: (id) => setSavedId(id),
+    })
   }
 
   function onInvalid() {
@@ -234,11 +267,34 @@ export function PatientEvaluationEditorForm({
     toast(message, 'error')
   }
 
-  const saving = createEvaluation.isPending || updateEvaluation.isPending
+  function goNext() {
+    const { next } = fichaPagerState(
+      FICHA_PAGES.map((p) => p.id),
+      fichaPage,
+    )
+    if (next) setFichaPage(next)
+  }
+
+  const saveAndStay = form.handleSubmit(onSaveStay, onInvalid)
+  const saving =
+    createEvaluation.isPending ||
+    updateEvaluation.isPending ||
+    createStay.isPending ||
+    updateStay.isPending
   const performedOnValid = /^\d{4}-\d{2}-\d{2}$/.test(form.watch('performedOn') ?? '')
 
   return (
-    <form id={formId} className="space-y-5" onSubmit={form.handleSubmit(onSubmit, onInvalid)}>
+    <form
+      id={formId}
+      className="space-y-5"
+      onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+      onKeyDown={(e) => {
+        const t = e.target as HTMLElement
+        if (shouldBlockImplicitSubmit(e.key, t.tagName, (t as HTMLInputElement).type)) {
+          e.preventDefault()
+        }
+      }}
+    >
       {showInnerHeading ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -279,19 +335,22 @@ export function PatientEvaluationEditorForm({
         watch={form.watch}
         setValue={form.setValue}
         control={form.control}
-        page={comLateral ? fichaPage : undefined}
-        onPageChange={comLateral ? setFichaPage : undefined}
+        page={fichaPage}
+        onPageChange={setFichaPage}
+        hideChipsOnDesktop={comLateral}
       />
 
       {/* No desktop os botões ficam fixos na navegação lateral. */}
-      <div className={['flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end', comLateral ? 'xl:hidden' : ''].join(' ')}>
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
-          {cancelLabel}
-        </Button>
-        <Button type="submit" isLoading={saving} disabled={!performedOnValid}>
-          {submitLabel}
-        </Button>
-      </div>
+      <EvaluationFichaFooter
+        page={fichaPage}
+        onNext={goNext}
+        onSave={saveAndStay}
+        onCancel={onCancel}
+        cancelLabel={cancelLabel}
+        saving={saving}
+        saveDisabled={!performedOnValid}
+        className={comLateral ? 'xl:hidden' : ''}
+      />
 
       {sidebarContainer
         ? createPortal(

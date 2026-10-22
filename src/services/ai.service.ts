@@ -46,7 +46,8 @@ function blobToBase64(blob: Blob): Promise<string> {
   })
 }
 
-export async function generateEvolutionFromAudio(
+async function invokeAudio(
+  mode: 'audio-evolucao' | 'audio-transcricao',
   audioBlob: Blob,
   patientId?: string,
 ): Promise<string> {
@@ -55,7 +56,7 @@ export async function generateEvolutionFromAudio(
   const { data, error } = await supabase.functions.invoke('patient-ai-summary', {
     body: {
       patientId: patientId || undefined,
-      mode: 'audio-evolucao',
+      mode,
       audioBase64: base64Data,
       mimeType: audioBlob.type || 'audio/webm',
     },
@@ -72,6 +73,19 @@ export async function generateEvolutionFromAudio(
   }
 
   const parsed = data as { text?: string } | null
-  const rawText = parsed?.text || ''
+  return parsed?.text || ''
+}
+
+export async function generateEvolutionFromAudio(
+  audioBlob: Blob,
+  patientId?: string,
+): Promise<string> {
+  const rawText = await invokeAudio('audio-evolucao', audioBlob, patientId)
   return stripMarkdown(rawText).slice(0, 4000)
+}
+
+/** Checklist 7.3: transcrição literal do ditado, para revisar antes de entrar no resumo. */
+export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+  const rawText = await invokeAudio('audio-transcricao', audioBlob)
+  return stripMarkdown(rawText).slice(0, 2000)
 }

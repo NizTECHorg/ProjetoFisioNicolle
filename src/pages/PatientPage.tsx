@@ -25,6 +25,7 @@ import { PatientFocusAreasPanel } from '@/components/patients/PatientFocusAreasP
 import { PatientGoalsPanel } from '@/components/patients/PatientGoalsPanel'
 import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
+import { PatientIdentityEditModal } from '@/components/patients/PatientIdentityEditModal'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
@@ -61,7 +62,7 @@ import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPain
 
 const shortcuts = [
   { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
-  { label: 'Sessões', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
+  { label: 'Sessões / Evoluções', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
   { label: 'Avaliações', detail: 'Ficha de avaliação', icon: ClipboardCheck, tab: 'avaliacoes' as const },
   { label: 'Arquivos', detail: 'Fotos, PDFs e termos', icon: Images, tab: 'imagens' as const },
   { label: 'Dados cadastrais', detail: 'Contato e cadastro', icon: UserRound, tab: 'cadastro' as const },
@@ -164,7 +165,7 @@ function EntendaOCaso({
               type="button"
               aria-label="Editar entendimento do caso"
               onClick={() => setOpen(true)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
             >
               <Pencil size={16} />
             </button>
@@ -391,7 +392,7 @@ function ResumoDoPaciente({
         }}
         aria-label={`Editar ${SUMMARY_FIELD_LABELS[key]}`}
         onClick={() => openEditor(key)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
       >
         <Pencil size={16} />
       </button>
@@ -687,7 +688,7 @@ export function PatientPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
-  const openIdentityRef = useRef<(() => void) | null>(null)
+  const [identityOpen, setIdentityOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deletePatient = useDeletePatient(id ?? '')
 
@@ -727,10 +728,6 @@ export function PatientPage() {
     isLoading: detailLoading,
     isError: detailError,
   } = usePatient(id, { enabled: Boolean(id) && Boolean(dashboard) })
-
-  const registerIdentityOpener = useCallback((open: () => void) => {
-    openIdentityRef.current = open
-  }, [])
 
   const clearNovaQuery = useCallback(() => {
     setSearchParams({ aba: 'avaliacoes' }, { replace: true })
@@ -816,18 +813,7 @@ export function PatientPage() {
             </Button>
           ) : undefined
         }
-        identityAction={
-          canWrite && tab === 'cadastro' ? (
-            <button
-              type="button"
-              aria-label="Editar dados iniciais"
-              onClick={() => openIdentityRef.current?.()}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition hover:bg-accent-soft hover:text-forest group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
-            >
-              <Pencil size={16} />
-            </button>
-          ) : undefined
-        }
+        onEditName={canWrite && detail ? () => setIdentityOpen(true) : undefined}
       />
 
       <DeletePatientDialog
@@ -876,10 +862,13 @@ export function PatientPage() {
           <PatientCadastroPanel
             patient={detail}
             canWrite={canWrite}
-            onRequestIdentityEdit={registerIdentityOpener}
           />
         )}
       </div>
+
+      {canWrite && detail ? (
+        <PatientIdentityEditModal patient={detail} open={identityOpen} onClose={() => setIdentityOpen(false)} />
+      ) : null}
     </section>
   )
 }

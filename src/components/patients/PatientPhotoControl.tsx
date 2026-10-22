@@ -122,7 +122,7 @@ export function PatientPhotoRemoveButton({
     <>
       <button
         type="button"
-        className="inline-flex min-h-11 items-center px-2 text-xs text-muted hover:text-error"
+        className="inline-flex min-h-7 items-center text-xs text-muted hover:text-error lg:min-h-9 lg:px-2"
         aria-label={`Remover foto de ${name}`}
         onClick={() => setConfirmOpen(true)}
       >

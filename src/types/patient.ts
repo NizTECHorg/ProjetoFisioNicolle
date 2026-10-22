@@ -59,6 +59,8 @@ export interface SessionEvolution {
   treatmentResponse: string | null
   incidents: string | null
   nextPlan: string | null
+  /** null = rascunho (checklist 7.2). */
+  finalizedAt: string | null
   createdAt: string
   createdByName: string | null
 }
@@ -136,6 +138,8 @@ export interface UpsertPatientSessionInput {
   treatmentResponse?: string
   incidents?: string
   nextPlan?: string
+  /** Checklist 7.2: null = rascunho; ISO = evolução finalizada. Ausente = não mexe (ex.: agenda). */
+  finalizedAt?: string | null
 }
 
 export interface PatientAlert {

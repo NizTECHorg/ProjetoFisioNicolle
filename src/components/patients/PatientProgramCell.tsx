@@ -92,7 +92,7 @@ export function PatientProgramCell({
       {atual ? (
         <>
           <span className="truncate text-ink">{atual}</span>
-          <Pencil size={13} aria-hidden className="shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
+          <Pencil size={13} aria-hidden className="shrink-0 text-muted" />
         </>
       ) : (
         <span className="inline-flex items-center gap-1 text-sm text-accent">

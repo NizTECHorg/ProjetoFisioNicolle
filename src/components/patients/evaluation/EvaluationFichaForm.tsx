@@ -1,19 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Control, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { EvaluationPage01 } from '@/components/patients/evaluation/EvaluationPage01'
 import { EvaluationPage02 } from '@/components/patients/evaluation/EvaluationPage02'
 import { EvaluationPage03 } from '@/components/patients/evaluation/EvaluationPage03'
 import { EvaluationPage04 } from '@/components/patients/evaluation/EvaluationPage04'
-import { EvaluationPage05 } from '@/components/patients/evaluation/EvaluationPage05'
 import { FichaCollapseProvider } from '@/components/patients/evaluation/fichaFormPrimitives'
+import { fichaPageAnnouncement, fichaPageName, fichaPagerState } from '@/lib/evaluationFooter'
+import { scrollToElement } from '@/lib/scrollToElement'
 
 export const FICHA_PAGES = [
   { id: '01', label: '01 · Anamnese inicial' },
   { id: '02', label: '02 · Comportamento dos sintomas' },
   { id: '03', label: '03 · Função, contexto e segurança' },
   { id: '04', label: '04 · Avaliação e plano' },
-  { id: '05', label: '05 · Mapa de sintomas' },
 ] as const
 
 export type FichaPageId = (typeof FICHA_PAGES)[number]['id']
@@ -32,7 +32,7 @@ export const FICHA_BLOCOS: Record<
     { letter: 'F', title: 'Histórico pregresso resumido', path: ['anamnese', 'historicoPregresso'] },
   ],
   '02': [
-    { letter: 'A', title: 'Mapa corporal', path: ['sintomas', 'mapa'] },
+    { letter: 'A', title: 'Mapa de sintomas', path: ['mapaSintomas'] },
     { letter: 'B', title: 'Característica predominante', path: ['sintomas', 'caracteristica'] },
     { letter: 'C', title: 'Intensidade (0–10)', path: ['sintomas', 'intensidade'] },
     { letter: 'D', title: 'Comportamento em 24 horas', path: ['sintomas', 'comportamento24h'] },
@@ -59,7 +59,6 @@ export const FICHA_BLOCOS: Record<
     { letter: 'H', title: 'Planejamento', path: ['avaliacaoPlano', 'planejamento'] },
     { letter: 'ID', title: 'Identificação profissional', path: ['avaliacaoPlano', 'profissional'] },
   ],
-  '05': [{ letter: 'A', title: 'Desenho dos sintomas', path: ['mapaSintomas'] }],
 }
 
 type EvaluationFichaFormProps = {
@@ -69,10 +68,14 @@ type EvaluationFichaFormProps = {
   control: Control<EvaluationFormData>
   readOnly?: boolean
   initialPage?: FichaPageId
-  /** Página controlada por fora (navegação lateral no desktop). Com isso, os chips somem no desktop. */
+  /** Página controlada por fora. */
   page?: FichaPageId
   onPageChange?: (page: FichaPageId) => void
+  /** Esconde os chips de página no desktop (xl+) quando a lateral está ativa. */
+  hideChipsOnDesktop?: boolean
 }
+
+const FICHA_PAGE_IDS = FICHA_PAGES.map((p) => p.id)
 
 export function EvaluationFichaForm({
   register,
@@ -83,18 +86,46 @@ export function EvaluationFichaForm({
   initialPage = '01',
   page: pageControlada,
   onPageChange,
+  hideChipsOnDesktop,
 }: EvaluationFichaFormProps) {
   const [pageLocal, setPageLocal] = useState<FichaPageId>(initialPage)
   const page = pageControlada ?? pageLocal
   const setPage = (next: FichaPageId) => (onPageChange ? onPageChange(next) : setPageLocal(next))
+  const navRef = useRef<HTMLElement | null>(null)
+  const headingRef = useRef<HTMLHeadingElement | null>(null)
+  const prevPageRef = useRef<FichaPageId>(page)
+  const [announcement, setAnnouncement] = useState('')
+  const currentPageLabel = (FICHA_PAGES.find((item) => item.id === page) ?? FICHA_PAGES[0]).label
+
+  useEffect(() => {
+    if (prevPageRef.current === page) return
+    prevPageRef.current = page
+    const { n, total } = fichaPagerState(FICHA_PAGE_IDS, page)
+    const label = (FICHA_PAGES.find((item) => item.id === page) ?? FICHA_PAGES[0]).label
+    setAnnouncement(fichaPageAnnouncement(n, total, label))
+
+    if (readOnly || (navRef.current?.getClientRects().length ?? 0) === 0) return
+
+    const reduzido =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const frame = requestAnimationFrame(() => {
+      scrollToElement(navRef.current, 16, reduzido ? 'auto' : 'smooth')
+      headingRef.current?.focus({ preventScroll: true })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [page, readOnly])
 
   return (
     <FichaCollapseProvider>
     <div className="space-y-4">
       <nav
+        ref={navRef}
         className={[
           'flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:auto] [scrollbar-width:thin]',
-          onPageChange ? 'xl:hidden' : '',
+          hideChipsOnDesktop ? 'xl:hidden' : '',
         ].join(' ')}
         aria-label="Páginas da ficha"
         role="tablist"
@@ -107,6 +138,7 @@ export function EvaluationFichaForm({
               type="button"
               role="tab"
               aria-selected={active}
+              aria-current={active ? 'step' : undefined}
               onClick={() => setPage(item.id)}
               className={[
                 'inline-flex min-h-11 shrink-0 items-center rounded-xl border px-3 text-sm transition',
@@ -120,6 +152,12 @@ export function EvaluationFichaForm({
           )
         })}
       </nav>
+      <h2 ref={headingRef} tabIndex={-1} className="sr-only">
+        {fichaPageName(currentPageLabel)}
+      </h2>
+      <p role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
 
       {page === '01' ? (
         <EvaluationPage01 register={register} watch={watch} setValue={setValue} readOnly={readOnly} />
@@ -146,14 +184,6 @@ export function EvaluationFichaForm({
           watch={watch}
           setValue={setValue}
           control={control}
-          readOnly={readOnly}
-        />
-      ) : null}
-      {page === '05' ? (
-        <EvaluationPage05
-          register={register}
-          watch={watch}
-          setValue={setValue}
           readOnly={readOnly}
         />
       ) : null}

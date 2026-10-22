@@ -1,6 +1,6 @@
 import type { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
-import { BodyMapPicker, type BodyMapMark } from '@/components/patients/evaluation/BodyMapPicker'
+import { BodyDrawingPad } from '@/components/patients/evaluation/BodyDrawingPad'
 import {
   BoolCheck,
   CheckboxGrid,
@@ -20,17 +20,33 @@ type PageProps = {
 
 export function EvaluationPage02({ register, watch, setValue, readOnly }: PageProps) {
   const disabled = readOnly
-  const marks = (watch('ficha.sintomas.mapa.marks') ?? []) as BodyMapMark[]
 
   return (
     <div className="space-y-4">
-      <FichaBlock letter="A" title="Mapa corporal">
-        <BodyMapPicker
-          marks={marks}
-          canWrite={!disabled}
-          onChange={(next) =>
-            setValue('ficha.sintomas.mapa.marks', next, { shouldDirty: true, shouldValidate: true })
+      {/* Checklist 6.5: o desenho (antiga página 05) ocupa o bloco A. */}
+      <FichaBlock letter="A" title="Mapa de sintomas">
+        {!disabled ? (
+          <p className="text-sm leading-relaxed text-muted">
+            Escolha a cor pelo tipo de sintoma e desenhe sobre o corpo, na vista da frente ou de costas.
+          </p>
+        ) : null}
+        <BodyDrawingPad
+          value={watch('ficha.mapaSintomas.tracos')}
+          figura={watch('ficha.mapaSintomas.figura')}
+          onFiguraChange={(next) =>
+            setValue('ficha.mapaSintomas.figura', next, { shouldDirty: true, shouldValidate: true })
           }
+          disabled={disabled}
+          onChange={(next) =>
+            setValue('ficha.mapaSintomas.tracos', next, { shouldDirty: true, shouldValidate: true })
+          }
+        />
+        <TextField
+          label="Observações do desenho"
+          name="ficha.mapaSintomas.observacao"
+          register={register}
+          rows={2}
+          disabled={disabled}
         />
       </FichaBlock>
 

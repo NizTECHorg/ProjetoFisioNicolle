@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Activity,
+  ArrowRight,
   ChevronDown,
   ClipboardList,
-  PersonStanding,
   ShieldCheck,
   Stethoscope,
   type LucideIcon,
@@ -18,6 +18,7 @@ import {
 } from '@/components/patients/evaluation/EvaluationFichaForm'
 import { fichaBlocoDomId } from '@/components/patients/evaluation/fichaFormPrimitives'
 import { blocoPreenchido } from '@/lib/fichaPreenchimento'
+import { fichaPagerState } from '@/lib/evaluationFooter'
 import { scrollToElement } from '@/lib/scrollToElement'
 
 type Props = {
@@ -40,7 +41,6 @@ const ICONES_PAGINA: Record<FichaPageId, LucideIcon> = {
   '02': Activity,
   '03': ShieldCheck,
   '04': Stethoscope,
-  '05': PersonStanding,
 }
 
 function nomePagina(label: string): string {
@@ -67,6 +67,8 @@ export function EvaluationFichaSidebar({
   const [blocoAtivo, setBlocoAtivo] = useState<string | null>(null)
   const asideRef = useRef<HTMLElement>(null)
   const [altura, setAltura] = useState<number | null>(null)
+  const { next } = fichaPagerState(FICHA_PAGES.map((item) => item.id), page)
+  const proxima = FICHA_PAGES.find((item) => item.id === next) ?? null
 
   useEffect(() => {
     // Altura = do topo visível da lateral até o fim da tela. Antes de grudar no topo
@@ -263,6 +265,20 @@ export function EvaluationFichaSidebar({
         </nav>
 
         <div className="shrink-0 space-y-3 pb-1 pt-3">
+          {proxima ? (
+            <Button
+              type="button"
+              variant="secondary"
+              fullWidth
+              onClick={() => irParaPagina(proxima.id)}
+              disabled={saving}
+              aria-label={`Próxima página: ${nomePagina(proxima.label)}`}
+              className="!py-2.5"
+            >
+              <span>Próxima</span>
+              <ArrowRight size={16} aria-hidden="true" />
+            </Button>
+          ) : null}
           <Button type="submit" form={formId} fullWidth isLoading={saving} disabled={submitDisabled} className="!py-2.5">
             {submitLabel}
           </Button>

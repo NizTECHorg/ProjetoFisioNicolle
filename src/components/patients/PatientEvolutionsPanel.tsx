@@ -14,6 +14,7 @@ import { useToastStore } from '@/stores/toast.store'
 import { generateEvolutionFromAudio } from '@/services/ai.service'
 import { useDeletePatientSession, usePatientSessions } from '@/hooks/usePatients'
 import { canSeeFinance } from '@/lib/accountAccess'
+import { EVOLUCAO_SITUACAO_LABEL, contarEvolucoesPendentes, situacaoEvolucao } from '@/lib/evolucaoStatus'
 import { formatCurrency } from '@/lib/security'
 import type { PatientImage, PatientSessionRecord, SessionStatus } from '@/types/patient'
 import type { SessionCharge } from '@/types/finance'
@@ -133,6 +134,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   const sessionIds = useMemo(() => sessions.map((session) => session.id), [sessions])
   const { data: charges = [] } = useSessionCharges(patientId, sessionIds, showFinance)
   const deleteSession = useDeletePatientSession(patientId)
+  const pendentes = contarEvolucoesPendentes(sessions)
 
   const chargeBySession = useMemo(() => {
     const map = new Map<string, SessionCharge>()
@@ -201,8 +203,13 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Sessões</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Sessões / Evoluções</p>
             <p className="mt-1 text-sm text-muted">Sessões e registros clínicos deste paciente.</p>
+            {pendentes > 0 ? (
+              <p className="mt-1 text-sm font-medium text-amber-700">
+                {pendentes === 1 ? '1 evolução pendente' : `${pendentes} evoluções pendentes`} de finalizar
+              </p>
+            ) : null}
           </div>
           {canWrite ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -243,6 +250,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
             {sessions.map((session) => {
               const photos = photosBySession.get(session.id) || []
               const charge = chargeBySession.get(session.id) ?? null
+              const situacao = situacaoEvolucao(session)
               return (
                 <li key={session.id} className="group rounded-2xl border border-line bg-surface p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -254,6 +262,16 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                         <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-forest">
                           {statusLabel[session.status]}
                         </span>
+                        {situacao ? (
+                          <span
+                            className={[
+                              'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                              situacao === 'finalizada' ? 'bg-success/10 text-success' : 'bg-amber-500/15 text-amber-800',
+                            ].join(' ')}
+                          >
+                            {EVOLUCAO_SITUACAO_LABEL[situacao]}
+                          </span>
+                        ) : null}
                       </div>
                       <p className="mt-1 text-xs text-muted">
                         {session.type} · {session.place}
@@ -266,7 +284,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                       ) : null}
                     </div>
                     {canWrite ? (
-                      <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                      <div className="flex shrink-0 gap-1">
                         <button
                           type="button"
                           aria-label="Editar sessão"
@@ -277,7 +295,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                           }}
                           className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
                         >
-                          <Pencil size={14} />
+                          <Pencil size={16} />
                         </button>
                         <button
                           type="button"
@@ -285,7 +303,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                           onClick={() => setPendingDelete(session)}
                           className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-error"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     ) : null}

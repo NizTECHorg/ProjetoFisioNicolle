@@ -24,6 +24,7 @@ import {
 import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/lib/focusRegions'
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import { isSafeSignaturePath, signaturePdfScale } from '@/lib/signaturePath'
+import { agruparForca } from '@/lib/forcaRegioes'
 import {
   BODY_DRAWING_VIEWBOX,
   bodyDrawingColor,
@@ -1425,13 +1426,16 @@ function drawPlanoClinico(
     drawDataTable(
       ctx,
       [
-        { label: 'Movimento/Grupo', widthFrac: 0.28 },
-        { label: 'Direito', widthFrac: 0.16 },
-        { label: 'Esquerdo', widthFrac: 0.16 },
-        { label: 'Dor', widthFrac: 0.18 },
+        { label: 'Regiao', widthFrac: 0.16 },
+        { label: 'Movimento/Grupo', widthFrac: 0.22 },
+        { label: 'Direito', widthFrac: 0.12 },
+        { label: 'Esquerdo', widthFrac: 0.12 },
+        { label: 'Dor', widthFrac: 0.16 },
         { label: 'Observacao', widthFrac: 0.22 },
       ],
-      forcaRows.map((row) => [row.grupo, row.direito, row.esquerdo, row.dor, row.observacao]),
+      agruparForca(forcaRows).flatMap((grupo) =>
+        grupo.linhas.map(({ linha: row }) => [grupo.regiao, row.grupo, row.direito, row.esquerdo, row.dor, row.observacao]),
+      ),
     )
   }
   // drawFichaBlockFrame(ctx, 'D'
@@ -1860,9 +1864,18 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   const show02F = hasMelhora && isFieldSelected(selected, '02.F')
   const show02G = hasIrrit && isFieldSelected(selected, '02.G')
 
+  // Mapa de sintomas (desenho): bloco A dos sintomas desde o checklist 6.5; o id '05.A' fica pela compatibilidade.
+  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
+  const obsMapa = ficha.mapaSintomas?.observacao
+  if ((tracosMapa.length > 0 || textFilled(obsMapa)) && isFieldSelected(selected, '05.A')) {
+    anyContent = true
+    drawClearSectionTitle(ctx, 'Mapa de sintomas')
+    drawMapaSintomas(ctx, tracosMapa, obsMapa)
+  }
+
   if (show02A) {
     anyContent = true
-    drawClearSectionTitle(ctx, 'Mapa corporal')
+    drawClearSectionTitle(ctx, 'Regiões marcadas')
     drawBodyMap(ctx, marks)
   }
   if (show02B) {
@@ -2080,15 +2093,6 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
     drawOptionalField(ctx, 'Outras informações', funcao?.medicacoes?.outrasInfo)
   }
   if (drawPlanoClinico(ctx, ficha, selected)) anyContent = true
-
-  // —— 05 Mapa de sintomas ——
-  const tracosMapa = safeBodyStrokes(ficha.mapaSintomas?.tracos)
-  const obsMapa = ficha.mapaSintomas?.observacao
-  if ((tracosMapa.length > 0 || textFilled(obsMapa)) && isFieldSelected(selected, '05.A')) {
-    anyContent = true
-    drawClearSectionTitle(ctx, 'Mapa de sintomas')
-    drawMapaSintomas(ctx, tracosMapa, obsMapa)
-  }
 
   if (!anyContent) {
     drawParagraph(ctx, 'Avaliação sem campos preenchidos na ficha.', { color: COLORS.muted })

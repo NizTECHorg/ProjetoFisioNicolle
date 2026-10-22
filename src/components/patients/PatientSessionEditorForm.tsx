@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Info } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/Button'
@@ -178,7 +179,30 @@ export function PatientSessionEditorForm({
     })
   }, [editing, draftConducts, form, defaultTherapistId, charge, showFinance])
 
-  function onSubmit(values: SessionFormData) {
+  const [finalizeError, setFinalizeError] = useState<string | null>(null)
+
+  function onSubmit(values: SessionFormData, finalizar: boolean) {
+    const temEvolucao = [
+      values.patientState,
+      values.changesSinceLast,
+      values.conducts,
+      values.treatmentResponse,
+      values.incidents,
+      values.nextPlan,
+    ].some((value) => (value?.trim() ?? '') !== '')
+    if (finalizar && !temEvolucao) {
+      setFinalizeError('Escreva a evolução antes de finalizar, ou salve como rascunho.')
+      return
+    }
+    setFinalizeError(null)
+    const finalizadaAntes = editing?.evolution?.finalizedAt ?? null
+    // Agendar não mexe na situação; Realizada: rascunho volta a null, finalizar mantém a data original.
+    const finalizedAt =
+      values.mode === 'realizada'
+        ? finalizar
+          ? (finalizadaAntes ?? new Date().toISOString())
+          : null
+        : finalizadaAntes
     const therapist = therapists.find((item) => item.id === values.therapistId)
     const input = {
       mode: values.mode,
@@ -193,6 +217,7 @@ export function PatientSessionEditorForm({
       treatmentResponse: values.treatmentResponse,
       incidents: values.incidents,
       nextPlan: values.nextPlan,
+      finalizedAt,
     }
 
     const chargeDraft: SessionChargeDraft = {
@@ -241,7 +266,19 @@ export function PatientSessionEditorForm({
   )
 
   return (
-    <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+    <form className="space-y-4" onSubmit={form.handleSubmit((values) => onSubmit(values, false))}>
+      <div className="rounded-2xl border border-line bg-surface px-4 py-3">
+        <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <Info size={16} aria-hidden className="shrink-0 text-muted" />
+          Registro de evolução profissional
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-muted">
+          O registro da evolução fisioterapêutica no prontuário é uma obrigação profissional, conforme as normas
+          do Sistema COFFITO/CREFITOs. Mantenha as informações clínicas de cada atendimento devidamente
+          documentadas.
+        </p>
+      </div>
+
       <div className="inline-flex rounded-xl border border-line bg-canvas p-1">
         <button
           type="button"
@@ -265,12 +302,9 @@ export function PatientSessionEditorForm({
         </button>
       </div>
 
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-xs text-ink">
-        <span className="font-semibold">Campos obrigatórios (*):</span> Data e horário, Profissional e Tipo. O local e todos os campos da evolução clínica são opcionais — se não estiverem preenchidos, não são exigidos para salvar.
-      </div>
-
       <Input
-        label="Data e horário *"
+        label="Data e horário"
+        requiredMark
         type="datetime-local"
         error={form.formState.errors.scheduledAt?.message}
         {...form.register('scheduledAt')}
@@ -278,19 +312,21 @@ export function PatientSessionEditorForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Select
-          label="Profissional *"
+          label="Profissional"
+          requiredMark
           options={therapistOptions}
           error={form.formState.errors.therapistId?.message}
           {...form.register('therapistId')}
         />
         <Input
-          label="Tipo *"
+          label="Tipo"
+          requiredMark
           placeholder="Ex.: Sessão, Retorno, Avaliação"
           error={form.formState.errors.sessionType?.message}
           {...form.register('sessionType')}
         />
         <Input
-          label="Local (opcional)"
+          label="Local"
           placeholder="Ex.: Consultório 1, Domiciliar"
           error={form.formState.errors.place?.message}
           {...form.register('place')}
@@ -299,7 +335,7 @@ export function PatientSessionEditorForm({
 
       {showFinance ? (
         <div className="space-y-4">
-          <p className="text-sm font-semibold text-ink">Valor da consulta (opcional)</p>
+          <p className="text-sm font-semibold text-ink">Valor da consulta</p>
           <input type="hidden" {...form.register('priceId')} />
           <div className="grid gap-4 sm:grid-cols-2">
             {!pricesLoading && prices.length > 0 ? (
@@ -362,40 +398,41 @@ export function PatientSessionEditorForm({
 
       <div className="space-y-4 border-t border-line pt-4">
         <p className="text-sm text-muted">
-          Todos os campos da evolução abaixo são <span className="font-medium text-ink">opcionais</span>. Preencha apenas os que desejar (ou use a gravação por voz da IA).
+          Todos os campos da evolução abaixo são <span className="font-medium text-ink">opcionais</span>. Dá para{' '}
+          <span className="font-medium text-ink">salvar como rascunho</span> sem texto e finalizar depois.
         </p>
         <Textarea
-          label="Estado do paciente (opcional)"
+          label="Estado do paciente"
           rows={3}
           error={form.formState.errors.patientState?.message}
           {...form.register('patientState')}
         />
         <Textarea
-          label="Condutas realizadas (opcional)"
+          label="Condutas realizadas"
           rows={3}
           error={form.formState.errors.conducts?.message}
           {...form.register('conducts')}
         />
         <Textarea
-          label="Mudanças desde a última sessão (opcional)"
+          label="Mudanças desde a última sessão"
           rows={2}
           error={form.formState.errors.changesSinceLast?.message}
           {...form.register('changesSinceLast')}
         />
         <Textarea
-          label="Resposta ao tratamento (opcional)"
+          label="Resposta ao tratamento"
           rows={2}
           error={form.formState.errors.treatmentResponse?.message}
           {...form.register('treatmentResponse')}
         />
         <Textarea
-          label="Intercorrências (opcional)"
+          label="Intercorrências"
           rows={2}
           error={form.formState.errors.incidents?.message}
           {...form.register('incidents')}
         />
         <Textarea
-          label="Planejamento (opcional)"
+          label="Planejamento"
           rows={2}
           error={form.formState.errors.nextPlan?.message}
           {...form.register('nextPlan')}
@@ -413,13 +450,34 @@ export function PatientSessionEditorForm({
         </div>
       ) : null}
 
+      {finalizeError ? (
+        <p role="alert" className="text-sm text-error">
+          {finalizeError}
+        </p>
+      ) : null}
+
       <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
           {cancelLabel}
         </Button>
-        <Button type="submit" isLoading={saving}>
-          {submitLabel}
-        </Button>
+        {mode === 'realizada' ? (
+          <>
+            <Button type="submit" variant="secondary" isLoading={saving}>
+              Salvar rascunho
+            </Button>
+            <Button
+              type="button"
+              disabled={saving}
+              onClick={form.handleSubmit((values) => onSubmit(values, true))}
+            >
+              Finalizar evolução
+            </Button>
+          </>
+        ) : (
+          <Button type="submit" isLoading={saving}>
+            {submitLabel}
+          </Button>
+        )}
       </div>
     </form>
   )

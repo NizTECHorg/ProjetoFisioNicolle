@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Pencil } from 'lucide-react'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import {
   PatientPhotoControl,
@@ -29,7 +29,8 @@ type PatientProfileHeaderProps = {
   meta: string
   activeTab: PatientTab
   onTabChange: (tab: PatientTab) => void
-  identityAction?: ReactNode
+  /** Lápis sempre visível ao lado do nome (checklist 8.1/8.2); sem ele, não aparece. */
+  onEditName?: () => void
   /** Ação no topo à direita (ex.: Nova avaliação no Resumo). */
   topRightAction?: ReactNode
   /** Abre o diálogo de exclusão; só aparece com canWrite. */
@@ -48,12 +49,13 @@ export function PatientProfileHeader({
   meta,
   activeTab,
   onTabChange,
-  identityAction,
+  onEditName,
   topRightAction,
 }: PatientProfileHeaderProps) {
   return (
     <>
-      <div className="dash-in">
+      {/* Celular e tablet: mais perto do cabeçalho do app; desktop (sem o cabeçalho) fica no lugar. */}
+      <div className="dash-in -mt-3 lg:mt-0">
         <Link
           to="/pacientes"
           className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-forest"
@@ -71,7 +73,7 @@ export function PatientProfileHeader({
         então a borda esquerda de tabs e cards fica alinhada.
       */}
       <div
-        className="dash-in mt-5 grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-x-4"
+        className="dash-in mt-2.5 lg:mt-4 grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-x-4"
         style={{ animationDelay: '60ms' }}
       >
         <div className="group col-span-2 grid grid-cols-subgrid">
@@ -99,23 +101,32 @@ export function PatientProfileHeader({
 
           <div className="min-w-0">
             <div className="flex min-h-11 items-start justify-between gap-3">
-              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0 sm:gap-3">
                 <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{name}</h1>
+                {canWrite && onEditName ? (
+                  <button
+                    type="button"
+                    aria-label="Editar nome e dados iniciais"
+                    title="Editar nome e dados iniciais"
+                    onClick={onEditName}
+                    className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                ) : null}
                 {canWrite ? (
-                  <span className="opacity-0 transition-opacity pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
-                    <PatientPhotoRemoveButton patientId={patientId} name={name} photoUrl={photoUrl} />
-                  </span>
+                  <PatientPhotoRemoveButton patientId={patientId} name={name} photoUrl={photoUrl} />
                 ) : null}
               </div>
-              {topRightAction ?? identityAction ? (
-                <div className="shrink-0 self-start">{topRightAction ?? identityAction}</div>
+              {topRightAction ? (
+                <div className="shrink-0 self-start">{topRightAction}</div>
               ) : null}
             </div>
           </div>
         </div>
 
         {/* Mobile: telefone + status ocupam a largura toda; sm+: alinhados à coluna do nome. */}
-        <div className="col-span-2 mt-3 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 sm:col-span-1 sm:col-start-2 sm:mt-2">
+        <div className="col-span-2 mt-2 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 sm:col-span-1 sm:col-start-2 sm:mt-2">
           {meta ? <p className="text-sm text-muted">{meta}</p> : null}
           {canWrite ? (
             <PatientStatusToggle patientId={patientId} status={status} />
@@ -125,7 +136,7 @@ export function PatientProfileHeader({
         </div>
 
         <nav
-          className="col-span-2 mt-4 flex min-w-0 items-end gap-5 sm:col-span-1 sm:col-start-2 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
+          className="col-span-2 mt-3 flex min-w-0 items-end gap-5 sm:col-span-1 sm:col-start-2 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-line sm:gap-6 [-ms-overflow-style:auto] [scrollbar-width:thin]"
           aria-label="Sessões do paciente"
           role="tablist"
         >
@@ -169,7 +180,7 @@ export function PatientProfileHeader({
               ].join(' ')}
               onClick={() => onTabChange('secoes')}
             >
-              Sessões
+              Sessões / Evoluções
             </button>
             <button
               type="button"

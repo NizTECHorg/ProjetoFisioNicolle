@@ -12,6 +12,7 @@ import {
 import { ATIVIDADE_FREQUENCIA_OPTIONS, formatAtividadeFisica } from '@/lib/atividadeCapacidade'
 import { Select } from '@/components/ui/Select'
 import { EsportesField } from '@/components/patients/evaluation/EsportesField'
+import { esportesDaFuncao } from '@/lib/esportesAvaliacao'
 
 type PageProps = {
   register: UseFormRegister<EvaluationFormData>
@@ -28,6 +29,9 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
   const atividadeQual = watch('ficha.funcao.rotina.atividadeQual')
   const atividadeFrequencia = watch('ficha.funcao.rotina.atividadeFrequencia')
   const atividadeHorasDia = watch('ficha.funcao.rotina.atividadeHorasDia')
+  // Avaliações antigas: o texto livre "Qual atividade" e esportes marcados sem o "Sim" continuam visíveis.
+  const temAtividadeLegada = Boolean(atividadeQual?.trim())
+  const temEsportes = esportesDaFuncao(watch('ficha.funcao')).length > 0
   const atividadeQualFreq = watch('ficha.funcao.rotina.atividadeQualFreq')
 
   const resumoAtividade = formatAtividadeFisica({
@@ -157,15 +161,17 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
             { value: 'sim', label: 'Sim' },
           ]}
         />
-        {praticaAtividadeFisica === 'sim' ? (
+        {praticaAtividadeFisica === 'sim' || temAtividadeLegada || temEsportes ? (
           <div className="space-y-2">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <LineField
-                label="Qual atividade"
-                name="ficha.funcao.rotina.atividadeQual"
-                register={register}
-                disabled={disabled}
-              />
+            <div className={['grid gap-4', temAtividadeLegada ? 'sm:grid-cols-3' : 'sm:grid-cols-2'].join(' ')}>
+              {temAtividadeLegada ? (
+                <LineField
+                  label="Qual atividade"
+                  name="ficha.funcao.rotina.atividadeQual"
+                  register={register}
+                  disabled={disabled}
+                />
+              ) : null}
               <Select
                 label="Frequência"
                 options={ATIVIDADE_FREQUENCIA_OPTIONS}
@@ -184,9 +190,9 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
                 Resumo: {resumoAtividade}
               </p>
             ) : null}
+            <EsportesField watch={watch} setValue={setValue} disabled={disabled} />
           </div>
         ) : null}
-        <EsportesField watch={watch} setValue={setValue} disabled={disabled} />
       </FichaBlock>
 
       <FichaBlock letter="E" title="Tratamentos e investigações anteriores">

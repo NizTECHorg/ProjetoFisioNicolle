@@ -142,6 +142,8 @@ const palpacaoTestesSchema = z.object({
 })
 
 const forcaRowSchema = z.object({
+  /** Região corporal (checklist 6.7); linhas antigas não têm. */
+  regiao: optionalText(80),
   grupo: optionalText(200),
   direito: optionalText(80),
   esquerdo: optionalText(80),

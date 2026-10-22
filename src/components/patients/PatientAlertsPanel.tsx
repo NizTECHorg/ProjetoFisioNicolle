@@ -163,14 +163,14 @@ export function PatientAlertsPanel({
                       </p>
                     </div>
                     {canWrite ? (
-                      <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                      <div className="flex shrink-0 flex-col gap-0.5">
                         <button
                           type="button"
                           aria-label="Editar alerta"
                           onClick={() => openEdit(alert)}
                           className="rounded-md p-1 text-muted transition hover:bg-surface hover:text-forest"
                         >
-                          <Pencil size={12} />
+                          <Pencil size={16} />
                         </button>
                         <button
                           type="button"
@@ -178,7 +178,7 @@ export function PatientAlertsPanel({
                           onClick={() => setPendingDelete(alert)}
                           className="rounded-md p-1 text-muted transition hover:bg-surface hover:text-error"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     ) : null}
