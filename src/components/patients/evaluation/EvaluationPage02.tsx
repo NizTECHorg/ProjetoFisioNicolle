@@ -27,19 +27,21 @@ export function EvaluationPage02({ register, watch, setValue, readOnly }: PagePr
       <FichaBlock letter="A" title="Mapa de sintomas">
         {!disabled ? (
           <p className="text-sm leading-relaxed text-muted">
-            Escolha a cor pelo tipo de sintoma e desenhe sobre o corpo, na vista da frente ou de costas.
+            Escolha a cor pelo tipo de sintoma e desenhe sobre o corpo, nas vistas de frente, costas ou laterais.
           </p>
         ) : null}
         <BodyDrawingPad
           value={watch('ficha.mapaSintomas.tracos')}
           figura={watch('ficha.mapaSintomas.figura')}
+          versao={watch('ficha.mapaSintomas.versao')}
           onFiguraChange={(next) =>
             setValue('ficha.mapaSintomas.figura', next, { shouldDirty: true, shouldValidate: true })
           }
           disabled={disabled}
-          onChange={(next) =>
+          onChange={(next, versao) => {
+            setValue('ficha.mapaSintomas.versao', versao === 2 ? 2 : undefined, { shouldDirty: true })
             setValue('ficha.mapaSintomas.tracos', next, { shouldDirty: true, shouldValidate: true })
-          }
+          }}
         />
         <TextField
           label="Observações do desenho"

@@ -92,7 +92,7 @@ export function KanbanPage() {
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
-        title="Quadro"
+        title="Quadro" info="Organize tarefas em listas. Crie uma lista, adicione cards e arraste entre as listas. Card com data limite aparece na Agenda."
         description="Organize as tarefas da clínica. Com data limite, o prazo aparece na Agenda."
       />
 

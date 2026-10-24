@@ -1,12 +1,7 @@
 import { ArrowRight, CalendarDays, ChartColumn, GraduationCap, UsersRound } from 'lucide-react'
 import { Eyebrow, Reveal, WaveDivider } from './LandingUi'
-import {
-  ABOUT_PARAGRAPHS,
-  CREATOR_NAME,
-  CREATOR_ROLE,
-  HERO_DESKTOP_IMAGE,
-  HERO_MOBILE_IMAGE,
-} from './landing.config'
+import { ABOUT_PARAGRAPHS, CREATOR_NAME, CREATOR_ROLE } from './landing.config'
+import { PatientJourney } from './PatientJourney'
 
 const PILARES = [
   { icon: GraduationCap, label: 'Baseado na prática clínica' },
@@ -14,10 +9,6 @@ const PILARES = [
   { icon: ChartColumn, label: 'Evolução do paciente' },
   { icon: UsersRound, label: 'Integração entre profissionais' },
 ]
-
-// Zoom leve no hover de cada aparelho, entrando e saindo devagar.
-const ZOOM =
-  'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] motion-reduce:transition-none motion-reduce:hover:scale-100'
 
 /** Sobre o Fluxo: o produto em primeiro plano e a assinatura de quem idealizou, discreta. */
 export function CreatorSection() {
@@ -30,33 +21,8 @@ export function CreatorSection() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20 lg:px-8">
         <div className="grid items-center gap-12 md:grid-cols-12 md:gap-8">
           <Reveal variant="scale" className="relative md:col-span-6">
-            <div aria-hidden="true" className="relative mx-auto aspect-[4/3] w-full max-w-[520px]">
-              {/* Mancha azul e anel fino atrás dos aparelhos */}
-              <div className="lp-blob-shape absolute inset-[6%] bg-[radial-gradient(circle_at_40%_40%,#dbe9ff,#eaf2fd_60%,transparent_75%)]" />
-              <div className="absolute inset-[-2%] rounded-[50%] border border-accent/25" />
-              {HERO_DESKTOP_IMAGE ? (
-                <img
-                  src={HERO_DESKTOP_IMAGE}
-                  alt=""
-                  width={1600}
-                  height={1067}
-                  loading="lazy"
-                  decoding="async"
-                  className={`absolute left-0 top-[12%] w-[82%] -rotate-[4deg] drop-shadow-[0_24px_40px_rgba(11,29,54,0.16)] ${ZOOM}`}
-                />
-              ) : null}
-              {HERO_MOBILE_IMAGE ? (
-                <img
-                  src={HERO_MOBILE_IMAGE}
-                  alt=""
-                  width={600}
-                  height={1199}
-                  loading="lazy"
-                  decoding="async"
-                  className={`absolute bottom-[2%] right-[4%] w-[28%] rotate-[3deg] drop-shadow-[0_24px_36px_rgba(11,29,54,0.22)] ${ZOOM}`}
-                />
-              ) : null}
-            </div>
+            {/* Jornada do paciente interativa (substitui as capturas, que repetiam o hero). */}
+            <PatientJourney />
           </Reveal>
 
           <Reveal delay={120} variant="right" className="flex flex-col items-start gap-6 md:col-span-6">

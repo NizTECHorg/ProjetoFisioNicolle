@@ -230,7 +230,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
               )}
               <Button type="button" onClick={() => { setEditing(null); setDraftConducts(null); setEditorOpen(true) }}>
                 <Plus size={16} />
-                Nova sessão
+                Nova sessão / evolução
               </Button>
             </div>
           ) : null}
@@ -287,7 +287,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                       <div className="flex shrink-0 gap-1">
                         <button
                           type="button"
-                          aria-label="Editar sessão"
+                          aria-label="Editar sessão / evolução"
                           onClick={() => {
                             setEditing(session)
                             setDraftConducts(null)
@@ -410,7 +410,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
       {canWrite ? (
         <Modal
           open={editorOpen}
-          title={editing ? 'Editar sessão' : 'Nova sessão'}
+          title={editing ? 'Editar sessão / evolução' : 'Nova sessão / evolução'}
           description="Toggle Agendar / Realizada. Agendadas aparecem na Agenda."
           onClose={closeEditor}
           wide

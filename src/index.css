@@ -379,6 +379,36 @@
   animation: lp-float 6s ease-in-out infinite;
 }
 
+/* Jornada do paciente (Sobre o Fluxo): texto entra suave a cada etapa; o ponto da curva pulsa. */
+@keyframes lp-journey-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+.lp-journey-in {
+  animation: lp-journey-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes lp-journey-ping {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.05;
+    transform: scale(1.6);
+  }
+}
+
+.lp-journey-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lp-journey-ping 2s ease-in-out infinite;
+}
+
 .lp-float-delay {
   animation-delay: -3s;
 }
@@ -826,6 +856,11 @@
   }
 
   .lp-float {
+    animation: none;
+  }
+
+  .lp-journey-in,
+  .lp-journey-ping {
     animation: none;
   }
 

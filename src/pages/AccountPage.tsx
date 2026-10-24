@@ -279,7 +279,7 @@ export function AccountPage() {
     <section className="mx-auto w-full max-w-2xl font-sans">
       <PageHeader
         className="dash-in"
-        title="Minha conta"
+        title="Minha conta" info="Seus dados de acesso. Troque foto, nome e senha; a exclusão da conta também fica aqui."
         description="Foto, nome, senha e exclusão desta conta."
       />
 

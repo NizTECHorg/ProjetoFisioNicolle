@@ -1,5 +1,5 @@
 import { test } from 'node:test'
-import { deepEqual, equal } from 'node:assert/strict'
+import { deepEqual, equal, ok } from 'node:assert/strict'
 import {
   DEFAULT_REGION_ID,
   SPECIAL_TEST_REGIONS,
@@ -80,10 +80,71 @@ test('REQ-49: regiões na ordem e com rótulos esperados', () => {
   equal(findRegion('mao').label, 'Mão')
 })
 
-test('REQ-49: Coluna tem os 6 testes na ordem, e as outras regiões estão vazias', () => {
-  deepEqual(coluna.tests.map((t) => t.name), EXPECTED.map((t) => t.name))
-  deepEqual(coluna.tests.map((t) => t.id), EXPECTED.map((t) => t.id))
-  for (const region of SPECIAL_TEST_REGIONS.slice(1)) equal(region.tests.length, 0)
+test('REQ-49: Coluna começa com os 6 testes da Phase 38, na ordem; os novos vêm depois', () => {
+  deepEqual(coluna.tests.slice(0, EXPECTED.length).map((t) => t.id), EXPECTED.map((t) => t.id))
+  deepEqual(coluna.tests.slice(EXPECTED.length).map((t) => t.id), ['compressao-axial', 'distracao'])
+})
+
+test('Ombro: 8 testes na ordem enviada', () => {
+  deepEqual(findRegion('ombro').tests.map((t) => t.id), [
+    'neer', 'hawkins-kennedy', 'jobe', 'gerber', 'speed', 'yergason', 'apprehension', 'obrien',
+  ])
+  for (const t of findRegion('ombro').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Cotovelo: 11 testes na ordem enviada, todos completos', () => {
+  deepEqual(findRegion('cotovelo').tests.map((t) => t.id), [
+    'cozen', 'mill', 'maudsley', 'golfista', 'estresse-valgo-cotovelo', 'estresse-varo-cotovelo',
+    'tinel-cotovelo', 'flexao-cotovelo', 'pivot-shift-cotovelo', 'chair-push-up', 'bursa-olecraniana',
+  ])
+  for (const t of findRegion('cotovelo').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Joelho: 8 testes na ordem enviada, todos completos', () => {
+  deepEqual(findRegion('joelho').tests.map((t) => t.id), [
+    'lachman', 'gaveta-anterior', 'gaveta-posterior', 'mcmurray', 'apley',
+    'estresse-valgo-joelho', 'estresse-varo-joelho', 'clarke',
+  ])
+  for (const t of findRegion('joelho').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Quadril: 7 testes na ordem enviada, todos completos', () => {
+  deepEqual(findRegion('quadril').tests.map((t) => t.id), [
+    'fadir', 'faber', 'thomas', 'ober', 'trendelenburg', 'fair', 'log-roll',
+  ])
+  for (const t of findRegion('quadril').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Tornozelo: 7 testes na ordem enviada, todos completos', () => {
+  deepEqual(findRegion('tornozelo').tests.map((t) => t.id), [
+    'gaveta-anterior-tornozelo', 'inclinacao-talar', 'thompson', 'squeeze', 'windlass',
+    'tinel-tibial-posterior', 'estabilidade-mediope',
+  ])
+  for (const t of findRegion('tornozelo').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Mão: 11 testes na ordem enviada, todos completos', () => {
+  deepEqual(findRegion('mao').tests.map((t) => t.id), [
+    'phalen', 'phalen-reverso', 'tinel-punho', 'finkelstein', 'eichhoff', 'dedo-gatilho',
+    'bunnell-littler', 'allen', 'watson', 'tabaqueira-anatomica', 'grind-polegar',
+  ])
+  for (const t of findRegion('mao').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Fraturas: 12 testes na ordem enviada, todos completos', () => {
+  deepEqual(findRegion('fraturas').tests.map((t) => t.id), [
+    'ottawa-tornozelo', 'ottawa-joelho', 'percussao-tap', 'diapasao', 'compressao-axial-vertebral',
+    'percussao-espinhosos', 'coccix', 'galleazi', 'apoio-unipodal', 'sulcus',
+    'apreensao-anterior-fratura', 'drop-arm',
+  ])
+  for (const t of findRegion('fraturas').tests) ok(t.summary && t.technique && t.interpretation)
+})
+
+test('Coluna: Compressão Axial e Distração com o texto enviado', () => {
+  const axial = coluna.tests.find((t) => t.id === 'compressao-axial')
+  equal(axial?.summary, 'Diferenciar dor lombar mecânica de dor por fratura ou lesão discal.')
+  const distracao = coluna.tests.find((t) => t.id === 'distracao')
+  equal(distracao?.summary, 'Avaliar sinais não orgânicos (Waddell) e componente psicogênico da dor.')
 })
 
 test('REQ-49: textos literais dos 6 testes da Coluna', () => {
@@ -122,7 +183,7 @@ test('REQ-49: findSpecialTest resolve ids e nunca lança', () => {
 test('REQ-49: busca ignora acento e maiúscula, em nome e resumo', () => {
   deepEqual(searchSpecialTests('lasegue').map((h) => h.test.id), ['lasegue', 'lasegue-cruzado'])
   deepEqual(searchSpecialTests('LASÈGUE').map((h) => h.test.id), ['lasegue', 'lasegue-cruzado'])
-  deepEqual(searchSpecialTests('ciatico').map((h) => h.test.id), ['lasegue'])
+  deepEqual(searchSpecialTests('ciatico').map((h) => h.test.id), ['lasegue', 'fair'])
   deepEqual(searchSpecialTests('cervical').map((h) => h.test.id), ['spurling'])
   equal(searchSpecialTests('  slump  ').length, 1)
   for (const q of ['', '   ', 'xyz123']) deepEqual(searchSpecialTests(q), [])

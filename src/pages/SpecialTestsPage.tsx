@@ -124,7 +124,7 @@ export function SpecialTestsPage() {
       <div className="min-w-0 space-y-4 md:flex-1">
         <PageHeader
           className="dash-in"
-          title="Testes Especiais Ortopédicos"
+          title="Testes Especiais Ortopédicos" info="Guia de consulta dos testes ortopédicos. Escolha a região ou busque pelo nome e abra “Ver detalhes” para ver técnica e interpretação."
           description="Selecione a região anatômica para ver os testes específicos"
         />
 

@@ -62,7 +62,7 @@ export function TeamPage() {
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
-        title="Equipe"
+        title="Equipe" info="Gerencie os fisioterapeutas da clínica. Compartilhe o código da equipe e aceite os pedidos de entrada aqui."
         description="Compartilhe o código e aceite os pedidos dos fisioterapeutas."
       />
 

@@ -58,13 +58,32 @@ async function requireUserId(): Promise<string> {
   return data.user.id
 }
 
+function selectColumns() {
+  return supabase.from('board_columns').select('id, title, sort_order').order('sort_order', { ascending: true })
+}
+
+/**
+ * Conta nova abre o Quadro com "A fazer", "Em andamento" e "Concluído" (Phase 45).
+ * O banco decide (uma vez por conta, só contas criadas depois do SQL); falha nunca bloqueia o Quadro.
+ */
+async function seedDefaultBoard(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('seed_default_board')
+    return !error && data === true
+  } catch {
+    return false
+  }
+}
+
 export async function listBoard() {
-  const { data: columns, error: columnsError } = await supabase
-    .from('board_columns')
-    .select('id, title, sort_order')
-    .order('sort_order', { ascending: true })
+  let { data: columns, error: columnsError } = await selectColumns()
 
   throwIfError(columnsError)
+
+  if ((columns ?? []).length === 0 && (await seedDefaultBoard())) {
+    ;({ data: columns, error: columnsError } = await selectColumns())
+    throwIfError(columnsError)
+  }
 
   const { data: cards, error: cardsError } = await supabase
     .from('board_cards')

@@ -125,7 +125,7 @@ export function TermsPage() {
 
   return (
     <section className="mx-auto w-full max-w-2xl space-y-6 md:max-w-5xl">
-      <PageHeader className="dash-in" title="Termos" description="Termos de consentimento assinados pelo paciente." />
+      <PageHeader className="dash-in" title="Termos" info="Termos para o paciente assinar no app. Escolha o paciente, revise o texto, colete a assinatura e salve; o PDF fica guardado na ficha." description="Termos de consentimento assinados pelo paciente." />
 
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_13rem] md:gap-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-8">
       <div className="min-w-0 space-y-6">

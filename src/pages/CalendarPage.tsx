@@ -325,7 +325,7 @@ export function CalendarPage() {
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
-        title="Agenda"
+        title="Agenda" info="Calendário das sessões e dos prazos do Quadro. Toque em um dia para ver os horários e use “Nova sessão” para agendar."
         description="Sessões da clínica e prazos de entrega do Quadro."
         action={
           <Button onClick={openComposer}>

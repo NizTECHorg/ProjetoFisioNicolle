@@ -21,9 +21,10 @@ test('REQ-47: sobre o Fluxo', () => {
     'CREATOR_ROLE',
     'Conheça o Fluxo',
     'Integração entre profissionais',
-    'lp-blob-shape',
+    'PatientJourney',
   ])
     has(src, s)
+  has(read(`${DIR}PatientJourney.tsx`), 'lp-blob-shape')
 })
 
 test('REQ-47: sem a abreviação "fisio" nos textos da landing', () => {

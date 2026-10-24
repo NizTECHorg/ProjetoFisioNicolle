@@ -4,6 +4,9 @@ import {
   BODY_DRAWING_COLORS,
   BODY_DRAWING_MAX_STROKES,
   BODY_DRAWING_VIEWBOX,
+  BODY_DRAWING_VIEWBOX_V2,
+  bodyDrawingVersion,
+  bodyDrawingViewBox,
   appendBodyStroke,
   bodyClientToViewBox,
   bodyDrawingFigure,
@@ -106,4 +109,23 @@ test('mapa de sintomas: espessura do pincel, traço antigo vira médio', () => {
   deepEqual(safeBodyStrokes([{ cor: 'dor', d: 'M1 1 L2 2', espessura: 'fina' }]), [
     { cor: 'dor', d: 'M1 1 L2 2', espessura: 'fina' },
   ])
+})
+
+test('mapa de sintomas: versão da figura preserva desenhos antigos', () => {
+  const traco = [{ cor: 'dor', d: 'M1 1 L2 2' }]
+  equal(bodyDrawingVersion(undefined, traco), 1)
+  equal(bodyDrawingVersion(undefined, []), 2)
+  equal(bodyDrawingVersion(2, traco), 2)
+  equal(bodyDrawingVersion('2', traco), 1)
+  deepEqual(bodyDrawingViewBox(1), BODY_DRAWING_VIEWBOX)
+  deepEqual(bodyDrawingViewBox(2), BODY_DRAWING_VIEWBOX_V2)
+})
+
+test('mapa de sintomas: coordenadas presas à caixa da versão 2', () => {
+  const rect = { left: 0, top: 0, width: 930, height: 647 }
+  deepEqual(bodyClientToViewBox(930, 647, rect, BODY_DRAWING_VIEWBOX_V2), { x: 1860, y: 1294 })
+  const [ponto] = simplifyBodyStroke([{ x: 1800, y: 1290 }], 3, BODY_DRAWING_VIEWBOX_V2)
+  deepEqual(ponto, { x: 1800, y: 1290 })
+  const [velho] = simplifyBodyStroke([{ x: 1800, y: 1290 }])
+  deepEqual(velho, { x: BODY_DRAWING_VIEWBOX.width, y: BODY_DRAWING_VIEWBOX.height })
 })

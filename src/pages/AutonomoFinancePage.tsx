@@ -165,7 +165,7 @@ export function AutonomoFinancePage() {
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
-        title="Financeiro"
+        title="Financeiro" info="Controle o que você recebe. Cadastre seus preços, defina o valor de cada sessão e marque o que já foi pago."
         description="Catálogo de preços, sessões realizadas e o que já foi pago."
         action={
           <Button type="button" onClick={openCreate}>

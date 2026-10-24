@@ -1197,7 +1197,7 @@ test('REQ-36: parse({}) continua válido', () => {
   const parsed = evaluationFichaSchema.parse({})
   deepEqual(parsed, emptyEvaluationFicha())
   deepEqual(parsed.avaliacaoPlano?.mobilidade, { regioes: [] })
-  deepEqual(parsed.avaliacaoPlano?.palpacaoTestes, { achados: [], testes: [] })
+  deepEqual(parsed.avaliacaoPlano?.palpacaoTestes, { achados: [], testes: [], funcionais: [] })
   equal(parsed.avaliacaoPlano?.forca?.linhas?.length, 0)
 })
 

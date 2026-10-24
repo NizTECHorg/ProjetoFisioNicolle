@@ -1,5 +1,7 @@
 import { useRef, useState, type PointerEvent } from 'react'
 import { ArrowLeftRight, RotateCcw, Undo2 } from 'lucide-react'
+import corpoFemininoUrl from '@/assets/corpo-feminino.png'
+import corpoMasculinoUrl from '@/assets/corpo-masculino.png'
 import pessoaUrl from '@/assets/homi.png'
 import pessoaFemininaUrl from '@/assets/muir.png'
 import { Button } from '@/components/ui/Button'
@@ -8,12 +10,13 @@ import {
   BODY_DRAWING_COLORS,
   BODY_DRAWING_MAX_STROKES,
   BODY_DRAWING_MIN_STEP,
-  BODY_DRAWING_VIEWBOX,
   BODY_DRAWING_WIDTHS,
   appendBodyStroke,
   bodyClientToViewBox,
   bodyDrawingColor,
   bodyDrawingFigure,
+  bodyDrawingVersion,
+  bodyDrawingViewBox,
   bodyDrawingWidthInfo,
   bodyStrokeToPath,
   safeBodyStrokes,
@@ -22,31 +25,44 @@ import {
   type BodyDrawingFigure,
   type BodyDrawingPoint,
   type BodyDrawingStroke,
+  type BodyDrawingVersion,
   type BodyDrawingWidth,
 } from '@/lib/bodyDrawing'
 
+/** Figura de fundo de cada versão (os traços só valem sobre a figura em que foram feitos). */
+const FUNDOS: Record<BodyDrawingVersion, Record<BodyDrawingFigure, string>> = {
+  1: { masculina: pessoaUrl, feminina: pessoaFemininaUrl },
+  2: { masculina: corpoMasculinoUrl, feminina: corpoFemininoUrl },
+}
+
 type BodyDrawingPadProps = {
   value: unknown
-  onChange: (next: BodyDrawingStroke[]) => void
+  /** `versao` é a figura em que os traços valem; quem salva grava junto com os traços. */
+  onChange: (next: BodyDrawingStroke[], versao: BodyDrawingVersion) => void
   figura?: unknown
+  /** Versão salva da figura (ficha.mapaSintomas.versao). */
+  versao?: unknown
   onFiguraChange?: (next: BodyDrawingFigure) => void
   disabled?: boolean
   /** Legenda/paleta de cores. A visualização da avaliação esconde; o editor sempre mostra. */
   showLegend?: boolean
 }
 
-/** Desenho livre colorido sobre a figura anterior/posterior. SVG + Pointer Events, sem biblioteca. */
+/** Desenho livre colorido sobre a figura do corpo (frente, costas e laterais). SVG + Pointer Events, sem biblioteca. */
 export function BodyDrawingPad({
   value,
   onChange,
   figura,
+  versao,
   onFiguraChange,
   disabled,
   showLegend = true,
 }: BodyDrawingPadProps) {
   const tracos = safeBodyStrokes(value)
   const figuraAtual = bodyDrawingFigure(figura)
-  const fundoUrl = figuraAtual === 'feminina' ? pessoaFemininaUrl : pessoaUrl
+  const versaoAtual = bodyDrawingVersion(versao, tracos)
+  const caixa = bodyDrawingViewBox(versaoAtual)
+  const fundoUrl = FUNDOS[versaoAtual][figuraAtual]
   const [cor, setCor] = useState<BodyDrawingColor>('dor')
   const [espessura, setEspessura] = useState<BodyDrawingWidth>('media')
   const [pontos, setPontos] = useState<BodyDrawingPoint[]>([])
@@ -60,12 +76,12 @@ export function BodyDrawingPad({
     event.preventDefault()
     event.currentTarget.setPointerCapture(event.pointerId)
     desenhando.current = true
-    setPontos([bodyClientToViewBox(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect())])
+    setPontos([bodyClientToViewBox(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect(), caixa)])
   }
 
   function move(event: PointerEvent<SVGSVGElement>) {
     if (!desenhando.current) return
-    const next = bodyClientToViewBox(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect())
+    const next = bodyClientToViewBox(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect(), caixa)
     setPontos((prev) => {
       const last = prev[prev.length - 1]
       if (last && Math.hypot(next.x - last.x, next.y - last.y) < BODY_DRAWING_MIN_STEP) return prev
@@ -79,11 +95,16 @@ export function BodyDrawingPad({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
-    if (pontos.length > 0) onChange(appendBodyStroke(tracos, cor, pontos, espessura))
+    if (pontos.length > 0) salvar(appendBodyStroke(tracos, cor, pontos, espessura, caixa))
     setPontos([])
   }
 
-  const vivo = bodyStrokeToPath(simplifyBodyStroke(pontos))
+  /** Sem traços, o próximo desenho já começa na figura nova (versão 2). */
+  function salvar(next: BodyDrawingStroke[]) {
+    onChange(next, next.length === 0 ? 2 : versaoAtual)
+  }
+
+  const vivo = bodyStrokeToPath(simplifyBodyStroke(pontos, BODY_DRAWING_MIN_STEP, caixa))
 
   return (
     <div className="space-y-4">
@@ -172,7 +193,7 @@ export function BodyDrawingPad({
               type="button"
               variant="secondary"
               disabled={tracos.length === 0}
-              onClick={() => onChange(tracos.slice(0, -1))}
+              onClick={() => salvar(tracos.slice(0, -1))}
             >
               <Undo2 size={16} aria-hidden />
               Desfazer
@@ -190,9 +211,9 @@ export function BodyDrawingPad({
         </div>
       ) : null}
 
-      <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-line bg-white">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-line bg-white">
         <svg
-          viewBox={`0 0 ${BODY_DRAWING_VIEWBOX.width} ${BODY_DRAWING_VIEWBOX.height}`}
+          viewBox={`0 0 ${caixa.width} ${caixa.height}`}
           role="img"
           aria-label={`Mapa de sintomas com ${tracos.length} ${tracos.length === 1 ? 'traço' : 'traços'}`}
           className={`block h-auto w-full touch-none select-none ${disabled ? 'cursor-default' : 'cursor-crosshair'}`}
@@ -206,8 +227,8 @@ export function BodyDrawingPad({
             href={fundoUrl}
             x={0}
             y={0}
-            width={BODY_DRAWING_VIEWBOX.width}
-            height={BODY_DRAWING_VIEWBOX.height}
+            width={caixa.width}
+            height={caixa.height}
             preserveAspectRatio="xMidYMid meet"
             pointerEvents="none"
           />
@@ -253,7 +274,7 @@ export function BodyDrawingPad({
           cancelLabel="Manter desenho"
           tone="danger"
           onConfirm={() => {
-            onChange([])
+            salvar([])
             setConfirmarLimpar(false)
           }}
           onClose={() => setConfirmarLimpar(false)}

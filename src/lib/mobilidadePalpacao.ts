@@ -3,6 +3,8 @@
  * Quem exibe chama o formatador. A frase não se monta no caller.
  */
 
+import { lerTestesFuncionais, type TesteFuncionalMarcado } from './testesFuncionais.ts'
+
 export type ItemCatalogo = {
   key: string
   label: string
@@ -829,6 +831,8 @@ export type PalpacaoTestesNormalizada = {
   resultados?: string
   testeFuncional?: string
   resultadoInicial?: string
+  /** Testes funcionais / desempenho (bloco E · 3). */
+  funcionais?: TesteFuncionalMarcado[]
 }
 
 type Alvo = { regiao: string; movimento: string }
@@ -1200,6 +1204,8 @@ function copiarTextoLivre(value: Record<string, unknown>, result: PalpacaoTestes
   if (resultados) result.resultados = resultados
   if (testeFuncional) result.testeFuncional = testeFuncional
   if (resultadoInicial) result.resultadoInicial = resultadoInicial
+  const funcionais = lerTestesFuncionais(value.funcionais)
+  if (funcionais.length > 0) result.funcionais = funcionais
 }
 
 function sanitizarPalpacao(value: Record<string, unknown>): PalpacaoTestesNormalizada {

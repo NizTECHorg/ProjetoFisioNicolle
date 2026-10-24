@@ -1,7 +1,9 @@
 import { Activity, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Hand, Plus, X, type LucideIcon } from 'lucide-react'
 import { useId, useRef, useState, type ReactNode } from 'react'
 import {
+  Controller,
   useFieldArray,
+  useWatch,
   type Control,
   type UseFormRegister,
   type UseFormSetValue,
@@ -22,6 +24,17 @@ import {
 import type { EvaluationFormData } from '@/schemas/evaluation.schema'
 import { scrollToElement } from '@/lib/scrollToElement'
 import { FORCA_REGIOES, agruparForca, sugestoesForca } from '@/lib/forcaRegioes'
+import {
+  ACHADOS_FUNCIONAIS,
+  CATALOGO_FUNCIONAIS,
+  LADOS_FUNCIONAIS,
+  QUALIDADES_FUNCIONAIS,
+  UNIDADES_FUNCIONAIS,
+  assimetriaFuncional,
+  rotuloTesteFuncional,
+  testeFuncional,
+  type AchadoFuncional,
+} from '@/lib/testesFuncionais'
 import { SignaturePad } from '@/components/patients/evaluation/SignaturePad'
 import {
   BoolCheck,
@@ -1448,6 +1461,396 @@ function ListaTestes({
   )
 }
 
+function ChipsEscolha<T extends string>({
+  legenda,
+  opcoes,
+  valor,
+  onChange,
+  disabled,
+}: {
+  legenda: string
+  opcoes: ReadonlyArray<{ value: T; label: string }>
+  valor: T | undefined
+  onChange: (next: T | undefined) => void
+  disabled?: boolean
+}) {
+  return (
+    <fieldset className="space-y-2">
+      <legend className={ROTULO}>{legenda}</legend>
+      <div className="flex flex-wrap gap-2">
+        {opcoes.map((opcao) => {
+          const ativo = valor === opcao.value
+          return (
+            <button
+              key={opcao.value}
+              type="button"
+              aria-pressed={ativo}
+              disabled={disabled}
+              onClick={() => onChange(ativo ? undefined : opcao.value)}
+              className={[CHIP, '!min-h-10 !px-3', ativo ? CHIP_ATIVO : CHIP_INATIVO].join(' ')}
+            >
+              {opcao.label}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
+function CartaoFuncional({
+  indice,
+  categoria,
+  teste,
+  register,
+  control,
+  disabled,
+  onRemove,
+}: {
+  indice: number
+  categoria: string
+  teste: string
+  register: UseFormRegister<EvaluationFormData>
+  control: Control<EvaluationFormData>
+  disabled?: boolean
+  onRemove: () => void
+}) {
+  const base = `ficha.avaliacaoPlano.palpacaoTestes.funcionais.${indice}` as const
+  const catalogo = testeFuncional(categoria, teste)
+  const comparavel = Boolean(catalogo?.comparavel)
+  const [outroTexto, direito, esquerdo, achados] = useWatch({
+    control,
+    name: [`${base}.outroTexto`, `${base}.direito`, `${base}.esquerdo`, `${base}.achados`],
+  })
+  const assimetria = comparavel ? assimetriaFuncional(direito, esquerdo) : null
+  const categoriaLabel = CATALOGO_FUNCIONAIS.find((item) => item.key === categoria)?.label
+  const ids = { outro: useId(), resultado: useId(), unidade: useId(), d: useId(), e: useId(), dor: useId(), achadoOutro: useId(), obs: useId() }
+  const nome = rotuloTesteFuncional({ categoria, teste, outroTexto })
+
+  const unidadeSelect = (
+    <div className="space-y-2">
+      <label htmlFor={ids.unidade} className={ROTULO}>
+        Unidade
+      </label>
+      <select id={ids.unidade} className={CAMPO} disabled={disabled} {...register(`${base}.unidade`, { setValueAs: (v) => (v ? v : undefined) })}>
+        <option value="">—</option>
+        {UNIDADES_FUNCIONAIS.map((unidade) => (
+          <option key={unidade} value={unidade}>
+            {unidade}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+
+  return (
+    <li className="space-y-3 py-4 first:pt-0 last:pb-0">
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 text-sm text-ink">
+          <span className="font-semibold">{nome}</span>
+          {categoriaLabel && categoria !== 'outro' ? <span className="text-muted"> · {categoriaLabel}</span> : null}
+        </p>
+        {!disabled ? (
+          <button
+            type="button"
+            aria-label={`Desmarcar ${nome}`}
+            title="Desmarcar"
+            onClick={onRemove}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error"
+          >
+            <X size={16} aria-hidden />
+          </button>
+        ) : null}
+      </div>
+
+      {teste === 'outro' ? (
+        <div className="space-y-2">
+          <label htmlFor={ids.outro} className={ROTULO}>
+            Qual teste
+          </label>
+          <input id={ids.outro} type="text" className={CAMPO} disabled={disabled} {...register(`${base}.outroTexto`)} />
+        </div>
+      ) : null}
+
+      {comparavel ? (
+        <div className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-2">
+              <label htmlFor={ids.d} className={ROTULO}>
+                Direito
+              </label>
+              <input id={ids.d} type="text" inputMode="decimal" className={CAMPO} disabled={disabled} {...register(`${base}.direito`)} />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor={ids.e} className={ROTULO}>
+                Esquerdo
+              </label>
+              <input id={ids.e} type="text" inputMode="decimal" className={CAMPO} disabled={disabled} {...register(`${base}.esquerdo`)} />
+            </div>
+            {unidadeSelect}
+          </div>
+          <p className="text-sm text-muted" aria-live="polite">
+            Assimetria:{' '}
+            {assimetria ? (
+              <span className="font-semibold text-ink">
+                {String(assimetria.percentual).replace('.', ',')}%
+                {assimetria.menor ? ` (menor no ${assimetria.menor === 'D' ? 'direito' : 'esquerdo'})` : ''}
+              </span>
+            ) : (
+              'preencha os dois lados'
+            )}
+          </p>
+        </div>
+      ) : (
+        <>
+          <Controller
+            control={control}
+            name={`${base}.lado`}
+            render={({ field }) => (
+              <ChipsEscolha legenda="Lado" opcoes={LADOS_FUNCIONAIS} valor={field.value} onChange={field.onChange} disabled={disabled} />
+            )}
+          />
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <div className="space-y-2">
+              <label htmlFor={ids.resultado} className={ROTULO}>
+                Resultado
+              </label>
+              <input id={ids.resultado} type="text" className={CAMPO} disabled={disabled} {...register(`${base}.resultado`)} />
+            </div>
+            {unidadeSelect}
+          </div>
+        </>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <div className="space-y-2">
+          <label htmlFor={ids.dor} className={ROTULO}>
+            Dor (0–10)
+          </label>
+          <select
+            id={ids.dor}
+            className={CAMPO}
+            disabled={disabled}
+            {...register(`${base}.dor`, { setValueAs: (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)) })}
+          >
+            <option value="">—</option>
+            {Array.from({ length: 11 }, (_, n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Controller
+          control={control}
+          name={`${base}.qualidade`}
+          render={({ field }) => (
+            <ChipsEscolha legenda="Qualidade" opcoes={QUALIDADES_FUNCIONAIS} valor={field.value} onChange={field.onChange} disabled={disabled} />
+          )}
+        />
+      </div>
+
+      <Controller
+        control={control}
+        name={`${base}.achados`}
+        render={({ field }) => {
+          const marcados = new Set((field.value ?? []) as string[])
+          return (
+            <fieldset className="space-y-2">
+              <legend className={ROTULO}>Achados</legend>
+              <div className="flex flex-wrap gap-2">
+                {ACHADOS_FUNCIONAIS.map((achado) => {
+                  const ativo = marcados.has(achado.key)
+                  return (
+                    <button
+                      key={achado.key}
+                      type="button"
+                      aria-pressed={ativo}
+                      disabled={disabled}
+                      onClick={() => {
+                        const proximo = new Set(marcados)
+                        if (ativo) proximo.delete(achado.key)
+                        else proximo.add(achado.key)
+                        const lista = ACHADOS_FUNCIONAIS.map((a) => a.key).filter((key) => proximo.has(key)) as AchadoFuncional[]
+                        field.onChange(lista.length > 0 ? lista : undefined)
+                      }}
+                      className={[CHIP, '!min-h-10 !px-3', ativo ? CHIP_ATIVO : CHIP_INATIVO].join(' ')}
+                    >
+                      {achado.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </fieldset>
+          )
+        }}
+      />
+      {Array.isArray(achados) && achados.includes('outro') ? (
+        <div className="space-y-2">
+          <label htmlFor={ids.achadoOutro} className={ROTULO}>
+            Outro achado
+          </label>
+          <input id={ids.achadoOutro} type="text" className={CAMPO} disabled={disabled} {...register(`${base}.achadoOutro`)} />
+        </div>
+      ) : null}
+
+      <div className="space-y-2">
+        <label htmlFor={ids.obs} className={ROTULO}>
+          Observação
+        </label>
+        <input id={ids.obs} type="text" className={CAMPO} disabled={disabled} {...register(`${base}.observacao`)} />
+      </div>
+    </li>
+  )
+}
+
+function ListaFuncionais({
+  register,
+  control,
+  disabled,
+}: {
+  register: UseFormRegister<EvaluationFormData>
+  control: Control<EvaluationFormData>
+  disabled?: boolean
+}) {
+  const idBusca = useId()
+  const idLista = useId()
+  const [busca, setBusca] = useState('')
+  const [listaAberta, setListaAberta] = useState(false)
+  const [abertas, setAbertas] = useState<Record<string, boolean>>({})
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'ficha.avaliacaoPlano.palpacaoTestes.funcionais',
+  })
+  const filtro = fold(busca.trim())
+  const categorias = CATALOGO_FUNCIONAIS.flatMap((categoria) => {
+    if (!filtro) return [categoria]
+    const casados = categoria.testes.filter(
+      (item) => fold(item.label).includes(filtro) || fold(categoria.label).includes(filtro),
+    )
+    return casados.length > 0 ? [{ ...categoria, testes: casados }] : []
+  })
+
+  return (
+    <div className="space-y-4">
+      <button
+        type="button"
+        aria-expanded={listaAberta}
+        aria-controls={idLista}
+        onClick={() => setListaAberta((atual) => !atual)}
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 text-left transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+      >
+        <span className="flex items-center gap-2">
+          <ChevronDown
+            size={18}
+            aria-hidden
+            className={[
+              'shrink-0 text-forest transition-transform duration-300 motion-reduce:transition-none',
+              listaAberta ? 'rotate-0' : '-rotate-90',
+            ].join(' ')}
+          />
+          <span className="text-sm font-semibold leading-[1.2] text-ink">Lista de testes funcionais</span>
+        </span>
+        <span className="text-xs text-muted">
+          {fields.length === 0 ? 'Nenhum marcado' : fields.length === 1 ? '1 marcado' : `${fields.length} marcados`}
+        </span>
+      </button>
+      {listaAberta ? (
+        <div id={idLista} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor={idBusca} className={ROTULO}>
+              Buscar teste ou categoria
+            </label>
+            <input
+              id={idBusca}
+              type="search"
+              className={CAMPO}
+              disabled={disabled}
+              value={busca}
+              placeholder="Ex.: hop, marcha, prancha"
+              onChange={(event) => setBusca(event.target.value)}
+            />
+          </div>
+          {categorias.length === 0 ? (
+            <p className="text-sm text-muted">Nenhum teste com esse texto. Use “Outro” na categoria certa.</p>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+              {categorias.map((categoria) => {
+                const aberto = abertas[categoria.key] ?? Boolean(filtro)
+                return (
+                  <GrupoTestes
+                    key={categoria.key}
+                    label={categoria.label}
+                    aberto={aberto}
+                    onToggle={() => setAbertas((atual) => ({ ...atual, [categoria.key]: !aberto }))}
+                  >
+                    <ul className="flex flex-col">
+                      {categoria.testes.map((item) => {
+                        const indice = fields.findIndex(
+                          (campo) => campo.categoria === categoria.key && campo.teste === item.key,
+                        )
+                        const marcado = indice >= 0
+                        return (
+                          <li key={item.key}>
+                            <label className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
+                              <input
+                                type="checkbox"
+                                className="accent-forest"
+                                checked={marcado}
+                                disabled={disabled}
+                                onChange={() => {
+                                  if (marcado) remove(indice)
+                                  else
+                                    append(
+                                      {
+                                        categoria: categoria.key,
+                                        teste: item.key,
+                                        ...(item.unidade ? { unidade: item.unidade } : {}),
+                                      },
+                                      { shouldFocus: false },
+                                    )
+                                }}
+                              />
+                              <span>{item.label}</span>
+                            </label>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </GrupoTestes>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+      {fields.length > 0 ? (
+        <section aria-label="Testes funcionais marcados" className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+          <p className="text-sm font-semibold leading-[1.2] text-ink">
+            Testes funcionais marcados <span className="font-normal text-muted">({fields.length})</span>
+          </p>
+          <ul className="divide-y divide-line">
+            {fields.map((campo, indice) => (
+              <CartaoFuncional
+                key={campo.id}
+                indice={indice}
+                categoria={campo.categoria}
+                teste={campo.teste}
+                register={register}
+                control={control}
+                disabled={disabled}
+                onRemove={() => remove(indice)}
+              />
+            ))}
+          </ul>
+        </section>
+      ) : (
+        <p className="text-sm text-muted">Nenhum teste funcional marcado. Abra a lista, escolha a categoria e marque o teste.</p>
+      )}
+    </div>
+  )
+}
+
 function SubSecao({
   numero,
   icon: Icon,
@@ -1502,6 +1905,13 @@ function PalpacaoBloco({
   const achados = (Array.isArray(achadosBrutos) ? achadosBrutos : fields).slice(0, fields.length)
   const palpacaoRegistro = watch('ficha.avaliacaoPlano.palpacaoTestes.palpacaoRegistroAnterior')
   const testesRegistro = watch('ficha.avaliacaoPlano.palpacaoTestes.testesRegistroAnterior')
+  // Avaliada só na montagem: apagar o texto não faz os campos sumirem enquanto se edita.
+  const [funcaoLegada] = useState(() =>
+    Boolean(
+      watch('ficha.avaliacaoPlano.palpacaoTestes.testeFuncional')?.trim() ||
+        watch('ficha.avaliacaoPlano.palpacaoTestes.resultadoInicial')?.trim(),
+    ),
+  )
 
   function adicionar() {
     if (!rascunho.regiao) return
@@ -1597,23 +2007,29 @@ function PalpacaoBloco({
       <SubSecao
         numero={3}
         icon={Activity}
-        titulo="Função"
-        descricao="Como o paciente se sai em tarefas: teste funcional ou medida de desempenho e o resultado inicial."
+        titulo="Testes funcionais"
+        descricao="Desempenho em tarefas: escolha a categoria, marque o teste e registre resultado, dor e qualidade."
       >
-      <TextField
-        label="Teste funcional / medida de desempenho"
-        name="ficha.avaliacaoPlano.palpacaoTestes.testeFuncional"
-        register={register}
-        rows={2}
-        disabled={disabled}
-      />
-      <TextField
-        label="Resultado inicial"
-        name="ficha.avaliacaoPlano.palpacaoTestes.resultadoInicial"
-        register={register}
-        rows={2}
-        disabled={disabled}
-      />
+      <ListaFuncionais register={register} control={control} disabled={disabled} />
+      {/* Avaliações antigas: o texto livre de Função continua editável quando já tem conteúdo. */}
+      {funcaoLegada ? (
+        <>
+          <TextField
+            label="Teste funcional / medida de desempenho (registro anterior)"
+            name="ficha.avaliacaoPlano.palpacaoTestes.testeFuncional"
+            register={register}
+            rows={2}
+            disabled={disabled}
+          />
+          <TextField
+            label="Resultado inicial (registro anterior)"
+            name="ficha.avaliacaoPlano.palpacaoTestes.resultadoInicial"
+            register={register}
+            rows={2}
+            disabled={disabled}
+          />
+        </>
+      ) : null}
       </SubSecao>
       {!disabled ? (
         <ConfirmDialog

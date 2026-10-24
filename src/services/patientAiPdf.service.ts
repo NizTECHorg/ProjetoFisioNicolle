@@ -10,6 +10,8 @@ import {
   type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
+import corpoFemininoUrl from '@/assets/corpo-feminino.png'
+import corpoMasculinoUrl from '@/assets/corpo-masculino.png'
 import pessoaUrl from '@/assets/homi.png'
 import pessoaFemininaUrl from '@/assets/muir.png'
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
@@ -25,8 +27,11 @@ import { FOCUS_REGIONS, listFocusRegionsByView, type FocusRegionKey } from '@/li
 import type { PdfFieldId } from '@/lib/pdfFieldCatalog'
 import { isSafeSignaturePath, signaturePdfScale } from '@/lib/signaturePath'
 import { agruparForca } from '@/lib/forcaRegioes'
+import { formatTesteFuncional } from '@/lib/testesFuncionais'
 import {
-  BODY_DRAWING_VIEWBOX,
+  bodyDrawingVersion,
+  bodyDrawingViewBox,
+  type BodyDrawingBox,
   bodyDrawingColor,
   bodyDrawingFigure,
   bodyDrawingWidthInfo,
@@ -1344,7 +1349,8 @@ function drawPlanoClinico(
     textFilled(palpacao?.testesRegistroAnterior) ||
     textFilled(palpacao?.resultados) ||
     textFilled(palpacao?.testeFuncional) ||
-    textFilled(palpacao?.resultadoInicial)
+    textFilled(palpacao?.resultadoInicial) ||
+    (palpacao?.funcionais?.length ?? 0) > 0
 
   const hasSintese =
     textFilled(plano?.sintese?.problema1) ||
@@ -1470,6 +1476,10 @@ function drawPlanoClinico(
       palpacao?.testesRegistroAnterior?.replaceAll('→', '->'),
     )
     drawOptionalField(ctx, 'Resultados', palpacao?.resultados?.replaceAll('→', '->'))
+    const linhasFuncionais = (palpacao?.funcionais ?? []).map((item) => formatTesteFuncional(item))
+    if (linhasFuncionais.length > 0) {
+      drawOptionalField(ctx, 'Testes funcionais', linhasFuncionais.join('\n'))
+    }
     drawOptionalField(ctx, 'Teste funcional', palpacao?.testeFuncional?.replaceAll('→', '->'))
     drawOptionalField(ctx, 'Resultado inicial', palpacao?.resultadoInicial?.replaceAll('→', '->'))
   }
@@ -1523,10 +1533,16 @@ function drawPlanoClinico(
 }
 
 /** 05 · Mapa de sintomas: figura com os traços coloridos e a legenda só das cores usadas. */
-function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observacao?: string): void {
+function drawMapaSintomas(
+  ctx: DrawContext,
+  tracos: BodyDrawingStroke[],
+  caixa: BodyDrawingBox,
+  observacao?: string,
+): void {
   if (tracos.length > 0 && ctx.bodyImage) {
-    const width = Math.min(ctx.contentW, 400)
-    const height = (width * BODY_DRAWING_VIEWBOX.height) / BODY_DRAWING_VIEWBOX.width
+    // Figura de quatro vistas é mais larga: usa a largura toda do conteúdo.
+    const width = Math.min(ctx.contentW, caixa.width > caixa.height * 1.2 ? 520 : 400)
+    const height = (width * caixa.height) / caixa.width
     const usadas = usedBodyDrawingColors(tracos)
     const legendRowH = 14
     // Estimativa folgada para reservar espaço (a legenda quase sempre cabe em 1 linha).
@@ -1545,7 +1561,7 @@ function drawMapaSintomas(ctx: DrawContext, tracos: BodyDrawingStroke[], observa
       borderWidth: 0.6,
     })
 
-    const scale = width / BODY_DRAWING_VIEWBOX.width
+    const scale = width / caixa.width
     for (const traco of tracos) {
       const info = bodyDrawingColor(traco.cor)
       if (!info) continue
@@ -1870,7 +1886,7 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   if ((tracosMapa.length > 0 || textFilled(obsMapa)) && isFieldSelected(selected, '05.A')) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Mapa de sintomas')
-    drawMapaSintomas(ctx, tracosMapa, obsMapa)
+    drawMapaSintomas(ctx, tracosMapa, bodyDrawingViewBox(bodyDrawingVersion(ficha.mapaSintomas?.versao, tracosMapa)), obsMapa)
   }
 
   if (show02A) {
@@ -2266,8 +2282,16 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
   // Figura do mapa de sintomas: só busca e embute quando a avaliação tem traços.
   let bodyImage: PDFImage | undefined
   if (input.kind === 'avaliacao' && safeBodyStrokes(input.ficha.mapaSintomas?.tracos).length > 0) {
+    const mapa = input.ficha.mapaSintomas
+    const feminina = bodyDrawingFigure(mapa?.figura) === 'feminina'
     const fundoUrl =
-      bodyDrawingFigure(input.ficha.mapaSintomas?.figura) === 'feminina' ? pessoaFemininaUrl : pessoaUrl
+      bodyDrawingVersion(mapa?.versao, safeBodyStrokes(mapa?.tracos)) === 2
+        ? feminina
+          ? corpoFemininoUrl
+          : corpoMasculinoUrl
+        : feminina
+          ? pessoaFemininaUrl
+          : pessoaUrl
     const bodyBytes = await fetch(fundoUrl).then((r) => {
       if (!r.ok) throw new Error('Não foi possível carregar a figura do mapa de sintomas.')
       return r.arrayBuffer()

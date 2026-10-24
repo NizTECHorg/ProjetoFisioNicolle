@@ -2,6 +2,13 @@ import { z } from 'zod'
 import { normalizeAtividadesAfetadas } from '../lib/atividadeCapacidade.ts'
 import { normalizeMobilidade, normalizePalpacaoTestes } from '../lib/mobilidadePalpacao.ts'
 import {
+  ACHADOS_FUNCIONAIS,
+  FUNCIONAIS_MAX,
+  UNIDADES_FUNCIONAIS,
+  type AchadoFuncional,
+  type UnidadeFuncional,
+} from '../lib/testesFuncionais.ts'
+import {
   ESPORTE_OUTRO_MAX,
   ESPORTE_PROBLEMAS_MAX,
   safeEsporte,
@@ -131,6 +138,22 @@ const testeMarcadoSchema = z.object({
   outroTexto: optionalText(200),
 })
 
+const testeFuncionalSchema = z.object({
+  categoria: z.string().trim().min(1),
+  teste: z.string().trim().min(1),
+  outroTexto: optionalText(200),
+  lado: z.enum(['D', 'E', 'bilateral']).optional(),
+  resultado: optionalText(200),
+  unidade: z.enum(UNIDADES_FUNCIONAIS as unknown as [UnidadeFuncional, ...UnidadeFuncional[]]).optional(),
+  direito: optionalText(40),
+  esquerdo: optionalText(40),
+  dor: z.number().int().min(0).max(10).optional(),
+  qualidade: z.enum(['adequada', 'alterada']).optional(),
+  achados: z.array(z.enum(ACHADOS_FUNCIONAIS.map((a) => a.key) as [AchadoFuncional, ...AchadoFuncional[]])).optional(),
+  achadoOutro: optionalText(200),
+  observacao: optionalText(1000),
+})
+
 const palpacaoTestesSchema = z.object({
   achados: z.array(achadoSchema).default([]),
   testes: z.array(testeMarcadoSchema).default([]),
@@ -139,6 +162,7 @@ const palpacaoTestesSchema = z.object({
   resultados: optionalText(2000),
   testeFuncional: optionalText(2000),
   resultadoInicial: optionalText(2000),
+  funcionais: z.array(testeFuncionalSchema).max(FUNCIONAIS_MAX).default([]),
 })
 
 const forcaRowSchema = z.object({
@@ -598,6 +622,8 @@ export const evaluationFichaSchema = z.object({
   mapaSintomas: z
     .object({
       figura: z.preprocess((value) => bodyDrawingFigure(value), z.enum(BODY_DRAWING_FIGURES)),
+      /** 2 = figura de quatro vistas. Ausente = desenho antigo (frente/costas) ou ainda vazio. */
+      versao: z.preprocess((value) => (value === 2 ? 2 : undefined), z.literal(2).optional()),
       // Traço estragado não derruba a ficha inteira: é descartado antes de validar.
       tracos: z.preprocess(
         (value) => safeBodyStrokes(value),

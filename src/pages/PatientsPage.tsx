@@ -118,7 +118,7 @@ export function PatientsPage() {
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
         className="dash-in"
-        title="Pacientes"
+        title="Pacientes" info="Lista de pacientes da clínica. Use “Novo paciente” para cadastrar e toque em um paciente para abrir a ficha com resumo, avaliações, sessões e imagens."
         description="Cadastros da clínica. Toque no card ou na linha para abrir a ficha."
         action={
           <Button onClick={openCreate}>

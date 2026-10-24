@@ -1,8 +1,28 @@
-// Mapa de sintomas desenhado à mão sobre a figura anterior/posterior (src/assets/homi.png e muir.png).
-// Sem imports com alias: roda direto em node --test.
+// Mapa de sintomas desenhado à mão sobre a figura do corpo.
+// Versão 1: frente/costas (src/assets/homi.png e muir.png). Versão 2: quatro vistas, com as laterais
+// (src/assets/corpo-masculino.png e corpo-feminino.png). Sem imports com alias: roda direto em node --test.
 
-/** Mesmas proporções de src/assets/homi.png e muir.png (1271 × 1238). */
+export type BodyDrawingBox = { readonly width: number; readonly height: number }
+
+/** Versão 1 — mesmas proporções de src/assets/homi.png e muir.png (1271 × 1238). */
 export const BODY_DRAWING_VIEWBOX = { width: 1271, height: 1238 } as const
+/** Versão 2 — mesmas proporções de src/assets/corpo-masculino.png e corpo-feminino.png (1860 × 1294). */
+export const BODY_DRAWING_VIEWBOX_V2 = { width: 1860, height: 1294 } as const
+
+export type BodyDrawingVersion = 1 | 2
+
+/**
+ * Os traços só valem sobre a figura em que foram feitos. Desenho antigo (sem versão e com traços)
+ * continua na figura de frente/costas; desenho vazio ou marcado como 2 usa as quatro vistas.
+ */
+export function bodyDrawingVersion(versao: unknown, tracos: readonly unknown[]): BodyDrawingVersion {
+  if (versao === 2) return 2
+  return tracos.length > 0 ? 1 : 2
+}
+
+export function bodyDrawingViewBox(versao: BodyDrawingVersion): BodyDrawingBox {
+  return versao === 2 ? BODY_DRAWING_VIEWBOX_V2 : BODY_DRAWING_VIEWBOX
+}
 export const BODY_DRAWING_MAX_STROKES = 200
 export const BODY_DRAWING_MAX_PATH_CHARS = 6000
 export const BODY_DRAWING_MIN_STEP = 3
@@ -80,20 +100,22 @@ export function bodyClientToViewBox(
   clientX: number,
   clientY: number,
   rect: { left: number; top: number; width: number; height: number },
+  box: BodyDrawingBox = BODY_DRAWING_VIEWBOX,
 ): BodyDrawingPoint {
-  const x = rect.width > 0 ? ((clientX - rect.left) / rect.width) * BODY_DRAWING_VIEWBOX.width : 0
-  const y = rect.height > 0 ? ((clientY - rect.top) / rect.height) * BODY_DRAWING_VIEWBOX.height : 0
-  return { x: clamp(x, BODY_DRAWING_VIEWBOX.width), y: clamp(y, BODY_DRAWING_VIEWBOX.height) }
+  const x = rect.width > 0 ? ((clientX - rect.left) / rect.width) * box.width : 0
+  const y = rect.height > 0 ? ((clientY - rect.top) / rect.height) * box.height : 0
+  return { x: clamp(x, box.width), y: clamp(y, box.height) }
 }
 
 /** Arredonda, prende ao viewBox e descarta pontos a menos de minStep do último mantido. */
 export function simplifyBodyStroke(
   points: readonly BodyDrawingPoint[],
   minStep: number = BODY_DRAWING_MIN_STEP,
+  box: BodyDrawingBox = BODY_DRAWING_VIEWBOX,
 ): BodyDrawingPoint[] {
   const out: BodyDrawingPoint[] = []
   for (const p of points) {
-    const q = { x: clamp(p.x, BODY_DRAWING_VIEWBOX.width), y: clamp(p.y, BODY_DRAWING_VIEWBOX.height) }
+    const q = { x: clamp(p.x, box.width), y: clamp(p.y, box.height) }
     const last = out[out.length - 1]
     if (!last || Math.hypot(q.x - last.x, q.y - last.y) >= minStep) out.push(q)
   }
@@ -139,8 +161,9 @@ export function appendBodyStroke(
   cor: BodyDrawingColor,
   points: readonly BodyDrawingPoint[],
   espessura: BodyDrawingWidth = 'media',
+  box: BodyDrawingBox = BODY_DRAWING_VIEWBOX,
 ): BodyDrawingStroke[] {
-  const d = bodyStrokeToPath(simplifyBodyStroke(points))
+  const d = bodyStrokeToPath(simplifyBodyStroke(points, BODY_DRAWING_MIN_STEP, box))
   if (!isSafeBodyPath(d) || strokes.length >= BODY_DRAWING_MAX_STROKES) return [...strokes]
   return [...strokes, { cor, d, espessura }]
 }

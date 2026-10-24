@@ -1,6 +1,7 @@
 import type { EvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { ATIVIDADES, formatAtividadeFisica, formatLinha } from '@/lib/atividadeCapacidade'
 import { resumoEsportes } from '@/lib/esportesAvaliacao'
+import { formatTesteFuncional } from '@/lib/testesFuncionais'
 import {
   formatAchado,
   formatCabecalhoRegiao,
@@ -628,10 +629,11 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     textFilled(palpacao?.testesRegistroAnterior) ||
     textFilled(palpacao?.resultados) ||
     textFilled(palpacao?.testeFuncional) ||
-    textFilled(palpacao?.resultadoInicial)
+    textFilled(palpacao?.resultadoInicial) ||
+    (palpacao?.funcionais?.length ?? 0) > 0
   pushBlock(items, {
     id: '04.E',
-    label: 'Palpação / testes / função',
+    label: 'Palpação / testes / testes funcionais',
     groupLabel: '04 · Avaliação e plano · Bloco E',
     filled: hasPalp,
     preview: previewFrom(
@@ -642,6 +644,7 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
       palpacao?.resultados,
       palpacao?.testeFuncional,
       palpacao?.resultadoInicial,
+      palpacao?.funcionais?.[0] ? formatTesteFuncional(palpacao.funcionais[0]) : undefined,
     ),
   })
 
