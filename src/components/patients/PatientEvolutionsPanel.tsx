@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
 import { useSessionCharges } from '@/hooks/useFinance'
 import { usePatientImages } from '@/hooks/usePatientImages'
-import { useVoiceCopilot } from '@/hooks/useVoiceCopilot'
+import { MAX_RECORDING_LABEL, MAX_RECORDING_SECONDS, useVoiceCopilot } from '@/hooks/useVoiceCopilot'
 import { useToastStore } from '@/stores/toast.store'
 import { generateEvolutionFromAudio } from '@/services/ai.service'
 import { useDeletePatientSession, usePatientSessions } from '@/hooks/usePatients'
@@ -217,6 +217,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                 <Button type="button" variant="secondary" onClick={stopRecording} className="animate-pulse bg-error/10 text-error hover:bg-error/20">
                   <Square size={16} className="fill-current" />
                   {Math.floor(duration / 60).toString().padStart(2, "0")}:{(duration % 60).toString().padStart(2, "0")}
+                  <span className="font-normal opacity-70">/ {Math.floor(MAX_RECORDING_SECONDS / 60).toString().padStart(2, "0")}:00</span>
                 </Button>
               ) : isProcessingAudio ? (
                 <Button type="button" variant="secondary" disabled>
@@ -224,8 +225,15 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                   Analisando...
                 </Button>
               ) : (
-                <Button type="button" variant="secondary" onClick={startRecording} title="Gravar evolução por voz">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={startRecording}
+                  title={`Gravar evolução por voz (até ${MAX_RECORDING_LABEL})`}
+                  aria-label={`Gravar evolução por voz, até ${MAX_RECORDING_LABEL}`}
+                >
                   <Mic size={16} />
+                  <span className="text-xs font-medium text-muted">até {MAX_RECORDING_LABEL}</span>
                 </Button>
               )}
               <Button type="button" onClick={() => { setEditing(null); setDraftConducts(null); setEditorOpen(true) }}>

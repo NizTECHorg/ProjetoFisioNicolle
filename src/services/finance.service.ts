@@ -158,6 +158,21 @@ export async function archivePrice(id: string): Promise<void> {
   throwIfError(error)
 }
 
+/**
+ * Tira o preço do catálogo. Nunca usado: apaga de vez. Já usado em sessão: o banco recusa
+ * apagar (FK do histórico), então arquiva — some do catálogo e as sessões mantêm nome e valor.
+ */
+export async function deletePrice(id: string): Promise<'apagado' | 'arquivado'> {
+  const { data, error } = await supabase.from('autonomo_prices').delete().eq('id', id).select('id')
+  if (error?.code === '23503') {
+    await archivePrice(id)
+    return 'arquivado'
+  }
+  throwIfError(error)
+  if (!data || data.length === 0) throw new Error('Não foi possível apagar o preço. Tente de novo.')
+  return 'apagado'
+}
+
 export async function fetchFinanceTotals(): Promise<FinanceTotals> {
   const { data, error } = await supabase.rpc('autonomo_finance_totals').maybeSingle()
   throwIfError(error)

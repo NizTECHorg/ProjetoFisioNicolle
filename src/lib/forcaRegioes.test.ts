@@ -10,6 +10,8 @@ test('regiões da força vêm da Mobilidade, sem ATM, com "Outra região" no fim
   ok(!labels.includes('ATM / mandíbula'))
   equal(labels.at(-1), OUTRA_REGIAO_FORCA)
   ok(sugestoesForca('Joelho').includes('Flexão'))
+  ok(sugestoesForca('Joelho').includes('Rotação interna'))
+  ok(sugestoesForca('Joelho').includes('Rotação externa'))
   deepEqual(sugestoesForca(OUTRA_REGIAO_FORCA), [])
   deepEqual(sugestoesForca(undefined), [])
 })

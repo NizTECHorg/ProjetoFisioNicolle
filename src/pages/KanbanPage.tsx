@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { CalendarClock, Plus, Trash2 } from 'lucide-react'
+import { CalendarClock, Pencil, Plus, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -15,6 +15,7 @@ import {
   useDeleteCard,
   useDeleteColumn,
   useMoveCard,
+  useRenameColumn,
   useUpdateCardDue,
 } from '@/hooks/useClinic'
 import { usePatients } from '@/hooks/usePatients'
@@ -41,6 +42,7 @@ export function KanbanPage() {
   const move = useMoveCard()
   const removeCard = useDeleteCard()
   const removeColumn = useDeleteColumn()
+  const renameColumn = useRenameColumn()
   const updateDue = useUpdateCardDue()
 
   const [columnTitle, setColumnTitle] = useState('')
@@ -53,6 +55,8 @@ export function KanbanPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dropColumnId, setDropColumnId] = useState<string | null>(null)
   const [columnToDelete, setColumnToDelete] = useState<{ id: string; title: string } | null>(null)
+  const [columnToRename, setColumnToRename] = useState<{ id: string; title: string } | null>(null)
+  const [renameTitle, setRenameTitle] = useState('')
 
   const columns = data?.columns ?? []
   const cards = data?.cards ?? []
@@ -162,11 +166,24 @@ export function KanbanPage() {
                     </span>
                     <button
                       type="button"
+                      aria-label={`Renomear lista ${column.title}`}
+                      title="Renomear lista"
+                      className="flex min-h-11 min-w-9 items-center justify-center rounded-lg text-muted transition hover:text-forest"
+                      onClick={() => {
+                        setColumnToRename({ id: column.id, title: column.title })
+                        setRenameTitle(column.title)
+                      }}
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
                       aria-label={`Excluir lista ${column.title}`}
-                      className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted opacity-0 transition-opacity hover:text-error group-hover/column:opacity-100 group-focus-within/column:opacity-100 [@media(hover:none)]:opacity-100"
+                      title="Excluir lista"
+                      className="flex min-h-11 min-w-9 items-center justify-center rounded-lg text-muted transition hover:text-error"
                       onClick={() => setColumnToDelete({ id: column.id, title: column.title })}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
@@ -296,6 +313,28 @@ export function KanbanPage() {
           <Button type="submit" fullWidth isLoading={createCard.isPending} disabled={!cardTitle.trim()}>
             Criar card
           </Button>
+        </form>
+      </Modal>
+
+      <Modal open={Boolean(columnToRename)} title="Renomear lista" onClose={() => setColumnToRename(null)}>
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault()
+            const title = renameTitle.trim()
+            if (!columnToRename || !title) return
+            renameColumn.mutate({ id: columnToRename.id, title }, { onSuccess: () => setColumnToRename(null) })
+          }}
+        >
+          <Input label="Nome da lista" value={renameTitle} autoFocus onChange={(event) => setRenameTitle(event.target.value)} />
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button type="button" variant="secondary" onClick={() => setColumnToRename(null)}>
+              Cancelar
+            </Button>
+            <Button type="submit" isLoading={renameColumn.isPending} disabled={!renameTitle.trim()}>
+              Salvar
+            </Button>
+          </div>
         </form>
       </Modal>
 

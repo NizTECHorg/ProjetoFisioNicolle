@@ -81,7 +81,7 @@ const MOBILIDADE_ESPERADA: Array<[string, string[]]> = [
     ],
   ],
   ['Quadril', ['Flexão', 'Extensão', 'Abdução', 'Adução', 'Rotação interna', 'Rotação externa']],
-  ['Joelho', ['Flexão', 'Extensão']],
+  ['Joelho', ['Flexão', 'Extensão', 'Rotação interna', 'Rotação externa']],
   ['Tornozelo', ['Dorsiflexão', 'Flexão plantar', 'Inversão', 'Eversão']],
   [
     'Pé / dedos',
@@ -562,10 +562,10 @@ function chavesUnicas(chaves: string[], regiao: string) {
 test('REQ-36: catálogo não encolhe', () => {
   equal(CATALOGO_MOBILIDADE.length, 13)
   const contagemMovimentos = CATALOGO_MOBILIDADE.map((regiao) => regiao.movimentos.length)
-  deepEqual(contagemMovimentos, [6, 6, 6, 8, 2, 2, 4, 13, 6, 2, 4, 6, 6])
+  deepEqual(contagemMovimentos, [6, 6, 6, 8, 2, 2, 4, 13, 6, 4, 4, 6, 6])
   equal(
     contagemMovimentos.reduce((soma, n) => soma + n, 0),
-    71,
+    73,
   )
   CATALOGO_MOBILIDADE.forEach((regiao, indice) => {
     const [rotulo, movimentos] = MOBILIDADE_ESPERADA[indice]!

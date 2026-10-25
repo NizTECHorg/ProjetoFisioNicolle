@@ -6,6 +6,7 @@ import {
   createColumn,
   deleteCard,
   deleteColumn,
+  renameColumn,
   listBoard,
   listDueCards,
   moveCard,
@@ -147,6 +148,19 @@ export function useDeleteCard() {
       void qc.invalidateQueries({ queryKey: ['board'] })
       void qc.invalidateQueries({ queryKey: ['board-dues'] })
       toast('Card removido', 'success')
+    },
+    onError,
+  })
+}
+
+export function useRenameColumn() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: renameColumn,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['board'] })
+      void qc.invalidateQueries({ queryKey: ['board-dues'] })
+      toast('Lista renomeada', 'success')
     },
     onError,
   })

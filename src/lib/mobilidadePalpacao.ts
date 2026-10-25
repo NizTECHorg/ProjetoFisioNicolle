@@ -203,7 +203,7 @@ export const CATALOGO_MOBILIDADE: RegiaoMobilidade[] = [
     'Rotação interna',
     'Rotação externa',
   ]),
-  regiaoMobilidade('Joelho', ['Flexão', 'Extensão']),
+  regiaoMobilidade('Joelho', ['Flexão', 'Extensão', 'Rotação interna', 'Rotação externa']),
   regiaoMobilidade('Tornozelo', ['Dorsiflexão', 'Flexão plantar', 'Inversão', 'Eversão']),
   regiaoMobilidade('Pé / dedos', [
     'Flexão do hálux',

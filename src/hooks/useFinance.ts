@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   archivePrice,
+  deletePrice,
   createPrice,
   fetchChargeBySessionId,
   fetchChargesBySessionIds,
@@ -115,6 +116,23 @@ export function useArchivePrice() {
     mutationFn: (id: string) => archivePrice(id),
     onSuccess: () => {
       toast('Preço arquivado', 'success')
+      invalidateFinance(qc)
+    },
+    onError,
+  })
+}
+
+export function useDeletePrice() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deletePrice(id),
+    onSuccess: (resultado) => {
+      toast(
+        resultado === 'arquivado'
+          ? 'Preço removido do catálogo. As sessões que já usaram mantêm o valor.'
+          : 'Preço apagado',
+        'success',
+      )
       invalidateFinance(qc)
     },
     onError,

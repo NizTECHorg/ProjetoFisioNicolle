@@ -2,6 +2,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 const RECORDING_MIME_TYPE = 'audio/webm;codecs=opus';
 const MAX_RECORDING_DURATION_MS = 600_000; // 10 minutes (600.000 ms)
+/** Limite mostrado ao usuário (a gravação para sozinha aqui). */
+export const MAX_RECORDING_SECONDS = MAX_RECORDING_DURATION_MS / 1000;
+export const MAX_RECORDING_LABEL = '10 min';
 
 export interface UseVoiceCopilotReturn {
   isRecording: boolean;

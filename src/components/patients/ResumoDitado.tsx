@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Loader2, Mic, Square } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
-import { useVoiceCopilot } from '@/hooks/useVoiceCopilot'
+import { MAX_RECORDING_LABEL, MAX_RECORDING_SECONDS, useVoiceCopilot } from '@/hooks/useVoiceCopilot'
 import { transcribeAudio } from '@/services/ai.service'
 import { useToastStore } from '@/stores/toast.store'
 
@@ -56,7 +56,7 @@ export function ResumoDitado({ disabled = false, onIncorporar }: ResumoDitadoPro
             className="!px-4 !py-2.5 animate-pulse bg-error/10 text-error hover:bg-error/20"
           >
             <Square size={15} className="fill-current" aria-hidden />
-            Parar · {formatarDuracao(duration)}
+            Parar · {formatarDuracao(duration)} / {formatarDuracao(MAX_RECORDING_SECONDS)}
           </Button>
         ) : transcrevendo ? (
           <Button type="button" variant="secondary" disabled className="!px-4 !py-2.5">
@@ -76,7 +76,9 @@ export function ResumoDitado({ disabled = false, onIncorporar }: ResumoDitadoPro
           </Button>
         )}
         {!isRecording && !transcrevendo && transcricao === null ? (
-          <span className="text-xs text-muted">Fale o resumo; o texto aparece aqui para você revisar.</span>
+          <span className="text-xs text-muted">
+            Fale o resumo (até {MAX_RECORDING_LABEL}); o texto aparece aqui para você revisar.
+          </span>
         ) : null}
       </div>
 

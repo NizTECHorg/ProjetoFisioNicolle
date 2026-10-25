@@ -63,7 +63,7 @@ function selectColumns() {
 }
 
 /**
- * Conta nova abre o Quadro com "A fazer", "Em andamento" e "Concluído" (Phase 45).
+ * Conta nova abre o Quadro com "A fazer", "Urgente", "Em andamento" e "Concluído" (Phase 45).
  * O banco decide (uma vez por conta, só contas criadas depois do SQL); falha nunca bloqueia o Quadro.
  */
 async function seedDefaultBoard(): Promise<boolean> {
@@ -254,6 +254,11 @@ export async function moveCard(cardId: string, columnId: string) {
 
 export async function deleteCard(id: string) {
   const { error } = await supabase.from('board_cards').delete().eq('id', id)
+  throwIfError(error)
+}
+
+export async function renameColumn(input: { id: string; title: string }) {
+  const { error } = await supabase.from('board_columns').update({ title: input.title }).eq('id', input.id)
   throwIfError(error)
 }
 

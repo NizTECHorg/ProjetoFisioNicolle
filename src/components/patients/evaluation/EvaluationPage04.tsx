@@ -306,6 +306,17 @@ function CartaoRegiao({
   const opcoes = CATALOGO_MOBILIDADE.filter(
     (item) => item.key === regiaoKey || !escolhidas.has(item.key),
   )
+  // Movimentos marcados que o usuário recolheu (só visual; os valores ficam na ficha).
+  const [recolhidos, setRecolhidos] = useState<ReadonlySet<string>>(() => new Set())
+
+  function alternarRecolhido(key: string) {
+    setRecolhidos((atual) => {
+      const proximo = new Set(atual)
+      if (proximo.has(key)) proximo.delete(key)
+      else proximo.add(key)
+      return proximo
+    })
+  }
 
   return (
     <div className="relative space-y-4 rounded-2xl border border-line bg-canvas p-4">
@@ -376,31 +387,74 @@ function CartaoRegiao({
             {catalogo.movimentos.map((item) => {
               const movIndex = fields.findIndex((campo) => campo.movimento === item.key)
               const marcado = movIndex >= 0
+              const aberto = marcado && !recolhidos.has(item.key)
+              const painelId = `mov-${index}-${item.key}`
               return (
                 <div key={item.key} className="space-y-2">
-                  <label className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
-                    <input
-                      type="checkbox"
-                      className="accent-forest"
-                      checked={marcado}
-                      disabled={disabled}
-                      onChange={() => {
-                        if (marcado) remove(movIndex)
-                        else append({ movimento: item.key }, { shouldFocus: false })
-                      }}
-                    />
-                    <span>{item.label}</span>
-                  </label>
+                  <div className="flex items-center gap-1">
+                    <label className="inline-flex min-h-11 items-center gap-2 text-sm text-ink">
+                      <input
+                        type="checkbox"
+                        className="accent-forest"
+                        checked={marcado}
+                        disabled={disabled}
+                        onChange={() => {
+                          if (marcado) remove(movIndex)
+                          else {
+                            append({ movimento: item.key }, { shouldFocus: false })
+                            setRecolhidos((atual) => {
+                              if (!atual.has(item.key)) return atual
+                              const proximo = new Set(atual)
+                              proximo.delete(item.key)
+                              return proximo
+                            })
+                          }
+                        }}
+                      />
+                      <span>{item.label}</span>
+                    </label>
+                    {marcado ? (
+                      <button
+                        type="button"
+                        aria-expanded={aberto}
+                        aria-controls={painelId}
+                        aria-label={aberto ? `Recolher ${item.label}` : `Mostrar ${item.label}`}
+                        title={aberto ? 'Recolher' : 'Mostrar'}
+                        onClick={() => alternarRecolhido(item.key)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-forest transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+                      >
+                        <ChevronDown
+                          size={18}
+                          aria-hidden
+                          className={[
+                            'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                            aberto ? 'rotate-0' : '-rotate-90',
+                          ].join(' ')}
+                        />
+                      </button>
+                    ) : null}
+                  </div>
                   {marcado ? (
-                    <LinhaMedida
-                      regiaoIndex={index}
-                      movIndex={movIndex}
-                      movimento={item.label}
-                      register={register}
-                      watch={watch}
-                      setValue={setValue}
-                      disabled={disabled}
-                    />
+                    <div
+                      id={painelId}
+                      inert={aberto ? undefined : true}
+                      className={[
+                        'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                        aberto ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+                      ].join(' ')}
+                    >
+                      <div className="min-h-0 overflow-hidden">
+                        <LinhaMedida
+                          regiaoIndex={index}
+                          movIndex={movIndex}
+                          movimento={item.label}
+                          register={register}
+                          watch={watch}
+                          setValue={setValue}
+                          disabled={disabled}
+                        />
+                      </div>
+                    </div>
                   ) : null}
                 </div>
               )
@@ -2074,9 +2128,26 @@ function ForcaTable({
   const grupos = agruparForca(fields)
   const usadas = new Set(grupos.map((grupo) => grupo.regiao))
   const livres = FORCA_REGIOES.filter((regiao) => !usadas.has(regiao.label))
+  // Regiões recolhidas (só visual; as linhas continuam na ficha).
+  const [recolhidas, setRecolhidas] = useState<ReadonlySet<string>>(() => new Set())
+
+  function alternarRegiao(chave: string) {
+    setRecolhidas((atual) => {
+      const proximo = new Set(atual)
+      if (proximo.has(chave)) proximo.delete(chave)
+      else proximo.add(chave)
+      return proximo
+    })
+  }
 
   function adicionar(regiao: string) {
     append({ regiao, grupo: '', direito: '', esquerdo: '', dor: '', observacao: '' })
+    setRecolhidas((atual) => {
+      if (!atual.has(regiao)) return atual
+      const proximo = new Set(atual)
+      proximo.delete(regiao)
+      return proximo
+    })
   }
 
   return (
@@ -2084,9 +2155,43 @@ function ForcaTable({
       {grupos.map((grupo) => {
         const sugestoes = sugestoesForca(grupo.regiao)
         const datalistId = `${listaId}-${grupo.regiao || 'sem-regiao'}`
+        const nomeRegiao = grupo.regiao || 'Sem região'
+        const aberta = !recolhidas.has(grupo.regiao)
+        const painelId = `${listaId}-painel-${grupo.regiao || 'sem-regiao'}`
         return (
-          <section key={grupo.regiao || 'sem-regiao'} className="space-y-3 rounded-xl border border-line p-3">
-            <h4 className="text-sm font-semibold text-ink">{grupo.regiao || 'Sem região'}</h4>
+          <section key={grupo.regiao || 'sem-regiao'} className="rounded-xl border border-line p-3">
+            <h4>
+              <button
+                type="button"
+                aria-expanded={aberta}
+                aria-controls={painelId}
+                onClick={() => alternarRegiao(grupo.regiao)}
+                className="-m-1 flex min-h-10 w-[calc(100%+0.5rem)] items-center gap-2 rounded-lg p-1 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+              >
+                <ChevronDown
+                  size={18}
+                  aria-hidden
+                  className={[
+                    'shrink-0 text-forest transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                    aberta ? 'rotate-0' : '-rotate-90',
+                  ].join(' ')}
+                />
+                <span className="min-w-0 flex-1">{nomeRegiao}</span>
+                <span className="text-xs font-normal text-muted">
+                  {grupo.linhas.length === 1 ? '1 linha' : `${grupo.linhas.length} linhas`}
+                </span>
+              </button>
+            </h4>
+            <div
+              id={painelId}
+              inert={aberta ? undefined : true}
+              className={[
+                'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                aberta ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+              ].join(' ')}
+            >
+            <div className="min-h-0 overflow-hidden">
+            <div className="space-y-3 pt-3">
             {sugestoes.length > 0 ? (
               <datalist id={datalistId}>
                 {sugestoes.map((sugestao) => (
@@ -2149,6 +2254,9 @@ function ForcaTable({
                 Adicionar em {grupo.regiao}
               </button>
             ) : null}
+            </div>
+            </div>
+            </div>
           </section>
         )
       })}

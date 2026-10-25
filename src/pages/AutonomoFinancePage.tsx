@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Archive, Pencil, Plus, Wallet } from 'lucide-react'
+import { Pencil, Plus, Trash2, Wallet } from 'lucide-react'
 import {
   FinanceAnalyticsCharts,
   FinanceAnalyticsFilters,
@@ -16,7 +16,7 @@ import { DataTable } from '@/components/ui/DataTable'
 import { useAuth } from '@/hooks/useAuth'
 import { usePatients } from '@/hooks/usePatients'
 import {
-  useArchivePrice,
+  useDeletePrice,
   useCreatePrice,
   useFinanceAnalytics,
   useFinancePrices,
@@ -67,11 +67,11 @@ export function AutonomoFinancePage() {
   const paidSessions = useMemo(() => realizadas.filter((row) => row.charge?.isPaid), [realizadas])
   const createPrice = useCreatePrice()
   const updatePrice = useUpdatePrice()
-  const archivePrice = useArchivePrice()
+  const deletePrice = useDeletePrice()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<AutonomoPrice | null>(null)
-  const [pendingArchive, setPendingArchive] = useState<AutonomoPrice | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<AutonomoPrice | null>(null)
   const [clock] = useState(() => new Date())
   const [tab, setTab] = useState<'totais' | 'analitica'>('totais')
   const [selectedMonthKey, setSelectedMonthKey] = useState(() => saoPauloMonthKey(clock))
@@ -330,11 +330,12 @@ export function AutonomoFinancePage() {
                       </button>
                       <button
                         type="button"
-                        aria-label={`Arquivar preço ${row.name}`}
-                        onClick={() => setPendingArchive(row)}
+                        aria-label={`Apagar preço ${row.name}`}
+                        title="Apagar preço"
+                        onClick={() => setPendingDelete(row)}
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-error/10 hover:text-error"
                       >
-                        <Archive size={16} aria-hidden />
+                        <Trash2 size={16} aria-hidden />
                       </button>
                     </li>
                   ))}
@@ -355,24 +356,27 @@ export function AutonomoFinancePage() {
                       {
                         key: 'actions',
                         header: 'Ações',
+                        className: 'w-px whitespace-nowrap text-right',
                         render: (row) => (
-                          <div className="flex flex-wrap gap-2">
-                            <Button
+                          <div className="flex justify-end gap-1">
+                            <button
                               type="button"
-                              variant="ghost"
-                              className="min-h-11 min-w-11"
+                              aria-label={`Editar preço ${row.name}`}
+                              title="Editar preço"
                               onClick={() => openEdit(row)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full text-muted transition hover:bg-accent-soft hover:text-forest"
                             >
-                              Editar preço
-                            </Button>
-                            <Button
+                              <Pencil size={16} aria-hidden />
+                            </button>
+                            <button
                               type="button"
-                              variant="ghost"
-                              className="min-h-11 min-w-11 text-error"
-                              onClick={() => setPendingArchive(row)}
+                              aria-label={`Apagar preço ${row.name}`}
+                              title="Apagar preço"
+                              onClick={() => setPendingDelete(row)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full text-muted transition hover:bg-error/10 hover:text-error"
                             >
-                              Arquivar preço
-                            </Button>
+                              <Trash2 size={16} aria-hidden />
+                            </button>
                           </div>
                         ),
                       },
@@ -526,18 +530,18 @@ export function AutonomoFinancePage() {
       </Modal>
 
       <ConfirmDialog
-        open={Boolean(pendingArchive)}
-        title="Arquivar preço?"
-        description="Este preço sai do catálogo de novas sessões. Sessões já gravadas mantêm o valor e o nome da época."
-        confirmLabel="Arquivar preço"
-        cancelLabel="Voltar sem arquivar"
+        open={Boolean(pendingDelete)}
+        title="Apagar preço?"
+        description="O preço sai do catálogo. Sessões que já usaram este preço continuam com o nome e o valor da época."
+        confirmLabel="Apagar preço"
+        cancelLabel="Voltar sem apagar"
         tone="danger"
-        isLoading={archivePrice.isPending}
-        onClose={() => setPendingArchive(null)}
+        isLoading={deletePrice.isPending}
+        onClose={() => setPendingDelete(null)}
         onConfirm={() => {
-          if (!pendingArchive) return
-          archivePrice.mutate(pendingArchive.id, {
-            onSuccess: () => setPendingArchive(null),
+          if (!pendingDelete) return
+          deletePrice.mutate(pendingDelete.id, {
+            onSettled: () => setPendingDelete(null),
           })
         }}
       />
