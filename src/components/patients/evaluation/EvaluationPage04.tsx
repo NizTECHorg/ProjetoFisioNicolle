@@ -1293,6 +1293,116 @@ function GrupoTestes({
   )
 }
 
+/** Um teste marcado: o nome abre e fecha os campos dele; o X desmarca. Fechar não apaga nada. */
+function ItemMarcado({
+  titulo,
+  subtitulo,
+  onRemove,
+  disabled,
+  children,
+}: {
+  titulo: string
+  subtitulo?: string
+  onRemove: () => void
+  disabled?: boolean
+  children: ReactNode
+}) {
+  const [aberto, setAberto] = useState(true)
+  const painelId = useId()
+  return (
+    <li className="py-3 first:pt-0 last:pb-0">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          aria-expanded={aberto}
+          aria-controls={painelId}
+          onClick={() => setAberto((atual) => !atual)}
+          className="flex min-h-9 min-w-0 flex-1 items-center gap-2 rounded-lg text-left text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+        >
+          <ChevronDown
+            size={16}
+            aria-hidden
+            className={[
+              'shrink-0 text-forest transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+              aberto ? 'rotate-0' : '-rotate-90',
+            ].join(' ')}
+          />
+          <span className="min-w-0">
+            <span className="font-semibold">{titulo}</span>
+            {subtitulo ? <span className="text-muted"> · {subtitulo}</span> : null}
+          </span>
+        </button>
+        {!disabled ? (
+          <button
+            type="button"
+            aria-label={`Desmarcar ${titulo}`}
+            title="Desmarcar"
+            onClick={onRemove}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:text-error"
+          >
+            <X size={16} aria-hidden />
+          </button>
+        ) : null}
+      </div>
+      <div
+        id={painelId}
+        inert={aberto ? undefined : true}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          aberto ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        ].join(' ')}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="space-y-3 pl-6 pt-2">{children}</div>
+        </div>
+      </div>
+    </li>
+  )
+}
+
+/** Caixa "… marcados" com cabeçalho que recolhe e abre a lista (só visual; os dados ficam na ficha). */
+function SecaoMarcados({ titulo, quantidade, children }: { titulo: string; quantidade: number; children: ReactNode }) {
+  const [aberta, setAberta] = useState(true)
+  const painelId = useId()
+  return (
+    <section aria-label={titulo} className="rounded-2xl border border-line bg-surface p-4">
+      <h4>
+        <button
+          type="button"
+          aria-expanded={aberta}
+          aria-controls={painelId}
+          onClick={() => setAberta((atual) => !atual)}
+          className="flex min-h-10 w-full items-center gap-2 rounded-lg text-left text-sm font-semibold leading-[1.2] text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+        >
+          <ChevronDown
+            size={18}
+            aria-hidden
+            className={[
+              'shrink-0 text-forest transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+              aberta ? 'rotate-0' : '-rotate-90',
+            ].join(' ')}
+          />
+          <span>
+            {titulo} <span className="font-normal text-muted">({quantidade})</span>
+          </span>
+        </button>
+      </h4>
+      <div
+        id={painelId}
+        inert={aberta ? undefined : true}
+        className={[
+          'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+          aberta ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        ].join(' ')}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="pt-3">{children}</div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function ListaTestes({
   register,
   control,
@@ -1471,44 +1581,30 @@ function ListaTestes({
       </div>
       ) : null}
       {fields.length > 0 ? (
-        <section aria-label="Testes marcados" className="space-y-3 rounded-2xl border border-line bg-surface p-4">
-          <p className="text-sm font-semibold leading-[1.2] text-ink">
-            Testes marcados <span className="font-normal text-muted">({fields.length})</span>
-          </p>
+        <SecaoMarcados titulo="Testes marcados" quantidade={fields.length}>
           <ul className="divide-y divide-line">
             {fields.map((campo, indice) => {
               const regiao = CATALOGO_TESTES.find((item) => item.key === campo.regiao)
               const teste = regiao?.testes.find((item) => item.key === campo.teste)
               return (
-                <li key={campo.id} className="space-y-1 py-3 first:pt-0 last:pb-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="min-w-0 text-sm text-ink">
-                      <span className="font-semibold">{teste?.label ?? campo.teste}</span>
-                      {regiao ? <span className="text-muted"> · {regiao.label}</span> : null}
-                    </p>
-                    {!disabled ? (
-                      <button
-                        type="button"
-                        aria-label={`Desmarcar ${teste?.label ?? 'teste'}`}
-                        title="Desmarcar"
-                        onClick={() => remove(indice)}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error"
-                      >
-                        <X size={16} aria-hidden />
-                      </button>
-                    ) : null}
-                  </div>
+                <ItemMarcado
+                  key={campo.id}
+                  titulo={teste?.label ?? campo.teste}
+                  subtitulo={regiao?.label}
+                  onRemove={() => remove(indice)}
+                  disabled={disabled}
+                >
                   <CamposTesteMarcado
                     indice={indice}
                     outro={campo.teste === 'outro'}
                     register={register}
                     disabled={disabled}
                   />
-                </li>
+                </ItemMarcado>
               )
             })}
           </ul>
-        </section>
+        </SecaoMarcados>
       ) : null}
       <RegistroAnterior texto={registroAnterior} />
     </div>
@@ -1598,25 +1694,12 @@ function CartaoFuncional({
   )
 
   return (
-    <li className="space-y-3 py-4 first:pt-0 last:pb-0">
-      <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 text-sm text-ink">
-          <span className="font-semibold">{nome}</span>
-          {categoriaLabel && categoria !== 'outro' ? <span className="text-muted"> · {categoriaLabel}</span> : null}
-        </p>
-        {!disabled ? (
-          <button
-            type="button"
-            aria-label={`Desmarcar ${nome}`}
-            title="Desmarcar"
-            onClick={onRemove}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-error/10 hover:text-error"
-          >
-            <X size={16} aria-hidden />
-          </button>
-        ) : null}
-      </div>
-
+    <ItemMarcado
+      titulo={nome}
+      subtitulo={categoriaLabel && categoria !== 'outro' ? categoriaLabel : undefined}
+      onRemove={onRemove}
+      disabled={disabled}
+    >
       {teste === 'outro' ? (
         <div className="space-y-2">
           <label htmlFor={ids.outro} className={ROTULO}>
@@ -1754,7 +1837,7 @@ function CartaoFuncional({
         </label>
         <input id={ids.obs} type="text" className={CAMPO} disabled={disabled} {...register(`${base}.observacao`)} />
       </div>
-    </li>
+    </ItemMarcado>
   )
 }
 
@@ -1879,10 +1962,7 @@ function ListaFuncionais({
         </div>
       ) : null}
       {fields.length > 0 ? (
-        <section aria-label="Testes funcionais marcados" className="space-y-3 rounded-2xl border border-line bg-surface p-4">
-          <p className="text-sm font-semibold leading-[1.2] text-ink">
-            Testes funcionais marcados <span className="font-normal text-muted">({fields.length})</span>
-          </p>
+        <SecaoMarcados titulo="Testes funcionais marcados" quantidade={fields.length}>
           <ul className="divide-y divide-line">
             {fields.map((campo, indice) => (
               <CartaoFuncional
@@ -1897,7 +1977,7 @@ function ListaFuncionais({
               />
             ))}
           </ul>
-        </section>
+        </SecaoMarcados>
       ) : (
         <p className="text-sm text-muted">Nenhum teste funcional marcado. Abra a lista, escolha a categoria e marque o teste.</p>
       )}
@@ -2111,6 +2191,122 @@ function PalpacaoBloco({
   )
 }
 
+/**
+ * Campo de texto com lista de sugestões própria (o <datalist> não abre no celular).
+ * Mostra todas ao tocar na seta; filtra conforme digita. Continua aceitando texto livre.
+ * A lista abre no fluxo (abaixo do campo), não flutuando: assim nenhum contêiner com overflow a corta.
+ */
+function CampoComSugestoes({
+  label,
+  value,
+  onChange,
+  onBlur,
+  sugestoes,
+  disabled,
+}: {
+  label: string
+  value: string
+  onChange: (next: string) => void
+  onBlur?: () => void
+  sugestoes: readonly string[]
+  disabled?: boolean
+}) {
+  const id = useId()
+  const listaId = useId()
+  const [aberto, setAberto] = useState(false)
+  const [filtrar, setFiltrar] = useState(false)
+  const termo = fold(value.trim())
+  const visiveis = filtrar && termo ? sugestoes.filter((item) => fold(item).includes(termo)) : sugestoes
+  const mostrar = aberto && visiveis.length > 0 && !disabled
+
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="block text-sm font-medium text-ink">
+        {label}
+      </label>
+      <div>
+      <div className="relative">
+        <input
+          id={id}
+          type="text"
+          role="combobox"
+          aria-expanded={mostrar}
+          aria-controls={listaId}
+          aria-autocomplete="list"
+          autoComplete="off"
+          disabled={disabled}
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value)
+            setFiltrar(true)
+            setAberto(true)
+          }}
+          onFocus={() => {
+            setFiltrar(false)
+            setAberto(true)
+          }}
+          onBlur={() => {
+            setAberto(false)
+            onBlur?.()
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setAberto(false)
+          }}
+          className="w-full rounded-2xl border border-line bg-canvas py-3.5 pl-4 pr-11 text-ink transition-colors duration-200 hover:border-forest/25 focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/25"
+        />
+        {sugestoes.length > 0 && !disabled ? (
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={aberto ? 'Fechar sugestões' : 'Ver sugestões'}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              setFiltrar(false)
+              setAberto((atual) => !atual)
+              document.getElementById(id)?.focus()
+            }}
+            className="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-muted hover:text-ink"
+          >
+            <ChevronDown
+              size={18}
+              aria-hidden
+              className={['transition-transform duration-200', mostrar ? 'rotate-180' : 'rotate-0'].join(' ')}
+            />
+          </button>
+        ) : null}
+      </div>
+        {mostrar ? (
+          <ul
+            id={listaId}
+            role="listbox"
+            className="mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface py-1 shadow-sm"
+          >
+            {visiveis.map((item) => (
+              <li
+                key={item}
+                role="option"
+                aria-selected={item === value}
+                // mousedown: escolhe antes do blur do campo fechar a lista (vale para toque também).
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  onChange(item)
+                  setAberto(false)
+                }}
+                className={[
+                  'flex min-h-11 cursor-pointer items-center px-4 text-sm transition-colors hover:bg-accent-soft',
+                  item === value ? 'font-semibold text-forest' : 'text-ink',
+                ].join(' ')}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 function ForcaTable({
   register,
   control,
@@ -2154,7 +2350,6 @@ function ForcaTable({
     <div className="space-y-4">
       {grupos.map((grupo) => {
         const sugestoes = sugestoesForca(grupo.regiao)
-        const datalistId = `${listaId}-${grupo.regiao || 'sem-regiao'}`
         const nomeRegiao = grupo.regiao || 'Sem região'
         const aberta = !recolhidas.has(grupo.regiao)
         const painelId = `${listaId}-painel-${grupo.regiao || 'sem-regiao'}`
@@ -2192,23 +2387,24 @@ function ForcaTable({
             >
             <div className="min-h-0 overflow-hidden">
             <div className="space-y-3 pt-3">
-            {sugestoes.length > 0 ? (
-              <datalist id={datalistId}>
-                {sugestoes.map((sugestao) => (
-                  <option key={sugestao} value={sugestao} />
-                ))}
-              </datalist>
-            ) : null}
             {grupo.linhas.map(({ linha, index }, posicao) => (
               <div
                 key={linha.id}
                 className="grid gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))_auto]"
               >
-                <Input
-                  label={`Movimento / grupo ${posicao + 1}`}
-                  disabled={disabled}
-                  list={sugestoes.length > 0 ? datalistId : undefined}
-                  {...register(`ficha.avaliacaoPlano.forca.linhas.${index}.grupo`)}
+                <Controller
+                  control={control}
+                  name={`ficha.avaliacaoPlano.forca.linhas.${index}.grupo`}
+                  render={({ field }) => (
+                    <CampoComSugestoes
+                      label={`Movimento / grupo ${posicao + 1}`}
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      sugestoes={sugestoes}
+                      disabled={disabled}
+                    />
+                  )}
                 />
                 <Input
                   label="Direito"
