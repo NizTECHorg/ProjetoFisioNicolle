@@ -12,7 +12,18 @@ import {
 const ids = ['01', '02', '03', '04', '05'] as const
 
 test('fichaPagerState: posição, percentual e próxima página', () => {
-  deepEqual(fichaPagerState(ids, '01'), { index: 0, n: 1, total: 5, percent: 20, next: '02', isLast: false })
+  deepEqual(fichaPagerState(ids, '01'), {
+    index: 0,
+    n: 1,
+    total: 5,
+    percent: 20,
+    next: '02',
+    prev: null,
+    isFirst: true,
+    isLast: false,
+  })
+  equal(fichaPagerState(ids, '03').prev, '02')
+  equal(fichaPagerState(ids, '03').isFirst, false)
   const p4 = fichaPagerState(ids, '04')
   equal(p4.percent, 80)
   equal(p4.next, '05')

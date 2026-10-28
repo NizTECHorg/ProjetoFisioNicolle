@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Activity,
+  ArrowLeft,
   ArrowRight,
   ChevronDown,
   ClipboardList,
@@ -67,8 +68,9 @@ export function EvaluationFichaSidebar({
   const [blocoAtivo, setBlocoAtivo] = useState<string | null>(null)
   const asideRef = useRef<HTMLElement>(null)
   const [altura, setAltura] = useState<number | null>(null)
-  const { next } = fichaPagerState(FICHA_PAGES.map((item) => item.id), page)
+  const { next, prev } = fichaPagerState(FICHA_PAGES.map((item) => item.id), page)
   const proxima = FICHA_PAGES.find((item) => item.id === next) ?? null
+  const anterior = FICHA_PAGES.find((item) => item.id === prev) ?? null
 
   useEffect(() => {
     // Altura = do topo visível da lateral até o fim da tela. Antes de grudar no topo
@@ -265,20 +267,31 @@ export function EvaluationFichaSidebar({
         </nav>
 
         <div className="shrink-0 space-y-3 pb-1 pt-3">
-          {proxima ? (
+          {/* Voltar e avançar lado a lado, acima de Salvar e Cancelar. */}
+          <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant="secondary"
-              fullWidth
-              onClick={() => irParaPagina(proxima.id)}
-              disabled={saving}
-              aria-label={`Próxima página: ${nomePagina(proxima.label)}`}
-              className="!py-2.5"
+              onClick={() => anterior && irParaPagina(anterior.id)}
+              disabled={saving || !anterior}
+              aria-label={anterior ? `Página anterior: ${nomePagina(anterior.label)}` : 'Página anterior'}
+              className="!px-3 !py-2.5"
+            >
+              <ArrowLeft size={16} aria-hidden="true" />
+              <span>Anterior</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => proxima && irParaPagina(proxima.id)}
+              disabled={saving || !proxima}
+              aria-label={proxima ? `Próxima página: ${nomePagina(proxima.label)}` : 'Próxima página'}
+              className="!px-3 !py-2.5"
             >
               <span>Próxima</span>
               <ArrowRight size={16} aria-hidden="true" />
             </Button>
-          ) : null}
+          </div>
           <Button type="submit" form={formId} fullWidth isLoading={saving} disabled={submitDisabled} className="!py-2.5">
             {submitLabel}
           </Button>

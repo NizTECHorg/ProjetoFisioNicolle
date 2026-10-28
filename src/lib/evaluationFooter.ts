@@ -17,6 +17,8 @@ export function fichaPagerState<T extends string>(ids: readonly T[], current: T)
     total,
     percent: Math.round((n / total) * 10000) / 100,
     next: (ids[index + 1] ?? null) as T | null,
+    prev: (index > 0 ? (ids[index - 1] ?? null) : null) as T | null,
+    isFirst: index === 0,
     isLast: index === total - 1,
   }
 }

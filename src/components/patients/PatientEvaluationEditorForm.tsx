@@ -275,6 +275,14 @@ export function PatientEvaluationEditorForm({
     if (next) setFichaPage(next)
   }
 
+  function goPrev() {
+    const { prev } = fichaPagerState(
+      FICHA_PAGES.map((p) => p.id),
+      fichaPage,
+    )
+    if (prev) setFichaPage(prev)
+  }
+
   const saveAndStay = form.handleSubmit(onSaveStay, onInvalid)
   const saving =
     createEvaluation.isPending ||
@@ -344,6 +352,7 @@ export function PatientEvaluationEditorForm({
       <EvaluationFichaFooter
         page={fichaPage}
         onNext={goNext}
+        onPrev={goPrev}
         onSave={saveAndStay}
         onCancel={onCancel}
         cancelLabel={cancelLabel}

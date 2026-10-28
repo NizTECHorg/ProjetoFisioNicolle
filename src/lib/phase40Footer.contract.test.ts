@@ -10,16 +10,17 @@ const EDITOR = read('../components/patients/PatientEvaluationEditorForm.tsx')
 const FOOTER = read('../components/patients/evaluation/EvaluationFichaFooter.tsx')
 const FORM = read('../components/patients/evaluation/EvaluationFichaForm.tsx')
 
-test('6.4 rodapé EvaluationFichaFooter tem progresso, 3 botões e só Concluir como submit', () => {
+test('6.4 rodapé EvaluationFichaFooter tem progresso, voltar/avançar e só Concluir como submit', () => {
   ok(FOOTER.includes('role="progressbar"'))
   ok(FOOTER.includes('aria-valuetext'))
   ok(FOOTER.includes('aria-hidden="true"'))
   ok(FOOTER.includes('aria-label="Salvar avaliação"'))
   ok(FOOTER.includes('aria-label="Próxima página"'))
+  ok(FOOTER.includes('aria-label="Página anterior"'))
   ok(FOOTER.includes('aria-label="Concluir avaliação"'))
   ok(FOOTER.includes('Progresso da avaliação clínica'))
   ok(FOOTER.includes('Concluir'))
-  ok(FOOTER.includes('grid-cols-3'))
+  ok(FOOTER.includes('grid-cols-2'), 'Cancelar e Salvar no meio, setas nas pontas')
   ok(FOOTER.includes('min-h-10'))
   ok(FOOTER.includes('sticky bottom-'), 'fixo acima da navegação móvel')
   ok(FOOTER.includes('Informe a data da avaliação para salvar.'))
@@ -27,7 +28,7 @@ test('6.4 rodapé EvaluationFichaFooter tem progresso, 3 botões e só Concluir 
   const submits = FOOTER.match(/type="submit"/g) ?? []
   const buttons = FOOTER.match(/type="button"/g) ?? []
   equal(submits.length, 1, 'apenas Concluir deve ser type="submit" no rodapé')
-  equal(buttons.length, 3, 'Cancelar, Salvar e Próxima devem ser type="button"')
+  equal(buttons.length, 4, 'Anterior, Cancelar, Salvar e Próxima devem ser type="button"')
 })
 
 test('6.4 EvaluationFichaForm anuncia, foca e rola na troca de página abaixo de xl', () => {
