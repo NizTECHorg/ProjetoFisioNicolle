@@ -89,9 +89,9 @@ export async function createSession(input: {
   place: string
   therapistId?: string
   therapistName?: string
-}) {
+}): Promise<string[]> {
   const times = input.scheduledAts?.length ? input.scheduledAts : [input.scheduledAt]
-  const { error } = await supabase.from('patient_sessions').insert(
+  const { data, error } = await supabase.from('patient_sessions').insert(
     times.map((scheduledAt) => ({
       patient_id: input.patientId,
       scheduled_at: scheduledAt,
@@ -101,8 +101,9 @@ export async function createSession(input: {
       therapist_id: input.therapistId ?? null,
       therapist_name: input.therapistName ?? null,
     })),
-  )
+  ).select('id')
   throwIfError(error)
+  return ((data ?? []) as Array<{ id: string }>).map((row) => row.id)
 }
 
 export async function updateSessionStatus(id: string, status: SessionStatus) {

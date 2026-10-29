@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
+import { Cake, CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
@@ -21,7 +21,11 @@ import {
 } from '@/hooks/useGoogleCalendar'
 import { usePatients } from '@/hooks/usePatients'
 import { useTeam } from '@/hooks/useTeam'
-import { canManageTeam } from '@/lib/accountAccess'
+import { canManageTeam, canSeeFinance } from '@/lib/accountAccess'
+import { aniversariantesDoDia, aniversariosNoPeriodo, rotuloAniversario } from '@/lib/aniversarios'
+import { formatCurrency } from '@/lib/security'
+import { useFinancePrices } from '@/hooks/useFinance'
+import { parseBrlInput } from '@/schemas/finance.schema'
 import { filterPatientsByName } from '@/lib/dashboardShortcut'
 import {
   MAX_SERIES_WEEKS,
@@ -246,6 +250,20 @@ export function CalendarPage() {
   const deleteSession = useDeleteSession()
   const { profile } = useAuth()
   const isCompany = canManageTeam(profile?.accountType)
+  // Valor da sessão na Agenda (mesmos campos da ficha do paciente); só quem tem Financeiro.
+  const showFinance = canSeeFinance(profile?.accountType)
+  const { data: prices = [] } = useFinancePrices()
+  const [priceId, setPriceId] = useState('')
+  const [adHocAmount, setAdHocAmount] = useState('')
+  const [isPaid, setIsPaid] = useState(false)
+  const [chargeError, setChargeError] = useState<string | null>(null)
+  const priceOptions = useMemo(
+    () => [
+      { value: '', label: 'Sem valor' },
+      ...prices.map((item) => ({ value: item.id, label: `${item.name} — ${formatCurrency(item.amountBrl)}` })),
+    ],
+    [prices],
+  )
   const { data: team } = useTeam()
   const therapists = useMemo(
     () =>
@@ -319,6 +337,13 @@ export function CalendarPage() {
   const dayDues = dueCards.filter((card) => card.dueOn === selectedKey)
   const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(cursor)
   const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index))
+  // Aniversários dos pacientes (data de nascimento do cadastro) no período da visão.
+  const aniversarios = aniversariosNoPeriodo(
+    patients,
+    view === 'mes' ? new Date(cursor.getFullYear(), cursor.getMonth(), 1) : view === 'semana' ? weekStart : startOfDay(selected),
+    view === 'mes' ? new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate() : view === 'semana' ? 7 : 1,
+  )
+  const dayBirthdays = aniversariantesDoDia(patients, selected)
   const sessionsByDay = new Map<string, CalendarSession[]>()
   for (const session of [...sessions].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))) {
     const key = startOfDay(new Date(session.scheduledAt)).toDateString()
@@ -391,6 +416,10 @@ export function CalendarPage() {
     setWeekdays([selected.getDay()])
     setWeekdaysTouched(false)
     setTherapistId('')
+    setPriceId('')
+    setAdHocAmount('')
+    setIsPaid(false)
+    setChargeError(null)
     setOpen(true)
   }
 
@@ -457,6 +486,16 @@ export function CalendarPage() {
     if (series.length === 0) return
     const scheduledAts = series.map((date) => date.toISOString())
     const therapist = isCompany ? therapists.find((item) => item.id === therapistId) : undefined
+    const adHoc = parseBrlInput(adHocAmount)
+    if (showFinance && !priceId && adHocAmount.trim() && adHoc === null) {
+      setChargeError('Valor avulso inválido. Use o formato 150,00.')
+      return
+    }
+    if (showFinance && isPaid && !priceId && adHoc === null) {
+      setChargeError('Informe um valor para marcar como pago.')
+      return
+    }
+    setChargeError(null)
     create.mutate(
       {
         patientId,
@@ -466,6 +505,7 @@ export function CalendarPage() {
         place,
         therapistId: therapist?.id,
         therapistName: therapist?.name,
+        charge: showFinance ? { priceId: priceId || null, adHocAmountBrl: priceId ? null : adHoc, isPaid } : null,
       },
       {
         onSuccess: () => {
@@ -521,9 +561,10 @@ export function CalendarPage() {
       {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(selected)}
     </h2>
     <p className="mt-1 text-xs text-muted">
-      {daySessions.length === 0 && dayDues.length === 0
+      {daySessions.length === 0 && dayDues.length === 0 && dayBirthdays.length === 0
         ? 'Nada neste dia'
         : [
+            dayBirthdays.length ? `${dayBirthdays.length} aniversário(s)` : null,
             daySessions.length ? `${daySessions.length} sessão(ões)` : null,
             dayDues.length ? `${dayDues.length} prazo(s) do quadro` : null,
           ]
@@ -537,6 +578,25 @@ export function CalendarPage() {
       </div>
     ) : (
       <div className="mt-5 space-y-3">
+        {dayBirthdays.length > 0 ? (
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Aniversários</p>
+        ) : null}
+        {dayBirthdays.map((item) => (
+          <Link
+            key={`aniv-${item.patientId}`}
+            to={`/pacientes/${item.patientId}`}
+            className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3"
+          >
+            <PatientAvatar name={item.name} tone={item.photoTone ?? undefined} photoUrl={item.photoUrl ?? null} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-ink">{item.name}</span>
+              <span className="block text-xs text-amber-800">
+                {item.idade ? `Aniversário · faz ${item.idade} anos` : 'Aniversário'}
+              </span>
+            </span>
+            <Cake size={18} className="shrink-0 text-amber-500" aria-hidden />
+          </Link>
+        ))}
         {dayDues.length > 0 ? (
           <p className="text-[11px] font-semibold uppercase tracking-wide text-forest">Tarefas do quadro</p>
         ) : null}
@@ -618,7 +678,7 @@ export function CalendarPage() {
           </div>
         ))}
 
-        {daySessions.length === 0 && dayDues.length === 0 ? (
+        {daySessions.length === 0 && dayDues.length === 0 && dayBirthdays.length === 0 ? (
           <button
             type="button"
             onClick={openComposer}
@@ -815,6 +875,7 @@ export function CalendarPage() {
               const marks = counts.get(date.toDateString())
               const hasSessions = (marks?.sessions ?? 0) > 0
               const hasDues = (marks?.dues ?? 0) > 0
+              const hasBirthday = aniversarios.has(date.toDateString())
               return (
                 <button
                   key={date.toISOString()}
@@ -830,8 +891,11 @@ export function CalendarPage() {
                   ].join(' ')}
                 >
                   {date.getDate()}
-                  {hasSessions || hasDues ? (
+                  {hasSessions || hasDues || hasBirthday ? (
                     <span className="mt-1 flex items-center gap-0.5">
+                      {hasBirthday ? (
+                        <Cake size={10} aria-label="Aniversário" className={isSelected ? 'text-white' : 'text-amber-500'} />
+                      ) : null}
                       {hasSessions ? (
                         <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-forest'}`} />
                       ) : null}
@@ -891,6 +955,19 @@ export function CalendarPage() {
                   </button>
                   {/* Coluna de altura fixa: dia cheio rola por dentro. */}
                   <ul className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain">
+                    {(aniversarios.get(date.toDateString()) ?? []).map((item) => (
+                      <li key={`aniv-${item.patientId}`}>
+                        <Link
+                          to={`/pacientes/${item.patientId}`}
+                          onClick={(event) => event.stopPropagation()}
+                          title={rotuloAniversario(item)}
+                          className="flex items-center gap-1 truncate rounded-lg bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800"
+                        >
+                          <Cake size={11} className="shrink-0" aria-hidden />
+                          <span className="truncate">{item.name}</span>
+                        </Link>
+                      </li>
+                    ))}
                     {dues.map((card) => (
                       <li key={card.id}>
                         <Link
@@ -920,7 +997,7 @@ export function CalendarPage() {
                         </button>
                       </li>
                     ))}
-                    {daySessionsList.length === 0 && dues.length === 0 ? (
+                    {daySessionsList.length === 0 && dues.length === 0 && !aniversarios.has(date.toDateString()) ? (
                       <li className="hidden text-center text-[11px] text-muted/70 sm:block">—</li>
                     ) : null}
                   </ul>
@@ -1133,6 +1210,58 @@ export function CalendarPage() {
               {therapists.length === 0 ? (
                 <p className="mt-2 text-xs text-muted">
                   Nenhum fisioterapeuta ativo na equipe. Aprove convites em Equipe para anexar aqui.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          {showFinance ? (
+            <div className="space-y-3 rounded-2xl border border-line p-3">
+              <p className="text-sm font-semibold text-ink">Valor da sessão (opcional)</p>
+              {prices.length > 0 ? (
+                <Select
+                  label="Preço do catálogo"
+                  value={priceId}
+                  options={priceOptions}
+                  onChange={(event) => {
+                    setPriceId(event.target.value)
+                    if (event.target.value) setAdHocAmount('')
+                    setChargeError(null)
+                  }}
+                />
+              ) : null}
+              <Input
+                label="Valor avulso (R$)"
+                placeholder="0,00"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={adHocAmount}
+                onChange={(event) => {
+                  setAdHocAmount(event.target.value)
+                  if (event.target.value) setPriceId('')
+                  setChargeError(null)
+                }}
+              />
+              <label className="flex min-h-11 items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  className="accent-forest"
+                  checked={isPaid}
+                  onChange={(event) => {
+                    setIsPaid(event.target.checked)
+                    setChargeError(null)
+                  }}
+                />
+                Pago
+              </label>
+              <p className="text-xs text-muted">
+                {series.length > 1
+                  ? `O valor vale para cada uma das ${series.length} sessões e entra no Financeiro.`
+                  : 'O valor entra no Financeiro desta sessão.'}
+              </p>
+              {chargeError ? (
+                <p role="alert" className="text-xs text-error">
+                  {chargeError}
                 </p>
               ) : null}
             </div>

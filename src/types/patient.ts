@@ -168,6 +168,8 @@ export interface PatientListItem {
   createdAt: string
   createdBy: string | null
   createdByName: string | null
+  /** AAAA-MM-DD (aniversário na Agenda). */
+  birthDateRaw?: string | null
 }
 
 /** Textos gerados sem o resumo. O original do resumo continua em `patients.ai_summary`. */

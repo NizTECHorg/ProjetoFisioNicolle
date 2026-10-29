@@ -14,6 +14,8 @@ import {
 } from '@/services/board.service'
 import type { SessionStatus } from '@/types/patient'
 import { useAccountScope } from '@/hooks/useAccountScope'
+import { upsertSessionCharge } from '@/services/finance.service'
+import type { SessionChargeDraft } from '@/types/finance'
 import { toast } from '@/stores/toast.store'
 
 function onError(error: unknown) {
@@ -32,12 +34,34 @@ export function useCalendarSessions(fromIso: string, toIso: string) {
 export function useCreateSession() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: createSession,
-    onSuccess: (_data, input) => {
+    // Valor da sessão (só autônomo): gravado em cada sessão criada. Se falhar, as sessões
+    // continuam agendadas e o aviso diz que o valor não entrou (nunca bloqueia agendar).
+    mutationFn: async ({
+      charge,
+      ...input
+    }: Parameters<typeof createSession>[0] & { charge?: SessionChargeDraft | null }) => {
+      const ids = await createSession(input)
+      let chargeFailed = false
+      if (charge && (charge.priceId || charge.adHocAmountBrl != null)) {
+        for (const sessionId of ids) {
+          try {
+            await upsertSessionCharge({ sessionId, ...charge })
+          } catch {
+            chargeFailed = true
+          }
+        }
+      }
+      return { ids, chargeFailed }
+    },
+    onSuccess: ({ chargeFailed }, input) => {
       const count = input.scheduledAts?.length ?? 1
       void qc.invalidateQueries({ queryKey: ['calendar-sessions'] })
       void qc.invalidateQueries({ queryKey: ['patients'] })
+      void qc.invalidateQueries({ queryKey: ['finance'] })
       toast(count > 1 ? `${count} sessões agendadas` : 'Sessão agendada', 'success')
+      if (chargeFailed) {
+        toast('O valor não foi salvo. Ajuste o valor na ficha do paciente, em Sessões / Evoluções.', 'error')
+      }
     },
     onError,
   })

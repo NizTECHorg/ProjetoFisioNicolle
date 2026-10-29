@@ -4,6 +4,7 @@ import { SignedPhoto } from '@/components/patients/SignedPhoto'
 import { PatientSessionEditorForm } from '@/components/patients/PatientSessionEditorForm'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { InfoHint } from '@/components/ui/InfoHint'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
@@ -233,9 +234,13 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                   aria-label={`Gravar evolução por voz, até ${MAX_RECORDING_LABEL}`}
                 >
                   <Mic size={16} />
-                  <span className="text-xs font-medium text-muted">até {MAX_RECORDING_LABEL}</span>
+                  Gravar sessão
                 </Button>
               )}
+              <InfoHint
+                label="Sobre gravar a sessão"
+                text={`Grave o atendimento (até ${MAX_RECORDING_LABEL}) e a IA preenche a evolução da sessão. Você revisa o texto antes de salvar.`}
+              />
               <Button type="button" onClick={() => { setEditing(null); setDraftConducts(null); setEditorOpen(true) }}>
                 <Plus size={16} />
                 Nova sessão / evolução

@@ -81,6 +81,7 @@ interface ListPatientRow {
   sessions_planned: number
   created_at: string
   created_by: string | null
+  birth_date: string | null
 }
 
 const GOAL_COLUMNS = 'id, title, status, is_done, created_on, achieved_on, sort_order'
@@ -134,7 +135,7 @@ const DETAIL_COLUMNS =
   'id, full_name, code, birth_date, phone, email, status, profession, gender, naturalidade, estado_civil, peso, altura, endereco_residencial, endereco_profissional, emergency_name, emergency_phone, emergency_relation, admin_notes, referral_source, treatment_started_on, sessions_done, sessions_planned, frequency, therapist_name, program_name, program_progress, complaint, diagnosis, current_eva, last_visit_on, ai_summary, ai_summary_fields, summary_edits, evolution_summary, last_conducts, next_session_plan, photo_tone, photo_path, created_by, cpf'
 
 const LIST_COLUMNS =
-  'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_at, created_by'
+  'id, full_name, code, phone, status, photo_tone, photo_path, program_name, sessions_done, sessions_planned, created_at, created_by, birth_date'
 
 const DASHBOARD_COLUMNS =
   'id, full_name, code, phone, status, photo_tone, photo_path, complaint, diagnosis, treatment_started_on, sessions_done, sessions_planned, last_visit_on, created_by'
@@ -315,6 +316,7 @@ function mapListItem(
     createdAt: row.created_at,
     createdBy: row.created_by,
     createdByName,
+    birthDateRaw: row.birth_date ?? null,
   }
 }
 
