@@ -181,7 +181,7 @@ If **Criar conta** fails with `500` right after enabling Custom SMTP, Auth could
 |-------|----------------|
 | Host | Exact `smtp.gmail.com` — **not** the placeholder `your.smtp.host.com` |
 | Port | Prefer `587`; `465` also OK |
-| Username | Same as Sender email (`arturtenca1@gmail.com`) |
+| Username | Same as Sender email (`fluxo.plataforma@gmail.com`) |
 | Password | Google **App Password** (16 chars). Not the normal Gmail password. Paste without spaces. |
 | Sender email | Must equal the Gmail account that owns the App Password |
 | 2FA | Required on the Google account before App Passwords appear |

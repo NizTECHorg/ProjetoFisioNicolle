@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MailCheck, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,9 +16,11 @@ export function LoginPage() {
   const location = useLocation()
   const [showPassword, setShowPassword] = useState(false)
 
-  const from = safeRedirectPath(
-    (location.state as { from?: { pathname: string } } | null)?.from?.pathname,
-  )
+  const state = location.state as
+    | { from?: { pathname: string }; contaCriada?: { email?: string; confirmarEmail?: boolean } }
+    | null
+  const from = safeRedirectPath(state?.from?.pathname)
+  const [contaCriada, setContaCriada] = useState(state?.contaCriada ?? null)
 
   const {
     register,
@@ -26,7 +29,7 @@ export function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      email: state?.contaCriada?.email ?? '',
       password: '',
     },
   })
@@ -61,6 +64,43 @@ export function LoginPage() {
         </div>
       }
     >
+      {contaCriada ? (
+        <div
+          role="status"
+          className="relative mb-6 rounded-2xl border border-accent/40 bg-accent-soft p-4 pr-11 shadow-sm sm:p-5 sm:pr-12"
+        >
+          <button
+            type="button"
+            aria-label="Fechar aviso"
+            onClick={() => setContaCriada(null)}
+            className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:text-ink"
+          >
+            <X size={18} aria-hidden />
+          </button>
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest text-white">
+              <MailCheck size={22} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-ink sm:text-lg">Conta criada!</p>
+              {contaCriada.confirmarEmail === false ? (
+                <p className="mt-1 text-sm leading-6 text-ink/80">Você já pode entrar com seu e-mail e senha.</p>
+              ) : (
+                <p className="mt-1 text-sm leading-6 text-ink/80">
+                  Enviamos um link de confirmação
+                  {contaCriada.email ? (
+                    <>
+                      {' '}para <span className="break-all font-semibold text-ink">{contaCriada.email}</span>
+                    </>
+                  ) : null}
+                  . Abra o e-mail e confirme a conta antes de entrar. Não achou? Olhe a pasta de spam.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate autoComplete="off">
         <Input
           label="E-mail"

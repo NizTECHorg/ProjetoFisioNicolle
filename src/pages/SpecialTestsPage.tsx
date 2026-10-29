@@ -6,12 +6,9 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { SpecialTestCard } from '@/components/special-tests/SpecialTestCard'
 import { specialTestCardDomId } from '@/components/special-tests/specialTestDom'
-import {
-  SpecialTestDetailContent,
-  SpecialTestPanel,
-} from '@/components/special-tests/SpecialTestDetail'
+import { SpecialTestDetailContent } from '@/components/special-tests/SpecialTestDetail'
 import { SpecialTestsNav } from '@/components/special-tests/SpecialTestsNav'
-import { useIsDesktop, useIsTabletUp } from '@/hooks/useMediaQuery'
+import { useIsTabletUp } from '@/hooks/useMediaQuery'
 import {
   DEFAULT_REGION_ID,
   SPECIAL_TEST_REGIONS,
@@ -32,13 +29,12 @@ export function SpecialTestsPage() {
   const regionParam = params.get('regiao')
   const regionId: SpecialTestRegionId = isRegionId(regionParam) ? regionParam : DEFAULT_REGION_ID
   const openHit = findSpecialTest(params.get('teste'))
-  const isDesktop = useIsDesktop()
   const isTabletUp = useIsTabletUp()
   const [query, setQuery] = useState('')
-  const [popupOpen, setPopupOpen] = useState(() => openHit !== null && !isDesktop)
+  // Detalhes sempre em popup, em qualquer tela; a navegação da direita continua visível.
+  const [popupOpen, setPopupOpen] = useState(() => openHit !== null)
   const [lastOpenedId, setLastOpenedId] = useState<string | null>(openHit?.test.id ?? null)
   const triggerRef = useRef<HTMLElement | null>(null)
-  const prevDesktopRef = useRef(isDesktop)
 
   const updateParams = useCallback(
     (mutate: (p: URLSearchParams) => void, replace: boolean) => {
@@ -63,8 +59,8 @@ export function SpecialTestsPage() {
     updateParams((p) => {
       extra?.(p)
       p.set('teste', testId)
-    }, !isDesktop)
-    if (!isDesktop) setPopupOpen(true)
+    }, true)
+    setPopupOpen(true)
   }
 
   function openFromNav(rId: SpecialTestRegionId, testId: string, trigger: HTMLButtonElement) {
@@ -92,18 +88,7 @@ export function SpecialTestsPage() {
   }, [updateParams, lastOpenedId])
 
   const hasOpenHit = openHit !== null
-  useEffect(() => {
-    if (prevDesktopRef.current === isDesktop) return
-    prevDesktopRef.current = isDesktop
-    if (isDesktop) {
-      setPopupOpen(false)
-    } else if (hasOpenHit && !popupOpen) {
-      updateParams((p) => p.delete('teste'), true)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reage só à mudança de breakpoint
-  }, [isDesktop])
-
-  const popupVisible = !isDesktop && popupOpen && hasOpenHit
+  const popupVisible = popupOpen && hasOpenHit
   useEffect(() => {
     if (!popupVisible) return
     requestAnimationFrame(() => {
@@ -195,7 +180,7 @@ export function SpecialTestsPage() {
                 key={test.id}
                 test={test}
                 regionLabel={searching ? hitRegion.label : undefined}
-                selected={isDesktop && openHit?.test.id === test.id}
+                selected={popupVisible && openHit?.test.id === test.id}
                 onOpen={openTest}
               />
             ))}
@@ -223,26 +208,23 @@ export function SpecialTestsPage() {
       </div>
 
       {isTabletUp ? (
-        <div className="md:w-72 md:shrink-0 xl:w-auto xl:min-w-0 xl:flex-1">
-          {isDesktop && openHit ? (
-            <SpecialTestPanel
-              test={openHit.test}
-              regionLabel={openHit.region.label}
-              onClose={closeDetail}
-            />
-          ) : (
-            <SpecialTestsNav
-              regions={SPECIAL_TEST_REGIONS}
-              activeRegionId={searching ? null : regionId}
-              currentTestId={isDesktop ? lastOpenedId : popupOpen ? (openHit?.test.id ?? null) : null}
-              onSelectRegion={selectRegion}
-              onOpenTest={openFromNav}
-            />
-          )}
+        <div className="md:w-72 md:shrink-0 xl:w-80">
+          <SpecialTestsNav
+            regions={SPECIAL_TEST_REGIONS}
+            activeRegionId={searching ? null : regionId}
+            currentTestId={popupVisible ? (openHit?.test.id ?? null) : lastOpenedId}
+            onSelectRegion={selectRegion}
+            onOpenTest={openFromNav}
+          />
         </div>
       ) : null}
 
-      <Modal open={popupVisible} title={openHit?.test.name ?? ''} onClose={closeDetail}>
+      <Modal
+        open={popupVisible}
+        title={openHit?.test.name ?? ''}
+        onClose={closeDetail}
+        widthClassName="max-w-lg lg:max-w-2xl"
+      >
         {openHit ? (
           <>
             <SpecialTestDetailContent

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AuthLayout } from '@/components/auth/AuthLayout'
@@ -19,6 +19,7 @@ const ACCOUNT_TYPE_OPTIONS = [
 ]
 
 export function RegisterPage() {
+  const navigate = useNavigate()
   const [accountCreated, setAccountCreated] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -65,14 +66,11 @@ export function RegisterPage() {
         return
       }
 
-      if (needsEmailConfirmation) {
-        toast(
-          'Conta criada! Verifique seu e-mail (e a pasta de spam) para confirmar antes de entrar.',
-          'success',
-        )
-      } else {
-        toast('Conta criada com sucesso! Você já pode entrar.', 'success')
-      }
+      // Vai para o login com o aviso em destaque (fica na tela até a pessoa fechar).
+      navigate('/login', {
+        replace: true,
+        state: { contaCriada: { email: data.email, confirmarEmail: needsEmailConfirmation } },
+      })
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Erro ao criar conta.', 'error')
     }

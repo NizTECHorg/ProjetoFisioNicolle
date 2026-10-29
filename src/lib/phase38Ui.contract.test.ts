@@ -32,14 +32,14 @@ test('REQ-49: copy da página', () => {
 test('REQ-49: layout responsivo', () => {
   const page = read('../pages/SpecialTestsPage.tsx')
   for (const needle of [
-    'useIsDesktop()',
     'useIsTabletUp()',
     '<Modal',
-    '<SpecialTestPanel',
     '<SpecialTestsNav',
   ]) {
     ok(page.includes(needle), `faltando: ${needle}`)
   }
+  // Detalhes sempre em popup (também no desktop); a navegação da direita fica.
+  ok(!page.includes('<SpecialTestPanel'), 'desktop não troca a navegação pelos detalhes')
   const media = read('../hooks/useMediaQuery.ts')
   ok(media.includes('(min-width: 1280px)'))
   ok(media.includes('(min-width: 768px)'))

@@ -9,9 +9,11 @@ interface ModalProps {
   onClose: () => void
   children: React.ReactNode
   wide?: boolean
+  /** Classe de largura máxima própria (ex.: 'max-w-lg lg:max-w-2xl'); vence `wide`. */
+  widthClassName?: string
 }
 
-export function Modal({ open, title, description, onClose, children, wide = false }: ModalProps) {
+export function Modal({ open, title, description, onClose, children, wide = false, widthClassName }: ModalProps) {
   useEffect(() => {
     if (!open) return
     function onKey(e: KeyboardEvent) {
@@ -41,7 +43,7 @@ export function Modal({ open, title, description, onClose, children, wide = fals
         aria-labelledby="modal-title"
         className={[
           'relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-3xl border border-line bg-surface p-6 shadow-2xl',
-          wide ? 'max-w-3xl' : 'max-w-lg',
+          widthClassName ?? (wide ? 'max-w-3xl' : 'max-w-lg'),
         ].join(' ')}
       >
         <div className="mb-5 flex items-start justify-between gap-4">

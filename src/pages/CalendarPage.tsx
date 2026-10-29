@@ -1,6 +1,7 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { CalendarClock, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
+import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { PatientAvatar } from '@/components/ui/PatientAvatar'
 import { Button } from '@/components/ui/Button'
@@ -57,6 +58,129 @@ function monthGrid(year: number, month: number) {
   return cells
 }
 
+function addDays(date: Date, days: number) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days)
+}
+
+/** Segunda-feira da semana do dia (a grade da Agenda começa na segunda). */
+function startOfWeek(date: Date) {
+  return addDays(startOfDay(date), -((date.getDay() + 6) % 7))
+}
+
+type AgendaView = 'dia' | 'semana' | 'mes'
+
+const VIEWS: ReadonlyArray<{ key: AgendaView; label: string; atalho: string }> = [
+  { key: 'dia', label: 'Dia', atalho: 'D' },
+  { key: 'semana', label: 'Semana', atalho: 'S' },
+  { key: 'mes', label: 'Mês', atalho: 'M' },
+]
+
+const VIEW_STORAGE_KEY = 'fluxo.agenda.visao'
+
+function lerVisaoSalva(): AgendaView {
+  try {
+    const salvo = window.localStorage.getItem(VIEW_STORAGE_KEY)
+    if (salvo === 'dia' || salvo === 'semana' || salvo === 'mes') return salvo
+  } catch {
+    // Sem armazenamento (aba anônima, bloqueio): fica no mês.
+  }
+  return 'mes'
+}
+
+/**
+ * Menu de visão no estilo do Google Agenda: botão com a visão atual e a lista com atalhos.
+ * A lista vai para o <body> (portal, posição fixa) para ficar acima de tudo, inclusive da lateral.
+ */
+function ViewMenu({ view, onChange }: { view: AgendaView; onChange: (next: AgendaView) => void }) {
+  const [aberto, setAberto] = useState(false)
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
+  const caixaRef = useRef<HTMLDivElement>(null)
+  const listaRef = useRef<HTMLUListElement>(null)
+  const atual = VIEWS.find((item) => item.key === view) ?? VIEWS[2]!
+
+  useEffect(() => {
+    if (!aberto) return
+    function medir() {
+      const rect = caixaRef.current?.getBoundingClientRect()
+      if (rect) setPos({ top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) })
+    }
+    medir()
+    window.addEventListener('resize', medir)
+    window.addEventListener('scroll', medir, { capture: true, passive: true })
+    function fora(event: PointerEvent) {
+      const alvo = event.target as Node
+      if (!caixaRef.current?.contains(alvo) && !listaRef.current?.contains(alvo)) setAberto(false)
+    }
+    function esc(event: KeyboardEvent) {
+      if (event.key === 'Escape') setAberto(false)
+    }
+    document.addEventListener('pointerdown', fora)
+    document.addEventListener('keydown', esc)
+    return () => {
+      window.removeEventListener('resize', medir)
+      window.removeEventListener('scroll', medir, { capture: true })
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [aberto])
+
+  return (
+    <div ref={caixaRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={aberto}
+        onClick={() => setAberto((valor) => !valor)}
+        className="inline-flex min-h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink transition-colors hover:border-forest/30"
+      >
+        {atual.label}
+        <ChevronDown
+          size={16}
+          aria-hidden
+          className={['text-muted transition-transform duration-200', aberto ? 'rotate-180' : 'rotate-0'].join(' ')}
+        />
+      </button>
+      {aberto && pos
+        ? createPortal(
+        <ul
+          ref={listaRef}
+          role="menu"
+          aria-label="Visão da agenda"
+          style={{ top: pos.top, right: pos.right }}
+          className="fixed z-[200] w-48 overflow-hidden rounded-2xl border border-line bg-surface py-1 shadow-lg"
+        >
+          {VIEWS.map((item) => {
+            const ativo = item.key === view
+            return (
+              <li key={item.key} role="none">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={ativo}
+                  onClick={() => {
+                    onChange(item.key)
+                    setAberto(false)
+                  }}
+                  className={[
+                    'flex min-h-11 w-full items-center gap-3 px-4 text-left text-sm transition-colors hover:bg-canvas',
+                    ativo ? 'font-semibold text-forest' : 'text-ink',
+                  ].join(' ')}
+                >
+                  <span className="flex w-4 justify-center">{ativo ? <Check size={15} aria-hidden /> : null}</span>
+                  <span className="flex-1">{item.label}</span>
+                  <kbd className="font-sans text-xs text-muted">{item.atalho}</kbd>
+                </button>
+              </li>
+            )
+          })}
+        </ul>,
+            document.body,
+          )
+        : null}
+    </div>
+  )
+}
+
 function toLocalInput(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -66,6 +190,18 @@ export function CalendarPage() {
   const today = startOfDay(new Date())
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selected, setSelected] = useState(today)
+  const [view, setViewState] = useState<AgendaView>(lerVisaoSalva)
+
+  function setView(next: AgendaView) {
+    setViewState(next)
+    // Mês volta para o mês do dia selecionado.
+    if (next === 'mes') setCursor(new Date(selected.getFullYear(), selected.getMonth(), 1))
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, next)
+    } catch {
+      // Sem armazenamento: só não lembra na próxima visita.
+    }
+  }
   const [open, setOpen] = useState(false)
   const [patientId, setPatientId] = useState('')
   const [patientQuery, setPatientQuery] = useState('')
@@ -83,8 +219,20 @@ export function CalendarPage() {
   const [needsReconnect, setNeedsReconnect] = useState(false)
   const [pendingDeleteSession, setPendingDeleteSession] = useState<CalendarSession | null>(null)
 
-  const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
-  const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
+  const weekStart = startOfWeek(selected)
+  // Busca só o período da visão atual.
+  const from =
+    view === 'mes'
+      ? new Date(cursor.getFullYear(), cursor.getMonth(), 1)
+      : view === 'semana'
+        ? weekStart
+        : startOfDay(selected)
+  const to =
+    view === 'mes'
+      ? new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
+      : view === 'semana'
+        ? addDays(weekStart, 7)
+        : addDays(startOfDay(selected), 1)
   const fromIso = from.toISOString()
   const toIso = to.toISOString()
   const { data: sessions = [], isLoading } = useCalendarSessions(fromIso, toIso)
@@ -170,7 +318,52 @@ export function CalendarPage() {
   const daySessions = sessions.filter((session) => sameDay(new Date(session.scheduledAt), selected))
   const dayDues = dueCards.filter((card) => card.dueOn === selectedKey)
   const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(cursor)
-  const isCurrentMonth = cursor.getFullYear() === today.getFullYear() && cursor.getMonth() === today.getMonth()
+  const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index))
+  const sessionsByDay = new Map<string, CalendarSession[]>()
+  for (const session of [...sessions].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))) {
+    const key = startOfDay(new Date(session.scheduledAt)).toDateString()
+    sessionsByDay.set(key, [...(sessionsByDay.get(key) ?? []), session])
+  }
+  const periodLabel =
+    view === 'mes'
+      ? monthLabel
+      : view === 'semana'
+        ? (() => {
+            const fim = addDays(weekStart, 6)
+            const curto = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' })
+            return `${curto.format(weekStart)} – ${curto.format(fim)} ${fim.getFullYear()}`
+          })()
+        : new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(
+            selected,
+          )
+
+  function goToDay(date: Date) {
+    setSelected(date)
+    setCursor(new Date(date.getFullYear(), date.getMonth(), 1))
+  }
+
+  function step(direction: 1 | -1) {
+    if (view === 'mes') {
+      setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + direction, 1))
+      return
+    }
+    goToDay(addDays(selected, view === 'semana' ? 7 * direction : direction))
+  }
+
+  // Atalhos como no Google Agenda: D, S (ou W) e M, fora de campos de texto.
+  useEffect(() => {
+    function atalho(event: KeyboardEvent) {
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      const alvo = event.target as HTMLElement | null
+      if (alvo && (alvo.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(alvo.tagName))) return
+      if (document.querySelector('[role="dialog"]')) return
+      const tecla = event.key.toLowerCase()
+      const next = tecla === 'd' ? 'dia' : tecla === 's' || tecla === 'w' ? 'semana' : tecla === 'm' ? 'mes' : null
+      if (next) setView(next)
+    }
+    window.addEventListener('keydown', atalho)
+    return () => window.removeEventListener('keydown', atalho)
+  })
   const upcomingDues = [...dueCards].sort((a, b) => a.dueOn.localeCompare(b.dueOn))
 
   function goToDue(dueOn: string) {
@@ -321,6 +514,124 @@ export function CalendarPage() {
   const connectionFailed = connectionQuery.isError
   const isConnected = Boolean(connection) && !needsReconnect
 
+  // Painel do dia selecionado: lateral no Mês e na Semana, ocupa tudo na visão Dia.
+  const painelDia = (
+  <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-5" style={{ animationDelay: '180ms' }}>
+    <h2 className="text-sm font-semibold text-ink">
+      {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(selected)}
+    </h2>
+    <p className="mt-1 text-xs text-muted">
+      {daySessions.length === 0 && dayDues.length === 0
+        ? 'Nada neste dia'
+        : [
+            daySessions.length ? `${daySessions.length} sessão(ões)` : null,
+            dayDues.length ? `${dayDues.length} prazo(s) do quadro` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+    </p>
+
+    {isLoading ? (
+      <div className="mt-8 flex justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+      </div>
+    ) : (
+      <div className="mt-5 space-y-3">
+        {dayDues.length > 0 ? (
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-forest">Tarefas do quadro</p>
+        ) : null}
+        {dayDues.map((card) => (
+          <Link
+            key={card.id}
+            to="/quadro"
+            className="block rounded-2xl border border-accent/30 bg-accent-soft p-3"
+          >
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-forest">
+              <CalendarClock size={12} />
+              {card.done ? 'Entregue' : `Entregar ${formatDueLabel(card.dueOn)}`}
+            </span>
+            <span className="mt-1 block text-sm font-medium text-ink">{card.title}</span>
+            {card.patientName ? (
+              <span className="mt-2 flex items-center gap-2">
+                <PatientAvatar name={card.patientName} tone={card.photoTone} photoUrl={card.photoUrl} size="sm" />
+                <span className="truncate text-xs text-muted">{card.patientName}</span>
+              </span>
+            ) : null}
+            <span className="mt-1 block text-[11px] text-muted">{card.columnTitle}</span>
+          </Link>
+        ))}
+
+        {daySessions.length > 0 ? (
+          <p className="pt-1 text-[11px] font-semibold uppercase tracking-wide text-muted">Sessões</p>
+        ) : null}
+
+        {daySessions.map((session) => (
+          <div key={session.id} className="rounded-2xl border border-line p-3">
+            <div className="flex items-start justify-between gap-2">
+              <Link to={`/pacientes/${session.patientId}`} className="flex min-w-0 flex-1 items-center gap-3">
+                <PatientAvatar name={session.patientName} tone={session.photoTone} photoUrl={session.photoUrl} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-ink">{session.patientName}</span>
+                  <span className="block text-xs text-muted">
+                    {new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(
+                      new Date(session.scheduledAt),
+                    )}{' '}
+                    · {session.type} · {session.place}
+                    {session.therapistName ? ` · ${session.therapistName}` : ''}
+                  </span>
+                </span>
+              </Link>
+              <button
+                type="button"
+                aria-label="Excluir sessão"
+                title="Excluir sessão"
+                onClick={() => setPendingDeleteSession(session)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <span className="text-[11px] capitalize text-muted">{session.status}</span>
+              {session.status === 'agendada' ? (
+                <button
+                  type="button"
+                  className="text-xs font-medium text-forest"
+                  onClick={() => updateStatus.mutate({ id: session.id, status: 'confirmada' })}
+                >
+                  Confirmar
+                </button>
+              ) : null}
+              {session.status === 'confirmada' ? (
+                <button
+                  type="button"
+                  className="text-xs font-medium text-forest"
+                  onClick={() => updateStatus.mutate({ id: session.id, status: 'realizada' })}
+                >
+                  Marcar realizada
+                </button>
+              ) : null}
+              {session.status === 'realizada' ? (
+                <span className="text-xs text-accent">Realizada</span>
+              ) : null}
+            </div>
+          </div>
+        ))}
+
+        {daySessions.length === 0 && dayDues.length === 0 ? (
+          <button
+            type="button"
+            onClick={openComposer}
+            className="text-sm font-medium text-forest"
+          >
+            Agendar sessão neste dia
+          </button>
+        ) : null}
+      </div>
+    )}
+  </article>
+  )
+
   return (
     <section className="mx-auto w-full max-w-7xl">
       <PageHeader
@@ -446,42 +757,49 @@ export function CalendarPage() {
       </article>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-4 sm:p-5" style={{ animationDelay: '80ms' }}>
-          <div className="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted hover:bg-canvas hover:text-ink"
-              onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
-              aria-label="Mês anterior"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold capitalize text-ink">{monthLabel}</h2>
-              {isCurrentMonth ? (
-                <button
-                  type="button"
-                  className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-forest"
-                  onClick={() => {
-                    setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
-                    setSelected(today)
-                  }}
-                >
-                  Hoje
-                </button>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted hover:bg-canvas hover:text-ink"
-              onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
-              aria-label="Próximo mês"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
+      {/* Barra da agenda: navegação do período, Hoje e o menu Dia / Semana / Mês. */}
+      <div className="dash-in mb-4 flex flex-wrap items-center gap-2" style={{ animationDelay: '60ms' }}>
+        <button
+          type="button"
+          onClick={() => {
+            goToDay(today)
+          }}
+          className="inline-flex min-h-10 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink transition-colors hover:border-forest/30"
+        >
+          Hoje
+        </button>
+        <div className="flex items-center">
+          <button
+            type="button"
+            className="flex min-h-10 min-w-10 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-ink"
+            onClick={() => step(-1)}
+            aria-label={view === 'mes' ? 'Mês anterior' : view === 'semana' ? 'Semana anterior' : 'Dia anterior'}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            type="button"
+            className="flex min-h-10 min-w-10 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-ink"
+            onClick={() => step(1)}
+            aria-label={view === 'mes' ? 'Próximo mês' : view === 'semana' ? 'Próxima semana' : 'Próximo dia'}
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+        <h2 className="min-w-0 flex-1 truncate text-base font-semibold capitalize text-ink" aria-live="polite">
+          {periodLabel}
+        </h2>
+        <ViewMenu view={view} onChange={setView} />
+      </div>
 
+      {view === 'dia' ? (
+        <div className="grid gap-4">
+          {painelDia}
+        </div>
+      ) : (
+        <div className={['grid gap-4', view === 'mes' ? 'lg:grid-cols-[1.4fr_1fr]' : 'xl:grid-cols-[2fr_1fr]'].join(' ')}>
+          {view === 'mes' ? (
+        <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-4 sm:p-5" style={{ animationDelay: '80ms' }}>
           <div className="grid grid-cols-7 gap-0.5 text-center text-[11px] font-medium uppercase tracking-wide text-muted">
             {WEEKDAYS.map((day) => (
               <div key={day} className="py-2">
@@ -502,6 +820,10 @@ export function CalendarPage() {
                   key={date.toISOString()}
                   type="button"
                   onClick={() => setSelected(date)}
+                  onDoubleClick={() => {
+                    setSelected(date)
+                    setView('dia')
+                  }}
                   className={[
                     'relative flex aspect-square flex-col items-center justify-center rounded-2xl text-sm transition',
                     isSelected ? 'bg-forest text-white' : isToday ? 'bg-accent-soft text-forest' : 'hover:bg-canvas',
@@ -523,122 +845,94 @@ export function CalendarPage() {
             })}
           </div>
         </article>
-
-        <article className="dash-in dash-card rounded-2xl border border-line bg-surface p-5" style={{ animationDelay: '180ms' }}>
-          <h2 className="text-sm font-semibold text-ink">
-            {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(selected)}
-          </h2>
-          <p className="mt-1 text-xs text-muted">
-            {daySessions.length === 0 && dayDues.length === 0
-              ? 'Nada neste dia'
-              : [
-                  daySessions.length ? `${daySessions.length} sessão(ões)` : null,
-                  dayDues.length ? `${dayDues.length} prazo(s) do quadro` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-          </p>
-
-          {isLoading ? (
-            <div className="mt-8 flex justify-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-forest border-t-transparent" />
-            </div>
           ) : (
-            <div className="mt-5 space-y-3">
-              {dayDues.length > 0 ? (
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-forest">Tarefas do quadro</p>
-              ) : null}
-              {dayDues.map((card) => (
-                <Link
-                  key={card.id}
-                  to="/quadro"
-                  className="block rounded-2xl border border-accent/30 bg-accent-soft p-3"
+        <article className="dash-in dash-card self-start rounded-2xl border border-line bg-surface p-3 sm:p-4" style={{ animationDelay: '80ms' }}>
+          {/* self-start: a semana tem altura própria e não estica junto com o painel do dia. */}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-7 sm:gap-1.5">
+            {weekDays.map((date, index) => {
+              const isToday = sameDay(date, today)
+              const isSelected = sameDay(date, selected)
+              const daySessionsList = sessionsByDay.get(date.toDateString()) ?? []
+              const key = toLocalInput(date)
+              const dues = dueCards.filter((card) => card.dueOn === key)
+              return (
+                // Clique em qualquer parte do card escolhe o dia (o botão do cabeçalho cobre o teclado).
+                <div
+                  key={date.toISOString()}
+                  onClick={() => setSelected(date)}
+                  onDoubleClick={() => {
+                    setSelected(date)
+                    setView('dia')
+                  }}
+                  className={[
+                    'flex min-w-0 cursor-pointer flex-col rounded-2xl border p-2 transition-colors sm:h-[26rem]',
+                    isSelected ? 'border-forest bg-accent-soft/40' : 'border-line hover:border-forest/30',
+                  ].join(' ')}
                 >
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-forest">
-                    <CalendarClock size={12} />
-                    {card.done ? 'Entregue' : `Entregar ${formatDueLabel(card.dueOn)}`}
-                  </span>
-                  <span className="mt-1 block text-sm font-medium text-ink">{card.title}</span>
-                  {card.patientName ? (
-                    <span className="mt-2 flex items-center gap-2">
-                      <PatientAvatar name={card.patientName} tone={card.photoTone} photoUrl={card.photoUrl} size="sm" />
-                      <span className="truncate text-xs text-muted">{card.patientName}</span>
-                    </span>
-                  ) : null}
-                  <span className="mt-1 block text-[11px] text-muted">{card.columnTitle}</span>
-                </Link>
-              ))}
-
-              {daySessions.length > 0 ? (
-                <p className="pt-1 text-[11px] font-semibold uppercase tracking-wide text-muted">Sessões</p>
-              ) : null}
-
-              {daySessions.map((session) => (
-                <div key={session.id} className="rounded-2xl border border-line p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Link to={`/pacientes/${session.patientId}`} className="flex min-w-0 flex-1 items-center gap-3">
-                      <PatientAvatar name={session.patientName} tone={session.photoTone} photoUrl={session.photoUrl} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-ink">{session.patientName}</span>
-                        <span className="block text-xs text-muted">
-                          {new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(
-                            new Date(session.scheduledAt),
-                          )}{' '}
-                          · {session.type} · {session.place}
-                          {session.therapistName ? ` · ${session.therapistName}` : ''}
-                        </span>
-                      </span>
-                    </Link>
-                    <button
-                      type="button"
-                      aria-label="Excluir sessão"
-                      title="Excluir sessão"
-                      onClick={() => setPendingDeleteSession(session)}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger"
+                  <button
+                    type="button"
+                    onClick={() => setSelected(date)}
+                    onDoubleClick={() => {
+                      setSelected(date)
+                      setView('dia')
+                    }}
+                    aria-label={new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(date)}
+                    className="flex w-full items-center gap-2 rounded-xl text-left sm:flex-col sm:gap-0.5"
+                  >
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-muted">{WEEKDAYS[index]}</span>
+                    <span
+                      className={[
+                        'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold',
+                        isSelected ? 'bg-forest text-white' : isToday ? 'bg-accent-soft text-forest' : 'text-ink',
+                      ].join(' ')}
                     >
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="mt-3 flex items-center gap-3">
-                    <span className="text-[11px] capitalize text-muted">{session.status}</span>
-                    {session.status === 'agendada' ? (
-                      <button
-                        type="button"
-                        className="text-xs font-medium text-forest"
-                        onClick={() => updateStatus.mutate({ id: session.id, status: 'confirmada' })}
-                      >
-                        Confirmar
-                      </button>
+                      {date.getDate()}
+                    </span>
+                  </button>
+                  {/* Coluna de altura fixa: dia cheio rola por dentro. */}
+                  <ul className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain">
+                    {dues.map((card) => (
+                      <li key={card.id}>
+                        <Link
+                          to="/quadro"
+                          className="flex items-center gap-1 truncate rounded-lg bg-accent-soft px-2 py-1 text-[11px] font-medium text-forest"
+                          title={card.title}
+                        >
+                          <CalendarClock size={11} className="shrink-0" aria-hidden />
+                          <span className="truncate">{card.title}</span>
+                        </Link>
+                      </li>
+                    ))}
+                    {daySessionsList.map((session) => (
+                      <li key={session.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelected(date)}
+                          title={`${session.patientName} · ${session.type}`}
+                          className="block w-full truncate rounded-lg border-l-2 border-forest bg-canvas px-2 py-1 text-left text-[11px] text-ink transition-colors hover:bg-accent-soft"
+                        >
+                          <span className="font-semibold">
+                            {new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(
+                              new Date(session.scheduledAt),
+                            )}
+                          </span>{' '}
+                          {session.patientName}
+                        </button>
+                      </li>
+                    ))}
+                    {daySessionsList.length === 0 && dues.length === 0 ? (
+                      <li className="hidden text-center text-[11px] text-muted/70 sm:block">—</li>
                     ) : null}
-                    {session.status === 'confirmada' ? (
-                      <button
-                        type="button"
-                        className="text-xs font-medium text-forest"
-                        onClick={() => updateStatus.mutate({ id: session.id, status: 'realizada' })}
-                      >
-                        Marcar realizada
-                      </button>
-                    ) : null}
-                    {session.status === 'realizada' ? (
-                      <span className="text-xs text-accent">Realizada</span>
-                    ) : null}
-                  </div>
+                  </ul>
                 </div>
-              ))}
-
-              {daySessions.length === 0 && dayDues.length === 0 ? (
-                <button
-                  type="button"
-                  onClick={openComposer}
-                  className="text-sm font-medium text-forest"
-                >
-                  Agendar sessão neste dia
-                </button>
-              ) : null}
-            </div>
-          )}
+              )
+            })}
+          </div>
         </article>
-      </div>
+          )}
+          {painelDia}
+        </div>
+      )}
 
       {upcomingDues.length > 0 ? (
         <article className="dash-in mt-4 rounded-2xl border border-line bg-surface p-5" style={{ animationDelay: '240ms' }}>
