@@ -1453,6 +1453,49 @@ async function callGeminiEvolucao(
 }
 
 // Checklist 7.3: ditado do resumo. Transcrição fiel; o profissional revisa antes de usar.
+// Ditado dentro da sessão: cada trecho do relato vai para o campo da evolução que ele descreve.
+const EVOLUCAO_CAMPOS = [
+  'patientState',
+  'changesSinceLast',
+  'conducts',
+  'treatmentResponse',
+  'sideEffects',
+  'incidents',
+  'nextPlan',
+] as const
+
+const AUDIO_CAMPOS_PROMPT = `Você é uma assistente de fisioterapia. Ouça o relato da sessão e distribua o conteúdo nos campos da evolução, cada informação no campo que mais combina.
+Campos (use exatamente estas chaves):
+- patientState: como o paciente chegou e está hoje (queixas, dor, EVA, disposição).
+- changesSinceLast: o que mudou desde a última sessão.
+- conducts: o que foi feito na sessão (exercícios, técnicas, recursos, séries/repetições).
+- treatmentResponse: como o paciente respondeu ao que foi feito na sessão.
+- sideEffects: efeitos colaterais ou reações após/durante o tratamento (dor tardia, tontura, vermelhidão...).
+- incidents: intercorrências ou imprevistos (faltas, quedas, interrupções, eventos adversos).
+- nextPlan: o planejamento para as próximas sessões e orientações para casa.
+Regras:
+- Responda SOMENTE com um objeto JSON com essas chaves e valores em texto, sem Markdown e sem comentários.
+- Use "" para campo sem informação. Não invente nada que não foi dito.
+- Texto técnico, objetivo e em português do Brasil; frases curtas.`
+
+/** Extrai o JSON da resposta e mantém só os campos conhecidos, como texto. */
+function parseCamposEvolucao(texto: string): Record<string, string> | null {
+  const inicio = texto.indexOf('{')
+  const fim = texto.lastIndexOf('}')
+  if (inicio < 0 || fim <= inicio) return null
+  try {
+    const bruto = JSON.parse(texto.slice(inicio, fim + 1)) as Record<string, unknown>
+    const campos: Record<string, string> = {}
+    for (const chave of EVOLUCAO_CAMPOS) {
+      const valor = bruto[chave]
+      campos[chave] = typeof valor === 'string' ? valor.trim().slice(0, 4000) : ''
+    }
+    return campos
+  } catch {
+    return null
+  }
+}
+
 const AUDIO_TRANSCRICAO_PROMPT = `Transcreva fielmente, em português do Brasil, o que é dito no áudio.
 Diretrizes:
 - Não resuma, não interprete e não acrescente informações.
@@ -1900,6 +1943,8 @@ Deno.serve(async (req: Request) => {
           ? 'audio-evolucao'
           : body.mode === 'audio-transcricao'
             ? 'audio-transcricao'
+            : body.mode === 'audio-evolucao-campos'
+              ? 'audio-evolucao-campos'
           : body.mode === 'resumo' || body.mode === undefined || body.mode === null
             ? 'resumo'
             : null
@@ -1908,7 +1953,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const patientId = typeof body.patientId === 'string' ? body.patientId.trim() : ''
-  const audioMode = mode === 'audio-evolucao' || mode === 'audio-transcricao'
+  const audioMode = mode === 'audio-evolucao' || mode === 'audio-transcricao' || mode === 'audio-evolucao-campos'
   if (!audioMode && (!patientId || !UUID_RE.test(patientId))) {
     return jsonResponse({ error: 'invalid_body', code: 'invalid_body' }, 400)
   }
@@ -1946,7 +1991,7 @@ Deno.serve(async (req: Request) => {
     }
 
     let patientContext = ''
-    if (mode === 'audio-evolucao' && patientId && UUID_RE.test(patientId)) {
+    if ((mode === 'audio-evolucao' || mode === 'audio-evolucao-campos') && patientId && UUID_RE.test(patientId)) {
       try {
         const { data: p } = await userClient
           .from('patients')
@@ -1966,7 +2011,11 @@ Deno.serve(async (req: Request) => {
       audioBase64,
       mimeType,
       patientContext,
-      mode === 'audio-transcricao' ? AUDIO_TRANSCRICAO_PROMPT : undefined,
+      mode === 'audio-transcricao'
+        ? AUDIO_TRANSCRICAO_PROMPT
+        : mode === 'audio-evolucao-campos'
+          ? AUDIO_CAMPOS_PROMPT + (patientContext ? `\n${patientContext}` : '')
+          : undefined,
     )
     if ('error' in result) {
       if (result.error === 'misconfigured') {
@@ -1975,6 +2024,11 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'ai_unavailable', code: 'ai_unavailable' }, 503)
     }
 
+    if (mode === 'audio-evolucao-campos') {
+      const campos = parseCamposEvolucao(result.text)
+      if (!campos) return jsonResponse({ error: 'ai_unavailable', code: 'ai_unavailable' }, 503)
+      return jsonResponse({ campos })
+    }
     return jsonResponse({ text: result.text })
   }
 

@@ -34,6 +34,8 @@ export const BODY_DRAWING_COLOR_KEYS = [
   'dormencia',
   'irradiacao',
   'rigidez',
+  // Cor e nome escolhidos pelo profissional (ficha.mapaSintomas.personalizada).
+  'outro',
 ] as const
 
 export type BodyDrawingColor = (typeof BODY_DRAWING_COLOR_KEYS)[number]
@@ -55,6 +57,33 @@ export const BODY_DRAWING_COLORS: readonly BodyDrawingColorInfo[] = [
   { key: 'irradiacao', hex: '#7c3aed', rgb: [0.486, 0.227, 0.929], label: 'Irradiação', hint: 'Sintoma que se espalha' },
   { key: 'rigidez', hex: '#059669', rgb: [0.020, 0.588, 0.412], label: 'Rigidez', hint: 'Travado, limitado' },
 ]
+
+export const BODY_DRAWING_OUTRO_PADRAO = '#64748b'
+export const BODY_DRAWING_OUTRO_ROTULO_MAX = 40
+
+/** "Outro" do mapa: cor e o que ela significa, definidos por quem desenha. */
+export type CorPersonalizada = { cor?: string | null; rotulo?: string | null }
+
+function hexValido(valor: string | null | undefined): string | null {
+  const limpo = (valor ?? '').trim().toLowerCase()
+  return /^#[0-9a-f]{6}$/.test(limpo) ? limpo : null
+}
+
+function hexParaRgb(hex: string): readonly [number, number, number] {
+  const n = Number.parseInt(hex.slice(1), 16)
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+}
+
+/** Informações de qualquer cor do traço, inclusive o "Outro" com a cor e o nome escolhidos. */
+export function infoDaCor(
+  key: string | null | undefined,
+  personalizada?: CorPersonalizada | null,
+): BodyDrawingColorInfo | undefined {
+  if (key !== 'outro') return BODY_DRAWING_COLORS.find((item) => item.key === key)
+  const hex = hexValido(personalizada?.cor) ?? BODY_DRAWING_OUTRO_PADRAO
+  const rotulo = (personalizada?.rotulo ?? '').trim().slice(0, BODY_DRAWING_OUTRO_ROTULO_MAX)
+  return { key: 'outro', hex, rgb: hexParaRgb(hex), label: rotulo || 'Outro', hint: 'Cor e nome à sua escolha' }
+}
 
 /** Figura de fundo. As duas imagens têm o mesmo tamanho, então os traços valem para ambas. */
 export const BODY_DRAWING_FIGURES = ['masculina', 'feminina'] as const
@@ -87,8 +116,13 @@ export function bodyDrawingWidthInfo(value: unknown) {
 
 export type BodyDrawingStroke = { cor: BodyDrawingColor; d: string; espessura?: BodyDrawingWidth }
 
+/** Só as cores fixas da legenda; para o "Outro" use infoDaCor com a cor personalizada. */
 export function bodyDrawingColor(key: string | null | undefined): BodyDrawingColorInfo | undefined {
   return BODY_DRAWING_COLORS.find((item) => item.key === key)
+}
+
+function corConhecida(cor: string): boolean {
+  return cor === 'outro' || Boolean(bodyDrawingColor(cor))
 }
 
 function clamp(value: number, max: number): number {
@@ -148,7 +182,7 @@ export function safeBodyStrokes(value: unknown): BodyDrawingStroke[] {
   for (const item of value) {
     if (!item || typeof item !== 'object') continue
     const { cor, d, espessura } = item as { cor?: unknown; d?: unknown; espessura?: unknown }
-    if (typeof cor !== 'string' || !bodyDrawingColor(cor) || !isSafeBodyPath(d)) continue
+    if (typeof cor !== 'string' || !corConhecida(cor) || !isSafeBodyPath(d)) continue
     out.push({ cor: cor as BodyDrawingColor, d, espessura: bodyDrawingWidth(espessura) })
     if (out.length >= BODY_DRAWING_MAX_STROKES) break
   }
@@ -168,8 +202,13 @@ export function appendBodyStroke(
   return [...strokes, { cor, d, espessura }]
 }
 
-/** Cores usadas no desenho, na ordem da legenda (para o PDF mostrar só o que importa). */
-export function usedBodyDrawingColors(strokes: readonly BodyDrawingStroke[]): BodyDrawingColorInfo[] {
-  const used = new Set(strokes.map((item) => item.cor))
-  return BODY_DRAWING_COLORS.filter((item) => used.has(item.key))
+/** Cores usadas no desenho, na ordem da legenda, com o "Outro" no fim (o PDF mostra só o que importa). */
+export function usedBodyDrawingColors(
+  strokes: readonly BodyDrawingStroke[],
+  personalizada?: CorPersonalizada | null,
+): BodyDrawingColorInfo[] {
+  const used = new Set<string>(strokes.map((item) => item.cor))
+  const fixas = BODY_DRAWING_COLORS.filter((item) => used.has(item.key))
+  const outro = used.has('outro') ? infoDaCor('outro', personalizada) : undefined
+  return outro ? [...fixas, outro] : fixas
 }

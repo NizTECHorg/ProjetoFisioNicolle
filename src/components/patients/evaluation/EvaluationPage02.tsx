@@ -34,6 +34,14 @@ export function EvaluationPage02({ register, watch, setValue, readOnly }: PagePr
           value={watch('ficha.mapaSintomas.tracos')}
           figura={watch('ficha.mapaSintomas.figura')}
           versao={watch('ficha.mapaSintomas.versao')}
+          personalizada={watch('ficha.mapaSintomas.personalizada')}
+          onPersonalizadaChange={(next) =>
+            setValue(
+              'ficha.mapaSintomas.personalizada',
+              { cor: next.cor ?? undefined, rotulo: next.rotulo ?? undefined },
+              { shouldDirty: true },
+            )
+          }
           onFiguraChange={(next) =>
             setValue('ficha.mapaSintomas.figura', next, { shouldDirty: true, shouldValidate: true })
           }

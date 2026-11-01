@@ -13,7 +13,9 @@ import {
   BODY_DRAWING_WIDTHS,
   appendBodyStroke,
   bodyClientToViewBox,
-  bodyDrawingColor,
+  BODY_DRAWING_OUTRO_ROTULO_MAX,
+  infoDaCor,
+  type CorPersonalizada,
   bodyDrawingFigure,
   bodyDrawingVersion,
   bodyDrawingViewBox,
@@ -42,6 +44,9 @@ type BodyDrawingPadProps = {
   figura?: unknown
   /** Versão salva da figura (ficha.mapaSintomas.versao). */
   versao?: unknown
+  /** Cor e nome do "Outro" (ficha.mapaSintomas.personalizada). */
+  personalizada?: CorPersonalizada | null
+  onPersonalizadaChange?: (next: CorPersonalizada) => void
   onFiguraChange?: (next: BodyDrawingFigure) => void
   disabled?: boolean
   /** Legenda/paleta de cores. A visualização da avaliação esconde; o editor sempre mostra. */
@@ -54,6 +59,8 @@ export function BodyDrawingPad({
   onChange,
   figura,
   versao,
+  personalizada,
+  onPersonalizadaChange,
   onFiguraChange,
   disabled,
   showLegend = true,
@@ -68,7 +75,10 @@ export function BodyDrawingPad({
   const [pontos, setPontos] = useState<BodyDrawingPoint[]>([])
   const [confirmarLimpar, setConfirmarLimpar] = useState(false)
   const desenhando = useRef(false)
-  const corAtual = bodyDrawingColor(cor) ?? BODY_DRAWING_COLORS[0]!
+  const corAtual = infoDaCor(cor, personalizada) ?? BODY_DRAWING_COLORS[0]!
+  const outroInfo = infoDaCor('outro', personalizada)!
+  // Legenda: as cores fixas e o "Outro" com a cor/nome escolhidos.
+  const legenda = [...BODY_DRAWING_COLORS, outroInfo]
   const cheio = tracos.length >= BODY_DRAWING_MAX_STROKES
 
   function down(event: PointerEvent<SVGSVGElement>) {
@@ -110,7 +120,7 @@ export function BodyDrawingPad({
     <div className="space-y-4">
       {showLegend ? (
       <div role="radiogroup" aria-label="Cor do traço e o que ela significa" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {BODY_DRAWING_COLORS.map((item) => {
+        {legenda.map((item) => {
           const ativa = !disabled && item.key === cor
           return (
             <button
@@ -139,6 +149,36 @@ export function BodyDrawingPad({
           )
         })}
       </div>
+      ) : null}
+
+      {/* "Outro": escolher a cor e o que ela representa (vale para todos os traços em "Outro"). */}
+      {!disabled && showLegend && cor === 'outro' ? (
+        <div className="flex flex-wrap items-end gap-3 rounded-xl border border-line bg-canvas p-3">
+          <label className="flex flex-col gap-1 text-xs font-medium text-ink">
+            Cor
+            <input
+              type="color"
+              value={outroInfo.hex}
+              onChange={(event) =>
+                onPersonalizadaChange?.({ cor: event.target.value, rotulo: personalizada?.rotulo ?? '' })
+              }
+              className="h-10 w-14 cursor-pointer rounded-lg border border-line bg-surface p-1"
+            />
+          </label>
+          <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs font-medium text-ink">
+            O que essa cor representa?
+            <input
+              type="text"
+              value={personalizada?.rotulo ?? ''}
+              maxLength={BODY_DRAWING_OUTRO_ROTULO_MAX}
+              placeholder="Ex.: Cãibra, pontada, cicatriz"
+              onChange={(event) =>
+                onPersonalizadaChange?.({ cor: outroInfo.hex, rotulo: event.target.value })
+              }
+              className="min-h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm font-normal text-ink"
+            />
+          </label>
+        </div>
       ) : null}
 
       {!disabled ? (
@@ -243,7 +283,7 @@ export function BodyDrawingPad({
               key={index}
               d={item.d}
               fill="none"
-              stroke={bodyDrawingColor(item.cor)?.hex}
+              stroke={infoDaCor(item.cor, personalizada)?.hex}
               strokeWidth={bodyDrawingWidthInfo(item.espessura).px}
               strokeLinecap="round"
               strokeLinejoin="round"

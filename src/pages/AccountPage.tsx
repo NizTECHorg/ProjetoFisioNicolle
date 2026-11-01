@@ -6,6 +6,7 @@ import { Camera, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { DeleteAccountDialog } from '@/components/account/DeleteAccountDialog'
+import { PdfBrandingCard } from '@/components/account/PdfBrandingCard'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -363,6 +364,8 @@ export function AccountPage() {
           </form>
         </div>
       </article>
+
+      <PdfBrandingCard accountType={profile?.accountType} />
 
       <article className="rounded-2xl border border-line bg-surface p-4 text-ink md:p-6">
         <form

@@ -46,11 +46,11 @@ function blobToBase64(blob: Blob): Promise<string> {
   })
 }
 
-async function invokeAudio(
-  mode: 'audio-evolucao' | 'audio-transcricao',
+async function invokeAudioRaw(
+  mode: 'audio-evolucao' | 'audio-transcricao' | 'audio-evolucao-campos',
   audioBlob: Blob,
   patientId?: string,
-): Promise<string> {
+): Promise<unknown> {
   const base64Data = await blobToBase64(audioBlob)
 
   const { data, error } = await supabase.functions.invoke('patient-ai-summary', {
@@ -68,12 +68,67 @@ async function invokeAudio(
     }
     if (data && typeof data === 'object') {
       errorPayload = data as { status?: number; code?: string; message?: string }
+    } else {
+      // Erro HTTP da função: o corpo (com o código, ex. invalid_body) vem em error.context.
+      const contexto = (error as { context?: unknown }).context
+      if (contexto instanceof Response) {
+        const corpo = (await contexto.clone().json().catch(() => null)) as { code?: string; error?: string } | null
+        errorPayload = { status: contexto.status, code: corpo?.code ?? corpo?.error, message: error.message }
+        console.warn('[IA áudio] a função respondeu', contexto.status, corpo)
+      }
+    }
+    // invalid_body num modo novo = a função publicada ainda é a versão antiga.
+    if (mode === 'audio-evolucao-campos' && errorPayload.code === 'invalid_body') {
+      throw new Error('A função de IA está desatualizada. Publique de novo a função patient-ai-summary no Supabase.')
     }
     throw new Error(mapPatientAiError(errorPayload))
   }
 
-  const parsed = data as { text?: string } | null
+  return data
+}
+
+async function invokeAudio(
+  mode: 'audio-evolucao' | 'audio-transcricao',
+  audioBlob: Blob,
+  patientId?: string,
+): Promise<string> {
+  const parsed = (await invokeAudioRaw(mode, audioBlob, patientId)) as { text?: string } | null
   return parsed?.text || ''
+}
+
+/** Campos da evolução que o ditado dentro da sessão pode preencher. */
+export type CamposEvolucaoDitados = {
+  patientState: string
+  changesSinceLast: string
+  conducts: string
+  treatmentResponse: string
+  sideEffects: string
+  incidents: string
+  nextPlan: string
+}
+
+const CAMPOS_DITADO: ReadonlyArray<keyof CamposEvolucaoDitados> = [
+  'patientState',
+  'changesSinceLast',
+  'conducts',
+  'treatmentResponse',
+  'sideEffects',
+  'incidents',
+  'nextPlan',
+]
+
+/** Ditado da sessão: a IA separa o relato e devolve o texto de cada campo (vazio = nada dito). */
+export async function dictateEvolutionFields(audioBlob: Blob, patientId?: string): Promise<CamposEvolucaoDitados> {
+  const parsed = (await invokeAudioRaw('audio-evolucao-campos', audioBlob, patientId)) as {
+    campos?: Record<string, unknown>
+  } | null
+  const campos = parsed?.campos ?? {}
+  const out = {} as CamposEvolucaoDitados
+  for (const chave of CAMPOS_DITADO) {
+    const valor = campos[chave]
+    out[chave] = typeof valor === 'string' ? stripMarkdown(valor).slice(0, 4000) : ''
+  }
+  return out
 }
 
 export async function generateEvolutionFromAudio(

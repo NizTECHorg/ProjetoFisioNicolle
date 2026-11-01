@@ -14,7 +14,8 @@ export interface UseVoiceCopilotReturn {
   stopRecording: () => void;
 }
 
-export function useVoiceCopilot(): UseVoiceCopilotReturn {
+/** `maxMs`: limite desta gravação (padrão 10 min); ao chegar nele a gravação para sozinha. */
+export function useVoiceCopilot(maxMs: number = MAX_RECORDING_DURATION_MS): UseVoiceCopilotReturn {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [duration, setDuration] = useState(0);
@@ -103,14 +104,14 @@ export function useVoiceCopilot(): UseVoiceCopilotReturn {
       // Automatic stop after 10 minutes (600.000 ms)
       maxTimeoutRef.current = window.setTimeout(() => {
         stopRecording();
-      }, MAX_RECORDING_DURATION_MS);
+      }, maxMs);
     } catch (err) {
       console.error('Microphone error:', err);
       cleanupStream();
       clearTimers();
       setIsRecording(false);
     }
-  }, [cleanupStream, clearTimers, stopRecording]);
+  }, [cleanupStream, clearTimers, stopRecording, maxMs]);
 
   useEffect(() => {
     return () => {

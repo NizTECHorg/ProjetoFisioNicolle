@@ -247,6 +247,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
                   changesSinceLast: session.evolution.changesSinceLast,
                   conducts: session.evolution.conducts,
                   treatmentResponse: session.evolution.treatmentResponse,
+                  sideEffects: session.evolution.sideEffects,
                   incidents: session.evolution.incidents,
                   nextPlan: session.evolution.nextPlan,
                 }
@@ -384,6 +385,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
                 changesSinceLast: session.evolution.changesSinceLast,
                 conducts: session.evolution.conducts,
                 treatmentResponse: session.evolution.treatmentResponse,
+                  sideEffects: session.evolution.sideEffects,
                 incidents: session.evolution.incidents,
                 nextPlan: session.evolution.nextPlan,
               }

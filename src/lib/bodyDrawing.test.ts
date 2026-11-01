@@ -3,7 +3,9 @@ import { deepEqual, equal } from 'node:assert/strict'
 import {
   BODY_DRAWING_COLORS,
   BODY_DRAWING_MAX_STROKES,
+  BODY_DRAWING_OUTRO_PADRAO,
   BODY_DRAWING_VIEWBOX,
+  infoDaCor,
   BODY_DRAWING_VIEWBOX_V2,
   bodyDrawingVersion,
   bodyDrawingViewBox,
@@ -128,4 +130,23 @@ test('mapa de sintomas: coordenadas presas à caixa da versão 2', () => {
   deepEqual(ponto, { x: 1800, y: 1290 })
   const [velho] = simplifyBodyStroke([{ x: 1800, y: 1290 }])
   deepEqual(velho, { x: BODY_DRAWING_VIEWBOX.width, y: BODY_DRAWING_VIEWBOX.height })
+})
+
+test('mapa de sintomas: "Outro" usa a cor e o nome escolhidos e entra na legenda do PDF', () => {
+  const tracos = safeBodyStrokes([
+    { cor: 'dor', d: 'M1 1 L2 2' },
+    { cor: 'outro', d: 'M3 3 L4 4' },
+    { cor: 'inventada', d: 'M5 5 L6 6' },
+  ])
+  deepEqual(tracos.map((t) => t.cor), ['dor', 'outro'])
+  const info = infoDaCor('outro', { cor: '#FF0000', rotulo: ' Cãibra ' })
+  equal(info?.label, 'Cãibra')
+  equal(info?.hex, '#ff0000')
+  deepEqual(info?.rgb, [1, 0, 0])
+  equal(infoDaCor('outro', null)?.label, 'Outro')
+  equal(infoDaCor('outro', { cor: 'azul' })?.hex, BODY_DRAWING_OUTRO_PADRAO)
+  deepEqual(
+    usedBodyDrawingColors(tracos, { cor: '#ff0000', rotulo: 'Cãibra' }).map((c) => c.label),
+    ['Dor', 'Cãibra'],
+  )
 })

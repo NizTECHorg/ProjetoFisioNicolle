@@ -26,6 +26,7 @@ export type SessionEvolutionLike = {
   changesSinceLast?: string | null
   conducts?: string | null
   treatmentResponse?: string | null
+  sideEffects?: string | null
   incidents?: string | null
   nextPlan?: string | null
 }
@@ -260,7 +261,7 @@ export function buildEvaluationFilledCatalog(ficha: EvaluationFicha): PdfFieldIt
     filled: tracosMapa.length > 0 || textFilled(ficha.mapaSintomas?.observacao),
     preview: previewFrom(
       tracosMapa.length > 0
-        ? usedBodyDrawingColors(tracosMapa)
+        ? usedBodyDrawingColors(tracosMapa, ficha.mapaSintomas?.personalizada)
             .map((item) => item.label)
             .join(', ')
         : undefined,
@@ -736,6 +737,7 @@ const SOAP_FIELDS: Array<{
   { key: 'changesSinceLast', idSuffix: 'changesSinceLast', label: 'Mudanças desde a última' },
   { key: 'conducts', idSuffix: 'conducts', label: 'Condutas' },
   { key: 'treatmentResponse', idSuffix: 'treatmentResponse', label: 'Resposta ao tratamento' },
+  { key: 'sideEffects', idSuffix: 'sideEffects', label: 'Efeitos colaterais' },
   { key: 'incidents', idSuffix: 'incidents', label: 'Intercorrências', sensitive: true },
   { key: 'nextPlan', idSuffix: 'nextPlan', label: 'Plano seguinte' },
 ]

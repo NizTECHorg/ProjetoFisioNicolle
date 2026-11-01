@@ -369,6 +369,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                 <EvolutionField label="Condutas" value={viewing.evolution.conducts} />
                 <EvolutionField label="Mudanças" value={viewing.evolution.changesSinceLast} />
                 <EvolutionField label="Resposta" value={viewing.evolution.treatmentResponse} />
+                <EvolutionField label="Efeitos colaterais" value={viewing.evolution.sideEffects} />
                 <EvolutionField label="Intercorrências" value={viewing.evolution.incidents} />
                 <EvolutionField label="Plano" value={viewing.evolution.nextPlan} />
               </div>

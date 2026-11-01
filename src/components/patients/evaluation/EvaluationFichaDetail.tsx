@@ -128,7 +128,7 @@ export function EvaluationFichaDetail({ ficha }: EvaluationFichaDetailProps) {
       <section className="space-y-3 [&:not(:has(>:nth-child(2)))]:hidden">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">02 · Sintomas</p>
         {tracosMapa.length > 0 ? (
-          <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} versao={ficha.mapaSintomas?.versao} disabled showLegend={false} onChange={() => {}} />
+          <BodyDrawingPad value={tracosMapa} figura={ficha.mapaSintomas?.figura} versao={ficha.mapaSintomas?.versao} personalizada={ficha.mapaSintomas?.personalizada} disabled showLegend={false} onChange={() => {}} />
         ) : null}
         <DetailLeaf label="Observações do desenho" value={ficha.mapaSintomas?.observacao} />
         <DetailLeaf label="Regiões marcadas" value={markLabels || null} />

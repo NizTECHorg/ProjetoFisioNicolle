@@ -10,16 +10,15 @@ const EDITOR = read('../components/patients/PatientEvaluationEditorForm.tsx')
 const FOOTER = read('../components/patients/evaluation/EvaluationFichaFooter.tsx')
 const FORM = read('../components/patients/evaluation/EvaluationFichaForm.tsx')
 
-test('6.4 rodapé EvaluationFichaFooter tem progresso, voltar/avançar e só Concluir como submit', () => {
+test('6.4 rodapé EvaluationFichaFooter tem progresso, voltar/avançar e nenhum submit', () => {
   ok(FOOTER.includes('role="progressbar"'))
   ok(FOOTER.includes('aria-valuetext'))
   ok(FOOTER.includes('aria-hidden="true"'))
   ok(FOOTER.includes('aria-label="Salvar avaliação"'))
   ok(FOOTER.includes('aria-label="Próxima página"'))
   ok(FOOTER.includes('aria-label="Página anterior"'))
-  ok(FOOTER.includes('aria-label="Concluir avaliação"'))
   ok(FOOTER.includes('Progresso da avaliação clínica'))
-  ok(FOOTER.includes('Concluir'))
+  ok(FOOTER.includes('disabled={saving || isLast}'), 'na última página a seta fica desativada')
   ok(FOOTER.includes('grid-cols-2'), 'Cancelar e Salvar no meio, setas nas pontas')
   ok(FOOTER.includes('min-h-10'))
   ok(FOOTER.includes('sticky bottom-'), 'fixo acima da navegação móvel')
@@ -27,7 +26,7 @@ test('6.4 rodapé EvaluationFichaFooter tem progresso, voltar/avançar e só Con
 
   const submits = FOOTER.match(/type="submit"/g) ?? []
   const buttons = FOOTER.match(/type="button"/g) ?? []
-  equal(submits.length, 1, 'apenas Concluir deve ser type="submit" no rodapé')
+  equal(submits.length, 0, 'rodapé sem submit: chegar na última página não pode salvar sozinho')
   equal(buttons.length, 4, 'Anterior, Cancelar, Salvar e Próxima devem ser type="button"')
 })
 

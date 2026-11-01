@@ -186,6 +186,7 @@ export const sessionFormSchema = z
     changesSinceLast: optionalText(4000),
     conducts: optionalText(4000),
     treatmentResponse: optionalText(4000),
+    sideEffects: optionalText(4000),
     incidents: optionalText(4000),
     nextPlan: optionalText(4000),
     priceId: z.string(),

@@ -21,7 +21,7 @@ test('REQ-48: serviço de PDF contém os elementos obrigatórios', () => {
     'wrapLines',
     'Assinado digitalmente em',
     'Data: ___/___/______',
-    'Fluxo · página',
+    "${ctx.brandName ?? 'Fluxo'} · página",
     'export async function buildSignedTermPdf',
     'export async function buildPrintableTermPdf',
   ]) {

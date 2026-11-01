@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FICHA_PAGES, type FichaPageId } from '@/components/patients/evaluation/EvaluationFichaForm'
 import { fichaPagerState } from '@/lib/evaluationFooter'
@@ -109,32 +109,23 @@ export function EvaluationFichaFooter({
           </Button>
         </div>
 
-        {!isLast ? (
-          <Button
-            type="button"
-            variant="secondary"
-            className={navClassName}
-            aria-label="Próxima página"
-            title="Próxima página"
-            onClick={onNext}
-            disabled={saving}
-          >
-            <span className="hidden md:inline">Próxima</span>
-            <ArrowRight size={16} aria-hidden="true" />
-          </Button>
-        ) : (
-          <Button
-            type="submit"
-            variant="secondary"
-            className={navClassName}
-            aria-label="Concluir avaliação"
-            title="Concluir avaliação"
-            disabled={saveDisabled || saving}
-          >
-            <Check size={16} aria-hidden="true" />
-            <span className="hidden md:inline">Concluir</span>
-          </Button>
-        )}
+        {/*
+          Na última página a seta só fica desativada (nada de "Concluir" aqui). Trocar este botão
+          por um botão de envio no mesmo clique fazia o navegador enviar o formulário ao chegar na
+          página 4, sem deixar editar. Para gravar, use Salvar.
+        */}
+        <Button
+          type="button"
+          variant="secondary"
+          className={navClassName}
+          aria-label="Próxima página"
+          title={isLast ? 'Você está na última página' : 'Próxima página'}
+          onClick={onNext}
+          disabled={saving || isLast}
+        >
+          <span className="hidden md:inline">Próxima</span>
+          <ArrowRight size={16} aria-hidden="true" />
+        </Button>
       </div>
 
       {saveDisabled ? (

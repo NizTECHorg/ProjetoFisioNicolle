@@ -29,6 +29,7 @@ import {
 } from '@/lib/evaluationFooter'
 import { formatTestesParaColuna } from '@/lib/mobilidadePalpacao'
 import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
+import { useAuth } from '@/hooks/useAuth'
 import { genderLabel } from '@/lib/patientGender'
 import { toast } from '@/stores/toast.store'
 import type { ToastAction } from '@/stores/toast.store'
@@ -192,6 +193,22 @@ export function PatientEvaluationEditorForm({
     const base = draft ?? emptyEvaluationForm()
     form.reset(prefillIdentification(base, patientSnapshot))
   }, [draft, editing, editorKey, form, patientSnapshot])
+
+  // Autônomo: a Identificação profissional (bloco ID) já vem com o nome e o CREFITO da conta.
+  // Só completa o que estiver vazio; nunca troca o que alguém digitou.
+  const { profile } = useAuth()
+  const nomeConta = profile?.accountType === 'autonomo' ? profile.fullName.trim() : ''
+  const crefitoConta = profile?.accountType === 'autonomo' ? profile.crefito.trim() : ''
+  useEffect(() => {
+    if (!nomeConta && !crefitoConta) return
+    const atual = form.getValues('ficha.avaliacaoPlano.profissional')
+    if (nomeConta && !atual?.fisioterapeuta?.trim()) {
+      form.setValue('ficha.avaliacaoPlano.profissional.fisioterapeuta', nomeConta)
+    }
+    if (crefitoConta && !atual?.crefito?.trim()) {
+      form.setValue('ficha.avaliacaoPlano.profissional.crefito', crefitoConta)
+    }
+  }, [editorKey, nomeConta, crefitoConta, form])
 
   // Late-arriving patient snapshot: prefill identity only while form still pristine.
   useEffect(() => {

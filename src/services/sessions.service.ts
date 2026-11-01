@@ -14,6 +14,7 @@ type EvolutionRow = {
   changes_since_last: string | null
   conducts: string
   treatment_response: string | null
+  side_effects: string | null
   incidents: string | null
   next_plan: string | null
   created_at: string
@@ -48,6 +49,7 @@ const SESSION_LIST_COLUMNS = `
     changes_since_last,
     conducts,
     treatment_response,
+    side_effects,
     incidents,
     next_plan,
     created_at,
@@ -71,6 +73,7 @@ function hasEvolutionContent(input: UpsertPatientSessionInput) {
     input.changesSinceLast,
     input.conducts,
     input.treatmentResponse,
+    input.sideEffects,
     input.incidents,
     input.nextPlan,
   ].some((value) => (value?.trim() ?? '') !== '')
@@ -99,6 +102,7 @@ function mapEvolution(row: EvolutionRow | null | undefined): SessionEvolution | 
     changesSinceLast: row.changes_since_last,
     conducts: row.conducts,
     treatmentResponse: row.treatment_response,
+    sideEffects: row.side_effects ?? null,
     incidents: row.incidents,
     nextPlan: row.next_plan,
     createdAt: row.created_at,
@@ -208,6 +212,7 @@ export async function createPatientSession(
     changes_since_last: emptyToNull(input.changesSinceLast),
     conducts: input.conducts?.trim() ?? '',
     treatment_response: emptyToNull(input.treatmentResponse),
+    side_effects: emptyToNull(input.sideEffects),
     incidents: emptyToNull(input.incidents),
     next_plan: emptyToNull(input.nextPlan),
     finalized_at: input.finalizedAt ?? null,
@@ -258,6 +263,7 @@ export async function updatePatientSession(
     changes_since_last: emptyToNull(input.changesSinceLast),
     conducts: input.conducts?.trim() ?? '',
     treatment_response: emptyToNull(input.treatmentResponse),
+    side_effects: emptyToNull(input.sideEffects),
     incidents: emptyToNull(input.incidents),
     next_plan: emptyToNull(input.nextPlan),
     ...(input.finalizedAt !== undefined ? { finalized_at: input.finalizedAt } : {}),

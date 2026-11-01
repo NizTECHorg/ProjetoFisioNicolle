@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
+import { EvolucaoDitado } from '@/components/patients/EvolucaoDitado'
 import { useAuth } from '@/hooks/useAuth'
 import { useFinancePrices, useSessionCharge } from '@/hooks/useFinance'
 import {
@@ -134,6 +135,7 @@ export function PatientSessionEditorForm({
       changesSinceLast: '',
       conducts: '',
       treatmentResponse: '',
+      sideEffects: '',
       incidents: '',
       nextPlan: '',
       ...emptyFinanceFields,
@@ -157,6 +159,7 @@ export function PatientSessionEditorForm({
         changesSinceLast: editing.evolution?.changesSinceLast ?? '',
         conducts: editing.evolution?.conducts ?? '',
         treatmentResponse: editing.evolution?.treatmentResponse ?? '',
+        sideEffects: editing.evolution?.sideEffects ?? '',
         incidents: editing.evolution?.incidents ?? '',
         nextPlan: editing.evolution?.nextPlan ?? '',
         ...finance,
@@ -173,6 +176,7 @@ export function PatientSessionEditorForm({
       changesSinceLast: '',
       conducts: draftConducts ?? '',
       treatmentResponse: '',
+      sideEffects: '',
       incidents: '',
       nextPlan: '',
       ...emptyFinanceFields,
@@ -187,6 +191,7 @@ export function PatientSessionEditorForm({
       values.changesSinceLast,
       values.conducts,
       values.treatmentResponse,
+      values.sideEffects,
       values.incidents,
       values.nextPlan,
     ].some((value) => (value?.trim() ?? '') !== '')
@@ -215,6 +220,7 @@ export function PatientSessionEditorForm({
       changesSinceLast: values.changesSinceLast,
       conducts: values.conducts,
       treatmentResponse: values.treatmentResponse,
+      sideEffects: values.sideEffects,
       incidents: values.incidents,
       nextPlan: values.nextPlan,
       finalizedAt,
@@ -401,38 +407,64 @@ export function PatientSessionEditorForm({
           Todos os campos da evolução abaixo são <span className="font-medium text-ink">opcionais</span>. Dá para{' '}
           <span className="font-medium text-ink">salvar como rascunho</span> sem texto e finalizar depois.
         </p>
+        <EvolucaoDitado
+          patientId={patientId}
+          disabled={saving}
+          onCampos={(campos) => {
+            // Junta ao que já está escrito (nada é apagado) e marca a sessão como realizada.
+            for (const [chave, texto] of Object.entries(campos)) {
+              const nome = chave as keyof typeof campos
+              const atual = (form.getValues(nome) ?? '').trim()
+              form.setValue(nome, atual ? `${atual}\n${texto}` : (texto ?? ''), { shouldDirty: true })
+            }
+            if (form.getValues('mode') !== 'realizada') form.setValue('mode', 'realizada', { shouldDirty: true })
+          }}
+        />
         <Textarea
           label="Estado do paciente"
+          placeholder="Ex.: chegou com dor 6/10 no joelho direito, mais disposto que na última sessão"
           rows={3}
           error={form.formState.errors.patientState?.message}
           {...form.register('patientState')}
         />
         <Textarea
           label="Condutas realizadas"
+          placeholder="Ex.: mobilização patelar, agachamento 3x12, bicicleta 10 min, gelo 15 min"
           rows={3}
           error={form.formState.errors.conducts?.message}
           {...form.register('conducts')}
         />
         <Textarea
           label="Mudanças desde a última sessão"
+          placeholder="Ex.: voltou a subir escada sem apoio; dor noturna diminuiu"
           rows={2}
           error={form.formState.errors.changesSinceLast?.message}
           {...form.register('changesSinceLast')}
         />
         <Textarea
           label="Resposta ao tratamento"
+          placeholder="Ex.: boa tolerância aos exercícios, dor caiu para 3/10 ao final"
           rows={2}
           error={form.formState.errors.treatmentResponse?.message}
           {...form.register('treatmentResponse')}
         />
         <Textarea
+          label="Efeitos colaterais"
+          rows={2}
+          placeholder="Ex.: dor tardia, vermelhidão, tontura após a sessão"
+          error={form.formState.errors.sideEffects?.message}
+          {...form.register('sideEffects')}
+        />
+        <Textarea
           label="Intercorrências"
+          placeholder="Ex.: sessão interrompida por tontura; atraso de 15 min"
           rows={2}
           error={form.formState.errors.incidents?.message}
           {...form.register('incidents')}
         />
         <Textarea
           label="Planejamento"
+          placeholder="Ex.: progredir carga no agachamento; orientar exercícios em casa"
           rows={2}
           error={form.formState.errors.nextPlan?.message}
           {...form.register('nextPlan')}

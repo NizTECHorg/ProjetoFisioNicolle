@@ -10,6 +10,8 @@ import {
   type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
+import { tamanhoLogo } from '@/lib/pdfBrand'
+import { loadPdfBrand, type PdfBrandAssets } from '@/services/pdfBranding.service'
 import corpoFemininoUrl from '@/assets/corpo-feminino.png'
 import corpoMasculinoUrl from '@/assets/corpo-masculino.png'
 import pessoaUrl from '@/assets/homi.png'
@@ -32,7 +34,8 @@ import {
   bodyDrawingVersion,
   bodyDrawingViewBox,
   type BodyDrawingBox,
-  bodyDrawingColor,
+  infoDaCor,
+  type CorPersonalizada,
   bodyDrawingFigure,
   bodyDrawingWidthInfo,
   safeBodyStrokes,
@@ -49,7 +52,7 @@ const MARGIN_BOTTOM = 52
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2
 
 /** Brand + ficha-ref tokens (navy / sage / soft border — D-05) */
-const COLORS = {
+const COLORS_PADRAO = {
   forest: rgb(0x0b / 255, 0x1d / 255, 0x36 / 255),
   navy: rgb(0x1a / 255, 0x36 / 255, 0x5d / 255),
   sage: rgb(0x5f / 255, 0x7f / 255, 0x6b / 255),
@@ -63,6 +66,12 @@ const COLORS = {
   white: rgb(1, 1, 1),
   danger: rgb(0xb9 / 255, 0x3c / 255, 0x3c / 255),
 } as const
+
+/**
+ * Paleta em uso. Troca pela cor da conta (Minha empresa / Meu escritório) no início de cada
+ * geração e volta ao padrão no fim — um PDF é gerado por vez no navegador.
+ */
+let COLORS: { [K in keyof typeof COLORS_PADRAO]: (typeof COLORS_PADRAO)[K] } = COLORS_PADRAO
 
 const SIZE = {
   title: 16,
@@ -106,7 +115,7 @@ export interface PatientAiSessaoPdfInput {
   evolution: Pick<
     SessionEvolution,
     'patientState' | 'changesSinceLast' | 'conducts' | 'treatmentResponse' | 'incidents' | 'nextPlan'
-  > | null
+  > & { sideEffects?: string | null } | null
 }
 
 /** Ficha musculoesquelética 01–04 (D-07) — sem Gemini. */
@@ -141,7 +150,7 @@ export interface PatientAiEvolucaoPdfInput {
       | 'treatmentResponse'
       | 'incidents'
       | 'nextPlan'
-    > | null
+    > & { sideEffects?: string | null } | null
   }>
   synthesis: {
     sintese: string
@@ -285,7 +294,10 @@ type DrawContext = {
   bold: PDFFont
   /** Serif chapter titles (StandardFonts.TimesRomanBold — no fontkit). */
   timesBold: PDFFont
-  logo: PDFImage
+  /** Logo do cabeçalho (da conta ou a do Fluxo); null = escreve o nome da conta no lugar. */
+  logo: PDFImage | null
+  /** Nome da conta nos PDFs (Minha empresa / Meu escritório); null = Fluxo. */
+  brandName: string | null
   y: number
   pageIndex: number
   docTitle: string
@@ -312,25 +324,27 @@ function drawFooter(ctx: DrawContext) {
     color: COLORS.border,
   })
   if (ctx.footerKind === 'ficha') {
-    ctx.page.drawText('Fluxo', {
+    // Rodapé discreto: nome da conta e número da página pequenos.
+    const footerSize = 9
+    ctx.page.drawText(toWinAnsiSafe(ctx.brandName ?? 'Fluxo'), {
       x: MARGIN_X,
       y: footerY,
-      size: 14,
+      size: footerSize,
       font: ctx.font,
       color: COLORS.muted,
     })
     const pageLabel = String(ctx.pageIndex)
-    const pageW = ctx.font.widthOfTextAtSize(pageLabel, 14)
+    const pageW = ctx.font.widthOfTextAtSize(pageLabel, footerSize)
     ctx.page.drawText(pageLabel, {
       x: PAGE_WIDTH - MARGIN_X - pageW,
       y: footerY,
-      size: 14,
+      size: footerSize,
       font: ctx.font,
       color: COLORS.muted,
     })
     return
   }
-  const left = 'FLUXO · Documento clínico'
+  const left = `${ctx.brandName ?? 'FLUXO'} · Documento clínico`
   ctx.page.drawText(toWinAnsiSafe(left), {
     x: MARGIN_X,
     y: footerY,
@@ -349,18 +363,23 @@ function drawFooter(ctx: DrawContext) {
   })
 }
 
+/** Logo da conta (ou do Fluxo) sem distorcer; sem logo, o nome da conta em destaque. */
+function drawBrandMark(ctx: DrawContext, x: number, y: number, altura: number) {
+  if (ctx.logo) {
+    const { width, height } = tamanhoLogo(ctx.logo.width, ctx.logo.height, altura, 190)
+    ctx.page.drawImage(ctx.logo, { x, y: y + (altura - height) / 2, width, height })
+    return
+  }
+  const nome = toWinAnsiSafe(ctx.brandName ?? 'Fluxo')
+  const size = Math.min(18, altura * 0.6)
+  ctx.page.drawText(nome, { x, y: y + (altura - size) / 2 + 2, size, font: ctx.bold, color: COLORS.forest })
+}
+
 function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
   if (ctx.footerKind === 'ficha') {
     const logoH = 32
-    const logoAspect = ctx.logo.width / ctx.logo.height
-    const logoW = logoH * logoAspect
     const logoBottom = PAGE_HEIGHT - 48 - logoH
-    ctx.page.drawImage(ctx.logo, {
-      x: MARGIN_X,
-      y: logoBottom,
-      width: logoW,
-      height: logoH,
-    })
+    drawBrandMark(ctx, MARGIN_X, logoBottom, logoH)
 
     const title = ctx.docTitle.startsWith('Evolução') ? 'Evolução' : 'Avaliação'
     let cursor = logoBottom - 16 - 20
@@ -433,16 +452,8 @@ function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
   })
 
   const logoH = opts.isFirstPage ? 36 : 26
-  const logoAspect = ctx.logo.width / ctx.logo.height
-  const logoW = logoH * logoAspect
   const logoY = PAGE_HEIGHT - bandHeight + (bandHeight - logoH) / 2 + (opts.isFirstPage ? 4 : 0)
-
-  ctx.page.drawImage(ctx.logo, {
-    x: MARGIN_X,
-    y: logoY,
-    width: logoW,
-    height: logoH,
-  })
+  drawBrandMark(ctx, MARGIN_X, logoY, logoH)
 
   if (opts.isFirstPage) {
     const title = toWinAnsiSafe(ctx.docTitle)
@@ -831,6 +842,7 @@ function drawSessao(ctx: DrawContext, input: PatientAiSessaoPdfInput) {
   drawField(ctx, 'Mudanças desde a última', evo.changesSinceLast ?? '—')
   drawField(ctx, 'Condutas', evo.conducts)
   drawField(ctx, 'Resposta ao tratamento', evo.treatmentResponse ?? '—')
+  if (textFilled(evo.sideEffects)) drawField(ctx, 'Efeitos colaterais', evo.sideEffects)
   drawField(ctx, 'Intercorrências', evo.incidents ?? '—')
   drawField(ctx, 'Plano seguinte', evo.nextPlan ?? '—')
 }
@@ -1538,12 +1550,13 @@ function drawMapaSintomas(
   tracos: BodyDrawingStroke[],
   caixa: BodyDrawingBox,
   observacao?: string,
+  personalizada?: CorPersonalizada | null,
 ): void {
   if (tracos.length > 0 && ctx.bodyImage) {
     // Figura de quatro vistas é mais larga: usa a largura toda do conteúdo.
     const width = Math.min(ctx.contentW, caixa.width > caixa.height * 1.2 ? 520 : 400)
     const height = (width * caixa.height) / caixa.width
-    const usadas = usedBodyDrawingColors(tracos)
+    const usadas = usedBodyDrawingColors(tracos, personalizada)
     const legendRowH = 14
     // Estimativa folgada para reservar espaço (a legenda quase sempre cabe em 1 linha).
     const legendH = Math.ceil(usadas.length / 4) * legendRowH
@@ -1563,7 +1576,7 @@ function drawMapaSintomas(
 
     const scale = width / caixa.width
     for (const traco of tracos) {
-      const info = bodyDrawingColor(traco.cor)
+      const info = infoDaCor(traco.cor, personalizada)
       if (!info) continue
       ctx.page.drawSvgPath(traco.d, {
         x,
@@ -1886,7 +1899,13 @@ function drawAvaliacao(ctx: DrawContext, input: PatientAiAvaliacaoPdfInput) {
   if ((tracosMapa.length > 0 || textFilled(obsMapa)) && isFieldSelected(selected, '05.A')) {
     anyContent = true
     drawClearSectionTitle(ctx, 'Mapa de sintomas')
-    drawMapaSintomas(ctx, tracosMapa, bodyDrawingViewBox(bodyDrawingVersion(ficha.mapaSintomas?.versao, tracosMapa)), obsMapa)
+    drawMapaSintomas(
+      ctx,
+      tracosMapa,
+      bodyDrawingViewBox(bodyDrawingVersion(ficha.mapaSintomas?.versao, tracosMapa)),
+      obsMapa,
+      ficha.mapaSintomas?.personalizada,
+    )
   }
 
   if (show02A) {
@@ -2121,6 +2140,7 @@ const EVO_SOAP_FIELDS: Array<{
     | 'changesSinceLast'
     | 'conducts'
     | 'treatmentResponse'
+    | 'sideEffects'
     | 'incidents'
     | 'nextPlan'
   idSuffix: string
@@ -2147,6 +2167,13 @@ const EVO_SOAP_FIELDS: Array<{
     key: 'treatmentResponse',
     idSuffix: 'treatmentResponse',
     label: 'Resposta ao tratamento',
+    soapLetter: 'O',
+    soapTitle: 'Objetivo',
+  },
+  {
+    key: 'sideEffects',
+    idSuffix: 'sideEffects',
+    label: 'Efeitos colaterais',
     soapLetter: 'O',
     soapTitle: 'Objetivo',
   },
@@ -2269,15 +2296,33 @@ function docTitleFor(input: BuildPatientAiReportPdfInput): string {
  */
 export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInput): Promise<Blob> {
   const doc = await PDFDocument.create()
+  const marca = await loadPdfBrand(doc)
+  COLORS = marca.colors ? { ...COLORS_PADRAO, ...marca.colors } : COLORS_PADRAO
+  try {
+    return await montarPdf(doc, input, marca)
+  } finally {
+    COLORS = COLORS_PADRAO
+  }
+}
+
+async function montarPdf(
+  doc: PDFDocument,
+  input: BuildPatientAiReportPdfInput,
+  marca: PdfBrandAssets,
+): Promise<Blob> {
   const font = await doc.embedFont(StandardFonts.Helvetica)
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)
   const timesBold = await doc.embedFont(StandardFonts.TimesRomanBold)
 
-  const logoBytes = await fetch(logoUrl).then((r) => {
-    if (!r.ok) throw new Error('Não foi possível carregar a logo FLUXO.')
-    return r.arrayBuffer()
-  })
-  const logo = await doc.embedPng(logoBytes)
+  // Logo da conta; sem ela e sem nome, a logo do Fluxo.
+  let logo: PDFImage | null = marca.logo
+  if (!logo && !marca.name) {
+    const logoBytes = await fetch(logoUrl).then((r) => {
+      if (!r.ok) throw new Error('Não foi possível carregar a logo FLUXO.')
+      return r.arrayBuffer()
+    })
+    logo = await doc.embedPng(logoBytes)
+  }
 
   // Figura do mapa de sintomas: só busca e embute quando a avaliação tem traços.
   let bodyImage: PDFImage | undefined
@@ -2311,6 +2356,7 @@ export async function buildPatientAiReportPdf(input: BuildPatientAiReportPdfInpu
     bold,
     timesBold,
     logo,
+    brandName: marca.name,
     y: PAGE_HEIGHT,
     pageIndex: 1,
     docTitle,

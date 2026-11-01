@@ -6,8 +6,11 @@ import {
   type PDFFont,
   type PDFImage,
   type PDFPage,
+  type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
+import { tamanhoLogo } from '@/lib/pdfBrand'
+import { loadPdfBrand } from '@/services/pdfBranding.service'
 import { BLANK, type TermGuardian, type TermKey } from '@/lib/consentTerms'
 import { formatCpf } from '@/lib/cpf'
 import { toWinAnsiSafe, wrapLines } from '@/lib/pdfText'
@@ -54,6 +57,10 @@ type Ctx = {
   bold: PDFFont
   y: number
   pageNumber: number
+  /** Nome da conta (Minha empresa / Meu escritório) no rodapé; null = Fluxo. */
+  brandName: string | null
+  /** Cor de destaque da conta (ou a do Fluxo). */
+  accent: RGB
 }
 
 function formatDateTime(d: Date): string {
@@ -70,10 +77,10 @@ function firstLine(font: PDFFont, value: string, maxWidth: number): string {
 }
 
 function drawFooter(ctx: Ctx): void {
-  ctx.page.drawText(toWinAnsiSafe(`Fluxo · página ${ctx.pageNumber}`), {
+  ctx.page.drawText(toWinAnsiSafe(`${ctx.brandName ?? 'Fluxo'} · página ${ctx.pageNumber}`), {
     x: MARGIN,
     y: MARGIN - 8,
-    size: 14,
+    size: 9,
     font: ctx.font,
     color: COLORS.muted,
   })
@@ -103,16 +110,30 @@ function text(
   })
 }
 
-async function createContext(): Promise<{ ctx: Ctx; logo: PDFImage }> {
+async function createContext(): Promise<{ ctx: Ctx; logo: PDFImage | null }> {
   try {
     const doc = await PDFDocument.create()
     const font = await doc.embedFont(StandardFonts.Helvetica)
     const bold = await doc.embedFont(StandardFonts.HelveticaBold)
-    const res = await fetch(logoUrl)
-    if (!res.ok) throw new Error(PDF_ERROR)
-    const logo = await doc.embedPng(await res.arrayBuffer())
+    // Identidade da conta; sem logo nem nome, a logo do Fluxo.
+    const marca = await loadPdfBrand(doc)
+    let logo: PDFImage | null = marca.logo
+    if (!logo && !marca.name) {
+      const res = await fetch(logoUrl)
+      if (!res.ok) throw new Error(PDF_ERROR)
+      logo = await doc.embedPng(await res.arrayBuffer())
+    }
     const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
-    const ctx: Ctx = { doc, page, font, bold, y: PAGE_HEIGHT - MARGIN, pageNumber: 1 }
+    const ctx: Ctx = {
+      doc,
+      page,
+      font,
+      bold,
+      y: PAGE_HEIGHT - MARGIN,
+      pageNumber: 1,
+      brandName: marca.name,
+      accent: marca.colors?.accent ?? COLORS.accent,
+    }
     drawFooter(ctx)
     return { ctx, logo }
   } catch {
@@ -120,14 +141,18 @@ async function createContext(): Promise<{ ctx: Ctx; logo: PDFImage }> {
   }
 }
 
-function drawHeader(ctx: Ctx, logo: PDFImage, input: TermPdfInput): void {
-  const logoW = (logo.width / logo.height) * LOGO_HEIGHT
-  ctx.page.drawImage(logo, {
-    x: MARGIN,
-    y: ctx.y - LOGO_HEIGHT,
-    width: logoW,
-    height: LOGO_HEIGHT,
-  })
+function drawHeader(ctx: Ctx, logo: PDFImage | null, input: TermPdfInput): void {
+  if (logo) {
+    const { width, height } = tamanhoLogo(logo.width, logo.height, LOGO_HEIGHT, 200)
+    ctx.page.drawImage(logo, {
+      x: MARGIN,
+      y: ctx.y - LOGO_HEIGHT + (LOGO_HEIGHT - height) / 2,
+      width,
+      height,
+    })
+  } else {
+    text(ctx, ctx.brandName ?? 'Fluxo', MARGIN, ctx.y - LOGO_HEIGHT + 8, { size: 20, bold: true })
+  }
   ctx.y -= LOGO_HEIGHT + 24
 
   const titleLines = wrapLines(ctx.bold, input.title, 20, CONTENT_WIDTH)
@@ -136,7 +161,7 @@ function drawHeader(ctx: Ctx, logo: PDFImage, input: TermPdfInput): void {
     ctx.y -= 26
   }
   ctx.y -= 4
-  ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 4, width: 48, height: 4, color: COLORS.accent })
+  ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 4, width: 48, height: 4, color: ctx.accent })
   ctx.y -= 4 + 16
   text(ctx, input.category, MARGIN, ctx.y - 14, { bold: true, color: COLORS.muted })
   ctx.y -= 14 + 32

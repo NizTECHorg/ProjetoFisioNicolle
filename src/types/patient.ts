@@ -57,6 +57,7 @@ export interface SessionEvolution {
   changesSinceLast: string | null
   conducts: string
   treatmentResponse: string | null
+  sideEffects: string | null
   incidents: string | null
   nextPlan: string | null
   /** null = rascunho (checklist 7.2). */
@@ -136,6 +137,7 @@ export interface UpsertPatientSessionInput {
   changesSinceLast?: string
   conducts?: string
   treatmentResponse?: string
+  sideEffects?: string
   incidents?: string
   nextPlan?: string
   /** Checklist 7.2: null = rascunho; ISO = evolução finalizada. Ausente = não mexe (ex.: agenda). */

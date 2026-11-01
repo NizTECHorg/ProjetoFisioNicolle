@@ -32,6 +32,7 @@ import {
   BODY_DRAWING_FIGURES,
   BODY_DRAWING_MAX_PATH_CHARS,
   BODY_DRAWING_MAX_STROKES,
+  BODY_DRAWING_OUTRO_ROTULO_MAX,
   BODY_DRAWING_WIDTH_KEYS,
   isSafeBodyPath,
   bodyDrawingFigure,
@@ -630,6 +631,16 @@ export const evaluationFichaSchema = z.object({
         z.array(bodyDrawingStrokeSchema).max(BODY_DRAWING_MAX_STROKES),
       ),
       observacao: optionalText(1000),
+      /** "Outro" do mapa: cor (#rrggbb) e o que ela representa. */
+      personalizada: z
+        .object({
+          cor: z.preprocess(
+            (value) => (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value.trim()) ? value.trim().toLowerCase() : undefined),
+            z.string().optional(),
+          ),
+          rotulo: optionalText(BODY_DRAWING_OUTRO_ROTULO_MAX),
+        })
+        .optional(),
     })
     .default({}),
 })
