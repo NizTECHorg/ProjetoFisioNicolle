@@ -30,6 +30,9 @@ import {
 import { formatTestesParaColuna } from '@/lib/mobilidadePalpacao'
 import { emptyEvaluationFicha } from '@/schemas/evaluationFicha.schema'
 import { useAuth } from '@/hooks/useAuth'
+import { useRascunhoForm } from '@/hooks/useRascunhoForm'
+import { RASCUNHO_NOVO } from '@/lib/rascunhosLocais'
+import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
 import { genderLabel } from '@/lib/patientGender'
 import { toast } from '@/stores/toast.store'
 import type { ToastAction } from '@/stores/toast.store'
@@ -176,6 +179,16 @@ export function PatientEvaluationEditorForm({
     shouldUnregister: false,
   })
 
+  // Rascunho automático: sair sem salvar não perde o que foi preenchido.
+  const { restaurado, limpar: limparRascunho, guardarAgora } = useRascunhoForm({
+    form,
+    patientId,
+    tipo: 'avaliacao',
+    registroId: targetId ?? RASCUNHO_NOVO,
+    recuperar: !draft,
+  })
+  const [versaoForm, setVersaoForm] = useState(0)
+
   const editingId = editing?.id ?? null
   const initializedForKey = useRef<string | null>(null)
   const editorKey = editingId ?? `create:${draft ? 'draft' : 'blank'}`
@@ -186,13 +199,24 @@ export function PatientEvaluationEditorForm({
     if (initializedForKey.current === editorKey) return
     initializedForKey.current = editorKey
 
-    if (editing) {
-      form.reset(valuesFromEvaluation(editing))
-      return
-    }
-    const base = draft ?? emptyEvaluationForm()
-    form.reset(prefillIdentification(base, patientSnapshot))
-  }, [draft, editing, editorKey, form, patientSnapshot])
+    const inicial = editing
+      ? valuesFromEvaluation(editing)
+      : prefillIdentification(draft ?? emptyEvaluationForm(), patientSnapshot)
+    form.reset(inicial)
+    if (restaurado) form.reset(restaurado.valores, { keepDefaultValues: true })
+    // Avaliação vinda da IA: fechar sem salvar não pode perder o que foi gerado.
+    if (draft) guardarAgora()
+  }, [draft, editing, editorKey, form, patientSnapshot, restaurado, guardarAgora])
+
+  function descartarRascunho() {
+    limparRascunho()
+    form.reset(
+      editing
+        ? valuesFromEvaluation(editing)
+        : prefillIdentification(draft ?? emptyEvaluationForm(), patientSnapshot),
+    )
+    setVersaoForm((atual) => atual + 1)
+  }
 
   // Autônomo: a Identificação profissional (bloco ID) já vem com o nome e o CREFITO da conta.
   // Só completa o que estiver vazio; nunca troca o que alguém digitou.
@@ -208,7 +232,7 @@ export function PatientEvaluationEditorForm({
     if (crefitoConta && !atual?.crefito?.trim()) {
       form.setValue('ficha.avaliacaoPlano.profissional.crefito', crefitoConta)
     }
-  }, [editorKey, nomeConta, crefitoConta, form])
+  }, [editorKey, nomeConta, crefitoConta, form, versaoForm])
 
   // Late-arriving patient snapshot: prefill identity only while form still pristine.
   useEffect(() => {
@@ -257,23 +281,31 @@ export function PatientEvaluationEditorForm({
     }
   }
 
+  function aoSalvarESair() {
+    limparRascunho()
+    onSuccess()
+  }
+
   function onSubmit(values: EvaluationFormData) {
     const input = buildInput(values)
     if (targetId) {
-      updateEvaluation.mutate({ evaluationId: targetId, input }, { onSuccess })
+      updateEvaluation.mutate({ evaluationId: targetId, input }, { onSuccess: aoSalvarESair })
       return
     }
-    createEvaluation.mutate(input, { onSuccess })
+    createEvaluation.mutate(input, { onSuccess: aoSalvarESair })
   }
 
   function onSaveStay(values: EvaluationFormData) {
     const input = buildInput(values)
     if (targetId) {
-      updateStay.mutate({ evaluationId: targetId, input })
+      updateStay.mutate({ evaluationId: targetId, input }, { onSuccess: limparRascunho })
       return
     }
     createStay.mutate(input, {
-      onSuccess: (id) => setSavedId(id),
+      onSuccess: (id) => {
+        limparRascunho()
+        setSavedId(id)
+      },
     })
   }
 
@@ -320,6 +352,14 @@ export function PatientEvaluationEditorForm({
         }
       }}
     >
+      {restaurado ? (
+        <RascunhoAviso
+          salvoEm={restaurado.salvoEm}
+          texto="Recuperamos o que você não tinha salvo."
+          onDescartar={descartarRascunho}
+        />
+      ) : null}
+
       {showInnerHeading ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

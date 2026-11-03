@@ -66,7 +66,9 @@ test('6.4 Salvar sem sair grava e guarda savedId sem chamar onSuccess nem duplic
 
   ok(body.includes('setSavedId('), 'onSaveStay deve guardar o id criado em savedId')
   ok(body.includes('targetId'), 'onSaveStay deve reutilizar targetId nos salvamentos seguintes')
-  ok(!body.includes('onSuccess }') && !body.includes('{ onSuccess'), 'onSaveStay não deve chamar onSuccess')
+  // Pode limpar o rascunho ao salvar, mas nunca fechar o editor (onSuccess da prop / aoSalvarESair).
+  ok(!body.includes('{ onSuccess }') && !body.includes('aoSalvarESair'), 'onSaveStay não deve chamar onSuccess')
+  ok(body.includes('limparRascunho'), 'salvar sem sair apaga o rascunho guardado')
 })
 
 test('6.4 Enter num campo do formulário não dispara envio implícito', () => {

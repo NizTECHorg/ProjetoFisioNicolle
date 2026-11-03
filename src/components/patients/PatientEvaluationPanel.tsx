@@ -8,6 +8,9 @@ import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhy
 import { EvaluationFichaDetail } from '@/components/patients/evaluation/EvaluationFichaDetail'
 import { fichaHasClinicalContent } from '@/lib/evaluationFichaContent'
 import { useAuth } from '@/hooks/useAuth'
+import { useRascunhosPaciente } from '@/hooks/useRascunhoForm'
+import { RASCUNHO_NOVO, apagarRascunho } from '@/lib/rascunhosLocais'
+import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
 import { AI_EVALUATION_BANNER, buildAiEvaluationFicha } from '@/lib/avaliacaoIa'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
 import { generateEvaluationDraft } from '@/services/patientAi.service'
@@ -95,6 +98,7 @@ export function PatientEvaluationPanel({
   const { data: patientDetail } = usePatient(patientId)
   const deleteEvaluation = useDeletePatientEvaluation(patientId)
   const { user, profile } = useAuth()
+  const rascunhos = useRascunhosPaciente(patientId, 'avaliacao')
   const { data: therapists = [] } = useActiveTherapists()
   const [aiState, setAiState] = useState<'idle' | 'loading' | 'error'>('idle')
   const [aiNotes, setAiNotes] = useState<string[] | null>(null)
@@ -228,6 +232,28 @@ export function PatientEvaluationPanel({
           </Button>
         </div>
       ) : null}
+
+      {canWrite && !editorOpen
+        ? rascunhos.map((item) => {
+            const avaliacao = evaluations.find((e) => e.id === item.registroId) ?? null
+            if (item.registroId !== RASCUNHO_NOVO && !avaliacao) return null
+            return (
+              <RascunhoAviso
+                key={item.registroId}
+                salvoEm={item.salvoEm}
+                texto={
+                  avaliacao
+                    ? `Alterações não salvas em ${avaliacao.title || avaliacao.performedOnLabel}.`
+                    : 'Você tem uma avaliação não salva.'
+                }
+                onContinuar={() => (avaliacao ? openEdit(avaliacao) : openCreate())}
+                onDescartar={() => {
+                  if (user) apagarRascunho({ userId: user.id, patientId, tipo: 'avaliacao', registroId: item.registroId })
+                }}
+              />
+            )
+          })
+        : null}
 
       {isLoading ? (
         <div className="flex min-h-32 items-center justify-center">

@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { EvolucaoDitado } from '@/components/patients/EvolucaoDitado'
+import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
+import { useRascunhoForm } from '@/hooks/useRascunhoForm'
+import { RASCUNHO_NOVO } from '@/lib/rascunhosLocais'
 import { useAuth } from '@/hooks/useAuth'
 import { useFinancePrices, useSessionCharge } from '@/hooks/useFinance'
 import {
@@ -19,6 +22,7 @@ import { sessionFormSchema, type SessionFormData } from '@/schemas/patient.schem
 import { canSeeFinance } from '@/lib/accountAccess'
 import { formatCurrency } from '@/lib/security'
 import type { SessionCharge, SessionChargeDraft } from '@/types/finance'
+import type { CamposEvolucaoDitados } from '@/services/ai.service'
 import type { ToastAction } from '@/stores/toast.store'
 import type { PatientSessionRecord } from '@/types/patient'
 
@@ -69,8 +73,8 @@ type PatientSessionEditorFormProps = {
   successAction?: ToastAction
   errorMessage?: string
   editing?: PatientSessionRecord | null
-  /** Texto pronto (ex.: evolução gerada por áudio) para uma sessão NOVA já realizada. */
-  draftConducts?: string | null
+  /** Evolução já separada por campo (gravação por voz) para uma sessão NOVA já realizada. */
+  draftCampos?: CamposEvolucaoDitados | null
   onCancel: () => void
   onSuccess: () => void
 }
@@ -82,7 +86,7 @@ export function PatientSessionEditorForm({
   successAction,
   errorMessage,
   editing,
-  draftConducts,
+  draftCampos,
   onCancel,
   onSuccess,
 }: PatientSessionEditorFormProps) {
@@ -142,14 +146,29 @@ export function PatientSessionEditorForm({
     },
   })
 
+  // Rascunho automático: sair sem salvar não perde o que foi preenchido.
+  const rascunho = useRascunhoForm({
+    form,
+    patientId,
+    tipo: 'sessao',
+    registroId: editing?.id ?? RASCUNHO_NOVO,
+    recuperar: !draftCampos,
+  })
+  const { restaurado, limpar: limparRascunho, guardarAgora } = rascunho
+
   const mode = form.watch('mode')
   const priceId = form.watch('priceId')
   const selectValue = prices.some((item) => item.id === priceId) ? priceId : ''
 
   useEffect(() => {
     const finance = editing && showFinance ? financeFieldsFromCharge(charge) : emptyFinanceFields
+    // Este efeito roda de novo quando profissionais e valor chegam: o rascunho entra sempre por cima.
+    const aplicar = (base: SessionFormData) => {
+      form.reset(base)
+      if (restaurado) form.reset({ ...base, ...restaurado.valores }, { keepDefaultValues: true })
+    }
     if (editing) {
-      form.reset({
+      aplicar({
         mode: editing.status === 'realizada' ? 'realizada' : 'agendar',
         scheduledAt: toDatetimeLocalValue(editing.scheduledAt),
         sessionType: editing.type || 'Sessão',
@@ -166,24 +185,34 @@ export function PatientSessionEditorForm({
       })
       return
     }
-    form.reset({
-      mode: draftConducts ? 'realizada' : 'agendar',
+    aplicar({
+      mode: draftCampos ? 'realizada' : 'agendar',
       scheduledAt: defaultScheduledLocal(),
       sessionType: 'Sessão',
       place: '',
       therapistId: defaultTherapistId,
-      patientState: '',
-      changesSinceLast: '',
-      conducts: draftConducts ?? '',
-      treatmentResponse: '',
-      sideEffects: '',
-      incidents: '',
-      nextPlan: '',
+      patientState: draftCampos?.patientState ?? '',
+      changesSinceLast: draftCampos?.changesSinceLast ?? '',
+      conducts: draftCampos?.conducts ?? '',
+      treatmentResponse: draftCampos?.treatmentResponse ?? '',
+      sideEffects: draftCampos?.sideEffects ?? '',
+      incidents: draftCampos?.incidents ?? '',
+      nextPlan: draftCampos?.nextPlan ?? '',
       ...emptyFinanceFields,
     })
-  }, [editing, draftConducts, form, defaultTherapistId, charge, showFinance])
+  }, [editing, draftCampos, form, defaultTherapistId, charge, showFinance, restaurado])
+
+  // Evolução vinda da gravação: fechar o formulário sem salvar não pode perder o áudio processado.
+  useEffect(() => {
+    if (draftCampos) guardarAgora()
+  }, [draftCampos, guardarAgora])
 
   const [finalizeError, setFinalizeError] = useState<string | null>(null)
+
+  function aoSalvar() {
+    limparRascunho()
+    onSuccess()
+  }
 
   function onSubmit(values: SessionFormData, finalizar: boolean) {
     const temEvolucao = [
@@ -241,7 +270,7 @@ export function PatientSessionEditorForm({
             evolutionId: editing.evolution?.id ?? null,
             charge: chargeDraft,
           },
-          { onSuccess },
+          { onSuccess: aoSalvar },
         )
         return
       }
@@ -251,17 +280,17 @@ export function PatientSessionEditorForm({
           input,
           evolutionId: editing.evolution?.id ?? null,
         },
-        { onSuccess },
+        { onSuccess: aoSalvar },
       )
       return
     }
 
     if (showFinance) {
-      createSession.mutate({ ...input, charge: chargeDraft }, { onSuccess })
+      createSession.mutate({ ...input, charge: chargeDraft }, { onSuccess: aoSalvar })
       return
     }
 
-    createSession.mutate(input, { onSuccess })
+    createSession.mutate(input, { onSuccess: aoSalvar })
   }
 
   const saving = createSession.isPending || updateSession.isPending
@@ -273,6 +302,13 @@ export function PatientSessionEditorForm({
 
   return (
     <form className="space-y-4" onSubmit={form.handleSubmit((values) => onSubmit(values, false))}>
+      {restaurado ? (
+        <RascunhoAviso
+          salvoEm={restaurado.salvoEm}
+          texto="Recuperamos o que você não tinha salvo."
+          onDescartar={limparRascunho}
+        />
+      ) : null}
       <div className="rounded-2xl border border-line bg-surface px-4 py-3">
         <p className="flex items-center gap-2 text-sm font-semibold text-ink">
           <Info size={16} aria-hidden className="shrink-0 text-muted" />

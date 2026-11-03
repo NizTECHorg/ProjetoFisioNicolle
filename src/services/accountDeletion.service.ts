@@ -1,3 +1,4 @@
+import { apagarTodosRascunhos } from '@/lib/rascunhosLocais'
 import { supabase } from '@/lib/supabase/client'
 import { checkRateLimit } from '@/lib/security'
 import {
@@ -61,6 +62,7 @@ export async function countAccountDeletionPatients(): Promise<number | null> {
 }
 
 export async function signOutAfterAccountDeletion(): Promise<void> {
+  apagarTodosRascunhos()
   try {
     await supabase.auth.signOut({ scope: 'local' })
   } catch {

@@ -31,6 +31,8 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
   const atividadeHorasDia = watch('ficha.funcao.rotina.atividadeHorasDia')
   // Avaliações antigas: o texto livre "Qual atividade" e esportes marcados sem o "Sim" continuam visíveis.
   const temAtividadeLegada = Boolean(atividadeQual?.trim())
+  // A frequência agora é por esporte ("Frequência por semana"); a geral só aparece se já tiver valor salvo.
+  const temFrequenciaLegada = Boolean(atividadeFrequencia?.trim())
   const temEsportes = esportesDaFuncao(watch('ficha.funcao')).length > 0
   const atividadeQualFreq = watch('ficha.funcao.rotina.atividadeQualFreq')
 
@@ -163,7 +165,7 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
         />
         {praticaAtividadeFisica === 'sim' || temAtividadeLegada || temEsportes ? (
           <div className="space-y-2">
-            <div className={['grid gap-4', temAtividadeLegada ? 'sm:grid-cols-3' : 'sm:grid-cols-2'].join(' ')}>
+            <div className={['grid gap-4', temAtividadeLegada && temFrequenciaLegada ? 'sm:grid-cols-3' : 'sm:grid-cols-2'].join(' ')}>
               {temAtividadeLegada ? (
                 <LineField
                   label="Qual atividade"
@@ -172,12 +174,14 @@ export function EvaluationPage01({ register, watch, setValue, readOnly }: PagePr
                   disabled={disabled}
                 />
               ) : null}
-              <Select
-                label="Frequência"
-                options={ATIVIDADE_FREQUENCIA_OPTIONS}
-                disabled={disabled}
-                {...register('ficha.funcao.rotina.atividadeFrequencia')}
-              />
+              {temFrequenciaLegada ? (
+                <Select
+                  label="Frequência"
+                  options={ATIVIDADE_FREQUENCIA_OPTIONS}
+                  disabled={disabled}
+                  {...register('ficha.funcao.rotina.atividadeFrequencia')}
+                />
+              ) : null}
               <LineField
                 label="Quantas horas por dia"
                 name="ficha.funcao.rotina.atividadeHorasDia"

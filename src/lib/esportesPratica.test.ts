@@ -10,6 +10,7 @@ import {
   PERGUNTAS_GESTO_SINTOMA,
   linhasAvaliacaoPratica,
   linhasRespostas,
+  perguntaVisivel,
   praticaDoEsporte,
   safeAvaliacaoPratica,
   safeRespostas,
@@ -1041,4 +1042,39 @@ test('fase 39: Sim/Não continua com uma resposta só', () => {
   const pratica = praticaDoEsporte('corrida')
   deepEqual(safeRespostas({ trocaCalcado: ['sim', 'nao'] }, pratica), {})
   deepEqual(safeRespostas({ trocaCalcado: 'sim' }, pratica), { trocaCalcado: 'sim' })
+})
+
+test('funcional: questionário próprio (formato, componentes, movimentos, sintomas)', () => {
+  const pratica = praticaDoEsporte('funcional')
+  deepEqual(pratica.secoes?.map((s) => s.titulo), [
+    'Características da prática',
+    'Movimentos e demandas',
+    'Sintomas e limitações',
+  ])
+  deepEqual(
+    linhasLegado({ respostas: { formato: 'grupo', componentes: ['core', 'circuito'], gestoSintoma: ['aterrissagem'] } }, 'funcional'),
+    [
+      'Como treina: Aulas em grupo',
+      'Componentes frequentes do treino: Circuito / HIIT, Core / estabilidade',
+      'Em qual movimento aparecem os sintomas ou dificuldades? Aterrissagem',
+    ],
+  )
+})
+
+test('sessões por semana: some das avaliações novas e continua nas antigas que têm valor', () => {
+  for (const [esporte, campo] of [
+    ['caminhada', 'volumeSessoes'],
+    ['tenis', 'volumeSessoes'],
+    ['beachTennis', 'volumeSessoes'],
+    ['surf', 'sessoesSemana'],
+  ] as const) {
+    const pratica = praticaDoEsporte(esporte)
+    const pergunta = pratica.secoes
+      ?.flatMap((s) => s.perguntas)
+      .find((p) => p.campos?.some((c) => c.key === campo))
+    ok(pergunta?.legado, esporte)
+    equal(perguntaVisivel(pergunta!, {}), false, esporte)
+    equal(perguntaVisivel(pergunta!, { [campo]: '3' }), true, esporte)
+    ok(pratica.volumeProprio, `${esporte} não pode voltar a mostrar o campo genérico de volume`)
+  }
 })

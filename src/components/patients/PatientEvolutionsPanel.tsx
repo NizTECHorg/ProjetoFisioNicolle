@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/Button'
 import { InfoHint } from '@/components/ui/InfoHint'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
+import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
 import { useAuth } from '@/hooks/useAuth'
+import { useRascunhosPaciente } from '@/hooks/useRascunhoForm'
+import { RASCUNHO_NOVO, apagarRascunho } from '@/lib/rascunhosLocais'
 import { useSessionCharges } from '@/hooks/useFinance'
 import { usePatientImages } from '@/hooks/usePatientImages'
 import { MAX_RECORDING_LABEL, MAX_RECORDING_SECONDS, useVoiceCopilot } from '@/hooks/useVoiceCopilot'
 import { useToastStore } from '@/stores/toast.store'
-import { generateEvolutionFromAudio } from '@/services/ai.service'
+import { dictateEvolutionFields, type CamposEvolucaoDitados } from '@/services/ai.service'
 import { useDeletePatientSession, usePatientSessions } from '@/hooks/usePatients'
 import { canSeeFinance } from '@/lib/accountAccess'
 import { EVOLUCAO_SITUACAO_LABEL, contarEvolucoesPendentes, situacaoEvolucao } from '@/lib/evolucaoStatus'
@@ -128,13 +131,14 @@ function SessionPhotosFold({
 }
 
 export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEvolutionsPanelProps) {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const showFinance = canSeeFinance(profile?.accountType)
   const { data: sessions = [], isLoading } = usePatientSessions(patientId)
   const { data: images = [] } = usePatientImages(patientId)
   const sessionIds = useMemo(() => sessions.map((session) => session.id), [sessions])
   const { data: charges = [] } = useSessionCharges(patientId, sessionIds, showFinance)
   const deleteSession = useDeletePatientSession(patientId)
+  const rascunhos = useRascunhosPaciente(patientId, 'sessao')
   const pendentes = contarEvolucoesPendentes(sessions)
 
   const chargeBySession = useMemo(() => {
@@ -155,7 +159,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   }, [images])
 
   const [editorOpen, setEditorOpen] = useState(false)
-  const [draftConducts, setDraftConducts] = useState<string | null>(null)
+  const [draftCampos, setDraftCampos] = useState<CamposEvolucaoDitados | null>(null)
   const [isProcessingAudio, setIsProcessingAudio] = useState(false)
   const { isRecording, duration, startRecording, stopRecording, audioBlob } = useVoiceCopilot()
 
@@ -165,9 +169,14 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
       const processAudio = async () => {
         try {
           setIsProcessingAudio(true)
-          const text = await generateEvolutionFromAudio(audioBlob, patientId)
+          // A IA separa o relato e cada parte vai para o campo certo da evolução.
+          const campos = await dictateEvolutionFields(audioBlob, patientId)
+          if (!Object.values(campos).some((texto) => texto.trim())) {
+            useToastStore.getState().push('Não deu para entender o áudio. Tente gravar de novo.', 'error')
+            return
+          }
           setEditing(null)
-          setDraftConducts(text)
+          setDraftCampos(campos)
           setEditorOpen(true)
         } catch (error: unknown) {
           console.error(error)
@@ -191,7 +200,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   function closeEditor() {
     setEditorOpen(false)
     setEditing(null)
-    setDraftConducts(null)
+    setDraftCampos(null)
   }
 
   function closeViewer() {
@@ -239,15 +248,41 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
               )}
               <InfoHint
                 label="Sobre gravar a sessão"
-                text={`Grave o atendimento (até ${MAX_RECORDING_LABEL}) e a IA preenche a evolução da sessão. Você revisa o texto antes de salvar.`}
+                text={`Grave o atendimento (até ${MAX_RECORDING_LABEL}). A IA entende cada parte e preenche o campo certo da evolução: estado do paciente, condutas, efeitos colaterais, plano… Você revisa antes de salvar.`}
               />
-              <Button type="button" onClick={() => { setEditing(null); setDraftConducts(null); setEditorOpen(true) }}>
+              <Button type="button" onClick={() => { setEditing(null); setDraftCampos(null); setEditorOpen(true) }}>
                 <Plus size={16} />
                 Nova sessão / evolução
               </Button>
             </div>
           ) : null}
         </div>
+
+        {canWrite && !editorOpen
+          ? rascunhos.map((item) => {
+              const sessao = sessions.find((s) => s.id === item.registroId) ?? null
+              if (item.registroId !== RASCUNHO_NOVO && !sessao) return null
+              return (
+                <RascunhoAviso
+                  key={item.registroId}
+                  salvoEm={item.salvoEm}
+                  texto={
+                    sessao
+                      ? `Alterações não salvas na sessão de ${sessao.dateLabel}.`
+                      : 'Você tem uma sessão / evolução não salva.'
+                  }
+                  onContinuar={() => {
+                    setEditing(sessao)
+                    setDraftCampos(null)
+                    setEditorOpen(true)
+                  }}
+                  onDescartar={() => {
+                    if (user) apagarRascunho({ userId: user.id, patientId, tipo: 'sessao', registroId: item.registroId })
+                  }}
+                />
+              )
+            })
+          : null}
 
         {isLoading ? (
           <div className="flex min-h-32 items-center justify-center">
@@ -303,7 +338,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                           aria-label="Editar sessão / evolução"
                           onClick={() => {
                             setEditing(session)
-                            setDraftConducts(null)
+                            setDraftCampos(null)
                             setEditorOpen(true)
                           }}
                           className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-forest"
@@ -432,7 +467,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
           <PatientSessionEditorForm
             patientId={patientId}
             editing={editing}
-            draftConducts={draftConducts}
+            draftCampos={draftCampos}
             cancelLabel="Cancelar"
             submitLabel="Salvar"
             onCancel={closeEditor}

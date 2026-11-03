@@ -6,6 +6,7 @@ import { confirmFromInitialUrl, initialUrlHasAuthCallback } from '@/lib/auth/con
 import { fetchProfile, signOut as authSignOut } from '@/services/auth.service'
 import { fetchMembership } from '@/services/team.service'
 import { isPendingTherapist } from '@/lib/accountAccess'
+import { apagarTodosRascunhos } from '@/lib/rascunhosLocais'
 import { AuthContext, type AuthContextValue } from '@/hooks/useAuth'
 import type { ClinicProfile, Membership } from '@/types/account'
 
@@ -92,6 +93,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setSession(null)
     setProfile(null)
     setMembership(null)
+    // Depois do formulário aberto desmontar (ele grava ao fechar): nada clínico fica no aparelho.
+    window.setTimeout(apagarTodosRascunhos, 0)
   }, [queryClient])
 
   const reloadProfile = useCallback(async () => {

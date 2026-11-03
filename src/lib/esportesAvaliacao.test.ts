@@ -35,6 +35,7 @@ test('REQ-44: catálogo tem 23 esportes (22 visíveis) na ordem esperada', () =>
       'natacao',
       'musculacao',
       'crossfit',
+      'funcional',
       'ciclismo',
       'lutas',
       'handebol',
@@ -50,7 +51,7 @@ test('REQ-44: catálogo tem 23 esportes (22 visíveis) na ordem esperada', () =>
       'circo',
     ],
   )
-  equal(ESPORTES.length, 23)
+  equal(ESPORTES.length, 24)
   deepEqual(ESPORTES.filter((e) => e.legado).map((e) => e.key), ['pilatesYoga'])
   ok(!ESPORTES.some((e) => e.key === ESPORTE_OUTRO))
 })
@@ -119,7 +120,7 @@ test('REQ-44: avaliarTexto junta testes e achados', () => {
 
 test('REQ-44: buscarEsportes ignora acento e usa sinônimos', () => {
   const keys = (q: string) => buscarEsportes(q).map((e) => e.key)
-  equal(buscarEsportes('').length, 22)
+  equal(buscarEsportes('').length, 23)
   ok(!keys('').includes('pilatesYoga'))
   ok(keys('VOLEI').includes('volei'))
   ok(keys('vôlei').includes('volei'))
@@ -127,6 +128,7 @@ test('REQ-44: buscarEsportes ignora acento e usa sinônimos', () => {
   ok(!keys('beach').includes('tenis'))
   ok(keys('pilates').includes('pilates'))
   ok(keys('caminhada').includes('caminhada'))
+  deepEqual(keys('funcional'), ['funcional'])
   equal(esportePorKey('pilatesYoga')?.nome, 'Pilates / yoga')
   equal(safeEsporte('pilatesYoga'), 'pilatesYoga')
   ok(keys('jiu').includes('lutas'))

@@ -28,6 +28,8 @@ export type Pergunta = {
   placeholder?: string
   /** Só aparece (e só é guardada) quando outra resposta tem esse valor (ou o inclui, se for múltipla). */
   mostrarSe?: { key: string | readonly string[]; valor: string | readonly string[] }
+  /** Pergunta aposentada: só aparece (no formulário e no PDF) em avaliação que já tem a resposta salva. */
+  legado?: boolean
   /** Na múltipla escolha: opções que excluem as demais (ex.: "Nenhum"). */
   exclusivas?: readonly string[]
 }
@@ -71,6 +73,8 @@ const multipla = (key: string, rotulo: string, opcoes: OpcaoPratica[]): Pergunta
 const selecao = comoMultipla
 const simNao = (key: string, rotulo: string): Pergunta => ({ key, rotulo, tipo: 'simNao', opcoes: SIM_NAO })
 const numeros = (key: string, rotulo: string, campos: CampoNumero[]): Pergunta => ({ key, rotulo, tipo: 'numeros', campos })
+/** Sessões por semana repetia a "Frequência por semana" do esporte: saiu das avaliações novas. */
+const legado = (p: Pergunta): Pergunta => ({ ...p, legado: true })
 const textoLongo = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'textoLongo', placeholder })
 const textoCurto = (key: string, rotulo: string, placeholder: string): Pergunta => ({ key, rotulo, tipo: 'texto', placeholder })
 /** Pergunta que só aparece quando `key` tem `valor`. */
@@ -497,10 +501,12 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Demandas e volume', [
-        numeros('volume', 'Volume de prática', [
-          { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
-          { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
-        ]),
+        legado(
+          numeros('volume', 'Volume de prática', [
+            { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
+            { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
+          ]),
+        ),
         simNao('carga', 'Caminha com carga (mochila, colete, pesos)?'),
         simNao('mudancaVolume', 'Houve mudança recente de volume, ritmo ou terreno?'),
       ]),
@@ -629,10 +635,12 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('deslocamentoLateral', 'Deslocamento lateral'),
           o('frenagem', 'Frenagem e mudança de direção'),
         ]),
-        numeros('volume', 'Volume de prática', [
-          { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
-          { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
-        ]),
+        legado(
+          numeros('volume', 'Volume de prática', [
+            { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
+            { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
+          ]),
+        ),
         simNao('mudancaCarga', 'Houve mudança recente de carga ou equipamento?'),
       ]),
       secao('Sintomas e limitações', [
@@ -688,10 +696,12 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           o('deslocamentoAreia', 'Deslocamento na areia'),
           o('salto', 'Salto'),
         ]),
-        numeros('volume', 'Volume de prática', [
-          { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
-          { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
-        ]),
+        legado(
+          numeros('volume', 'Volume de prática', [
+            { key: 'volumeSessoes', rotulo: 'Sessões/semana', sufixo: 'sessões/semana' },
+            { key: 'volumeMinutos', rotulo: 'Minutos/sessão', sufixo: 'min/sessão' },
+          ]),
+        ),
         simNao('mudancaCarga', 'Houve mudança recente de carga ou equipamento?'),
       ]),
       secao('Sintomas e limitações', [
@@ -943,6 +953,86 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
           'limitacao',
           'Principal limitação esportiva',
           'Ex.: dificuldade de manter o braço acima da cabeça, dor ao aterrissar dos saltos...',
+        ),
+      ]),
+    ],
+  },
+  // REVISAO CLINICA: questionário do funcional redigido com base no crossfit — revisar com a fisioterapeuta.
+  funcional: {
+    // Sem pergunta de volume no questionário: mantém o campo genérico "Volume".
+    volumeDica: 'ex.: 3 aulas de 50 min por semana',
+    modalidades: [],
+    caracteristicas: [],
+    secoes: [
+      secao('Características da prática', [
+        unica('formato', 'Como treina', [
+          o('grupo', 'Aulas em grupo'),
+          o('personal', 'Com personal / individual'),
+          o('sozinho', 'Por conta própria'),
+          o('online', 'Online / em casa'),
+        ]),
+        multipla('componentes', 'Componentes frequentes do treino (múltipla escolha)', [
+          o('forca', 'Força'),
+          o('circuito', 'Circuito / HIIT'),
+          o('core', 'Core / estabilidade'),
+          o('mobilidade', 'Mobilidade'),
+          o('aerobico', 'Condicionamento aeróbico'),
+          o('agilidade', 'Agilidade / coordenação'),
+        ]),
+        multipla('implementos', 'Implementos mais usados (múltipla escolha)', [
+          o('pesoCorporal', 'Peso corporal'),
+          o('halteres', 'Halteres / kettlebell'),
+          o('elasticos', 'Elásticos'),
+          o('fitas', 'Fita de suspensão'),
+          o('bola', 'Bola / medicine ball'),
+          o('caixa', 'Caixa / step'),
+        ]),
+      ]),
+      secao('Movimentos e demandas', [
+        multipla('movimentos', 'Movimentos realizados frequentemente (múltipla escolha)', [
+          o('agachamentos', 'Agachamentos e avanços'),
+          o('levantamentos', 'Levantamentos do chão'),
+          o('empurrar', 'Empurrar / flexões'),
+          o('puxar', 'Puxar / remadas'),
+          o('overhead', 'Movimentos acima da cabeça'),
+          o('saltos', 'Saltos e aterrissagens'),
+          o('rotacao', 'Rotações de tronco'),
+          o('deslocamentos', 'Deslocamentos e corridas curtas'),
+        ]),
+        unica('intensidade', 'Intensidade habitual', [
+          o('leve', 'Leve'),
+          o('moderada', 'Moderada'),
+          o('alta', 'Alta'),
+          o('variavel', 'Varia por treino'),
+        ]),
+        unica('mudancaCarga', 'Houve mudança recente na carga de treinamento?', [
+          o('sim', 'Sim'),
+          o('nao', 'Não'),
+          o('naoSabe', 'Não sabe'),
+        ]),
+      ]),
+      secao('Sintomas e limitações', [
+        ...gestosSintoma('gestoSintoma', 'Em qual movimento aparecem os sintomas ou dificuldades?', [
+          o('agachar', 'Agachar'),
+          o('avanco', 'Avanço / afundo'),
+          o('levantar', 'Levantar do chão'),
+          o('empurrar', 'Empurrar / flexão'),
+          o('puxar', 'Puxar / remada'),
+          o('acimaCabeca', 'Acima da cabeça'),
+          o('saltar', 'Saltar'),
+          o('aterrissagem', 'Aterrissagem'),
+          o('girar', 'Girar o tronco'),
+        ]),
+        unica('situacao', 'Em qual situação ocorre?', [
+          o('carga', 'Com aumento de carga'),
+          o('repeticoes', 'Com aumento de repetições'),
+          o('fadiga', 'Sob fadiga'),
+          o('aposTreino', 'Após o treino'),
+        ]),
+        textoLongo(
+          'limitacao',
+          'Principal limitação esportiva',
+          'Ex.: dor ao agachar com carga, falta de ar nos circuitos, insegurança nos saltos...',
         ),
       ]),
     ],
@@ -1746,10 +1836,12 @@ export const PRATICAS: Readonly<Record<string, PraticaEsporte>> = {
         ]),
       ]),
       secao('Exposição e carga', [
-        numeros('volume', '', [
-          { key: 'sessoesSemana', rotulo: 'Sessões por semana', sufixo: 'sessões/semana', placeholder: 'Ex.: 3' },
-          { key: 'duracaoMin', rotulo: 'Duração média (min)', sufixo: 'min', placeholder: 'Ex.: 90' },
-        ]),
+        legado(
+          numeros('volume', '', [
+            { key: 'sessoesSemana', rotulo: 'Sessões por semana', sufixo: 'sessões/semana', placeholder: 'Ex.: 3' },
+            { key: 'duracaoMin', rotulo: 'Duração média (min)', sufixo: 'min', placeholder: 'Ex.: 90' },
+          ]),
+        ),
         unica('mudancaCarga', 'Houve mudança recente de carga ou equipamento?', [
           o('sim', 'Sim'),
           o('nao', 'Não'),
@@ -1979,6 +2071,7 @@ export const PERGUNTAS_GESTO_SINTOMA: Readonly<Record<string, readonly string[]>
   tenis: ['gestoSintoma'],
   beachTennis: ['gestoSintoma'],
   caminhada: ['gestoSintoma'],
+  funcional: ['gestoSintoma'],
   pilates: ['situacao'],
   yoga: ['situacao'],
   natacao: ['momentoSintoma'],
@@ -2082,6 +2175,12 @@ export function safeRespostas(value: unknown, pratica: PraticaEsporte): Record<s
 }
 
 export function perguntaVisivel(p: Pergunta, respostas: Record<string, string | string[]> | undefined): boolean {
+  if (p.legado) {
+    return chavesDaPergunta(p).some((k) => {
+      const v = respostas?.[k]
+      return Array.isArray(v) ? v.length > 0 : typeof v === 'string' && v.trim() !== ''
+    })
+  }
   if (!p.mostrarSe) return true
   const { key, valor } = p.mostrarSe
   const valores: readonly string[] = typeof valor === 'string' ? [valor] : valor

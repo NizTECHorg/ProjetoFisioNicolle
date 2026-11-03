@@ -47,7 +47,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 async function invokeAudioRaw(
-  mode: 'audio-evolucao' | 'audio-transcricao' | 'audio-evolucao-campos',
+  mode: 'audio-transcricao' | 'audio-evolucao-campos',
   audioBlob: Blob,
   patientId?: string,
 ): Promise<unknown> {
@@ -88,7 +88,7 @@ async function invokeAudioRaw(
 }
 
 async function invokeAudio(
-  mode: 'audio-evolucao' | 'audio-transcricao',
+  mode: 'audio-transcricao',
   audioBlob: Blob,
   patientId?: string,
 ): Promise<string> {
@@ -129,14 +129,6 @@ export async function dictateEvolutionFields(audioBlob: Blob, patientId?: string
     out[chave] = typeof valor === 'string' ? stripMarkdown(valor).slice(0, 4000) : ''
   }
   return out
-}
-
-export async function generateEvolutionFromAudio(
-  audioBlob: Blob,
-  patientId?: string,
-): Promise<string> {
-  const rawText = await invokeAudio('audio-evolucao', audioBlob, patientId)
-  return stripMarkdown(rawText).slice(0, 4000)
 }
 
 /** Checklist 7.3: transcrição literal do ditado, para revisar antes de entrar no resumo. */

@@ -157,7 +157,7 @@ export const ESPORTES: readonly Esporte[] = [
   {
     key: 'crossfit',
     nome: 'CrossFit',
-    busca: ['cross', 'funcional'],
+    busca: ['cross', 'wod'],
     problemas: [
       p('dorOmbroGinastica', 'Dor no ombro (barras, argolas, overhead)', 'Ombro', ['Hawkins-Kennedy', 'Jobe / Empty Can'], ['Discinesia escapular', 'mobilidade overhead']),
       p('dorLombarLevantamento', 'Dor lombar (agachamento/levantamento terra)', 'Coluna lombar', ['Quadrante lombar'], ['Dor em flexão/extensão sob carga', 'controle de tronco']),
@@ -165,6 +165,20 @@ export const ESPORTES: readonly Esporte[] = [
       p('dorPunhoMaoCross', 'Dor no punho/mão (pegada, apoio, barra)', 'Punho / mão', ['TFCC Load Test'], ['Dor em extensão de punho com carga', 'calosidades/ruptura de pele']),
       p('dorCotoveloCross', 'Dor no cotovelo', 'Cotovelo', ['Cozen', 'Mill'], ['Dor à palpação dos epicôndilos']),
       p('dorQuadrilCross', 'Dor no quadril/virilha (agachamento profundo)', 'Quadril', ['FADIR', 'Scour'], ['Limitação de rotação interna', 'dor em flexão profunda']),
+    ],
+  },
+  // REVISAO CLINICA: funcional redigido a partir de crossfit + musculação — revisar com a fisioterapeuta.
+  {
+    key: 'funcional',
+    nome: 'Funcional',
+    busca: ['treino funcional', 'hiit', 'circuito', 'academia'],
+    problemas: [
+      p('dorOmbroFuncional', 'Dor no ombro (apoios e overhead)', 'Ombro', ['Hawkins-Kennedy', 'Jobe / Empty Can'], ['Dor no arco de elevação', 'controle escapular']),
+      p('dorLombarFuncional', 'Dor lombar (agachamento, levantamento e core)', 'Coluna lombar', ['Quadrante lombar'], ['Dor em flexão/extensão sob carga', 'controle de tronco']),
+      p('dorJoelhoFuncional', 'Dor no joelho (agachamento, avanço e saltos)', 'Joelho', ['Patellar Grind'], ['Dor no agachamento', 'valgo dinâmico']),
+      p('entorseTornozeloFuncional', 'Entorse de tornozelo (saltos e deslocamentos)', 'Tornozelo', ['Gaveta anterior', 'Talar Tilt'], ['Equilíbrio unipodal']),
+      p('dorPunhoFuncional', 'Dor no punho (apoio e pegada)', 'Punho / mão', ['TFCC Load Test'], ['Dor em extensão de punho com carga', 'força de preensão']),
+      p('dorQuadrilFuncional', 'Dor no quadril/virilha', 'Quadril', ['FADIR'], ['Dor em flexão profunda', 'controle pélvico']),
     ],
   },
   // REVISAO CLINICA: evidência baixa (33-RESEARCH) - causalidade fraca, locais de dor consistentes
