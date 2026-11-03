@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import { deepEqual, equal } from 'node:assert/strict'
-import { hexParaRgb01, normalizarCor, paletaDaCor, tamanhoLogo } from './pdfBrand.ts'
+import {
+  alinhamentoLogoValido,
+  hexParaRgb01,
+  normalizarCor,
+  paletaDaCor,
+  tamanhoLogo,
+  tamanhoLogoValido,
+  xAlinhado,
+} from './pdfBrand.ts'
 
 test('normalizarCor aceita #rgb, #rrggbb e sem #, e recusa o resto', () => {
   equal(normalizarCor('#ABC'), '#aabbcc')
@@ -23,4 +31,16 @@ test('tamanhoLogo respeita altura e largura máximas sem distorcer', () => {
   deepEqual(tamanhoLogo(100, 50, 32, 200), { width: 64, height: 32 })
   deepEqual(tamanhoLogo(1000, 100, 32, 180), { width: 180, height: 18 })
   deepEqual(tamanhoLogo(0, 10, 32, 180), { width: 0, height: 0 })
+})
+
+test('tamanho e alinhamento da logo: limites e posição na página', () => {
+  equal(tamanhoLogoValido(10), 24)
+  equal(tamanhoLogoValido(200), 96)
+  equal(tamanhoLogoValido('55.4'), 55)
+  equal(tamanhoLogoValido(undefined), 40)
+  equal(alinhamentoLogoValido('center'), 'center')
+  equal(alinhamentoLogoValido('meio'), 'left')
+  equal(xAlinhado('left', 100, 48, 595), 48)
+  equal(xAlinhado('center', 100, 48, 595), 247.5)
+  equal(xAlinhado('right', 100, 48, 595), 447)
 })

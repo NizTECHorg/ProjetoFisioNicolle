@@ -53,3 +53,28 @@ export function tamanhoLogo(largura: number, altura: number, alturaMax: number, 
   const escala = Math.min(alturaMax / altura, larguraMax / largura)
   return { width: largura * escala, height: altura * escala }
 }
+
+/** Altura da logo no PDF, em pontos (1 pt = 1/72 pol.; a página A4 tem 595 × 842 pt). */
+export const PDF_LOGO_SIZE_MIN = 24
+export const PDF_LOGO_SIZE_MAX = 96
+export const PDF_LOGO_SIZE_DEFAULT = 40
+
+export type PdfLogoAlign = 'left' | 'center' | 'right'
+export const PDF_LOGO_ALIGNS: readonly PdfLogoAlign[] = ['left', 'center', 'right']
+
+export function tamanhoLogoValido(valor: unknown): number {
+  const n = typeof valor === 'number' ? valor : Number(valor)
+  if (!Number.isFinite(n)) return PDF_LOGO_SIZE_DEFAULT
+  return Math.min(PDF_LOGO_SIZE_MAX, Math.max(PDF_LOGO_SIZE_MIN, Math.round(n)))
+}
+
+export function alinhamentoLogoValido(valor: unknown): PdfLogoAlign {
+  return valor === 'center' || valor === 'right' ? valor : 'left'
+}
+
+/** Posição horizontal (x) de um item de largura `largura` dentro da área útil da página. */
+export function xAlinhado(align: PdfLogoAlign, largura: number, margem: number, larguraPagina: number): number {
+  if (align === 'center') return (larguraPagina - largura) / 2
+  if (align === 'right') return larguraPagina - margem - largura
+  return margem
+}

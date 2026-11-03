@@ -1,13 +1,116 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react'
-import { Building2, ImagePlus, Trash2 } from 'lucide-react'
+import { AlignCenter, AlignLeft, AlignRight, Building2, ImagePlus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { PDF_BRAND_DEFAULT_COLOR, PDF_BRAND_NAME_MAX, PDF_BRAND_PRESETS, normalizarCor } from '@/lib/pdfBrand'
+import {
+  PDF_BRAND_DEFAULT_COLOR,
+  PDF_BRAND_NAME_MAX,
+  PDF_BRAND_PRESETS,
+  PDF_LOGO_SIZE_DEFAULT,
+  PDF_LOGO_SIZE_MAX,
+  PDF_LOGO_SIZE_MIN,
+  normalizarCor,
+  type PdfLogoAlign,
+} from '@/lib/pdfBrand'
 import { getOwnBranding, saveBranding, validarLogo, type PdfBranding } from '@/services/pdfBranding.service'
 import { toast } from '@/stores/toast.store'
 import type { AccountType } from '@/types/account'
 
 type Props = { accountType: AccountType | null | undefined }
+
+/** Medidas da página A4 em pontos, as mesmas do gerador de PDF. */
+const A4_W = 595.28
+const A4_H = 841.89
+const MARGEM_PDF = 48
+
+const ALINHAMENTOS: ReadonlyArray<{ value: PdfLogoAlign; label: string; Icon: typeof AlignLeft }> = [
+  { value: 'left', label: 'Esquerda', Icon: AlignLeft },
+  { value: 'center', label: 'Centro', Icon: AlignCenter },
+  { value: 'right', label: 'Direita', Icon: AlignRight },
+]
+
+/**
+ * Prévia em escala da 1ª página da avaliação: mesma página A4, margens e altura da logo (em pt)
+ * que o PDF usa, reduzida para caber no cartão. O que se vê aqui é o que sai no PDF.
+ */
+export function PdfPagePreview({
+  logoUrl,
+  nome,
+  cor,
+  tamanho,
+  align,
+}: {
+  logoUrl: string | null
+  nome: string
+  cor: string
+  tamanho: number
+  align: PdfLogoAlign
+}) {
+  const caixaRef = useRef<HTMLDivElement>(null)
+  const [escala, setEscala] = useState(0.5)
+
+  useEffect(() => {
+    const caixa = caixaRef.current
+    if (!caixa) return
+    const medir = () => setEscala(caixa.clientWidth / A4_W)
+    medir()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(medir)
+    observer.observe(caixa)
+    return () => observer.disconnect()
+  }, [])
+
+  const justify = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start'
+  return (
+    <div ref={caixaRef} className="relative w-full overflow-hidden rounded-lg bg-white shadow-md ring-1 ring-line" style={{ aspectRatio: `${A4_W} / ${A4_H}` }}>
+      <div
+        className="absolute left-0 top-0 origin-top-left font-sans"
+        style={{ width: A4_W, height: A4_H, transform: `scale(${escala})` }}
+        aria-hidden
+      >
+        {/* Logo: começa a 48 pt do topo, com a altura escolhida e até 75% da largura útil. */}
+        <div
+          className="absolute flex items-center"
+          style={{ top: MARGEM_PDF, left: MARGEM_PDF, right: MARGEM_PDF, height: tamanho, justifyContent: justify }}
+        >
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              style={{ maxHeight: tamanho, maxWidth: (A4_W - MARGEM_PDF * 2) * 0.75, objectFit: 'contain' }}
+            />
+          ) : (
+            <span style={{ fontSize: Math.min(Math.max(18, tamanho * 0.45), tamanho * 0.8), fontWeight: 700, color: cor }}>
+              {nome}
+            </span>
+          )}
+        </div>
+        <div className="absolute" style={{ top: MARGEM_PDF + tamanho + 16, left: MARGEM_PDF, right: MARGEM_PDF }}>
+          <p style={{ fontSize: 20, fontWeight: 700, color: '#102038', lineHeight: '24px' }}>Avaliação</p>
+          <div style={{ width: 48, height: 4, background: cor, marginTop: 8 }} />
+          <p style={{ fontSize: 16, color: '#102038', marginTop: 8 }}>Nome do paciente</p>
+          <p style={{ fontSize: 14, color: '#5a6b80', marginTop: 6 }}>02/11/2026 · Fisioterapeuta</p>
+          <div style={{ marginTop: 32 }}>
+            {[100, 92, 96, 70, 0, 100, 88, 94, 60, 0, 100, 90, 85].map((largura, index) =>
+              largura === 0 ? (
+                <div key={index} style={{ height: 18 }} />
+              ) : (
+                <div key={index} style={{ width: `${largura}%`, height: 8, borderRadius: 4, background: '#e1e8f0', marginBottom: 10 }} />
+              ),
+            )}
+          </div>
+        </div>
+        <div
+          className="absolute flex justify-between"
+          style={{ left: MARGEM_PDF, right: MARGEM_PDF, bottom: 28, borderTop: '0.5px solid #b8c9de', paddingTop: 6, fontSize: 9, color: '#5a6b80' }}
+        >
+          <span>{nome}</span>
+          <span>1</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /**
  * Minha empresa (conta empresa) / Meu escritório (autônomo): nome, logo e cor principal
@@ -27,6 +130,8 @@ export function PdfBrandingCard({ accountType }: Props) {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [removerLogo, setRemoverLogo] = useState(false)
+  const [tamanho, setTamanho] = useState(PDF_LOGO_SIZE_DEFAULT)
+  const [alinhamento, setAlinhamento] = useState<PdfLogoAlign>('left')
 
   useEffect(() => {
     if (!editavel) return
@@ -39,6 +144,8 @@ export function PdfBrandingCard({ accountType }: Props) {
         const c = normalizarCor(dados?.color) ?? PDF_BRAND_DEFAULT_COLOR
         setCor(c)
         setCorTexto(c)
+        setTamanho(dados?.logoSize ?? PDF_LOGO_SIZE_DEFAULT)
+        setAlinhamento(dados?.logoAlign ?? 'left')
       })
       .catch(() => undefined)
       .finally(() => ativo && setCarregando(false))
@@ -93,6 +200,8 @@ export function PdfBrandingCard({ accountType }: Props) {
         logoFile,
         removeLogo: removerLogo,
         currentLogoPath: atual?.logoPath ?? null,
+        logoSize: tamanho,
+        logoAlign: alinhamento,
       })
       setAtual(salvo)
       setLogoFile(null)
@@ -216,25 +325,68 @@ export function PdfBrandingCard({ accountType }: Props) {
             </div>
           </div>
 
-          {/* Prévia de como fica o topo do PDF. */}
-          <div className="rounded-2xl border border-line bg-canvas p-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Prévia do PDF</p>
-            <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-              <div className="h-1.5" style={{ backgroundColor: cor }} />
-              <div className="flex items-center justify-between gap-3 px-4 py-3">
-                {logoMostrada ? (
-                  <img src={logoMostrada} alt="" className="h-8 max-w-[10rem] object-contain" />
-                ) : (
-                  <span className="truncate text-base font-bold" style={{ color: cor }}>
-                    {nomeMostrado}
-                  </span>
-                )}
-                <span className="text-right text-sm font-semibold text-ink">Avaliação</span>
+          {/* Tamanho e posição da logo, com a prévia da página em escala real. */}
+          <div className="grid gap-4 rounded-2xl border border-line bg-canvas p-3 sm:grid-cols-[minmax(0,1fr)_14rem] sm:p-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-2">
+                  <label htmlFor={`${idCor}-tamanho`} className="text-sm font-medium text-ink">
+                    Tamanho da logo no PDF
+                  </label>
+                  <span className="text-xs tabular-nums text-muted">{tamanho} pt</span>
+                </div>
+                <input
+                  id={`${idCor}-tamanho`}
+                  type="range"
+                  min={PDF_LOGO_SIZE_MIN}
+                  max={PDF_LOGO_SIZE_MAX}
+                  step={2}
+                  value={tamanho}
+                  onChange={(event) => setTamanho(Number(event.target.value))}
+                  className="w-full accent-forest"
+                />
+                <div className="flex justify-between text-[11px] text-muted">
+                  <span>Menor</span>
+                  <span>Maior</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between border-t border-line px-4 py-2 text-[11px] text-muted">
-                <span className="truncate">{nomeMostrado} · Documento clínico</span>
-                <span>Pág. 1</span>
-              </div>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium text-ink">Posição</legend>
+                <div className="inline-flex rounded-xl border border-line bg-surface p-1">
+                  {ALINHAMENTOS.map(({ value, label, Icon }) => {
+                    const ativo = alinhamento === value
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={ativo}
+                        onClick={() => setAlinhamento(value)}
+                        className={[
+                          'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition',
+                          ativo ? 'bg-forest text-white' : 'text-muted hover:text-ink',
+                        ].join(' ')}
+                      >
+                        <Icon size={15} aria-hidden />
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+              <p className="text-xs leading-5 text-muted">
+                A prévia ao lado é a primeira página da avaliação em escala. Ajuste até ficar do jeito que você quer;
+                o PDF sai igual.
+              </p>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Prévia do PDF</p>
+              <PdfPagePreview
+                logoUrl={logoMostrada}
+                nome={nomeMostrado}
+                cor={cor}
+                tamanho={tamanho}
+                align={alinhamento}
+              />
             </div>
           </div>
 

@@ -4,8 +4,11 @@ import {
   PDF_BRAND_LOGO_MAX_BYTES,
   PDF_BRAND_LOGO_TYPES,
   PDF_BRAND_NAME_MAX,
+  alinhamentoLogoValido,
   normalizarCor,
   paletaDaCor,
+  tamanhoLogoValido,
+  type PdfLogoAlign,
 } from '@/lib/pdfBrand'
 
 const BUCKET = 'branding'
@@ -17,6 +20,9 @@ export interface PdfBranding {
   color: string | null
   logoPath: string | null
   logoUrl: string | null
+  /** Altura da logo no PDF, em pontos. */
+  logoSize: number
+  logoAlign: PdfLogoAlign
   updatedAt: string | null
 }
 
@@ -26,7 +32,13 @@ type BrandingRow = {
   color: string | null
   logo_path: string | null
   updated_at: string | null
+  // Colunas do SQL 48-02; ausentes enquanto ele não roda.
+  logo_size?: number | null
+  logo_align?: string | null
 }
+
+// '*' em vez da lista: se o SQL 48-02 ainda não rodou, a leitura continua funcionando.
+const COLUNAS = '*'
 
 function logoPublicUrl(path: string | null, updatedAt: string | null): string | null {
   if (!path) return null
@@ -42,6 +54,8 @@ function mapRow(row: BrandingRow): PdfBranding {
     color: row.color,
     logoPath: row.logo_path,
     logoUrl: logoPublicUrl(row.logo_path, row.updated_at),
+    logoSize: tamanhoLogoValido(row.logo_size),
+    logoAlign: alinhamentoLogoValido(row.logo_align),
     updatedAt: row.updated_at,
   }
 }
@@ -57,7 +71,7 @@ export async function getOwnBranding(): Promise<PdfBranding | null> {
   const id = await userId()
   const { data, error } = await supabase
     .from('account_branding')
-    .select('owner_id, name, color, logo_path, updated_at')
+    .select(COLUNAS)
     .eq('owner_id', id)
     .maybeSingle()
   if (error) throw new Error('Não foi possível carregar a identidade dos PDFs.')
@@ -73,7 +87,7 @@ export async function getEffectiveBranding(): Promise<PdfBranding | null> {
     const id = await userId()
     const { data, error } = await supabase
       .from('account_branding')
-      .select('owner_id, name, color, logo_path, updated_at')
+      .select(COLUNAS)
     if (error || !data || data.length === 0) return null
     const rows = data as BrandingRow[]
     const propria = rows.find((row) => row.owner_id === id)
@@ -96,6 +110,8 @@ export async function saveBranding(input: {
   logoFile?: File | null
   removeLogo?: boolean
   currentLogoPath?: string | null
+  logoSize?: number
+  logoAlign?: PdfLogoAlign
 }): Promise<PdfBranding> {
   const id = await userId()
   let logoPath = input.removeLogo ? null : (input.currentLogoPath ?? null)
@@ -114,14 +130,25 @@ export async function saveBranding(input: {
 
   const name = input.name.trim().slice(0, PDF_BRAND_NAME_MAX) || null
   const color = normalizarCor(input.color)
-  const { data, error } = await supabase
+  const base = { owner_id: id, name, color, logo_path: logoPath, updated_at: new Date().toISOString() }
+  const layout = {
+    logo_size: tamanhoLogoValido(input.logoSize),
+    logo_align: alinhamentoLogoValido(input.logoAlign),
+  }
+  let { data, error } = await supabase
     .from('account_branding')
-    .upsert(
-      { owner_id: id, name, color, logo_path: logoPath, updated_at: new Date().toISOString() },
-      { onConflict: 'owner_id' },
-    )
-    .select('owner_id, name, color, logo_path, updated_at')
+    .upsert({ ...base, ...layout }, { onConflict: 'owner_id' })
+    .select(COLUNAS)
     .single()
+  // 42703 = coluna inexistente: o SQL 48-02 ainda não rodou. Salva o resto mesmo assim.
+  if (error?.code === '42703' || error?.code === 'PGRST204') {
+    console.warn('[Identidade dos PDFs] rode o SQL 48-02 para salvar tamanho e posição da logo.')
+    ;({ data, error } = await supabase
+      .from('account_branding')
+      .upsert(base, { onConflict: 'owner_id' })
+      .select(COLUNAS)
+      .single())
+  }
   if (error) throw new Error('Não foi possível salvar a identidade dos PDFs.')
 
   // Logo antiga sai do armazenamento depois que a nova está salva.
@@ -136,6 +163,9 @@ export async function saveBranding(input: {
 export type PdfBrandAssets = {
   name: string | null
   logo: PDFImage | null
+  /** null = sem identidade: o PDF mantém o tamanho e a posição originais. */
+  logoSize: number | null
+  logoAlign: PdfLogoAlign
   colors: { accent: RGB; accentSoft: RGB; navy: RGB; forest: RGB } | null
 }
 
@@ -161,7 +191,7 @@ async function paraPngSimples(blob: Blob): Promise<ArrayBuffer> {
 
 export async function loadPdfBrand(doc: PDFDocument): Promise<PdfBrandAssets> {
   const marca = await getEffectiveBranding()
-  if (!marca) return { name: null, logo: null, colors: null }
+  if (!marca) return { name: null, logo: null, logoSize: null, logoAlign: 'left', colors: null }
   let logo: PDFImage | null = null
   if (marca.logoUrl) {
     try {
@@ -178,6 +208,8 @@ export async function loadPdfBrand(doc: PDFDocument): Promise<PdfBrandAssets> {
   return {
     name: marca.name,
     logo,
+    logoSize: marca.logoSize,
+    logoAlign: marca.logoAlign,
     colors: p
       ? {
           accent: rgb(...p.accent),

@@ -9,7 +9,7 @@ import {
   type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
-import { tamanhoLogo } from '@/lib/pdfBrand'
+import { tamanhoLogo, xAlinhado, type PdfLogoAlign } from '@/lib/pdfBrand'
 import { loadPdfBrand } from '@/services/pdfBranding.service'
 import { BLANK, type TermGuardian, type TermKey } from '@/lib/consentTerms'
 import { formatCpf } from '@/lib/cpf'
@@ -61,6 +61,9 @@ type Ctx = {
   brandName: string | null
   /** Cor de destaque da conta (ou a do Fluxo). */
   accent: RGB
+  /** Altura e posição da logo escolhidas pela conta; null = layout original. */
+  logoSize: number | null
+  logoAlign: PdfLogoAlign
 }
 
 function formatDateTime(d: Date): string {
@@ -133,6 +136,8 @@ async function createContext(): Promise<{ ctx: Ctx; logo: PDFImage | null }> {
       pageNumber: 1,
       brandName: marca.name,
       accent: marca.colors?.accent ?? COLORS.accent,
+      logoSize: marca.logoSize,
+      logoAlign: marca.logoAlign,
     }
     drawFooter(ctx)
     return { ctx, logo }
@@ -142,18 +147,24 @@ async function createContext(): Promise<{ ctx: Ctx; logo: PDFImage | null }> {
 }
 
 function drawHeader(ctx: Ctx, logo: PDFImage | null, input: TermPdfInput): void {
+  const alturaLogo = ctx.logoSize ?? LOGO_HEIGHT
   if (logo) {
-    const { width, height } = tamanhoLogo(logo.width, logo.height, LOGO_HEIGHT, 200)
+    const { width, height } = tamanhoLogo(logo.width, logo.height, alturaLogo, CONTENT_WIDTH * 0.75)
     ctx.page.drawImage(logo, {
-      x: MARGIN,
-      y: ctx.y - LOGO_HEIGHT + (LOGO_HEIGHT - height) / 2,
+      x: xAlinhado(ctx.logoAlign, width, MARGIN, PAGE_WIDTH),
+      y: ctx.y - alturaLogo + (alturaLogo - height) / 2,
       width,
       height,
     })
   } else {
-    text(ctx, ctx.brandName ?? 'Fluxo', MARGIN, ctx.y - LOGO_HEIGHT + 8, { size: 20, bold: true })
+    const nome = ctx.brandName ?? 'Fluxo'
+    const largura = ctx.bold.widthOfTextAtSize(toWinAnsiSafe(nome), 20)
+    text(ctx, nome, xAlinhado(ctx.logoAlign, largura, MARGIN, PAGE_WIDTH), ctx.y - alturaLogo + 8, {
+      size: 20,
+      bold: true,
+    })
   }
-  ctx.y -= LOGO_HEIGHT + 24
+  ctx.y -= alturaLogo + 24
 
   const titleLines = wrapLines(ctx.bold, input.title, 20, CONTENT_WIDTH)
   for (const line of titleLines) {

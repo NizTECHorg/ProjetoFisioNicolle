@@ -111,6 +111,10 @@ export type PatientAiSummaryInvokeInput = z.infer<typeof patientAiSummaryInvokeS
 export const patientDocumentSendSchema = z.object({
   patientId: z.string().uuid(),
   reportId: z.string().uuid(),
+  /** false = envia só aos e-mails extras. */
+  sendToPatient: z.boolean().optional(),
+  /** Outras pessoas que também recebem (médico, responsável…), até 3. */
+  extraEmails: z.array(z.string().trim().email('E-mail inválido.')).max(3).optional(),
 })
 
 export type PatientDocumentSendInput = z.infer<typeof patientDocumentSendSchema>

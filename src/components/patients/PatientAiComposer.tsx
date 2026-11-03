@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { PatientAiFieldPicker } from '@/components/patients/PatientAiFieldPicker'
+import { SendEmailDialog } from '@/components/patients/SendEmailDialog'
+import { SendWhatsAppDialog } from '@/components/patients/SendWhatsAppDialog'
 import { ResumoDitado } from '@/components/patients/ResumoDitado'
 import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
@@ -118,6 +120,9 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     }
     return [...withEvo, ...without]
   }, [sessions])
+
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [whatsAppDialogOpen, setWhatsAppDialogOpen] = useState(false)
 
   if (!canWrite) return null
 
@@ -429,57 +434,81 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
     return savedReport
   }
 
-  async function handleSendWhatsApp() {
+  // Botão do WhatsApp: abre o popup com o paciente e outros números (cada um abre a sua conversa).
+  function openWhatsAppDialog() {
     if (sending) return
-    const phone = resolveWhatsAppDigits(detail?.phone)
-    if (!phone.ok) {
-      toast(
-        phone.reason === 'missing'
-          ? PATIENT_AI_COPY.sendNeedPhone
-          : PATIENT_AI_COPY.sendPhoneInvalid,
-        'error',
-      )
+    if (!reportForActiveScope()) {
+      toast(PATIENT_AI_COPY.sendNeedExport, 'error')
       return
+    }
+    setWhatsAppDialogOpen(true)
+  }
+
+  /** Abre a conversa no número informado (ou no do paciente). Devolve se abriu. */
+  async function handleSendWhatsApp(destino?: string): Promise<boolean> {
+    if (sending) return false
+    let digits = destino
+    if (!digits) {
+      const phone = resolveWhatsAppDigits(detail?.phone)
+      if (!phone.ok) {
+        toast(
+          phone.reason === 'missing'
+            ? PATIENT_AI_COPY.sendNeedPhone
+            : PATIENT_AI_COPY.sendPhoneInvalid,
+          'error',
+        )
+        return false
+      }
+      digits = phone.digits
     }
     const report = reportForActiveScope()
     if (!report) {
       toast(PATIENT_AI_COPY.sendNeedExport, 'error')
-      return
+      return false
     }
     setSending('whatsapp')
     try {
       const signed = await signPatientDocumentUrl(report.storagePath, report.kind, patientId)
       if (!signed.ok || !signed.url.startsWith('https')) {
         toast(PATIENT_AI_COPY.sendFileUnavailable, 'error')
-        return
+        return false
       }
-      const popup = openPatientDocumentWhatsApp(phone.digits, signed.url)
+      const popup = openPatientDocumentWhatsApp(digits, signed.url)
       if (popup === null) {
         toast(PATIENT_AI_COPY.sendWhatsAppBlocked, 'error')
-        return
+        return false
       }
       toast(PATIENT_AI_COPY.sendWhatsAppSuccess, 'success')
+      return true
     } finally {
       setSending(null)
     }
   }
 
-  async function handleSendEmail() {
+  const patientEmailResolved = resolvePatientEmail(detail?.email)
+
+  // Abre o popup para escolher os destinatários (paciente e/ou outras pessoas).
+  function handleSendEmail() {
     if (sending) return
-    const email = resolvePatientEmail(detail?.email)
-    if (!email.ok) {
-      toast(PATIENT_AI_COPY.sendNeedEmail, 'error')
+    if (!reportForActiveScope()) {
+      toast(PATIENT_AI_COPY.sendNeedExport, 'error')
       return
     }
+    setEmailDialogOpen(true)
+  }
+
+  async function confirmSendEmail(recipients: { sendToPatient: boolean; extraEmails: string[] }) {
     const report = reportForActiveScope()
     if (!report) {
+      setEmailDialogOpen(false)
       toast(PATIENT_AI_COPY.sendNeedExport, 'error')
       return
     }
     setSending('email')
     try {
-      await sendPatientDocument({ patientId, reportId: report.id })
-      toast(PATIENT_AI_COPY.sendEmailSuccess, 'success')
+      await sendPatientDocument({ patientId, reportId: report.id, ...recipients })
+      setEmailDialogOpen(false)
+      toast(recipients.extraEmails.length > 0 ? 'E-mail enviado.' : PATIENT_AI_COPY.sendEmailSuccess, 'success')
     } catch (error) {
       toast(error instanceof Error ? error.message : PATIENT_AI_COPY.sendEmailError, 'error')
     } finally {
@@ -683,7 +712,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
               className="min-h-11 w-full sm:flex-1"
               isLoading={sending === 'whatsapp'}
               disabled={sending !== null}
-              onClick={() => void handleSendWhatsApp()}
+              onClick={openWhatsAppDialog}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -699,7 +728,7 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
               className="min-h-11 w-full sm:flex-1"
               isLoading={sending === 'email'}
               disabled={sending !== null}
-              onClick={() => void handleSendEmail()}
+              onClick={handleSendEmail}
             >
               <Mail size={16} aria-hidden />
               {PATIENT_AI_COPY.sendEmail}
@@ -732,6 +761,21 @@ export function PatientAiComposer({ patientId, canWrite = false }: PatientAiComp
         onConfirm={() => {
           void handleGenerate().finally(() => setConfirmOpen(false))
         }}
+      />
+
+      <SendWhatsAppDialog
+        open={whatsAppDialogOpen}
+        patientPhone={detail?.phone}
+        onOpenChat={(digits) => handleSendWhatsApp(digits)}
+        onClose={() => setWhatsAppDialogOpen(false)}
+      />
+
+      <SendEmailDialog
+        open={emailDialogOpen}
+        patientEmail={patientEmailResolved.ok ? patientEmailResolved.email : null}
+        sending={sending === 'email'}
+        onClose={() => setEmailDialogOpen(false)}
+        onSend={(recipients) => void confirmSendEmail(recipients)}
       />
     </div>
   )

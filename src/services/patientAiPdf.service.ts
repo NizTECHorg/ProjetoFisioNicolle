@@ -10,7 +10,7 @@ import {
   type RGB,
 } from 'pdf-lib'
 import logoUrl from '@/assets/brand/logo.png'
-import { tamanhoLogo } from '@/lib/pdfBrand'
+import { tamanhoLogo, xAlinhado, type PdfLogoAlign } from '@/lib/pdfBrand'
 import { loadPdfBrand, type PdfBrandAssets } from '@/services/pdfBranding.service'
 import corpoFemininoUrl from '@/assets/corpo-feminino.png'
 import corpoMasculinoUrl from '@/assets/corpo-masculino.png'
@@ -298,6 +298,9 @@ type DrawContext = {
   logo: PDFImage | null
   /** Nome da conta nos PDFs (Minha empresa / Meu escritório); null = Fluxo. */
   brandName: string | null
+  /** Altura da logo escolhida pela conta (pt); null = tamanho original do layout. */
+  logoSize: number | null
+  logoAlign: PdfLogoAlign
   y: number
   pageIndex: number
   docTitle: string
@@ -364,22 +367,36 @@ function drawFooter(ctx: DrawContext) {
 }
 
 /** Logo da conta (ou do Fluxo) sem distorcer; sem logo, o nome da conta em destaque. */
-function drawBrandMark(ctx: DrawContext, x: number, y: number, altura: number) {
+/**
+ * Logo da conta (ou do Fluxo) sem distorcer, na posição escolhida (esquerda, centro ou direita);
+ * sem logo, o nome da conta em destaque. Devolve a área ocupada, para o título desviar dela.
+ */
+function drawBrandMark(
+  ctx: DrawContext,
+  y: number,
+  altura: number,
+  larguraMax: number,
+  align: PdfLogoAlign = 'left',
+): { x: number; width: number } {
   if (ctx.logo) {
-    const { width, height } = tamanhoLogo(ctx.logo.width, ctx.logo.height, altura, 190)
+    const { width, height } = tamanhoLogo(ctx.logo.width, ctx.logo.height, altura, larguraMax)
+    const x = xAlinhado(align, width, MARGIN_X, PAGE_WIDTH)
     ctx.page.drawImage(ctx.logo, { x, y: y + (altura - height) / 2, width, height })
-    return
+    return { x, width }
   }
   const nome = toWinAnsiSafe(ctx.brandName ?? 'Fluxo')
-  const size = Math.min(18, altura * 0.6)
+  const size = Math.min(Math.max(18, altura * 0.45), altura * 0.8)
+  const width = ctx.bold.widthOfTextAtSize(nome, size)
+  const x = xAlinhado(align, width, MARGIN_X, PAGE_WIDTH)
   ctx.page.drawText(nome, { x, y: y + (altura - size) / 2 + 2, size, font: ctx.bold, color: COLORS.forest })
+  return { x, width }
 }
 
 function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
   if (ctx.footerKind === 'ficha') {
-    const logoH = 32
+    const logoH = ctx.logoSize ?? 32
     const logoBottom = PAGE_HEIGHT - 48 - logoH
-    drawBrandMark(ctx, MARGIN_X, logoBottom, logoH)
+    drawBrandMark(ctx, logoBottom, logoH, CONTENT_WIDTH * 0.75, ctx.logoAlign)
 
     const title = ctx.docTitle.startsWith('Evolução') ? 'Evolução' : 'Avaliação'
     let cursor = logoBottom - 16 - 20
@@ -431,7 +448,15 @@ function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
     return
   }
 
-  const bandHeight = opts.isFirstPage ? 92 : 56
+  // Logo maior pede faixa mais alta; nas páginas seguintes a logo fica menor (até 40 pt).
+  const logoH = ctx.logoSize
+    ? opts.isFirstPage
+      ? ctx.logoSize
+      : Math.min(ctx.logoSize, 40)
+    : opts.isFirstPage
+      ? 36
+      : 26
+  const bandHeight = opts.isFirstPage ? Math.max(92, logoH + 40) : Math.max(56, logoH + 24)
 
   // Soft top band (geral / sessao only)
   ctx.page.drawRectangle({
@@ -451,15 +476,27 @@ function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
     color: COLORS.accent,
   })
 
-  const logoH = opts.isFirstPage ? 36 : 26
   const logoY = PAGE_HEIGHT - bandHeight + (bandHeight - logoH) / 2 + (opts.isFirstPage ? 4 : 0)
-  drawBrandMark(ctx, MARGIN_X, logoY, logoH)
+  // Logo à direita: o título vai para a esquerda. No centro, a logo não pode invadir o título.
+  const tituloAEsquerda = ctx.logoAlign === 'right'
+  const tituloLargura = opts.isFirstPage
+    ? Math.max(
+        ctx.bold.widthOfTextAtSize(toWinAnsiSafe(ctx.docTitle), SIZE.title),
+        ctx.font.widthOfTextAtSize(toWinAnsiSafe(ctx.generatedAt), SIZE.meta),
+      )
+    : ctx.bold.widthOfTextAtSize(toWinAnsiSafe(`${ctx.docTitle} (cont.)`), 11)
+  const logoMaxW =
+    ctx.logoAlign === 'center'
+      ? Math.max(60, (PAGE_WIDTH / 2 - MARGIN_X - tituloLargura - 16) * 2)
+      : Math.max(60, CONTENT_WIDTH - tituloLargura - 24)
+  drawBrandMark(ctx, logoY, logoH, logoMaxW, ctx.logoAlign)
+  const xTexto = (largura: number) => (tituloAEsquerda ? MARGIN_X : PAGE_WIDTH - MARGIN_X - largura)
 
   if (opts.isFirstPage) {
     const title = toWinAnsiSafe(ctx.docTitle)
     const titleW = ctx.bold.widthOfTextAtSize(title, SIZE.title)
     ctx.page.drawText(title, {
-      x: PAGE_WIDTH - MARGIN_X - titleW,
+      x: xTexto(titleW),
       y: PAGE_HEIGHT - 42,
       size: SIZE.title,
       font: ctx.bold,
@@ -468,7 +505,7 @@ function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
     const gen = toWinAnsiSafe(ctx.generatedAt)
     const genW = ctx.font.widthOfTextAtSize(gen, SIZE.meta)
     ctx.page.drawText(gen, {
-      x: PAGE_WIDTH - MARGIN_X - genW,
+      x: xTexto(genW),
       y: PAGE_HEIGHT - 58,
       size: SIZE.meta,
       font: ctx.font,
@@ -478,7 +515,7 @@ function drawHeaderBand(ctx: DrawContext, opts: { isFirstPage: boolean }) {
     const cont = toWinAnsiSafe(`${ctx.docTitle} (cont.)`)
     const contW = ctx.bold.widthOfTextAtSize(cont, 11)
     ctx.page.drawText(cont, {
-      x: PAGE_WIDTH - MARGIN_X - contW,
+      x: xTexto(contW),
       y: PAGE_HEIGHT - bandHeight / 2 - 4,
       size: 11,
       font: ctx.bold,
@@ -2357,6 +2394,8 @@ async function montarPdf(
     timesBold,
     logo,
     brandName: marca.name,
+    logoSize: marca.logoSize,
+    logoAlign: marca.logoAlign,
     y: PAGE_HEIGHT,
     pageIndex: 1,
     docTitle,

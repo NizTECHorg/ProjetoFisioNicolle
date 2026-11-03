@@ -15,6 +15,8 @@ const KNOWN_SEND_MESSAGES = new Set<string>([
   PATIENT_AI_COPY.sendNeedEmail,
   PATIENT_AI_COPY.sendFileUnavailable,
   PATIENT_AI_COPY.sendEmailError,
+  'Escolha pelo menos um destinatário.',
+  'Confira os e-mails extras: algum endereço está inválido.',
 ])
 
 function payloadFromBody(
@@ -79,6 +81,8 @@ export async function sendPatientDocument(input: PatientDocumentSendInput): Prom
     body: {
       patientId: parsed.patientId,
       reportId: parsed.reportId,
+      sendToPatient: parsed.sendToPatient ?? true,
+      extraEmails: parsed.extraEmails ?? [],
     },
   })
 

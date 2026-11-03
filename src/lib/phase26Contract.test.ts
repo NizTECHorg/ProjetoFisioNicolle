@@ -40,11 +40,12 @@ test('REQ-37.1: cabeçalho e rodapé da ficha são claros', () => {
   const service = readFileSync(servicePath, 'utf8')
   const header = sliceFunction(service, 'drawHeaderBand')
   const fichaHeaderStart = header.indexOf("footerKind === 'ficha'")
-  const fluxoBand = header.indexOf('opts.isFirstPage ? 92')
+  const fluxoBand = header.indexOf('Math.max(92,')
   equal(fichaHeaderStart >= 0 && fluxoBand > fichaHeaderStart, true)
   const fichaHeader = header.slice(fichaHeaderStart, fluxoBand)
 
-  equal(fichaHeader.includes('const logoH = 32'), true)
+  // 32 pt é o padrão; a conta pode escolher outra altura (Minha empresa / Meu escritório).
+  equal(fichaHeader.includes('const logoH = ctx.logoSize ?? 32'), true)
   equal(fichaHeader.includes('const logoH = 18'), false)
   equal(fichaHeader.includes("'Avaliação'"), true)
   equal(fichaHeader.includes("'Evolução'"), true)
@@ -59,13 +60,14 @@ test('REQ-37.1: cabeçalho e rodapé da ficha são claros', () => {
 
   const footer = sliceFunction(service, 'drawFooter')
   const fichaFooterStart = footer.indexOf("footerKind === 'ficha'")
-  const fluxoCaption = footer.indexOf('FLUXO · Documento clínico')
+  // O nome vem da identidade da conta (Minha empresa / Meu escritório); sem ela, FLUXO.
+  const fluxoCaption = footer.indexOf("${ctx.brandName ?? 'FLUXO'} · Documento clínico")
   equal(fichaFooterStart >= 0 && fluxoCaption > fichaFooterStart, true)
   const fichaFooter = footer.slice(fichaFooterStart, fluxoCaption)
   equal(fichaFooter.includes('Ficha de Anamnese e Evolução Musculoesquelética'), false)
-  equal(fichaFooter.includes("'Fluxo'"), true)
+  equal(fichaFooter.includes("ctx.brandName ?? 'Fluxo'"), true)
   equal(fichaFooter.includes('pageIndex'), true)
-  equal(footer.includes('FLUXO · Documento clínico'), true)
+  equal(footer.includes("${ctx.brandName ?? 'FLUXO'} · Documento clínico"), true)
   equal(footer.includes('Pág.'), true)
 })
 
@@ -216,12 +218,17 @@ test('REQ-37.3: sucesso só com https e janela', () => {
   equal(beforeSuccess.includes('window.open'), false)
   equal(beforeSuccess.includes('emergencyPhone'), false)
 
-  const email = sliceNamed(composer, 'handleSendEmail')
-  equal(email.includes('sendNeedEmail'), true)
+  // Enviar por e-mail: primeiro abre o popup de destinatários (paciente e/ou outras pessoas);
+  // o envio acontece em confirmSendEmail. Paciente sem e-mail: o popup deixa só os extras.
+  const abrir = sliceNamed(composer, 'handleSendEmail')
+  equal(abrir.includes('sendNeedExport'), true)
+  equal(abrir.includes('setEmailDialogOpen(true)'), true)
+  const email = sliceNamed(composer, 'confirmSendEmail')
   equal(email.indexOf('sendNeedExport') < email.indexOf('sendPatientDocument'), true)
   equal(email.indexOf('sendPatientDocument') < email.indexOf('sendEmailSuccess'), true)
   equal(email.includes('window.open'), false)
   equal(email.includes('sendWhatsAppSuccess'), false)
+  equal(composer.includes('<SendEmailDialog'), true)
 
   equal(composer.includes('emergencyPhone'), false)
   equal(composer.includes("if (!canWrite) return null"), true)
