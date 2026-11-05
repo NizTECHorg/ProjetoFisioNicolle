@@ -26,6 +26,7 @@ import {
   PERFIS_ESPORTIVOS,
   PRATICA_OBS_MAX,
   SINTOMAS_MAX,
+  alternarMomentoSintoma,
   SITUACOES_PRATICA,
   VOLUME_MAX,
   praticaDoEsporte,
@@ -509,28 +510,29 @@ export function EsportesField({ watch, setValue, disabled }: Props) {
                 onChange={(event) => set({ praticaObs: event.target.value })}
               />
 
-              {pratica.secoes?.length && !pratica.sintomasGenericos ? null : (
               <div className="space-y-3">
                 <SubTitulo>Sintomas na prática</SubTitulo>
                 <OpcoesChips
                   legenda="Quando aparecem"
                   opcoes={MOMENTOS_SINTOMA}
                   marcadas={entrada.sintomasMomentos ?? []}
-                  onToggle={(key) => set({ sintomasMomentos: alternarNaLista(entrada.sintomasMomentos, key) })}
+                  onToggle={(key) => set({ sintomasMomentos: alternarMomentoSintoma(entrada.sintomasMomentos, key) })}
                   disabled={disabled}
                 />
-                <Textarea
-                  id={`${idBase}-sintomas`}
-                  label="Sintomas"
-                  placeholder="O que sente, onde, em qual gesto ou fase do treino"
-                  rows={2}
-                  maxLength={SINTOMAS_MAX}
-                  value={entrada.sintomas ?? ''}
-                  disabled={disabled}
-                  onChange={(event) => set({ sintomas: event.target.value })}
-                />
+                {/* Quem tem questionário próprio já descreve os sintomas nele; o texto livre só aparece nos demais. */}
+                {pratica.secoes?.length && !pratica.sintomasGenericos && !entrada.sintomas ? null : (
+                  <Textarea
+                    id={`${idBase}-sintomas`}
+                    label="Sintomas"
+                    placeholder="O que sente, onde, em qual gesto ou fase do treino"
+                    rows={2}
+                    maxLength={SINTOMAS_MAX}
+                    value={entrada.sintomas ?? ''}
+                    disabled={disabled}
+                    onChange={(event) => set({ sintomas: event.target.value })}
+                  />
+                )}
               </div>
-              )}
 
               {catalogo && problemas.length > 0 ? (
                 <Recolhivel

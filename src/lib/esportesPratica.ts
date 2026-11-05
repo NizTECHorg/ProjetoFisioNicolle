@@ -45,7 +45,7 @@ export type PraticaEsporte = {
   secoes?: readonly SecaoPerguntas[]
   /** O questionário já pergunta o volume: esconde o campo genérico "Volume". */
   volumeProprio?: boolean
-  /** Mantém o bloco genérico "Sintomas na prática" mesmo com questionário próprio. */
+  /** Mantém o texto livre de "Sintomas na prática" mesmo com questionário próprio ("Quando aparecem" vale para todos). */
   sintomasGenericos?: boolean
 }
 
@@ -132,7 +132,18 @@ export const MOMENTOS_SINTOMA: readonly OpcaoPratica[] = [
   o('durante', 'Durante'),
   o('depois', 'Logo depois'),
   o('diaSeguinte', 'No dia seguinte'),
+  o('naoTem', 'Não tem'),
 ]
+
+/** "Não tem" exclui os momentos, e marcar um momento tira o "Não tem". Ordem do catálogo. */
+export function alternarMomentoSintoma(marcadas: readonly string[] | undefined, key: string): string[] {
+  const atuais = marcadas ?? []
+  let proximo: string[]
+  if (atuais.includes(key)) proximo = atuais.filter((item) => item !== key)
+  else if (key === 'naoTem') proximo = [key]
+  else proximo = [...atuais.filter((item) => item !== 'naoTem'), key]
+  return MOMENTOS_SINTOMA.map((op) => op.key).filter((item) => proximo.includes(item))
+}
 
 /** 1 a 7 vezes por semana; 7 vale "todo dia ou mais". */
 export const FREQUENCIA_MAX = 7

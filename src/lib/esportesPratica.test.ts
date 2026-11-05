@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url'
 import { deepEqual, equal, ok } from 'node:assert/strict'
 import { ESPORTES, resumoEsportes, safeEsportesLista } from './esportesAvaliacao.ts'
 import {
+  MOMENTOS_SINTOMA,
   PRATICAS,
+  alternarMomentoSintoma,
   alternarMultipla,
   NIVEIS_ESPORTIVOS,
   PERGUNTAS_GESTO_SINTOMA,
@@ -1076,5 +1078,22 @@ test('sessões por semana: some das avaliações novas e continua nas antigas qu
     equal(perguntaVisivel(pergunta!, {}), false, esporte)
     equal(perguntaVisivel(pergunta!, { [campo]: '3' }), true, esporte)
     ok(pratica.volumeProprio, `${esporte} não pode voltar a mostrar o campo genérico de volume`)
+  }
+})
+
+test('sintomas na prática: momentos em todos os esportes, com "Não tem" exclusivo', () => {
+  deepEqual(MOMENTOS_SINTOMA.map((m) => m.nome), ['Antes', 'Durante', 'Logo depois', 'No dia seguinte', 'Não tem'])
+  deepEqual(alternarMomentoSintoma(['depois'], 'antes'), ['antes', 'depois'])
+  deepEqual(alternarMomentoSintoma(['antes', 'depois'], 'naoTem'), ['naoTem'])
+  deepEqual(alternarMomentoSintoma(['naoTem'], 'durante'), ['durante'])
+  deepEqual(alternarMomentoSintoma(['durante'], 'durante'), [])
+  deepEqual(alternarMomentoSintoma(undefined, 'antes'), ['antes'])
+  for (const esporte of ESPORTES) {
+    const salvo = safeAvaliacaoPratica({ sintomasMomentos: ['durante', 'diaSeguinte'] }, esporte.key)
+    deepEqual(salvo.sintomasMomentos, ['durante', 'diaSeguinte'], esporte.key)
+    ok(
+      linhasAvaliacaoPratica(salvo, esporte.key).includes('Quando os sintomas aparecem: Durante, No dia seguinte'),
+      `sem a linha no PDF: ${esporte.key}`,
+    )
   }
 })
