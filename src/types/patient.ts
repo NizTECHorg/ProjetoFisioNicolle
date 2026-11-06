@@ -119,6 +119,21 @@ export interface PatientAiReport {
   signedUrl: string | null
 }
 
+/** Relatório do paciente (Phase 50): texto editável; o PDF é derivado. */
+export interface PatientReport {
+  id: string
+  patientId: string
+  content: string
+  place: string | null
+  sessionLabel: string | null
+  therapistName: string | null
+  therapistCrefito: string | null
+  storagePath: string | null
+  sessionIds: string[]
+  createdAt: string
+  updatedAt: string
+}
+
 export interface TherapistOption {
   id: string
   fullName: string
