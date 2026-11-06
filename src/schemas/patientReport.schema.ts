@@ -20,7 +20,8 @@ const signatureSchema = z.string().max(SIGNATURE_MAX_CHARS).nullable()
 
 export const patientReportCreateSchema = z.object({
   patientId: z.string().uuid(),
-  sessionIds: sessionIdsSchema,
+  // Vazio quando o relatório é feito pelo modelo, sem sessões marcadas.
+  sessionIds: z.array(z.string().uuid()).max(RELATORIO_MAX_SESSOES),
   content: contentSchema,
   place: placeSchema,
   sessionLabel: z.string().trim().max(120),
@@ -40,7 +41,7 @@ export type PatientReportCreateInput = z.infer<typeof patientReportCreateSchema>
 export type PatientReportUpdateInput = z.infer<typeof patientReportUpdateSchema>
 
 export const PATIENT_REPORT_COPY = {
-  tabHelp: 'Marque as sessões, gere o resumo com IA, revise e salve.',
+  tabHelp: 'Marque sessões para a IA resumir ou preencha o modelo, revise e salve.',
   newReport: 'Novo relatório',
   empty: 'Nenhum relatório salvo ainda.',
   listError: 'Não foi possível carregar os relatórios.',
@@ -66,6 +67,10 @@ export const PATIENT_REPORT_COPY = {
   draftRestored: 'Recuperamos o que você não tinha salvo.',
   draftNew: 'Você tem um relatório não salvo.',
   signatureLabel: 'Assinatura (opcional)',
+  modeModel: 'Modelo',
+  modeSessions: 'Sessões específicas',
+  modelHint: 'Troque o que está entre parênteses pelos dados do paciente.',
+  tooLong: 'O relatório passa de 3000 caracteres. Reduza o texto.',
   outdatedFunction:
     'A função de IA está desatualizada. Publique de novo a função patient-ai-summary no Supabase.',
   noContent: 'Uma das sessões marcadas não tem evolução escrita.',

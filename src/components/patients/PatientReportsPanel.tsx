@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FileText, Mail, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon'
 import { PatientReportEditor } from '@/components/patients/PatientReportEditor'
 import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
 import { SendEmailDialog } from '@/components/patients/SendEmailDialog'
@@ -254,6 +255,7 @@ export function PatientReportsPanel({ patientId, patientName, canWrite = false }
                       disabled={sending !== null}
                       onClick={() => void prepareWhatsApp(report)}
                     >
+                      <WhatsAppIcon />
                       {PATIENT_AI_COPY.sendWhatsApp}
                     </Button>
                     <Button
@@ -287,6 +289,7 @@ export function PatientReportsPanel({ patientId, patientName, canWrite = false }
         <>
           <PatientReportEditor
             patientId={patientId}
+            patientName={patientName}
             report={editingReport}
             open={editorOpen && (editingId === null || editingReport !== null)}
             onClose={() => {

@@ -62,7 +62,7 @@ import {
 import { goalStatusLabels, type Patient, type PatientDashboard, type PatientPainLog } from '@/types/patient'
 
 const shortcuts = [
-  { label: 'Resumo IA', detail: 'Resumo e PDFs', icon: ClipboardList, tab: 'resumo-ia' as const },
+  { label: 'Resumo IA', detail: 'Resumo clínico', icon: ClipboardList, tab: 'resumo-ia' as const },
   { label: 'Sessões / Evoluções', detail: 'Abrir aba', icon: Stethoscope, tab: 'secoes' as const },
   { label: 'Avaliações', detail: 'Ficha de avaliação', icon: ClipboardCheck, tab: 'avaliacoes' as const },
   { label: 'Arquivos', detail: 'Fotos, PDFs e termos', icon: Images, tab: 'imagens' as const },

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, MessageCircle, Plus, X } from 'lucide-react'
+import { ContatosWhatsapp } from '@/components/patients/ContatosWhatsapp'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { resolveWhatsAppDigits } from '@/lib/patientContact'
@@ -138,6 +139,8 @@ export function SendWhatsAppDialog({ open, patientPhone, onOpenChat, onClose }: 
             <p className="text-xs text-muted">Até {EXTRA_MAX} números além do paciente.</p>
           )}
         </div>
+
+        <ContatosWhatsapp open={open} formatar={formatar} botao={botao} />
 
         <div className="flex justify-end">
           <Button type="button" variant="secondary" onClick={onClose}>

@@ -1,5 +1,4 @@
 import { PatientAiComposer } from '@/components/patients/PatientAiComposer'
-import { PatientAiReportsList } from '@/components/patients/PatientAiReportsList'
 import { usePatient } from '@/hooks/usePatients'
 import { formatGeneratedAt, SUMMARY_FIELD_KEYS, SUMMARY_FIELD_LABELS } from '@/lib/patientSummary'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
@@ -12,9 +11,8 @@ type PatientResumoIaPanelProps = {
 }
 
 /**
- * Ficha hub for REQ-23: composer + PDF reports list (no Avaliação CRUD — D-01/D-06).
- * PDF export selects a saved evaluation ficha (D-07) via PatientAiComposer.
- * The original generation is read-only here; edited text lives on the Resumo tab.
+ * Resumo IA: gera o resumo e mostra o texto original (somente leitura).
+ * Corrigir é na aba Resumo; exportar PDF é nas abas Avaliações e Sessões.
  */
 export function PatientResumoIaPanel({
   patientId,
@@ -72,13 +70,6 @@ export function PatientResumoIaPanel({
           </p>
         )}
       </section>
-
-      <PatientAiReportsList
-        patientId={patientId}
-        canWrite={canWrite}
-        phone={detail?.phone}
-        email={detail?.email}
-      />
     </div>
   )
 }

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { InfoHint } from '@/components/ui/InfoHint'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
+import { ExportarToggle } from '@/components/patients/ExportarToggle'
+import { PatientPdfExport } from '@/components/patients/PatientPdfExport'
 import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
 import { useAuth } from '@/hooks/useAuth'
 import { useRascunhosPaciente } from '@/hooks/useRascunhoForm'
@@ -140,6 +142,7 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
   const deleteSession = useDeletePatientSession(patientId)
   const rascunhos = useRascunhosPaciente(patientId, 'sessao')
   const pendentes = contarEvolucoesPendentes(sessions)
+  const [exportando, setExportando] = useState(false)
 
   const chargeBySession = useMemo(() => {
     const map = new Map<string, SessionCharge>()
@@ -221,8 +224,10 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
               </p>
             ) : null}
           </div>
-          {canWrite ? (
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            {/* Gravação em andamento continua à vista, mesmo em Exportar. */}
+            {canWrite && (!exportando || isRecording || isProcessingAudio) ? (
+              <>
               {isRecording ? (
                 <Button type="button" variant="secondary" onClick={stopRecording} className="animate-pulse bg-error/10 text-error hover:bg-error/20">
                   <Square size={16} className="fill-current" />
@@ -250,14 +255,38 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
                 label="Sobre gravar a sessão"
                 text={`Grave o atendimento (até ${MAX_RECORDING_LABEL}). A IA entende cada parte e preenche o campo certo da evolução: estado do paciente, condutas, efeitos colaterais, plano… Você revisa antes de salvar.`}
               />
-              <Button type="button" onClick={() => { setEditing(null); setDraftCampos(null); setEditorOpen(true) }}>
-                <Plus size={16} />
-                Nova sessão / evolução
-              </Button>
-            </div>
-          ) : null}
+              </>
+            ) : null}
+            <ExportarToggle
+              acao={
+                canWrite ? (
+                  <>
+                    <Plus size={16} />
+                    Nova sessão / evolução
+                  </>
+                ) : (
+                  'Sessões'
+                )
+              }
+              exportando={exportando}
+              onAcao={() => {
+                if (exportando) {
+                  setExportando(false)
+                } else if (canWrite) {
+                  setEditing(null)
+                  setDraftCampos(null)
+                  setEditorOpen(true)
+                }
+              }}
+              onExportar={() => setExportando(true)}
+            />
+          </div>
         </div>
 
+        {exportando ? (
+          <PatientPdfExport patientId={patientId} scope="evolucao" canWrite={canWrite} />
+        ) : (
+        <>
         {canWrite && !editorOpen
           ? rascunhos.map((item) => {
               const sessao = sessions.find((s) => s.id === item.registroId) ?? null
@@ -376,6 +405,8 @@ export function PatientEvolutionsPanel({ patientId, canWrite = true }: PatientEv
               )
             })}
           </ul>
+        )}
+        </>
         )}
       </div>
 

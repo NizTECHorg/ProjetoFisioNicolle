@@ -10,6 +10,7 @@ import {
   normalizarTextoRelatorio,
   numerosNaoConfirmados,
   rotuloSessoesRelatorio,
+  textoModeloRelatorio,
   sessaoSelecionavelRelatorio,
   textosFonteRelatorio,
 } from './relatorio.ts'
@@ -129,4 +130,15 @@ test('textosFonteRelatorio inclui data e os campos, com sideEffects', () => {
 test('dataPorExtenso', () => {
   ok(dataPorExtenso('2026-11-05T12:00:00Z').includes('novembro de 2026'))
   equal(dataPorExtenso('xx'), '')
+})
+
+test('modelo: mantém o texto do arquivo, com o nome do paciente ou a linha em branco', () => {
+  const texto = textoModeloRelatorio('Ana')
+  ok(texto.startsWith('Informo que Ana, foi admitido(a) para atendimento fisioterapêutico em (data de início do tratamento)'))
+  ok(texto.includes('O exame físico apresentou: (relato das alterações na ADM, força muscular, escala de dor)'))
+  ok(texto.includes('Apresenta como diagnóstico funcional:'))
+  ok(texto.includes('Os objetivos e plano de tratamento propostos foram:'))
+  ok(texto.includes('Evoluiu (Relatar a evolução do paciente'))
+  equal(normalizarTextoRelatorio(texto), texto)
+  ok(textoModeloRelatorio('  ').startsWith('Informo que ____'))
 })

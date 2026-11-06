@@ -24,12 +24,16 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ) => {
     const textareaId = id ?? label.toLowerCase().replace(/\s+/g, '-')
     const innerRef = useRef<HTMLTextAreaElement | null>(null)
+    const ultimoTexto = useRef<string | null>(null)
 
     useImperativeHandle(ref, () => innerRef.current!)
 
     const adjustHeight = () => {
       const el = innerRef.current
       if (!el || !autoResize) return
+      // Encolher a cada render tira altura da tela e joga a rolagem para o topo: só com texto novo.
+      if (el.value === ultimoTexto.current && el.scrollHeight <= el.offsetHeight) return
+      ultimoTexto.current = el.value
       el.style.height = 'auto'
       const newHeight = Math.max(el.scrollHeight, 96)
       el.style.height = `${newHeight}px`

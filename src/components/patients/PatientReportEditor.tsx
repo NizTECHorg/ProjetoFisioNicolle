@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TextMeasurer } from '@/lib/pdfText'
 import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
@@ -16,13 +16,17 @@ import {
 import { usePatientSessions } from '@/hooks/usePatients'
 import { useRascunhoValores } from '@/hooks/useRascunhoForm'
 import {
+  RELATORIO_CONTEUDO_MAX_CHARS,
   RELATORIO_LINHAS_MAX,
   RELATORIO_MAX_SESSOES,
+  RELATORIO_MODELO_ROTULO,
   ajustarAoLimite,
   contarLinhasRelatorio,
+  normalizarTextoRelatorio,
   numerosNaoConfirmados,
   rotuloSessoesRelatorio,
   sessaoSelecionavelRelatorio,
+  textoModeloRelatorio,
   textosFonteRelatorio,
 } from '@/lib/relatorio'
 import { RASCUNHO_NOVO } from '@/lib/rascunhosLocais'
@@ -31,16 +35,25 @@ import { createRelatorioMeasurer } from '@/services/relatorioPdf.service'
 import { toast } from '@/stores/toast.store'
 import type { PatientReport } from '@/types/patient'
 
-type RascunhoRelatorio = { content: string; place: string; assinatura?: string; sessionIds: string[] }
+type ModoRelatorio = 'modelo' | 'sessoes'
+
+type RascunhoRelatorio = {
+  content: string
+  place: string
+  assinatura?: string
+  modo?: ModoRelatorio
+  sessionIds: string[]
+}
 
 type PatientReportEditorProps = {
   patientId: string
+  patientName: string
   report: PatientReport | null
   open: boolean
   onClose: () => void
 }
 
-export function PatientReportEditor({ patientId, report, open, onClose }: PatientReportEditorProps) {
+export function PatientReportEditor({ patientId, patientName, report, open, onClose }: PatientReportEditorProps) {
   const { profile } = useAuth()
   const { data: sessions = [], isLoading, isError } = usePatientSessions(patientId)
   const createReport = useCreatePatientReport(patientId)
@@ -49,7 +62,10 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
 
   const [medidor, setMedidor] = useState<TextMeasurer | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [modo, setModo] = useState<ModoRelatorio>('sessoes')
   const [step, setStep] = useState<'selecao' | 'edicao'>('selecao')
+  // Trocar de modo e voltar não perde o que foi escrito em cada um.
+  const textoPorModo = useRef<Record<ModoRelatorio, string>>({ modelo: '', sessoes: '' })
   const [content, setContent] = useState('')
   const [place, setPlace] = useState('')
   const [assinatura, setAssinatura] = useState('')
@@ -59,14 +75,20 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
   const isEdit = report !== null
   const placeValue = place.trim() === '' ? null : place.trim()
   const assinaturaValue = assinatura === '' ? null : assinatura
+  const textoModelo = useMemo(() => textoModeloRelatorio(patientName), [patientName])
+  // Modelo intocado não é rascunho: abrir e fechar não deixa aviso na aba.
+  const textoAlterado =
+    content.trim().length > 0 && !(modo === 'modelo' && normalizarTextoRelatorio(content) === textoModelo)
   const dirty = isEdit
     ? content !== report.content || placeValue !== report.place || assinaturaValue !== report.signaturePath
-    : content.trim().length > 0 || placeValue !== null || assinaturaValue !== null
+    : textoAlterado || placeValue !== null || assinaturaValue !== null
+  // O limite de 15 linhas é do resumo das sessões; o modelo é um relatório completo.
+  const semLimiteDeLinhas = isEdit ? report.sessionIds.length === 0 : modo === 'modelo'
 
   // Rascunho automático: F5 ou sair sem salvar não perde o texto, nem o que a IA gerou.
   const valoresRascunho = useMemo<RascunhoRelatorio>(
-    () => ({ content, place, assinatura, sessionIds: [...selectedIds] }),
-    [content, place, assinatura, selectedIds],
+    () => ({ content, place, assinatura, modo, sessionIds: [...selectedIds] }),
+    [content, place, assinatura, modo, selectedIds],
   )
   const {
     carregar: carregarRascunho,
@@ -98,12 +120,14 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
     setRestauradoEm(null)
     setSelectedIds(new Set())
     setReduzido(false)
+    textoPorModo.current = { modelo: '', sessoes: '' }
     if (report) {
       setStep('edicao')
       setContent(report.content)
       setPlace(report.place ?? '')
       setAssinatura(report.signaturePath ?? '')
     } else {
+      setModo('sessoes')
       setStep('selecao')
       setContent('')
       setPlace('')
@@ -121,6 +145,8 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
     }
     setRestauradoEm(salvo.salvoEm)
     setReduzido(false)
+    textoPorModo.current = { modelo: '', sessoes: '' }
+    setModo(salvo.valores.modo ?? (salvo.valores.sessionIds.length > 0 ? 'sessoes' : 'modelo'))
     setSelectedIds(new Set(salvo.valores.sessionIds))
     setContent(salvo.valores.content)
     setPlace(salvo.valores.place)
@@ -154,16 +180,22 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
   )
 
   const linhas = medidor ? contarLinhasRelatorio(medidor, content) : 0
-  const acimaDoLimite = linhas > RELATORIO_LINHAS_MAX
+  const acimaDoLimite = !semLimiteDeLinhas && linhas > RELATORIO_LINHAS_MAX
+  const longoDemais = content.length > RELATORIO_CONTEUDO_MAX_CHARS
 
   const avisoNumeros = useMemo(
-    () => (isEdit ? [] : numerosNaoConfirmados(content, textosFonteRelatorio(marcadas))),
-    [isEdit, content, marcadas],
+    () => (isEdit || modo === 'modelo' ? [] : numerosNaoConfirmados(content, textosFonteRelatorio(marcadas))),
+    [isEdit, modo, content, marcadas],
   )
 
   const saving = createReport.isPending || updateReport.isPending
   const saveDisabled =
-    !medidor || linhas === 0 || linhas > RELATORIO_LINHAS_MAX || saving || (!isEdit && marcadas.length === 0)
+    !medidor ||
+    linhas === 0 ||
+    acimaDoLimite ||
+    longoDemais ||
+    saving ||
+    (!isEdit && modo === 'sessoes' && marcadas.length === 0)
 
   function toggleSession(id: string) {
     setSelectedIds((prev) => {
@@ -175,6 +207,21 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
       } else next.add(id)
       return next
     })
+  }
+
+  function trocarModo(novo: ModoRelatorio) {
+    if (novo === modo || generate.isPending) return
+    textoPorModo.current[modo] = content
+    const guardado = textoPorModo.current[novo]
+    setModo(novo)
+    setReduzido(false)
+    if (novo === 'modelo') {
+      setContent(guardado || textoModelo)
+      setStep('edicao')
+    } else {
+      setContent(guardado)
+      setStep(guardado ? 'edicao' : 'selecao')
+    }
   }
 
   function handleGenerate() {
@@ -200,6 +247,7 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
     setContent('')
     setPlace('')
     setAssinatura('')
+    setModo('sessoes')
     onClose()
   }
 
@@ -232,10 +280,10 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
     createReport.mutate(
       {
         patientId,
-        sessionIds: marcadas.map((s) => s.id),
+        sessionIds: modo === 'modelo' ? [] : marcadas.map((s) => s.id),
         content,
         place: placeValue,
-        sessionLabel: rotuloSessoesRelatorio(marcadas),
+        sessionLabel: modo === 'modelo' ? RELATORIO_MODELO_ROTULO : rotuloSessoesRelatorio(marcadas),
         therapistName: profile?.fullName || null,
         therapistCrefito: profile?.crefito || null,
         signaturePath: assinaturaValue,
@@ -254,6 +302,31 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
         onClose={requestClose}
         wide
       >
+        {!isEdit ? (
+          <div role="group" aria-label="Como fazer o relatório" className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-canvas p-1">
+            {(
+              [
+                ['sessoes', PATIENT_REPORT_COPY.modeSessions],
+                ['modelo', PATIENT_REPORT_COPY.modeModel],
+              ] as const
+            ).map(([valor, rotulo]) => (
+              <button
+                key={valor}
+                type="button"
+                aria-pressed={modo === valor}
+                disabled={generate.isPending}
+                onClick={() => trocarModo(valor)}
+                className={[
+                  'min-h-11 rounded-lg px-2 text-sm font-medium transition-colors',
+                  modo === valor ? 'bg-surface text-forest shadow-sm' : 'text-muted hover:text-ink',
+                ].join(' ')}
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {step === 'selecao' ? (
           <div className="space-y-4">
             <div>
@@ -342,7 +415,7 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
             ) : null}
             {!isEdit ? (
               <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm text-forest">
-                {PATIENT_REPORT_COPY.reviewNotice}
+                {modo === 'modelo' ? PATIENT_REPORT_COPY.modelHint : PATIENT_REPORT_COPY.reviewNotice}
               </p>
             ) : null}
             {reduzido ? <p className="text-sm text-muted">{PATIENT_REPORT_COPY.reduced}</p> : null}
@@ -355,10 +428,11 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
               />
               <p
                 aria-live="polite"
-                className={['text-xs', acimaDoLimite ? 'text-error' : 'text-muted'].join(' ')}
+                className={['text-xs', acimaDoLimite || longoDemais ? 'text-error' : 'text-muted'].join(' ')}
               >
-                {`${linhas}/${RELATORIO_LINHAS_MAX} linhas`}
+                {semLimiteDeLinhas ? `${linhas} linhas` : `${linhas}/${RELATORIO_LINHAS_MAX} linhas`}
                 {acimaDoLimite ? ` · ${PATIENT_REPORT_COPY.overLimit}` : ''}
+                {longoDemais ? ` · ${PATIENT_REPORT_COPY.tooLong}` : ''}
               </p>
             </div>
 
@@ -389,7 +463,7 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
             ) : null}
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              {!isEdit ? (
+              {!isEdit && modo === 'sessoes' ? (
                 <Button type="button" variant="secondary" className={actionClass} onClick={() => setStep('selecao')}>
                   Voltar às sessões
                 </Button>

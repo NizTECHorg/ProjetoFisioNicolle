@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { ClipboardList, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ExportarToggle } from '@/components/patients/ExportarToggle'
+import { PatientPdfExport } from '@/components/patients/PatientPdfExport'
 import { PatientEvaluationEditorForm } from '@/components/patients/PatientEvaluationEditorForm'
 import { PatientPhysicalEvaluationPanel } from '@/components/patients/PatientPhysicalEvaluationPanel'
 import { EvaluationFichaDetail } from '@/components/patients/evaluation/EvaluationFichaDetail'
@@ -109,6 +111,7 @@ export function PatientEvaluationPanel({
   const [createDraft, setCreateDraft] = useState<EvaluationFormData | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PatientEvaluation | null>(null)
+  const [exportando, setExportando] = useState(false)
 
   const selected = evaluations.find((item) => item.id === selectedId) ?? evaluations[0] ?? null
 
@@ -117,6 +120,7 @@ export function PatientEvaluationPanel({
   }, [evaluations, selectedId])
 
   function openCreate(draft?: EvaluationFormData, options?: { aiNotes?: string[] }) {
+    setExportando(false)
     setEditing(null)
     setCreateDraft(draft ?? null)
     setAiNotes(options?.aiNotes ?? null)
@@ -202,25 +206,45 @@ export function PatientEvaluationPanel({
             Registre fichas musculoesqueléticas datadas. Salve com campos em branco e complete depois.
           </p>
         </div>
-        {canWrite && !editorOpen ? (
-          <div className="flex flex-wrap gap-2">
+        {!editorOpen ? (
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             {/* Mesmo loading do Resumo IA: botão escuro com brilho azul e ícone de brilho. */}
-            {aiState === 'loading' ? (
-              <AiGeneratingButton type="button" generating aria-label={PATIENT_AI_COPY.avaliacaoGenerating} />
-            ) : (
-              <Button type="button" variant="secondary" onClick={handleGenerateAi}>
-                <Sparkles size={16} />
-                {PATIENT_AI_COPY.avaliacaoCta}
-              </Button>
-            )}
-            <Button type="button" onClick={() => openCreate()}>
-              <Plus size={16} />
-              Nova avaliação
-            </Button>
+            {canWrite && !exportando ? (
+              aiState === 'loading' ? (
+                <AiGeneratingButton type="button" generating aria-label={PATIENT_AI_COPY.avaliacaoGenerating} />
+              ) : (
+                <Button type="button" variant="secondary" onClick={handleGenerateAi}>
+                  <Sparkles size={16} />
+                  {PATIENT_AI_COPY.avaliacaoCta}
+                </Button>
+              )
+            ) : null}
+            <ExportarToggle
+              acao={
+                canWrite ? (
+                  <>
+                    <Plus size={16} />
+                    Nova avaliação
+                  </>
+                ) : (
+                  'Avaliações'
+                )
+              }
+              exportando={exportando}
+              onAcao={() => {
+                if (exportando) setExportando(false)
+                else if (canWrite) openCreate()
+              }}
+              onExportar={() => setExportando(true)}
+            />
           </div>
         ) : null}
       </div>
 
+      {exportando ? (
+        <PatientPdfExport patientId={patientId} scope="avaliacao" canWrite={canWrite} />
+      ) : (
+      <>
       {aiState === 'error' && !editorOpen && canWrite ? (
         <div
           role="alert"
@@ -451,6 +475,8 @@ export function PatientEvaluationPanel({
           </div>
         </details>
       ) : null}
+      </>
+      )}
 
       {canWrite ? (
         <ConfirmDialog

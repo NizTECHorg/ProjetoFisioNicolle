@@ -123,6 +123,9 @@ test('REQ-37.2: Gerando fica fora do Button', () => {
 })
 
 const composerPath = fileURLToPath(
+  new URL('../components/patients/PatientPdfExport.tsx', import.meta.url),
+)
+const resumoComposerPath = fileURLToPath(
   new URL('../components/patients/PatientAiComposer.tsx', import.meta.url),
 )
 const pickerPath = fileURLToPath(
@@ -137,9 +140,10 @@ test('REQ-37.2: exportar avaliação e o seletor não usam Gerando', () => {
   equal(picker.includes('AiGeneratingButton'), false)
   equal(composer.includes('pdfEmptyHeading'), true)
   equal(composer.includes('pdfEmptyBody'), true)
-  equal(composer.includes("generatingTarget === 'resumo'"), true)
+  const resumoComposer = readFileSync(resumoComposerPath, 'utf8')
+  equal(resumoComposer.includes("generatingTarget === 'resumo'"), true)
   equal(composer.includes("generatingTarget === 'sintese'"), true)
-  equal(composer.includes('generatingConfirm'), true)
+  equal(resumoComposer.includes('generatingConfirm'), true)
   equal(
     composer.includes('isLoading={generating || (createReport.isPending && !pickerOpen)}'),
     false,
@@ -236,7 +240,8 @@ test('REQ-37.3: sucesso só com https e janela', () => {
   equal(composer.includes("sending === 'email'"), true)
   equal(composer.includes('sendWhatsApp'), true)
   equal(composer.includes('sendEmail'), true)
-  equal(composer.includes('#25D366'), true)
+  equal(composer.includes('<WhatsAppIcon'), true)
+  equal(composer.includes('#25D366'), false)
   equal(composer.includes('Mail'), true)
 })
 
@@ -289,9 +294,9 @@ test('REQ-37.5: envio só com escrita e só em avaliação ou evolução', () =>
   equal(send.includes('86400'), false)
   equal(/created_by\s*!==\s*user\.id/.test(edge), true)
 
-  equal(panel.includes('phone={detail?.phone}'), true)
-  equal(panel.includes('email={detail?.email}'), true)
-  equal((panel.match(/usePatient\(/g) ?? []).length, 1)
+  equal(composer.includes('phone={detail?.phone}'), true)
+  equal(composer.includes('email={detail?.email}'), true)
+  equal(panel.includes('PatientAiReportsList'), false)
 
   equal(setup.includes('FLUXO_SMTP_PASS'), true)
   equal(setup.includes('send-patient-document'), true)

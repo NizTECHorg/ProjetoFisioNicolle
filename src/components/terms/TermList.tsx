@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Download, ExternalLink, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon'
 import { useDeletePatientTerm } from '@/hooks/usePatientTerms'
 import { buildTermFileName } from '@/lib/consentTerms'
 import { usePatients } from '@/hooks/usePatients'
@@ -171,12 +172,7 @@ export function TermList({
                   {sendingId === term.id ? (
                     <Loader2 size={16} className="animate-spin motion-reduce:animate-none" />
                   ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                      <path
-                        fill="#25D366"
-                        d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.74.46 3.44 1.34 4.94L2 22l5.39-1.41a10.1 10.1 0 0 0 4.65 1.18h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.76 13.89c-.24.68-1.2 1.24-1.96 1.4-.52.11-1.2.2-3.48-.75-2.92-1.21-4.8-4.17-4.95-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.29.58-.36.77-.36h.55c.18 0 .41-.07.64.49.24.58.82 2 .89 2.15.07.14.12.32.02.51-.09.2-.14.32-.28.49-.14.17-.29.38-.42.51-.14.14-.28.29-.12.56.16.27.7 1.16 1.51 1.88 1.04.92 1.91 1.21 2.18 1.35.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.54.73 1.8.86.27.14.44.2.51.31.06.12.06.67-.18 1.35z"
-                      />
-                    </svg>
+                    <WhatsAppIcon />
                   )}
                   <span className="hidden sm:inline">{PATIENT_AI_COPY.sendWhatsApp}</span>
                 </button>

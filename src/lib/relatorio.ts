@@ -12,6 +12,20 @@ export const RELATORIO_PAGE_WIDTH = 595.28
 export const RELATORIO_CONTENT_WIDTH = RELATORIO_PAGE_WIDTH - RELATORIO_MARGIN * 2
 export const RELATORIO_MAX_SESSOES = 12
 export const RELATORIO_CONTEUDO_MAX_CHARS = 3000
+export const RELATORIO_MODELO_ROTULO = 'Feito pelo modelo'
+
+const NOME_EM_BRANCO = '_____________________________________'
+
+/** Texto do modelo. "Sem mais para o momento.", Local, Data e assinatura quem desenha é o PDF. */
+export function textoModeloRelatorio(paciente: string): string {
+  return [
+    `Informo que ${paciente.trim() || NOME_EM_BRANCO}, foi admitido(a) para atendimento fisioterapêutico em (data de início do tratamento), apresentando as seguintes queixas: (Relatar os sintomas).`,
+    'De acordo com o quadro, observou-se (descrição da área afetada e dos exames realizados). O exame físico apresentou: (relato das alterações na ADM, força muscular, escala de dor)',
+    'Apresenta como diagnóstico funcional: (Exposição das limitações de ADM, comprometimento muscular e outros comprometimentos que prejudiquem sua funcionalidade)',
+    'Os objetivos e plano de tratamento propostos foram: (Descrever cada um dos objetivos e etapas do plano de tratamento)',
+    'Evoluiu (Relatar a evolução do paciente, a continuação ou não dos atendimentos e, se necessário, possíveis encaminhamentos a outros profissionais)',
+  ].join('\n\n')
+}
 
 /** Preserva \n; remove controles (exceto \n e \t); no máximo uma linha em branco seguida. */
 export function normalizarTextoRelatorio(texto: string): string {

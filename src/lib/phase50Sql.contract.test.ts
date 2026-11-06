@@ -61,3 +61,25 @@ test('REQ-57: verify e somente leitura e confere side_effects', () => {
   ok(!/(^|;)\s*(insert|update|delete|drop|alter|create)\b/.test(verify))
   ok(verify.includes('side_effects'))
 })
+
+test('REQ-57: relatório pelo modelo pode não ter sessões', () => {
+  const ajuste = readFileSync(new URL('../../.planning/phases/50-aba-relat-rio-do-paciente/sql/50-03-relatorio-modelo.sql', import.meta.url), 'utf8')
+  ok(ajuste.includes('check (cardinality(session_ids) <= 12)'))
+  ok(sql.includes('check (cardinality(session_ids) <= 12)'))
+})
+
+test('contatos do WhatsApp: cada conta só enxerga os próprios, sem trigger', () => {
+  const contatos = load('50-04-contatos-whatsapp.sql')
+  ok(contatos.includes('force row level security'))
+  ok(contatos.includes('unique (owner_id, digits)'))
+  ok(contatos.includes('owner_id = (select auth.uid())'))
+  ok(!contatos.includes('create trigger'))
+})
+
+test('contatos de e-mail: cada conta só enxerga os próprios, sem trigger', () => {
+  const contatos = load('50-05-contatos-email.sql')
+  ok(contatos.includes('force row level security'))
+  ok(contatos.includes('unique (owner_id, email)'))
+  ok(contatos.includes('owner_id = (select auth.uid())'))
+  ok(!contatos.includes('create trigger'))
+})

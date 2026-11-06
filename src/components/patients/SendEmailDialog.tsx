@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Mail, Plus, X } from 'lucide-react'
+import { ContatosEmail } from '@/components/patients/ContatosEmail'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { EMAIL_OK, juntarDestinatarios } from '@/lib/contatosEmail'
 
 const EXTRA_MAX = 3
-const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type Props = {
   open: boolean
@@ -19,24 +20,32 @@ type Props = {
 export function SendEmailDialog({ open, patientEmail, sending, onClose, onSend }: Props) {
   const [paraPaciente, setParaPaciente] = useState(true)
   const [extras, setExtras] = useState<string[]>([])
+  const [salvos, setSalvos] = useState<string[]>([])
   const [tentou, setTentou] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setParaPaciente(Boolean(patientEmail))
     setExtras([])
+    setSalvos([])
     setTentou(false)
   }, [open, patientEmail])
 
   const extrasLimpos = extras.map((item) => item.trim()).filter(Boolean)
   const invalidos = extrasLimpos.filter((item) => !EMAIL_OK.test(item))
-  const total = (paraPaciente && patientEmail ? 1 : 0) + extrasLimpos.length
+  const pacienteRecebe = paraPaciente && Boolean(patientEmail)
+  const destinatarios = juntarDestinatarios(extrasLimpos, salvos, pacienteRecebe ? patientEmail : null)
+  const total = (pacienteRecebe ? 1 : 0) + destinatarios.length
+  // O limite vale para avulsos e salvos juntos.
+  const lotado = extras.length + salvos.length >= EXTRA_MAX
   const erro =
     invalidos.length > 0
       ? 'Confira os e-mails: algum endereço está inválido.'
       : total === 0
         ? 'Escolha pelo menos um destinatário.'
-        : null
+        : destinatarios.length > EXTRA_MAX
+          ? `Escolha até ${EXTRA_MAX} pessoas além do paciente.`
+          : null
 
   return (
     <Modal open={open} title="Enviar PDF por e-mail" description="Escolha quem recebe o documento." onClose={onClose}>
@@ -46,7 +55,7 @@ export function SendEmailDialog({ open, patientEmail, sending, onClose, onSend }
           event.preventDefault()
           setTentou(true)
           if (erro) return
-          onSend({ sendToPatient: paraPaciente && Boolean(patientEmail), extraEmails: extrasLimpos })
+          onSend({ sendToPatient: pacienteRecebe, extraEmails: destinatarios })
         }}
       >
         <label
@@ -100,7 +109,7 @@ export function SendEmailDialog({ open, patientEmail, sending, onClose, onSend }
               </button>
             </div>
           ))}
-          {extras.length < EXTRA_MAX ? (
+          {!lotado ? (
             <button
               type="button"
               onClick={() => setExtras((atual) => [...atual, ''])}
@@ -113,6 +122,15 @@ export function SendEmailDialog({ open, patientEmail, sending, onClose, onSend }
             <p className="text-xs text-muted">Até {EXTRA_MAX} pessoas além do paciente.</p>
           )}
         </div>
+
+        <ContatosEmail
+          open={open}
+          selecionados={salvos}
+          lotado={lotado}
+          onAlternar={(email) =>
+            setSalvos((atual) => (atual.includes(email) ? atual.filter((item) => item !== email) : [...atual, email]))
+          }
+        />
 
         {tentou && erro ? (
           <p role="alert" className="text-sm text-error">
