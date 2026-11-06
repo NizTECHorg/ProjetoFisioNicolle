@@ -27,6 +27,7 @@ import { PatientImagesPanel } from '@/components/patients/PatientImagesPanel'
 import { PatientCadastroPanel } from '@/components/patients/PatientCadastroPanel'
 import { PatientIdentityEditModal } from '@/components/patients/PatientIdentityEditModal'
 import { PatientEvolutionsPanel } from '@/components/patients/PatientEvolutionsPanel'
+import { PatientReportsPanel } from '@/components/patients/PatientReportsPanel'
 import { PatientResumoIaPanel } from '@/components/patients/PatientResumoIaPanel'
 import { PatientEvaluationPanel } from '@/components/patients/PatientEvaluationPanel'
 import { Button } from '@/components/ui/Button'
@@ -701,6 +702,8 @@ export function PatientPage() {
         ? 'secoes'
         : aba === 'avaliacoes'
           ? 'avaliacoes'
+          : aba === 'relatorio'
+            ? 'relatorio'
           : aba === 'resumo-ia'
             ? 'resumo-ia'
             : aba === 'avaliacao'
@@ -752,6 +755,10 @@ export function PatientPage() {
     }
     if (next === 'imagens') {
       setSearchParams({ aba: 'imagens' }, { replace: true })
+      return
+    }
+    if (next === 'relatorio') {
+      setSearchParams({ aba: 'relatorio' }, { replace: true })
       return
     }
     setSearchParams({}, { replace: true })
@@ -850,6 +857,8 @@ export function PatientPage() {
           />
         ) : tab === 'imagens' ? (
           <PatientImagesPanel patientId={dashboard.id} canWrite={canWrite} />
+        ) : tab === 'relatorio' ? (
+          <PatientReportsPanel patientId={dashboard.id} patientName={dashboard.name} canWrite={canWrite} />
         ) : detailLoading && !detail ? (
           <div className="flex min-h-40 items-center justify-center">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-forest border-t-transparent" />

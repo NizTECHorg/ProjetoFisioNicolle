@@ -17,6 +17,7 @@ export type PatientTab =
   | 'resumo-ia'
   | 'avaliacao'
   | 'imagens'
+  | 'relatorio'
 
 type PatientProfileHeaderProps = {
   patientId: string
@@ -209,6 +210,20 @@ export function PatientProfileHeader({
               onClick={() => onTabChange('resumo-ia')}
             >
               Resumo IA
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'relatorio'}
+              className={[
+                '-mb-px inline-flex min-h-11 shrink-0 items-center border-b-[3px] text-sm font-medium transition-colors',
+                activeTab === 'relatorio'
+                  ? 'border-[#1e3a8a] font-semibold text-[#1e3a8a]'
+                  : 'border-transparent text-muted hover:text-ink',
+              ].join(' ')}
+              onClick={() => onTabChange('relatorio')}
+            >
+              Relatório
             </button>
             <button
               type="button"

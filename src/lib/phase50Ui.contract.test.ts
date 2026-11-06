@@ -27,3 +27,42 @@ test('REQ-57: editor do relatorio', () => {
     ok(!src.includes(token), `editor nao deve conter ${token}`)
   }
 })
+
+test('REQ-57: painel do relatorio', () => {
+  const src = read('../components/patients/PatientReportsPanel.tsx')
+  for (const token of [
+    'canWrite = false',
+    'usePatient(patientId)',
+    'buildRelatorioPdf',
+    'downloadBlob',
+    'SendEmailDialog',
+    'SendWhatsAppDialog',
+    'signPatientDocumentUrl',
+    "'relatorio'",
+    "source: 'relatorio'",
+    'PATIENT_REPORT_COPY.whatsappMessage',
+    'useEnsurePatientReportPdf',
+    'tone="danger"',
+    'PatientReportEditor',
+  ]) {
+    ok(src.includes(token), `painel deve conter ${token}`)
+  }
+  ok(!src.includes('dangerouslySetInnerHTML'))
+})
+
+test('REQ-57: aba Relatorio na ficha', () => {
+  const header = read('../components/patients/PatientProfileHeader.tsx')
+  for (const token of ["| 'relatorio'", "onTabChange('relatorio')", 'Relatório']) {
+    ok(header.includes(token), `header deve conter ${token}`)
+  }
+  const page = read('../pages/PatientPage.tsx')
+  for (const token of [
+    "aba === 'relatorio'",
+    "next === 'relatorio'",
+    "{ aba: 'relatorio' }",
+    "tab === 'relatorio'",
+    'PatientReportsPanel',
+  ]) {
+    ok(page.includes(token), `pagina deve conter ${token}`)
+  }
+})
