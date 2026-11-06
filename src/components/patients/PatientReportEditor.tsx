@@ -118,7 +118,10 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
 
   const saving = createReport.isPending || updateReport.isPending
   const saveDisabled = !medidor || linhas === 0 || linhas > RELATORIO_LINHAS_MAX || saving
-  const dirty = isEdit ? content !== report.content : content.trim().length > 0
+  const placeValue = place.trim() === '' ? null : place.trim()
+  const dirty = isEdit
+    ? content !== report.content || placeValue !== report.place
+    : content.trim().length > 0 || placeValue !== null
 
   function toggleSession(id: string) {
     setSelectedIds((prev) => {
@@ -148,6 +151,8 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
   }
 
   function finish() {
+    // Solta a geração em andamento: a resposta atrasada não pode cair no próximo relatório aberto.
+    generate.reset()
     setSelectedIds(new Set())
     setContent('')
     setPlace('')
@@ -165,7 +170,6 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
 
   function handleSave() {
     if (saveDisabled) return
-    const placeValue = place.trim() === '' ? null : place.trim()
     if (report) {
       updateReport.mutate(
         { report, input: { content, place: placeValue } },

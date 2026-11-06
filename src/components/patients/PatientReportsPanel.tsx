@@ -134,7 +134,7 @@ export function PatientReportsPanel({ patientId, patientName, canWrite = false }
 
   async function confirmSendEmail(recipients: { sendToPatient: boolean; extraEmails: string[] }) {
     const report = emailReport
-    if (!report) return
+    if (!report || sending) return
     setSending({ id: report.id, channel: 'email' })
     try {
       await ensurePdf.mutateAsync({ report, build: () => montarPdf(report) })

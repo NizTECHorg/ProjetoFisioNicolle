@@ -65,5 +65,6 @@ export const PATIENT_REPORT_COPY = {
     'A função de IA está desatualizada. Publique de novo a função patient-ai-summary no Supabase.',
   noContent: 'Uma das sessões marcadas não tem evolução escrita.',
   saveError: 'Não foi possível salvar o relatório.',
+  pdfStale: 'Este relatório mudou em outra tela. Recarregue a página e tente de novo.',
   whatsappMessage: 'Segue o relatório.',
 } as const

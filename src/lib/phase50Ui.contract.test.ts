@@ -66,3 +66,11 @@ test('REQ-57: aba Relatorio na ficha', () => {
     ok(page.includes(token), `pagina deve conter ${token}`)
   }
 })
+
+test('REQ-57: editor solta geração atrasada e conta Local como alteração; e-mail tem trava', () => {
+  const editor = readFileSync(new URL('../components/patients/PatientReportEditor.tsx', import.meta.url), 'utf8')
+  const panel = readFileSync(new URL('../components/patients/PatientReportsPanel.tsx', import.meta.url), 'utf8')
+  ok(editor.includes('generate.reset()'))
+  ok(editor.includes('placeValue !== report.place'))
+  ok(panel.includes('if (!report || sending) return'))
+})

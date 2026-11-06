@@ -53,3 +53,13 @@ test('IA e envio com source', () => {
     assert.ok(send.includes(s), `faltando ${s}`)
   }
 })
+
+test('REQ-57: PDF e exclusão do relatório não deixam linha e arquivo em desacordo', () => {
+  const service = read('src/services/patientReports.service.ts')
+  const excluir = service.slice(service.indexOf('export async function deletePatientReport'), service.indexOf('/** Garante um PDF'))
+  assert.ok(excluir.indexOf(".delete()") < excluir.indexOf('removerPdfSemBloquear'))
+  assert.ok(service.includes(".eq('updated_at', report.updatedAt)"))
+  assert.ok(service.includes(".is('storage_path', null)"))
+  assert.ok(service.includes('PATIENT_REPORT_COPY.pdfStale'))
+  assert.ok(!service.includes('catch {'))
+})

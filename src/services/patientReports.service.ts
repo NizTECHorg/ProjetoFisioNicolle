@@ -28,6 +28,12 @@ interface ReportRow {
   updated_at: string
 }
 
+/** Falha aqui não desfaz a operação; o arquivo que sobrar sai com a pasta ao excluir o paciente. */
+async function removerPdfSemBloquear(path: string) {
+  const { error } = await supabase.storage.from(REPORT_BUCKET).remove([path])
+  if (error) console.warn('[Relatório] PDF antigo não foi removido do armazenamento.')
+}
+
 function throwIfDbError(error: { message?: string; code?: string } | null) {
   if (error) throw new Error(mapDbError(error))
 }
@@ -132,25 +138,13 @@ export async function updatePatientReport(
 
   throwIfDbError(error)
 
-  if (report.storagePath) {
-    try {
-      await supabase.storage.from(REPORT_BUCKET).remove([report.storagePath])
-    } catch {
-      // Linha já está certa; a limpeza da pasta alcança o arquivo depois.
-    }
-  }
+  if (report.storagePath) await removerPdfSemBloquear(report.storagePath)
 
   return mapReportRow(data as ReportRow)
 }
 
 export async function deletePatientReport(patientId: string, report: PatientReport): Promise<void> {
-  if (report.storagePath) {
-    const { error: storageError } = await supabase.storage
-      .from(REPORT_BUCKET)
-      .remove([report.storagePath])
-    throwIfStorageError(storageError)
-  }
-
+  // A linha sai primeiro: se falhar, o relatório continua inteiro, com o PDF no lugar.
   const { error } = await supabase
     .from('patient_reports')
     .delete()
@@ -158,6 +152,8 @@ export async function deletePatientReport(patientId: string, report: PatientRepo
     .eq('patient_id', patientId)
 
   throwIfDbError(error)
+
+  if (report.storagePath) await removerPdfSemBloquear(report.storagePath)
 }
 
 /** Garante um PDF do texto atual. Reaproveita o arquivo existente para não quebrar links já enviados. */
@@ -177,18 +173,32 @@ export async function ensurePatientReportPdf(
   })
   throwIfStorageError(uploadError)
 
+  // Só grava se o relatório ainda é a versão usada no PDF: outra aba pode ter editado ou enviado.
   const { data, error } = await supabase
     .from('patient_reports')
     .update({ storage_path: path })
     .eq('id', report.id)
     .eq('patient_id', patientId)
+    .eq('updated_at', report.updatedAt)
+    .is('storage_path', null)
     .select(REPORT_COLUMNS)
-    .single()
+    .maybeSingle()
 
   if (error) {
-    await supabase.storage.from(REPORT_BUCKET).remove([path])
+    await removerPdfSemBloquear(path)
     throw new Error(mapDbError(error))
   }
+  if (data) return mapReportRow(data as ReportRow)
 
-  return mapReportRow(data as ReportRow)
+  await removerPdfSemBloquear(path)
+  const { data: atual } = await supabase
+    .from('patient_reports')
+    .select(REPORT_COLUMNS)
+    .eq('id', report.id)
+    .eq('patient_id', patientId)
+    .maybeSingle()
+  const linha = atual as ReportRow | null
+  // Mesma versão com PDF: outra aba acabou de gerar, serve o dela.
+  if (linha?.storage_path && linha.updated_at === report.updatedAt) return mapReportRow(linha)
+  throw new Error(PATIENT_REPORT_COPY.pdfStale)
 }

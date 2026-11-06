@@ -77,7 +77,7 @@ export function useEnsurePatientReportPdf(patientId: string) {
     onSuccess: () => {
       invalidatePatient(qc, patientId)
     },
-    onError,
+    // Sem onError: o painel mostra o erro de cada canal.
   })
 }
 
