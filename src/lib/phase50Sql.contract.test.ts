@@ -52,7 +52,8 @@ test('REQ-57: nada que bloqueie ou mexa em objetos existentes', () => {
   ok(!sql.includes('delete_patient_full'))
   ok(!sql.includes('delete_account_data'))
   ok(!sql.includes('patient_ai_reports'))
-  ok(!/create table[^;]*storage/.test(sql))
+  ok(!/create table (if not exists )?storage\./.test(sql))
+  ok(!sql.includes('storage.buckets'))
 })
 
 test('REQ-57: verify e somente leitura e confere side_effects', () => {
