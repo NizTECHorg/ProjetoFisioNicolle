@@ -1,9 +1,9 @@
-// Rascunhos automáticos de avaliação e de sessão/evolução: guardados neste aparelho enquanto a
+// Rascunhos automáticos de avaliação, sessão/evolução e relatório: guardados neste aparelho enquanto a
 // pessoa preenche, para nada se perder se ela sair sem salvar. Sem imports com alias: roda em node --test.
 
-export type RascunhoTipo = 'avaliacao' | 'sessao'
+export type RascunhoTipo = 'avaliacao' | 'sessao' | 'relatorio'
 
-/** id da avaliação/sessão em edição, ou NOVO para um registro que ainda não existe. */
+/** id do registro em edição, ou NOVO para um registro que ainda não existe. */
 export const RASCUNHO_NOVO = 'novo'
 export const RASCUNHO_VALIDADE_MS = 14 * 24 * 60 * 60 * 1000
 export const RASCUNHO_EVENTO = 'fluxo:rascunho'

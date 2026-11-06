@@ -38,7 +38,7 @@ test('REQ-57: RLS forcado, quatro policies e funcoes de acesso', () => {
 })
 
 test('REQ-57: privilegios por coluna e revoke de anon', () => {
-  ok(sql.includes('grant update (content, place, storage_path, updated_at)'))
+  ok(sql.includes('grant update (content, place, signature_path, storage_path, updated_at)'))
   ok(/revoke all on table public\.patient_reports from anon, public, authenticated/.test(sql))
 })
 

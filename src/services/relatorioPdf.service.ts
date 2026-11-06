@@ -1,5 +1,6 @@
 import {
   PDFDocument,
+  LineCapStyle,
   StandardFonts,
   rgb,
   type PDFFont,
@@ -21,6 +22,7 @@ import {
   dataPorExtenso,
   linhasRelatorio,
 } from '@/lib/relatorio'
+import { SIGNATURE_VIEWBOX, isSafeSignaturePath, signaturePdfScale } from '@/lib/signaturePath'
 import { loadPdfBrand } from '@/services/pdfBranding.service'
 
 export type RelatorioPdfInput = {
@@ -30,12 +32,16 @@ export type RelatorioPdfInput = {
   createdAt: string
   therapistName: string | null
   therapistCrefito: string | null
+  signaturePath: string | null
 }
 
 const PAGE_HEIGHT = 841.89
 const FOOTER_RESERVE = 32
 const LOGO_HEIGHT = 32
 const SIGNATURE_LINE_W = 240
+const SIGNATURE_BOX_H = 48
+/** Altura da linha guia no campo de assinatura: é ela que encosta na linha do PDF. */
+const SIGNATURE_PAD_BASELINE = 130
 const PDF_ERROR = 'Não foi possível gerar o PDF. Tente de novo em instantes.'
 
 const COLORS = {
@@ -209,8 +215,19 @@ export async function buildRelatorioPdf(input: RelatorioPdfInput): Promise<Blob>
   ctx.y -= RELATORIO_LEADING
 
   // Bloco de assinatura inteiro na mesma página.
-  ensureSpace(ctx, 48 + 8 + RELATORIO_LEADING * 2 + 8)
-  ctx.y -= 48
+  ensureSpace(ctx, SIGNATURE_BOX_H + 8 + RELATORIO_LEADING * 2 + 8)
+  ctx.y -= SIGNATURE_BOX_H
+  if (isSafeSignaturePath(input.signaturePath)) {
+    const scale = signaturePdfScale(SIGNATURE_LINE_W, SIGNATURE_BOX_H)
+    ctx.page.drawSvgPath(input.signaturePath, {
+      x: (RELATORIO_PAGE_WIDTH - SIGNATURE_VIEWBOX.width * scale) / 2,
+      y: ctx.y + SIGNATURE_PAD_BASELINE * scale,
+      scale,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1.2 / scale,
+      borderLineCap: LineCapStyle.Round,
+    })
+  }
   drawLine(ctx, (RELATORIO_PAGE_WIDTH - SIGNATURE_LINE_W) / 2, ctx.y, SIGNATURE_LINE_W, 1, COLORS.ink)
   ctx.y -= 8
   centered(ctx, orBlank(input.therapistName), ctx.y - RELATORIO_FONT_SIZE)

@@ -19,7 +19,6 @@ test('REQ-57: editor do relatorio', () => {
     'useGenerateReportText',
     'fullName',
     'crefito',
-    'ConfirmDialog',
   ]) {
     ok(src.includes(token), `editor deve conter ${token}`)
   }
@@ -73,4 +72,18 @@ test('REQ-57: editor solta geração atrasada e conta Local como alteração; e-
   ok(editor.includes('generate.reset()'))
   ok(editor.includes('placeValue !== report.place'))
   ok(panel.includes('if (!report || sending) return'))
+})
+
+test('REQ-57: relatório usa o rascunho automático, inclusive no F5', () => {
+  const editor = readFileSync(new URL('../components/patients/PatientReportEditor.tsx', import.meta.url), 'utf8')
+  const panel = readFileSync(new URL('../components/patients/PatientReportsPanel.tsx', import.meta.url), 'utf8')
+  const hook = readFileSync(new URL('../hooks/useRascunhoForm.ts', import.meta.url), 'utf8')
+  const valores = hook.slice(hook.indexOf('export function useRascunhoValores'))
+  ok(valores.includes("addEventListener('pagehide', gravar)"))
+  ok(editor.includes("tipo: 'relatorio'"))
+  ok(editor.includes('sessionIds: [...selectedIds]'))
+  ok(editor.includes('ativo: open && dirty'))
+  ok(editor.includes('limparRascunho()'))
+  ok(!editor.includes('ConfirmDialog'))
+  ok(panel.includes("useRascunhosPaciente(patientId, 'relatorio')"))
 })

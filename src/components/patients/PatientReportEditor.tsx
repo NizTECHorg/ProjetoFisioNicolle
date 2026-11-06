@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { TextMeasurer } from '@/lib/pdfText'
 import { AiGeneratingButton } from '@/components/ui/AiGeneratingButton'
 import { Button } from '@/components/ui/Button'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Textarea } from '@/components/ui/Textarea'
+import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
+import { SignaturePad } from '@/components/patients/evaluation/SignaturePad'
 import { useAuth } from '@/hooks/useAuth'
 import {
   useCreatePatientReport,
@@ -13,6 +14,7 @@ import {
   useUpdatePatientReport,
 } from '@/hooks/usePatientReports'
 import { usePatientSessions } from '@/hooks/usePatients'
+import { useRascunhoValores } from '@/hooks/useRascunhoForm'
 import {
   RELATORIO_LINHAS_MAX,
   RELATORIO_MAX_SESSOES,
@@ -23,10 +25,13 @@ import {
   sessaoSelecionavelRelatorio,
   textosFonteRelatorio,
 } from '@/lib/relatorio'
+import { RASCUNHO_NOVO } from '@/lib/rascunhosLocais'
 import { PATIENT_REPORT_COPY } from '@/schemas/patientReport.schema'
 import { createRelatorioMeasurer } from '@/services/relatorioPdf.service'
 import { toast } from '@/stores/toast.store'
 import type { PatientReport } from '@/types/patient'
+
+type RascunhoRelatorio = { content: string; place: string; assinatura?: string; sessionIds: string[] }
 
 type PatientReportEditorProps = {
   patientId: string
@@ -47,10 +52,33 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
   const [step, setStep] = useState<'selecao' | 'edicao'>('selecao')
   const [content, setContent] = useState('')
   const [place, setPlace] = useState('')
+  const [assinatura, setAssinatura] = useState('')
   const [reduzido, setReduzido] = useState(false)
-  const [confirmDiscard, setConfirmDiscard] = useState(false)
+  const [restauradoEm, setRestauradoEm] = useState<number | null>(null)
 
   const isEdit = report !== null
+  const placeValue = place.trim() === '' ? null : place.trim()
+  const assinaturaValue = assinatura === '' ? null : assinatura
+  const dirty = isEdit
+    ? content !== report.content || placeValue !== report.place || assinaturaValue !== report.signaturePath
+    : content.trim().length > 0 || placeValue !== null || assinaturaValue !== null
+
+  // Rascunho automático: F5 ou sair sem salvar não perde o texto, nem o que a IA gerou.
+  const valoresRascunho = useMemo<RascunhoRelatorio>(
+    () => ({ content, place, assinatura, sessionIds: [...selectedIds] }),
+    [content, place, assinatura, selectedIds],
+  )
+  const {
+    carregar: carregarRascunho,
+    guardar: guardarRascunho,
+    limpar: limparRascunho,
+  } = useRascunhoValores({
+    patientId,
+    tipo: 'relatorio',
+    registroId: report?.id ?? RASCUNHO_NOVO,
+    valores: valoresRascunho,
+    ativo: open && dirty,
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -66,21 +94,38 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
     }
   }, [])
 
-  // Reinicia o estado cada vez que o modal abre.
-  useEffect(() => {
-    if (!open) return
+  function iniciarSemRascunho() {
+    setRestauradoEm(null)
     setSelectedIds(new Set())
     setReduzido(false)
-    setConfirmDiscard(false)
     if (report) {
       setStep('edicao')
       setContent(report.content)
       setPlace(report.place ?? '')
+      setAssinatura(report.signaturePath ?? '')
     } else {
       setStep('selecao')
       setContent('')
       setPlace('')
+      setAssinatura('')
     }
+  }
+
+  // Reinicia o estado cada vez que o modal abre; o rascunho deste relatório entra por cima.
+  useEffect(() => {
+    if (!open) return
+    const salvo = carregarRascunho()
+    if (!salvo) {
+      iniciarSemRascunho()
+      return
+    }
+    setRestauradoEm(salvo.salvoEm)
+    setReduzido(false)
+    setSelectedIds(new Set(salvo.valores.sessionIds))
+    setContent(salvo.valores.content)
+    setPlace(salvo.valores.place)
+    setAssinatura(salvo.valores.assinatura ?? '')
+    setStep('edicao')
     // Só reinicia ao abrir ou trocar de relatório; atualizações da lista não devem apagar a edição.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, report?.id])
@@ -117,11 +162,8 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
   )
 
   const saving = createReport.isPending || updateReport.isPending
-  const saveDisabled = !medidor || linhas === 0 || linhas > RELATORIO_LINHAS_MAX || saving
-  const placeValue = place.trim() === '' ? null : place.trim()
-  const dirty = isEdit
-    ? content !== report.content || placeValue !== report.place
-    : content.trim().length > 0 || placeValue !== null
+  const saveDisabled =
+    !medidor || linhas === 0 || linhas > RELATORIO_LINHAS_MAX || saving || (!isEdit && marcadas.length === 0)
 
   function toggleSession(id: string) {
     setSelectedIds((prev) => {
@@ -153,27 +195,37 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
   function finish() {
     // Solta a geração em andamento: a resposta atrasada não pode cair no próximo relatório aberto.
     generate.reset()
+    setRestauradoEm(null)
     setSelectedIds(new Set())
     setContent('')
     setPlace('')
-    setConfirmDiscard(false)
+    setAssinatura('')
     onClose()
   }
 
-  function requestClose() {
-    if (dirty && !saving) {
-      setConfirmDiscard(true)
-      return
-    }
+  function aoSalvar() {
+    limparRascunho()
     finish()
+  }
+
+  // Fechar sem salvar guarda o rascunho; o painel oferece continuar ou descartar.
+  function requestClose() {
+    if (saving) return
+    guardarRascunho()
+    finish()
+  }
+
+  function descartarRascunho() {
+    limparRascunho()
+    iniciarSemRascunho()
   }
 
   function handleSave() {
     if (saveDisabled) return
     if (report) {
       updateReport.mutate(
-        { report, input: { content, place: placeValue } },
-        { onSuccess: finish },
+        { report, input: { content, place: placeValue, signaturePath: assinaturaValue } },
+        { onSuccess: aoSalvar },
       )
       return
     }
@@ -186,8 +238,9 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
         sessionLabel: rotuloSessoesRelatorio(marcadas),
         therapistName: profile?.fullName || null,
         therapistCrefito: profile?.crefito || null,
+        signaturePath: assinaturaValue,
       },
-      { onSuccess: finish },
+      { onSuccess: aoSalvar },
     )
   }
 
@@ -280,6 +333,13 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
           </div>
         ) : (
           <div className="space-y-4">
+            {restauradoEm !== null ? (
+              <RascunhoAviso
+                salvoEm={restauradoEm}
+                texto={PATIENT_REPORT_COPY.draftRestored}
+                onDescartar={descartarRascunho}
+              />
+            ) : null}
             {!isEdit ? (
               <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm text-forest">
                 {PATIENT_REPORT_COPY.reviewNotice}
@@ -307,6 +367,14 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
               maxLength={120}
               value={place}
               onChange={(event) => setPlace(event.target.value)}
+            />
+
+            <SignaturePad
+              label={PATIENT_REPORT_COPY.signatureLabel}
+              value={assinatura}
+              onChange={setAssinatura}
+              clearLabel="Apagar assinatura"
+              heightClass="h-32"
             />
 
             {avisoNumeros.length > 0 ? (
@@ -342,17 +410,6 @@ export function PatientReportEditor({ patientId, report, open, onClose }: Patien
           </div>
         )}
       </Modal>
-
-      <ConfirmDialog
-        open={confirmDiscard}
-        title={PATIENT_REPORT_COPY.discardTitle}
-        description={PATIENT_REPORT_COPY.discardDescription}
-        confirmLabel="Descartar"
-        cancelLabel="Voltar"
-        tone="danger"
-        onClose={() => setConfirmDiscard(false)}
-        onConfirm={finish}
-      />
     </>
   )
 }

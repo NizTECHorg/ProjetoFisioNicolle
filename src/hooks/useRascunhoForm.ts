@@ -93,6 +93,83 @@ export function useRascunhoForm<T extends FieldValues>({ form, patientId, tipo, 
   return { restaurado, limpar, guardarAgora }
 }
 
+type OpcoesValores<T> = {
+  patientId: string
+  tipo: RascunhoTipo
+  registroId: string
+  /** Memorizado: cada valor novo reinicia a espera para gravar. */
+  valores: T
+  /** true enquanto há o que guardar (formulário aberto e alterado). */
+  ativo: boolean
+}
+
+/** O mesmo rascunho automático de useRascunhoForm, para telas que guardam o estado sem react-hook-form. */
+export function useRascunhoValores<T>({ patientId, tipo, registroId, valores, ativo }: OpcoesValores<T>) {
+  const { user } = useAuth()
+  const userId = user?.id ?? null
+  const atual = useRef({ userId, patientId, tipo, registroId, valores, ativo })
+  const timer = useRef<number | null>(null)
+
+  useEffect(() => {
+    atual.current = { userId, patientId, tipo, registroId, valores, ativo }
+  }, [userId, patientId, tipo, registroId, valores, ativo])
+
+  const referencia = useCallback(() => {
+    const { userId: id, patientId: paciente, tipo: tipoAtual, registroId: registro } = atual.current
+    return id ? { userId: id, patientId: paciente, tipo: tipoAtual, registroId: registro } : null
+  }, [])
+
+  const cancelarEspera = useCallback(() => {
+    if (timer.current !== null) window.clearTimeout(timer.current)
+    timer.current = null
+  }, [])
+
+  const gravar = useCallback(() => {
+    cancelarEspera()
+    const ref = referencia()
+    if (ref && atual.current.ativo) salvarRascunho(ref, atual.current.valores)
+  }, [cancelarEspera, referencia])
+
+  useEffect(() => {
+    if (!ativo) return
+    timer.current = window.setTimeout(gravar, ESPERA_MS)
+    return cancelarEspera
+  }, [ativo, valores, gravar, cancelarEspera])
+
+  // F5, fechar a aba ou trocar de aplicativo antes da espera terminar.
+  useEffect(() => {
+    const aoEsconder = () => {
+      if (document.visibilityState === 'hidden') gravar()
+    }
+    window.addEventListener('pagehide', gravar)
+    document.addEventListener('visibilitychange', aoEsconder)
+    return () => {
+      window.removeEventListener('pagehide', gravar)
+      document.removeEventListener('visibilitychange', aoEsconder)
+    }
+  }, [gravar])
+
+  const carregar = useCallback(() => {
+    const ref = referencia()
+    return ref ? carregarRascunho<T>(ref) : null
+  }, [referencia])
+
+  /** Depois de salvar de verdade ou de descartar: o rascunho deixa de existir. */
+  const limpar = useCallback(() => {
+    cancelarEspera()
+    const ref = referencia()
+    if (ref) apagarRascunho(ref)
+  }, [cancelarEspera, referencia])
+
+  /** Ao fechar sem salvar: guarda o que mudou; se voltou ao original, não sobra rascunho. */
+  const guardar = useCallback(() => {
+    if (atual.current.ativo) gravar()
+    else limpar()
+  }, [gravar, limpar])
+
+  return { carregar, guardar, limpar }
+}
+
 /** Rascunhos deste paciente, atualizados quando um formulário grava ou apaga. */
 export function useRascunhosPaciente(patientId: string, tipo: RascunhoTipo): RascunhoResumo[] {
   const { user } = useAuth()

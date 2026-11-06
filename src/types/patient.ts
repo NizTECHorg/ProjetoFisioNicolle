@@ -128,6 +128,8 @@ export interface PatientReport {
   sessionLabel: string | null
   therapistName: string | null
   therapistCrefito: string | null
+  /** Traço da assinatura à mão (path SVG), ou null. */
+  signaturePath: string | null
   storagePath: string | null
   sessionIds: string[]
   createdAt: string

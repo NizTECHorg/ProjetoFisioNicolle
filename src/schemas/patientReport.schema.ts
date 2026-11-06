@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { RELATORIO_CONTEUDO_MAX_CHARS, RELATORIO_MAX_SESSOES } from '@/lib/relatorio'
+import { SIGNATURE_MAX_CHARS } from '@/lib/signaturePath'
 
 const sessionIdsSchema = z.array(z.string().uuid()).min(1).max(RELATORIO_MAX_SESSOES)
 
@@ -15,6 +16,7 @@ export const patientReportTextSchema = z.object({
 
 const contentSchema = z.string().trim().min(1).max(RELATORIO_CONTEUDO_MAX_CHARS)
 const placeSchema = z.string().trim().max(120).nullable()
+const signatureSchema = z.string().max(SIGNATURE_MAX_CHARS).nullable()
 
 export const patientReportCreateSchema = z.object({
   patientId: z.string().uuid(),
@@ -24,10 +26,12 @@ export const patientReportCreateSchema = z.object({
   sessionLabel: z.string().trim().max(120),
   therapistName: z.string().trim().max(120).nullable(),
   therapistCrefito: z.string().trim().max(40).nullable(),
+  signaturePath: signatureSchema,
 })
 
 export const patientReportUpdateSchema = z.object({
   content: contentSchema,
+  signaturePath: signatureSchema,
   place: placeSchema,
 })
 
@@ -59,8 +63,9 @@ export const PATIENT_REPORT_COPY = {
   deleted: 'Relatório excluído.',
   deleteTitle: 'Excluir relatório?',
   deleteDescription: 'O relatório e o PDF dele serão apagados.',
-  discardTitle: 'Descartar o texto?',
-  discardDescription: 'O que você escreveu aqui será perdido.',
+  draftRestored: 'Recuperamos o que você não tinha salvo.',
+  draftNew: 'Você tem um relatório não salvo.',
+  signatureLabel: 'Assinatura (opcional)',
   outdatedFunction:
     'A função de IA está desatualizada. Publique de novo a função patient-ai-summary no Supabase.',
   noContent: 'Uma das sessões marcadas não tem evolução escrita.',

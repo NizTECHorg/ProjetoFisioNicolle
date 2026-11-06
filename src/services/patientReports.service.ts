@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase/client'
 import { mapDbError, mapStorageError, sanitizeText } from '@/lib/security'
 import { normalizarTextoRelatorio } from '@/lib/relatorio'
+import { isSafeSignaturePath } from '@/lib/signaturePath'
 import {
   patientReportCreateSchema,
   patientReportUpdateSchema,
@@ -12,7 +13,7 @@ import type { PatientReport } from '@/types/patient'
 
 const REPORT_BUCKET = 'patient-ai-reports'
 const REPORT_COLUMNS =
-  'id, patient_id, content, place, session_ids, session_label, therapist_name, therapist_crefito, storage_path, created_at, updated_at'
+  'id, patient_id, content, place, session_ids, session_label, therapist_name, therapist_crefito, signature_path, storage_path, created_at, updated_at'
 
 interface ReportRow {
   id: string
@@ -23,6 +24,7 @@ interface ReportRow {
   session_label: string | null
   therapist_name: string | null
   therapist_crefito: string | null
+  signature_path: string | null
   storage_path: string | null
   created_at: string
   updated_at: string
@@ -59,6 +61,7 @@ function mapReportRow(row: ReportRow): PatientReport {
     sessionLabel: row.session_label,
     therapistName: row.therapist_name,
     therapistCrefito: row.therapist_crefito,
+    signaturePath: row.signature_path,
     storagePath: row.storage_path,
     sessionIds: row.session_ids ?? [],
     createdAt: row.created_at,
@@ -70,6 +73,10 @@ function cleanPlace(place: string | null): string | null {
   if (place === null) return null
   const clean = sanitizeText(place, 120)
   return clean.length > 0 ? clean : null
+}
+
+function cleanSignature(path: string | null): string | null {
+  return isSafeSignaturePath(path) ? path : null
 }
 
 export async function listPatientReports(patientId: string): Promise<PatientReport[]> {
@@ -100,6 +107,7 @@ export async function createPatientReport(input: PatientReportCreateInput): Prom
       session_label: sanitizeText(value.sessionLabel, 120),
       therapist_name: value.therapistName,
       therapist_crefito: value.therapistCrefito,
+      signature_path: cleanSignature(value.signaturePath),
     })
     .select(REPORT_COLUMNS)
     .single()
@@ -120,7 +128,9 @@ export async function updatePatientReport(
   const content = normalizarTextoRelatorio(parsed.data.content)
   const place = cleanPlace(parsed.data.place)
 
-  if (content === report.content && place === report.place) return report
+  const signaturePath = cleanSignature(parsed.data.signaturePath)
+
+  if (content === report.content && place === report.place && signaturePath === report.signaturePath) return report
 
   // Editar invalida o PDF: storage_path preenchido significa "PDF do texto atual".
   const { data, error } = await supabase
@@ -128,6 +138,7 @@ export async function updatePatientReport(
     .update({
       content,
       place,
+      signature_path: signaturePath,
       updated_at: new Date().toISOString(),
       storage_path: null,
     })

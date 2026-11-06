@@ -3,6 +3,7 @@ import { FileText, Mail, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { PatientReportEditor } from '@/components/patients/PatientReportEditor'
+import { RascunhoAviso } from '@/components/patients/RascunhoAviso'
 import { SendEmailDialog } from '@/components/patients/SendEmailDialog'
 import { SendWhatsAppDialog } from '@/components/patients/SendWhatsAppDialog'
 import {
@@ -10,8 +11,11 @@ import {
   useEnsurePatientReportPdf,
   usePatientReports,
 } from '@/hooks/usePatientReports'
+import { useAuth } from '@/hooks/useAuth'
 import { usePatient } from '@/hooks/usePatients'
+import { useRascunhosPaciente } from '@/hooks/useRascunhoForm'
 import { downloadBlob } from '@/lib/downloadBlob'
+import { RASCUNHO_NOVO, apagarRascunho } from '@/lib/rascunhosLocais'
 import { RELATORIO_TITULO } from '@/lib/relatorio'
 import { resolvePatientEmail } from '@/lib/patientContact'
 import { PATIENT_AI_COPY } from '@/schemas/patientAi.schema'
@@ -49,6 +53,8 @@ const textButtonClass =
   'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-forest transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40'
 
 export function PatientReportsPanel({ patientId, patientName, canWrite = false }: PatientReportsPanelProps) {
+  const { user } = useAuth()
+  const rascunhos = useRascunhosPaciente(patientId, 'relatorio')
   const { data: detail } = usePatient(patientId)
   const { data: reports = [], isLoading, isError } = usePatientReports(patientId)
   const deleteReport = useDeletePatientReport(patientId)
@@ -72,6 +78,7 @@ export function PatientReportsPanel({ patientId, patientName, canWrite = false }
       createdAt: report.createdAt,
       therapistName: report.therapistName,
       therapistCrefito: report.therapistCrefito,
+      signaturePath: report.signaturePath,
     })
   }
 
@@ -161,6 +168,28 @@ export function PatientReportsPanel({ patientId, patientName, canWrite = false }
           </Button>
         ) : null}
       </div>
+
+      {canWrite && !editorOpen
+        ? rascunhos.map((item) => {
+            const salvo = reports.find((r) => r.id === item.registroId) ?? null
+            if (item.registroId !== RASCUNHO_NOVO && !salvo) return null
+            return (
+              <RascunhoAviso
+                key={item.registroId}
+                salvoEm={item.salvoEm}
+                texto={
+                  salvo
+                    ? `Alterações não salvas no relatório de ${formatReportDate(salvo.createdAt)}.`
+                    : PATIENT_REPORT_COPY.draftNew
+                }
+                onContinuar={() => (salvo ? openEdit(salvo) : openNew())}
+                onDescartar={() => {
+                  if (user) apagarRascunho({ userId: user.id, patientId, tipo: 'relatorio', registroId: item.registroId })
+                }}
+              />
+            )
+          })
+        : null}
 
       {isLoading ? (
         <div className="flex min-h-24 items-center justify-center">
@@ -277,7 +306,13 @@ export function PatientReportsPanel({ patientId, patientName, canWrite = false }
             onClose={() => setPendingDelete(null)}
             onConfirm={() => {
               if (!pendingDelete) return
-              deleteReport.mutate(pendingDelete, { onSuccess: () => setPendingDelete(null) })
+              const excluido = pendingDelete
+              deleteReport.mutate(excluido, {
+                onSuccess: () => {
+                  if (user) apagarRascunho({ userId: user.id, patientId, tipo: 'relatorio', registroId: excluido.id })
+                  setPendingDelete(null)
+                },
+              })
             }}
           />
 

@@ -34,3 +34,13 @@ test('REQ-57: PDF nao corta o texto nem reaproveita o PDF da ficha', () => {
 test('REQ-57: titulo do relatorio', () => {
   assert.match(lib, /RELATORIO_TITULO = 'Relatório fisioterapêutico'/)
 })
+
+test('REQ-57: assinatura à mão entra no PDF só com traço validado', () => {
+  const pdf = readFileSync(new URL('../services/relatorioPdf.service.ts', import.meta.url), 'utf8')
+  const service = readFileSync(new URL('../services/patientReports.service.ts', import.meta.url), 'utf8')
+  const editor = readFileSync(new URL('../components/patients/PatientReportEditor.tsx', import.meta.url), 'utf8')
+  assert.ok(pdf.includes('isSafeSignaturePath(input.signaturePath)'))
+  assert.ok(pdf.includes('ctx.page.drawSvgPath('))
+  assert.ok(service.includes('signaturePath === report.signaturePath'))
+  assert.ok(editor.includes('<SignaturePad'))
+})
