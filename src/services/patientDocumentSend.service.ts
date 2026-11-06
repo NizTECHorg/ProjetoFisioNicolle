@@ -83,6 +83,7 @@ export async function sendPatientDocument(input: PatientDocumentSendInput): Prom
       reportId: parsed.reportId,
       sendToPatient: parsed.sendToPatient ?? true,
       extraEmails: parsed.extraEmails ?? [],
+      source: parsed.source,
     },
   })
 
@@ -97,7 +98,7 @@ export async function sendPatientDocument(input: PatientDocumentSendInput): Prom
   }
 }
 
-type SendableReportKind = 'avaliacao' | 'evolucao'
+type SendableReportKind = 'avaliacao' | 'evolucao' | 'relatorio'
 
 export type SignedPatientDocument = { ok: true; url: string } | { ok: false }
 
@@ -108,7 +109,12 @@ export async function signPatientDocumentUrl(
 ): Promise<SignedPatientDocument> {
   const folder = storagePath.split('/')[0]?.toLowerCase() ?? ''
   if (!patientId || folder !== patientId.toLowerCase()) return { ok: false }
-  const download = kind === 'avaliacao' ? 'avaliacao.pdf' : 'evolucao.pdf'
+  const download =
+    kind === 'relatorio'
+      ? 'relatorio.pdf'
+      : kind === 'avaliacao'
+        ? 'avaliacao.pdf'
+        : 'evolucao.pdf'
   try {
     const { data, error } = await supabase.storage
       .from('patient-ai-reports')

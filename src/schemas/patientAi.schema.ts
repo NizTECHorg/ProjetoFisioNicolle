@@ -115,6 +115,7 @@ export const patientDocumentSendSchema = z.object({
   sendToPatient: z.boolean().optional(),
   /** Outras pessoas que também recebem (médico, responsável…), até 3. */
   extraEmails: z.array(z.string().trim().email('E-mail inválido.')).max(3).optional(),
+  source: z.enum(['relatorio']).optional(),
 })
 
 export type PatientDocumentSendInput = z.infer<typeof patientDocumentSendSchema>

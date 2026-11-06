@@ -14,6 +14,12 @@ import {
   type PatientAiEvolucaoInvokeInput,
   type PatientAiSummaryInvokeInput,
 } from '@/schemas/patientAi.schema'
+import {
+  patientReportInvokeSchema,
+  patientReportTextSchema,
+  PATIENT_REPORT_COPY,
+  type PatientReportInvokeInput,
+} from '@/schemas/patientReport.schema'
 import { saveGeneratedPatientSummary } from '@/services/patients.service'
 
 interface FunctionsErrorBody {
@@ -236,6 +242,48 @@ export async function generateEvolucaoSynthesis(
   }
 
   return synthesis.data
+}
+
+function throwReportModeError(payload: { code?: string; message?: string; status?: number }) {
+  if (payload.code === 'invalid_body') throw new Error(PATIENT_REPORT_COPY.outdatedFunction)
+  if (payload.code === 'no_content') throw new Error(PATIENT_REPORT_COPY.noContent)
+  throwMappedFunctionsError(payload)
+}
+
+/** Gera o texto do relatório a partir das sessões marcadas. Não grava nada e não envia userHint. */
+export async function generateReportText(
+  input: PatientReportInvokeInput,
+): Promise<{ texto: string }> {
+  const parsed = patientReportInvokeSchema.parse(input)
+
+  const { data, error } = await supabase.functions.invoke('patient-ai-summary', {
+    body: { patientId: parsed.patientId, mode: 'relatorio', sessionIds: parsed.sessionIds },
+  })
+
+  if (error) {
+    const payload = await readFunctionsErrorPayload(error, data)
+    throwReportModeError(payload)
+  }
+
+  const body = data as Record<string, unknown> | null
+  if (body && (body.code || body.error) && typeof body.texto !== 'string') {
+    throwReportModeError({
+      code: typeof body.code === 'string' ? body.code : undefined,
+      message:
+        typeof body.message === 'string'
+          ? body.message
+          : typeof body.error === 'string'
+            ? body.error
+            : undefined,
+    })
+  }
+
+  const result = patientReportTextSchema.safeParse(body)
+  if (!result.success) {
+    throwMappedFunctionsError({ code: 'ai_unavailable' })
+  }
+
+  return result.data
 }
 
 /** Gera os itens do rascunho de avaliação. Só o id do paciente sai do navegador. */
